@@ -1,0 +1,14 @@
+/* Button corners. A little roundness: crisp, not pill-shaped and not sharp. One token and one override carry it on every button; change --r-btn to make them rounder or squarer.
+   (Panels, cards and sheets keep their own corners; dots, spinners and the colour swatches are not buttons.) */
+:root { --r-btn: 6px; --r-control: 6px; --r-small: 5px; }
+
+button, .btn, .icon-btn, a.btn, input[type="button"], input[type="submit"], input[type="file"]::file-selector-button,
+[role="tab"], [role="radio"], [role="option"], [role="menuitem"], [role="switch"],
+.seg, .seg button, .mode-toggle, .mode-toggle button, .rail button, .tile, .chip.btn, button.chip,
+.look-card, .dir-card, .dl-card, .up-tool, .tr-handle, .tr-grid button, .tl-add-menu button, .lane-eye, .lane-bar, .lane-edge, .kf-hero-img, .rv-media, .tk-thumb, .mi-thumb,
+.golden li button, .g-help, .g-test, .glyph-badge, .btn.small, .btn.sm, .btn.hero, .btn.primary, .btn.ghost {
+  border-radius: var(--r-btn) !important;
+}
+
+/* the play button was a circle: now a softly rounded square like the rest, with the same size */
+.transport button, .transport .play { border-radius: var(--r-btn) !important; }

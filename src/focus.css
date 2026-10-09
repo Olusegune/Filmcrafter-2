@@ -1,0 +1,6 @@
+/* A safety net for the keyboard: anything you can press shows a ring when you reach it with Tab, even if its own style forgot to say so.
+   :where() keeps the specificity at zero, so every control's own focus style still wins. */
+:where(button, a[href], summary, select, input, textarea, [role="button"], [role="tab"], [role="radio"], [role="option"], [role="menuitem"], [tabindex="0"]):focus-visible {
+  outline: 2px solid var(--signal, #64b7ff);
+  outline-offset: 2px;
+}

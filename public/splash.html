@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PULSEFRAME</title>
+<style>
+  /* Branded opening: dark stage → emblem lights up → wordmark → tagline. ~1 s the first time, ~0.35 s for
+     frequent launches, a still frame with reduced motion. The main window replaces this as soon as it is ready. */
+  html, body { margin: 0; height: 100%; background: #05070a; overflow: hidden; cursor: default; user-select: none; }
+  .layer { position: absolute; inset: 0; background: center / cover no-repeat; }
+  .dark { background-image: url("onboarding/splash_dark.jpg"); }
+  .scene { background-image: url("onboarding/splash_scene.jpg");
+    -webkit-mask-image: radial-gradient(circle at 50% 38%, #000 var(--r), transparent calc(var(--r) + 22%));
+            mask-image: radial-gradient(circle at 50% 38%, #000 var(--r), transparent calc(var(--r) + 22%)); --r: 0%; }
+  .glow { background: radial-gradient(ellipse 22% 16% at 50% 37%, rgba(140,200,255,0.28), rgba(232,180,92,0.12) 55%, transparent 75%); opacity: 0; mix-blend-mode: screen; }
+  .brand { position: absolute; left: 0; right: 0; top: 54%; display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 3.2vh, 34px); }
+  .word { position: relative; text-align: center; color: #f4f7fa; opacity: 0;
+    font: 350 clamp(34px, 5.6vw, 96px)/1.1 "Segoe UI Variable Display", "SF Pro Display", "Segoe UI", -apple-system, sans-serif; letter-spacing: 0.22em; padding-left: 0.22em;
+    background: linear-gradient(180deg, #ffffff 30%, #b9c4d2); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .tag { position: relative; text-shadow: 0 1px 10px rgba(0,0,0,0.85); text-align: center; color: rgba(244,247,250,0.86); opacity: 0;
+    font: 400 clamp(13px, 1.5vw, 26px)/1.3 "Segoe UI Variable Text", "SF Pro Text", "Segoe UI", -apple-system, sans-serif; letter-spacing: 0.22em; padding-left: 0.22em; }
+
+  .play .scene { animation: reveal 700ms cubic-bezier(.2,.8,.2,1) 120ms forwards; }
+  .play .glow { animation: glow 900ms ease-out 350ms forwards; }
+  .play .word { animation: rise 420ms cubic-bezier(.2,.8,.2,1) 520ms forwards; }
+  .play .tag { animation: rise 420ms cubic-bezier(.2,.8,.2,1) 760ms forwards; }
+  .quick .scene { animation-duration: 260ms; animation-delay: 0ms; }
+  .quick .glow { animation-duration: 300ms; animation-delay: 60ms; }
+  .quick .word { animation-duration: 220ms; animation-delay: 120ms; }
+  .quick .tag { animation-duration: 220ms; animation-delay: 180ms; }
+  @keyframes reveal { from { --r: 0%; } to { --r: 140%; } }
+  @keyframes glow { 0% { opacity: 0; } 55% { opacity: 1; } 100% { opacity: 0.55; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @property --r { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+  .still .scene { --r: 140%; } .still .glow { opacity: .55; } .still .word, .still .tag { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .play .scene, .play .glow, .play .word, .play .tag { animation: none; } }
+  /* The "steps" design: one finished image (its own wordmark, tagline and the six steps), faded in, no overlay text. */
+  .steps { background: #05070a url("onboarding/splash_steps.jpg") center / contain no-repeat; opacity: 0; display: none; }
+  .v-steps .steps { display: block; }
+  .v-steps .dark, .v-steps .scene, .v-steps .glow, .v-steps .brand { display: none; }
+  .v-steps.play .steps { animation: fade 450ms ease-out forwards; }
+  .v-steps.play.quick .steps { animation-duration: 200ms; }
+  .v-steps.still .steps { opacity: 1; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .v-steps .steps { animation: none !important; opacity: 1; } }
+  /* Close and guide buttons (softly rounded, like every button in the app), and a hairline that runs down while the splash is up */
+  .bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: #e8b45c; transform-origin: left; animation: run 4.5s linear forwards; opacity: .75; }
+  @keyframes run { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+  @media (prefers-reduced-motion: reduce) { .bar { animation: none; transform: scaleX(0); } }
+  .x, .guide { position: absolute; z-index: 5; border: 1px solid rgba(244,247,250,.35); background: rgba(5,7,10,.62); color: #f4f7fa; border-radius: 6px; cursor: pointer; font: 600 12.5px/1 "Segoe UI Variable Text", "Segoe UI", sans-serif; letter-spacing: .04em; backdrop-filter: blur(4px); }
+  .x { top: 12px; right: 12px; width: 34px; height: 34px; font-size: 16px; }
+  .guide { right: 14px; bottom: 16px; height: 34px; padding: 0 16px; }
+  .x:hover, .guide:hover { background: rgba(232,180,92,.22); border-color: #e8b45c; }
+  .x:focus-visible, .guide:focus-visible { outline: 2px solid #64b7ff; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="layer dark"></div>
+<div class="layer scene"></div>
+<div class="layer glow"></div>
+<div class="layer steps" role="img" aria-label="PULSEFRAME. Direct music into motion. Music, Lyrics, Story, Assets, Performance, Direct."></div>
+<div class="brand">
+  <div class="word" aria-label="PULSEFRAME">PULSEFRAME</div>
+  <div class="tag">Direct music into motion.</div>
+</div>
+<button class="x" id="x" type="button" aria-label="Close this and open the app" title="Close (Esc)">&#x2715;</button>
+<button class="guide" id="guide" type="button" title="Open the guide: how PULSEFRAME works, with pictures">Open the guide</button>
+<div class="bar" aria-hidden="true"></div>
+<script>
+  // Frequent launches get the short version; reduced motion gets the finished frame.
+  // The two designs alternate each launch; the very first launch shows the steps (it teaches the workflow).
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, quick = false, n = 0;
+  try {
+    var last = Number(localStorage.getItem("pf-splash-last") || 0);
+    quick = Date.now() - last < 3 * 86400000;
+    localStorage.setItem("pf-splash-last", String(Date.now()));
+    n = Number(localStorage.getItem("pf-splash-count") || 0);
+    localStorage.setItem("pf-splash-count", String(n + 1));
+  } catch (e) {}
+  document.body.className = (reduce ? "still" : quick ? "play quick" : "play") + (n % 2 === 0 ? " v-steps" : "");
+  // The buttons ask the app to close this window (and, for the guide, to open the documentation). Outside the app they do nothing.
+  function closeSplash(guide) {
+    try { window.__TAURI_INTERNALS__.invoke("splash_close", { guide: !!guide }); } catch (e) {}
+  }
+  document.getElementById("x").addEventListener("click", function () { closeSplash(false); });
+  document.getElementById("guide").addEventListener("click", function () { closeSplash(true); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSplash(false); });
+</script>
+</body>
+</html>

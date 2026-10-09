@@ -1,0 +1,441 @@
+import { invoke, convertFileSrc } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+
+export type Section = { start: number; end: number; label: string; group: string; energy: number; mood: string };
+export type LyricLine = { section: string; text: string; start: number | null; end: number | null };
+export type SongMap = {
+  duration: number; bpm: number; beats: number[]; downbeats: number[];
+  energy_curve: [number, number][]; accents: number[]; sections: Section[];
+  lyrics: LyricLine[]; lyric_match: number | null; peaks: number[]; analyzer: string;
+};
+
+/** A shot as shown in the studio: planned (script import) or directed (Director Engine). */
+export type Shot = {
+  id: string; scene: number; number: number; start: number; end: number;
+  beats: string[]; source_shots: string[]; performers: string[];
+  framing: string; state: string; renderer: string;
+  description?: string; camera_moves?: string[]; lyrics?: string[]; section?: string;
+  flags?: string[]; sync_accents?: number[];
+  // directed-only
+  purpose?: string; emotion?: string; performance_intensity?: number; performance?: string;
+  expression?: string; movement?: string; lens?: string; camera_movement?: string; camera_energy?: string;
+  lighting?: string; environment?: string; wardrobe?: string; continuity?: string; sync_event?: string;
+  visual_prompt?: string; dropped_beats?: string[]; revised?: number;
+};
+export type Scene = {
+  number: number; heading: string; start: number; end: number; notes: Record<string, string>;
+  fields?: Record<string, string>; characters?: string[]; shots: Shot[];
+  director_note?: string; issues?: string[];
+};
+export type Character = { name: string; archetype: string; appearance: string; motivation: string; acting_notes: string };
+export type Plan = { meta: Record<string, string>; characters: Character[]; scenes: Scene[]; model?: string };
+
+export type ProjectSummary = { dir: string; title: string; state: string; modified: number; song: string; onboarding?: { stage: string } };
+export type LoadedProject = {
+  dir: string;
+  project: { title: string; state: string; song: string; lyrics?: string; script?: string; aspect_ratio?: string; artist?: string; look?: Look | string;
+    quality?: ProjectSettings["quality"]; lip_sync?: ProjectSettings["lip_sync"]; onboarding?: Onboarding; source_song?: string };
+  song_path: string | null;
+  song_map: SongMap | null;
+  production: Plan | null;
+  directed: Plan | null;
+  jobs: Job[];
+  doc?: string | null;
+  keyframes?: Record<string, Record<string, string>>;
+  concepts?: { concepts: Concept[]; model?: string } | null;
+  treatment?: { concept: Concept; notes?: string } | null;
+};
+export type Concept = {
+  title: string; premise: string; mood: string; performance_approach: string; cinematic_style: string; palette: string[];
+  environment: string; wardrobe: string; movement: string; narrative_level: "performance" | "hybrid" | "narrative";
+  hero_frame: string; suggested_look: string;
+};
+export type JobState = "queued" | "submitting" | "submitted" | "ready" | "failed" | "uncertain" | "dismissed";
+export type Job = {
+  id: string; shot_id: string; plan: string; provider: "fal" | "kie" | "google"; model: string; state: JobState; kind?: "video" | "image" | "lipsync" | "asset"; source_job?: string | null;
+  overrides: Record<string, unknown>; payload?: Record<string, unknown>; provider_job_id: string | null;
+  output: string | null; error: string | null; cost: number | null; cost_unit?: string | null;
+  created: number; updated: number; attempts: number; shot_start: number; shot_end: number; look?: string;
+  fix_notes?: string[]; review?: Review; error_kind?: string;
+  extend_of?: string; extension_part?: string; submitted?: number; detail?: string | null; progress?: number | null; estimate_usd?: number | null; asset_name?: string; retry_note?: string; retried_as?: string | null; retry_of?: string; auto_retried?: boolean;
+  still_check?: { ok: boolean | null; problems?: { kind: string; severity?: "minor" | "major"; detail: string }[]; fix?: string; error?: string; model?: string };
+};
+export type ProjectSettings = { aspect_ratio: string; quality: "draft" | "standard" | "high" | "max"; lip_sync: "auto" | "closeups" | "off"; lip_sync_mode: "first_frame" | "audio_first" | "auto"; vocalist: "onscreen" | "offscreen"; sing_shot: { id: string; value: "auto" | "on" | "off" }; title: string };
+export type Estimate = { provider: string; model: string; shots: number; usd: number | null; usd_known: number;
+  unknown: number; basis: string; kie_credits?: number; kie_credits_est?: number; kie_usd_est?: number; lipsync_shots?: number;
+  native_shots?: number; native_note?: string; native_blocked?: string[]; native_crowded?: string[] };
+export type ReviewIssue = { kind: string; severity: "minor" | "major"; detail: string; fix: string };
+export type Review = {
+  reviewed: boolean; status?: "good" | "minor" | "needs_attention" | "unchecked"; summary?: string; issues?: ReviewIssue[];
+  fixes?: string[]; visual?: { model: string } | null; visual_error?: string; accepted?: boolean; error?: string;
+};
+export type ManifestInput = {
+  name: string; type: string; items: string | null; enum: (string | number)[] | null; default: unknown; max_length?: number | null;
+  minimum: number | null; maximum: number | null; max_items: number | null; description: string; required: boolean;
+};
+export type Manifest = {
+  provider: string; model: string; title: string; category: string; inputs: ManifestInput[];
+  roles: Record<string, string>; ref_syntax: string | null;
+};
+export type CatalogItem = { provider: string; model: string; title: string; category: string; sees?: boolean; text?: boolean; rec?: number | null; fresh?: boolean };
+export const AUTO_MODEL: Record<string, string> = {
+  fal: "bytedance/seedance-2.0/reference-to-video",
+  kie: "bytedance/seedance-2",
+  google: "veo-3.1-fast-generate-preview",
+};
+export const AUTO_LIPSYNC_MODEL: Record<string, string> = { fal: "fal-ai/sync-lipsync/v3", kie: "volcengine/video-to-video-lip-sync" };
+export const AUTO_IMAGE_MODEL: Record<string, string> = {
+  openai: "gpt-image-2.5-flare",
+  fal: "fal-ai/nano-banana/edit",
+  kie: "google/nano-banana-edit",
+  google: "gemini-3.1-flash-image",
+};
+
+export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string };
+export type Look = { style: string; notes?: string; prompt?: string; avoid?: string };
+
+export type ExportResult = {
+  path: string; preset: string; width: number; height: number; fps: number; duration: number;
+  shots: number; rendered: number; draft: boolean; loudness?: { lufs: number; range_lu: number | null; true_peak_db: number | null } | null; overlays?: number; captions?: number; subtitles?: string | null; overlay_error?: string };
+
+/** The sound layers of one shot: the song under it and the take's own sound (whole, or split into voices and effects). Nothing here renders again. */
+export type SoundLayer = { id: "song" | "all" | "voice" | "other"; label: string; on: boolean; gain: number | null; removed: boolean; effective_gain?: number; auto?: boolean; note?: string };
+/** How loud each layer is under a shot in the film (dB below full scale, RMS over the shot; null when off or silent), the mix of them, and its peak. */
+export type ShotLevels = { shot: string; layers: Record<string, number | null>; mix_db: number | null; peak_db: number | null; seconds: number | null };
+export type ShotSound = { shot: string; native: boolean; take: { id: string; model?: string; output: string } | null; has_audio: boolean; silent: boolean; split: boolean; changed: boolean;
+  layers: SoundLayer[]; note?: string };
+
+export type KeyStatus = { openai: boolean; fal: boolean; kie: boolean; google: boolean; elevenlabs: boolean; openrouter?: boolean };
+export type EngineEvent = { task: string; event: string; job?: unknown; stage?: string; progress?: number; message?: string; [k: string]: unknown };
+
+export type RefKind = "character" | "set" | "prop" | "wardrobe" | "lighting" | "style" | "video" | "audio";
+export type RefItem = { id: string; kind: RefKind; name: string; files: string[]; notes?: string; sheet?: boolean };
+export type LookSuggestion = { shot: string; emotion: string; intensity: number; why: string; proposals: { group: string; term: string; label: string; wording: string }[] };
+export type ModelInput = { role: "first_frame" | "reference" | "end_frame" | "audio"; label: string; path: string | null; sent: boolean };
+export type UpscaleTool = { id: string; provider: "kie" | "fal"; model: string; media: "image" | "video"; label: string; blurb: string; ready: boolean; factors: number[] };
+export type UpscaleRun = { id: string; tool: string; provider: string; model: string; kind: "keyframe" | "take"; shot: string; source: string; factor: number; state: "queued" | "submitted" | "ready" | "failed" | "undone";
+  output: string | null; error: string | null; cost: number | null; job?: string };
+export type ModelTrack = { provider: string; model: string; takes: number; failed: number; failures: Record<string, number>; cost: number; reviews: Record<string, number>; sound: Record<string, number>; sung: number };
+export type TrackStats = { models: ModelTrack[]; checked_now: number };
+export type TakeChange = { kind: string; text: string };
+export type ChangesSince = { has_take: boolean; same: boolean; changes: TakeChange[]; note: string; take?: { id: string; model: string | null; created: number | null } };
+export type DanceIssue = { kind: "close" | "nobody" | "short" | "long" | "off_beat"; text: string; fix: string };
+export type DanceCheck = { dance_shots: number; clean: number; note: string; shots: { shot: string; start: number; end: number; framing: string; issues: DanceIssue[] }[] };
+export type Library = { items: RefItem[]; assign: { project: string[]; scenes: Record<string, { add?: string[]; remove?: string[] }>;
+  shots: Record<string, { add?: string[]; remove?: string[] }> } };
+export type ShotStatus = "planned" | "queued" | "generating" | "ready" | "failed" | "needs_review" | "locked";
+export type Version = { id: string; n: number; state: string; provider: string; model: string; output: string | null; kind: string;
+  created: number; error?: string | null; error_kind?: string | null; cost?: number | null; cost_unit?: string | null; approved: boolean;
+  review?: Job["review"]; media_kind?: "image" | "video" | null; motion?: string | null };
+export type BoardShot = { id: string; scene: number; heading?: string; start: number; end: number; framing?: string; beat: string;
+  performers: string[]; status: ShotStatus; locked: boolean; approved: string | null; end_mode?: "none" | "own" | "next"; thumb_src: string | null;
+  thumb_source: "render" | "keyframe" | "storyboard" | "placeholder"; preview: string | null; keyframe: string | null;
+  transition?: string; transition_s?: number | null; preview_drift?: { amp: number; period: number } | null; preview_kind?: "image" | "video" | null; preview_motion?: string | null; keyframe_check?: "fail" | "look" | "pass" | null; keyframe_model?: string | null;
+  versions: Version[]; references: { id: string; kind: RefKind; name: string; from: string }[] };
+export type Board = { plan: string; shots: BoardShot[]; library: Library };
+
+export type ProposedAction = { type: "action" | "direction" | "error"; message?: string; action?: "render" | "lock" | "unlock" | "approve_latest" | "approve_keyframes";
+  render_kind?: "video" | "image" | "lipsync"; shots?: string[]; skipped?: { id: string; reason: string }[]; what?: string;
+  provider?: string; model?: string; label?: string; verified?: string | null; sources?: Record<string, string>; billable?: boolean; summary?: string; warning?: string | null };
+export type ProviderStatus = { providers: { provider: string; name: string; connected: boolean; families: string[]; verified: string[] }[];
+  comfyui: { url: string; connected: boolean; device?: string; error?: string; workflows: { model: string; title: string; kind: string; placeholders: string[] }[] } };
+
+export type Probe = { duration: number; peaks: number[]; title?: string | null; artist?: string | null; kind: "audio" | "video" };
+export type Onboarding = { stage: WizardStage; done: WizardStage[]; skipped: WizardStage[]; concept?: "propose" | null;
+  concept_notes?: string; source_video?: string | null; song_name?: string; probe?: { duration: number; peaks: number[] } };
+export type WizardStage = "music" | "lyrics" | "script" | "assets" | "choreography" | "review" | "done";
+export type ChoreoPlan = { concept: string; dancers: string[]; bpm: number; source: "sheet" | "designed"; made: number; model: string;
+  sections: { section: string; feel: string; counts: { counts: string; move: string }[] }[];
+  shots: Record<string, { dancing: boolean; pose: string; motion: string; energy: number }> };
+export type Choreography = { mode: "none" | "upload" | "written" | "style" | "ai" | null; style: string | null; notes: string;
+  files: string[]; sections: { section: string; performers: string[]; notes: string }[]; precise: boolean; plan?: ChoreoPlan };
+
+export type Brain = { provider: "openai" | "openrouter" | "ollama" | "lmstudio"; base_url: string; model: string; vision_model: string };
+
+export type Balance = { provider: string; amount: number | null; unit: "usd" | "credits" | null; known: boolean; usd?: number };
+export type BudgetStatus = { balances: Record<string, Balance>;
+  spent: { fal_usd: number; kie_credits: number; kie_usd: number; total_usd: number; renders: number; openai_images: number } | null;
+  fits: Record<string, { fits: boolean | null; short?: number; reason?: string }> };
+
+/** The engine commands that change a shot's settings and can be undone (shothistory.py): after one of them succeeds the Studio is told, so it can offer Undo. */
+const TRACKED: Record<string, string[]> = {
+  library: ["approve", "approve_keyframes", "choose_keyframe", "lock"],
+  frames: ["set", "start", "chain", "choose", "use_image", "use_start"],
+  compose: ["set_motion", "clear_motion", "prompt_set", "library_use"],
+};
+export function isTracked(command: string, action: string): boolean { return TRACKED[command]?.includes(action) ?? false; }
+function noteChange<T>(command: string, action: string, p: Promise<T>): Promise<T> {
+  if (isTracked(command, action)) p.then(() => window.dispatchEvent(new Event("pf-shot-changed")), () => { /* the caller reports the failure */ });
+  return p;
+}
+
+export const api = {
+  media: <T = unknown>(dir: string, action: "import" | "fill" | "stills" | "motion" | "transition" | "plan", data: Record<string, unknown> = {}) =>
+    invoke<T>("media", { dir, action, data }),
+  continuity: <T = unknown>(dir: string, action: "get" | "set" | "shot" | "chain" | "check" | "ai_check", data: Record<string, unknown> = {}) =>
+    invoke<T>("continuity", { dir, action, data }),
+  performance: <T = unknown>(dir: string, action: "get" | "set", data: Record<string, unknown> = {}) => invoke<T>("performance", { dir, action, data }),
+  routing: <T = unknown>(dir: string, action: "status" | "set" | "pick" | "models", data: Record<string, unknown> = {}) => invoke<T>("routing", { dir, action, data }),
+  localModels: <T = unknown>(action: "status" | "pull" | "delete" | "use" | "start" | "lms_get" | "unload" | "test", data: Record<string, unknown> = {}) => invoke<T>("local_models", { action, data }),
+  reviewBacklog: (dir: string, run: boolean) => invoke<{ unchecked: number }>("review_backlog", { dir, run }),
+  handFix: <T = unknown>(dir: string, action: "plan" | "queue" | "locate", data: Record<string, unknown>) => invoke<T>("hand_fix", { dir, action, data }),
+  keyframeSet: <T = unknown>(dir: string, action: "check_plan" | "check_run" | "remake_plan" | "remake_run" | "remodel_plan" | "remodel_run" | "swap_status" | "swap_apply", data: Record<string, unknown> = {}) => invoke<T>("keyframe_set", { dir, action, data }),
+  retryCheaper: <T = unknown>(dir: string, action: "options" | "retry", data: Record<string, unknown>) => invoke<T>("retry_cheaper", { dir, action, data }),
+  shotHistory: (dir: string, action: "list" | "undo" | "redo") => invoke<ShotHistory>("shot_history", { dir, action }),
+  proof: <T = unknown>(dir: string, action: "check" | "record" | "forget" | "report", data: Record<string, unknown> = {}) => invoke<T>("proof", { dir, action, data }),
+  compose: <T = ComposeState>(dir: string, action: "state" | "set_motion" | "clear_motion" | "models" | "queue_motion" | "library_list" | "library_add" | "library_rename" | "library_remove" | "library_restore" | "library_use" | "library_tag" | "library_export" | "library_import" | "prompt_set" | "prompt_write" | "prompt_lint" | "prompt_recipes" | "prompt_preview", data: Record<string, unknown> = {}) => noteChange("compose", action, invoke<T>("compose", { dir, action, data })),
+  comfyInstall: <T = ComfyInstallPlan>(action: "plan" | "install", data: Record<string, unknown> = {}) => invoke<T>("comfy_install", { action, data }),
+  comfySetup: <T = unknown>(action: "detect" | "start" | "setup" | "downloads" | "download" | "health" | "test", data: Record<string, unknown> = {}) => invoke<T>("comfy_setup", { action, data }),
+  overnight: <T = unknown>(dir: string, action: "start" | "stop" | "status", confirmed = false) => invoke<T>("overnight", { dir, action, confirmed }),
+  directorAudit: <T = DirectorAudit>(dir: string, action: "audit" | "split", data: Record<string, unknown> = {}) => invoke<T>("director_audit", { dir, action, data }),
+  captions: <T = CaptionsState>(dir: string, action: "get" | "set" | "edit" | "preview" | "section", data: Record<string, unknown> = {}) =>
+    invoke<T>("captions", { dir, action, data }),
+  overlays: <T = Overlay[]>(dir: string, action: "list" | "add" | "update" | "remove" | "preview" | "sync" | "reorder" | "duplicate" | "history" | "undo" | "redo", data: Record<string, unknown> = {}) =>
+    invoke<T>("overlays", { dir, action, data }),
+  refgen: <T = RefGenStatus>(dir: string, action: "candidates" | "estimate" | "queue" | "use" | "discard" | "status" | "cards" | "own", data: Record<string, unknown> = {}) =>
+    invoke<T>("refgen", { dir, action, data }),
+  producerPlan: <T = ProducerPlanView>(dir: string, action: "get" | "assets" | "revise" | "edit" | "remove" | "shots" | "build" | "reset" | "export" | "edit_shot" | "approve", data: Record<string, unknown> = {}) =>
+    invoke<T>("producer_plan", { dir, action, data }),
+  lighting: <T = LightingPlan>(dir: string, action: "plan" | "apply" | "undo" | "moods", data: Record<string, unknown> = {}) => invoke<T>("lighting", { dir, action, data }),
+  camera: <T = ShotCamera>(dir: string, action: "vocab" | "get" | "set" | "reset" | "suggest" | "suggest_apply", data: Record<string, unknown> = {}) => invoke<T>("camera", { dir, action, data }),
+  editorExport: <T = EditorPackage>(dir: string, target: "premiere" | "resolve", film?: string) =>
+    invoke<T>("editor_export", { dir, action: "package", data: { target, film } }),
+  fonts: <T = FontList>(dir: string, action: "list" | "add", data: Record<string, unknown> = {}) => invoke<T>("fonts", { dir, action, data }),
+  songgen: <T = SongMade>(action: "plan" | "make", data: Record<string, unknown> = {}) => invoke<T>("songgen", { action, data }),
+  producer: <T = unknown>(action: "inspect" | "apply", path: string, dir: string | null = null) => invoke<T>("producer", { action, path, dir }),
+  golden: <T = unknown>(dir: string, action: "status" | "preview" | "split" | "changes", data: Record<string, unknown> = {}) => invoke<T>("golden", { dir, action, data }),
+  upscale: <T = unknown>(dir: string, action: "tools" | "status" | "resume" | "revert" | "run", data: Record<string, unknown> = {}) => invoke<T>("upscale", { dir, action, data }),
+  track: (dir: string) => invoke<TrackStats>("track", { dir, action: "stats" }),
+  dance: (dir: string) => invoke<DanceCheck>("dance", { dir, action: "check" }),
+  lipsyncCheck: <T = unknown>(dir: string, action: "count" | "run" | "timing", data: Record<string, unknown> = {}) => invoke<T>("lipsync_check", { dir, action, data }),
+  supervisor: <T = unknown>(dir: string, action: "list" | "decide" | "decide_many", data: Record<string, unknown> = {}) => invoke<T>("supervisor", { dir, action, data }),
+  directionLibrary: <T = unknown>(action: "list" | "match" | "apply" | "save" | "delete", dir: string | null, data: Record<string, unknown> = {}) =>
+    invoke<T>("direction_library", { action, dir, data }),
+  diagnostics: () => invoke<{ providers: Diagnosis[] }>("diagnostics"),
+  budget: (dir: string | null, need: Record<string, number> = {}) => invoke<BudgetStatus>("budget", { action: "status", dir, need, provider: null }),
+  reroute: (dir: string, provider: string) =>
+    invoke<{ moved: { shot: string; to: string; model: string; same_family: boolean }[]; stuck: string[] }>("budget", { action: "reroute", dir, need: null, provider }),
+  aiBrain: <T = Brain>(action: "get" | "set" | "models" | "test", data: Record<string, unknown> = {}) => invoke<T>("ai_brain", { action, data }),
+  /** Is the chosen AI brain ready: OpenAI with its key, OpenRouter with its key and a model, or a local model chosen? */
+  aiReady: async () => {
+    const [k, b] = await Promise.all([invoke<KeyStatus>("key_status"), invoke<Brain>("ai_brain", { action: "get", data: {} }).catch(() => null)]);
+    if (!b || b.provider === "openai") return !!k.openai;                                  // OpenAI: its key
+    if (b.provider === "openrouter") return !!k.openrouter && !!b.model;                     // OpenRouter: its key and a model chosen
+    return !!b.model;                                                                         // Ollama / LM Studio: a model chosen
+  },
+  probeMedia: (path: string) => invoke<Probe>("onboarding", { action: "probe", target: path }),
+  extractSoundtrack: (path: string) => invoke<{ path: string; duration: number }>("onboarding", { action: "extract", target: path }),
+  transcribeLyrics: (dir: string) => invoke<{ text: string; lines: { text: string; start: number; end: number }[] }>("onboarding", { action: "transcribe", target: dir }),
+  getChoreography: (dir: string) => invoke<Choreography>("onboarding", { action: "choreo_get", target: dir }),
+  setChoreography: (dir: string, data: Partial<Choreography>) => invoke<Choreography>("onboarding", { action: "choreo_set", target: dir, data }),
+  designChoreography: (dir: string, notes = "") => invoke<ChoreoPlan>("choreography", { dir, action: "design", notes }),
+  clearChoreography: (dir: string) => invoke<Choreography>("choreography", { dir, action: "clear", notes: null }),
+  titleCard: <T = TitleCardState>(dir: string, action: "state" | "preview" | "make" | "remove" | "intro_shot", data: Record<string, unknown> = {}) => invoke<T>("title_card", { dir, action, data }),
+  cleanup: <T = CleanupScan>(dir: string, action: "scan" | "discard" | "restore" | "empty", data: Record<string, unknown> = {}) => invoke<T>("cleanup", { dir, action, data }),
+  customFrame: <T = CustomFrameState>(dir: string, action: "state" | "insert" | "remove", data: Record<string, unknown> = {}) => invoke<T>("custom_frame", { dir, action, data }),
+  layerKit: <T = { styles: LayerStyle[] }>(dir: string, action: "styles" | "save" | "apply" | "delete_style" | "lyrics" | "lyrics_remove" | "templates" | "template_save" | "template_apply" | "template_delete" | "template_remove", data: Record<string, unknown> = {}) => invoke<T>("layer_kit", { dir, action, data }),
+  shotSound: (dir: string, action: "get" | "set" | "delete" | "restore" | "reset" | "split", data: Record<string, unknown>) => invoke<ShotSound>("shot_sound", { dir, action, data }),
+  acting: <T = unknown>(dir: string, action: "get" | "beats_get" | "beats_set" | "beats_clear" | "beats_estimate" | "beats_write" | "arc_set" | "arc_clear" | "arc_estimate" | "arc_write" | "business_set",
+                        data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
+  shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
+  shotSoundOverview: (dir: string) => invoke<Record<string, true>>("shot_sound", { dir, action: "overview", data: {} }),
+  colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
+  checkUpdate: () => invoke<UpdateInfo>("check_update"),
+  docText: (path: string) => invoke<{ name: string; text: string; truncated: boolean }>("onboarding", { action: "doc_text", target: path }),
+  choreographyStyles: () => invoke<{ styles: string[] }>("onboarding", { action: "styles" }),
+  replaceSong: (dir: string, path: string) => invoke<{ song: string }>("replace_song", { dir, path }),
+  writeProjectText: (dir: string, kind: "lyrics" | "script", text: string) => invoke<Record<string, string | null>>("write_project_text", { dir, kind, text }),
+  attachScript: (dir: string, path: string) => invoke<{ script: string }>("attach_script", { dir, path }),
+  setOnboarding: (dir: string, value: Onboarding) => invoke<void>("set_onboarding", { dir, value }),
+  adoptScript: (dir: string, source: { path?: string; text?: string }) =>
+    invoke<{ scenes: number; shots: number; archived: string[] }>("adopt_script", { dir, path: source.path ?? null, text: source.text ?? null }),
+  parseAction: (dir: string, note: string, selected: string | null, playhead: number | null) =>
+    invoke<ProposedAction>("parse_action", { dir, note, selected, playhead }),
+  providers: (action: "status" | "comfy_config" | "comfy_add" | "comfy_remove", data: Record<string, unknown> = {}) =>
+    invoke<ProviderStatus | ProviderStatus["comfyui"]>("providers", { action, data }),
+  library: <T = unknown>(dir: string, action: string, data: Record<string, unknown> = {}) => noteChange("library", action, invoke<T>("library", { dir, action, data })),
+  storyboard: (dir: string) => invoke<Board>("library", { dir, action: "storyboard", data: {} }),
+  thumbs: (dir: string, srcs: string[]) => invoke<Record<string, string | null>>("library", { dir, action: "thumbs", data: { srcs } }),
+  appReady: () => invoke<void>("app_ready"),
+  engineStatus: () => invoke<{ ready: boolean; dev: boolean; gpu: boolean }>("engine_status"),
+  engineSetupSize: () => invoke<number>("engine_setup_size"),
+  setupEngine: () => invoke<{ ready: boolean }>("setup_engine"),
+  setProjectSettings: (dir: string, settings: Partial<ProjectSettings>) => invoke<void>("set_project_settings", { dir, settings }),
+  importReference: (dir: string, path: string) =>
+    invoke<{ ref: string; kind: string; name: string; path: string }>("import_reference", { dir, path }),
+  creativeDirections: (dir: string, notes = "") => invoke<{ concepts: Concept[] }>("creative_directions", { dir, notes }),
+  writeTreatment: (dir: string, index: number, notes = "") =>
+    invoke<{ scenes: number; shots: number; title: string }>("write_treatment", { dir, index, notes }),
+  directorCommand: (dir: string, note: string, selected: string | null, playhead: number | null) =>
+    invoke<{ id: string | null; summary: string; not_done: string; changed: string[] }>("director_command", { dir, note, selected, playhead }),
+  undoCommand: (dir: string, id: string) => invoke<{ id: string; restored: string[] }>("undo_command", { dir, id }),
+  addReference: (dir: string, path: string, role: "cast" | "characters" | "sets", name: string | null) =>
+    invoke<{ characters?: string; sets?: string; cast?: Record<string, string> }>("add_reference", { dir, path, role, name }),
+  removeReference: (dir: string, role: string, name: string | null) =>
+    invoke<{ characters?: string; sets?: string; cast?: Record<string, string> }>("remove_reference", { dir, role, name }),
+  saveProject: (dir: string) => invoke<{ saved: number }>("save_project", { dir }),
+  saveProjectAs: (dir: string, dest: string) => invoke<string>("save_project_as", { dir, dest }),
+  launchPath: () => invoke<string | null>("launch_path"),
+  onMenu: (fn: (id: string) => void): Promise<UnlistenFn> => listen<string>("menu", (e) => fn(e.payload)),
+  onOpenPath: (fn: (path: string) => void): Promise<UnlistenFn> => listen<string>("open-path", (e) => fn(e.payload)),
+  keyStatus: () => invoke<KeyStatus>("key_status"),
+  readText: (path: string) => invoke<string>("read_text", { path }),
+  setKey: (provider: string, key: string) => invoke<void>("set_key", { provider, key }),
+  deleteKey: (provider: string) => invoke<void>("delete_key", { provider }),
+  frames: <T = unknown>(dir: string, action: "get" | "set" | "start" | "chain" | "support" | "options" | "choose" | "use_image" | "use_start" | "extend_info",
+                        data: Record<string, unknown> = {}) => noteChange("frames", action, invoke<T>("frames", { dir, action, data })),
+  show: <T = ShowStatus>(action: "create" | "status" | "add_number" | "add_existing" | "add_scene" | "move" | "set_act" | "add_act" | "remove_act" | "attach_song" | "set_costume" | "preview_script" | "import_script" | "add_intermission" | "set_card" | "set_ambience" | "set_budget" |
+                         "rename" | "transition" | "remove" | "settings" | "sync" | "export", target: string | null, data: Record<string, unknown> = {}) =>
+    invoke<T>("show", { action, target, data }),
+  voices: <T = unknown>(action: "voices" | "set_voice" | "dialogue" | "set_dialogue" | "estimate" | "preview" | "generate" | "set_recording" | "clear_recording" | "eleven_voices", target: string,
+                        data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
+  isShow: (path: string) => invoke<boolean>("is_show", { path }),
+  backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
+  packProject: (dir: string, dest: string) => invoke<{ path: string; files: number; bytes: number }>("pack_project", { dir, dest }),
+  openPulse: (path: string) => invoke<string>("open_pulse", { path }),
+  listProjects: () => invoke<ProjectSummary[]>("list_projects"),
+  recents: (action: "remove" | "clear" | "restore", dir: string | null = null) => invoke<{ hidden: number }>("recents", { action, dir }),
+  hiddenCount: () => invoke<number>("hidden_count"),
+  createProject: (songPath: string, title: string, lyrics: string | null, scriptPath: string | null, look: Look | null) =>
+    invoke<string>("create_project", { songPath, title, lyrics, scriptPath, look }),
+  listStyles: () => invoke<Style[]>("list_styles"),
+  setLook: (dir: string, look: Look) => invoke<void>("set_look", { dir, look }),
+  loadProject: (dir: string) => invoke<LoadedProject>("load_project", { dir }),
+  analyzeProject: (dir: string) => invoke<void>("analyze_project", { dir }),
+  directProject: (dir: string) => invoke<void>("direct_project", { dir }),
+  ensureRenderer: (dir: string) => invoke<void>("ensure_renderer", { dir }),
+  renderCatalog: (provider: string, kind: "video" | "image" | "lipsync" | "upscale" = "video", refresh = false) => invoke<CatalogItem[]>("render_catalog", { provider, kind, refresh }),
+  setKeyframe: (dir: string, plan: string, shot: string, image: string | null) => invoke<void>("set_keyframe", { dir, plan, shot, image }),
+  modelManifest: (provider: string, model: string) => invoke<Manifest>("model_manifest", { provider, model }),
+  renderPreview: (dir: string, shot: string, provider: string, model: string | null, overrides: Record<string, unknown>,
+                  kind: "video" | "image" = "video") =>
+    invoke<{ manifest: Manifest; payload: Record<string, unknown>; problems?: string[]; references?: { label: string; media: string; path?: string }[]; dropped_references?: string[]; audio_first?: boolean; lip_sync_mode?: string; sing_setting?: "auto" | "on" | "off"; vocal_heard?: number; inputs?: ModelInput[]; keyframe_blocks_audio?: boolean; prompt_blocks?: { priority: number; text: string; kept: boolean }[]; lip_sync?: boolean; singing?: { performer: string; lyrics: string[] } | null }>("render_preview", { dir, shot, provider, model, overrides, kind }),
+  queueRender: (dir: string, shots: string[], provider: string, model: string | null, overrides: Record<string, unknown>,
+                fixNotes: string[] = [], kind: "video" | "image" | "lipsync" = "video", sourceJob: string | null = null) =>
+    invoke<Job[]>("queue_render", { dir, shots, provider, model, overrides, fixNotes, kind, sourceJob }),
+  renderEstimate: (dir: string, shots: string[], provider: string, model: string | null, kind: "video" | "image" = "video") =>
+    invoke<Estimate>("render_estimate", { dir, shots, provider, model, kind }),
+  resolveJob: (dir: string, job: string, action: "retry" | "dismiss" | "accept" | "recheck" | "cancel") => invoke<Job>("resolve_job", { dir, job, action }),
+  onRenderIdle: (fn: (e: { dir: string; error: string | null }) => void): Promise<UnlistenFn> =>
+    listen<{ dir: string; error: string | null }>("render-idle", (e) => fn(e.payload)),
+  exportProject: (dir: string, preset: string) => invoke<ExportResult>("export_project", { dir, preset, window: null }),
+  exportPreview: (dir: string, start: number, end: number) => invoke<ExportResult>("export_project", { dir, preset: "preview", window: [start, end] }),
+  onEngine: (fn: (e: EngineEvent) => void): Promise<UnlistenFn> => listen<EngineEvent>("engine-progress", (e) => fn(e.payload)),
+  mediaUrl: (path: string) => ((typeof window !== "undefined" && (window as unknown as { __PF_MOCK__?: boolean }).__PF_MOCK__) ? path : convertFileSrc(path)),
+};
+
+export const fmtTime = (t: number) => {
+  const m = Math.floor(t / 60);
+  const s = t - m * 60;
+  return `${m}:${s.toFixed(2).padStart(5, "0")}`;
+};
+
+/** What to show for a failure. The engine's own messages are already written for people. A fault in the program itself (a TypeError and the like) is wrapped in plain words, keeping the technical text for a bug report. */
+export const errorText = (e: unknown): string => {
+  if (typeof e === "string") return e;
+  if (e instanceof TypeError || e instanceof RangeError || e instanceof ReferenceError || e instanceof SyntaxError)
+    return `Something unexpected happened on this screen. Your project is safe. Try again, and if it keeps happening restart PULSEFRAME and include this when you report it: ${e.message}`;
+  return e instanceof Error ? e.message : "Something went wrong.";
+};
+
+export type Diagnosis = {
+  provider: string; name: string; status: "verified" | "unverified" | "blocked" | "unavailable";
+  message: string; error_kind: string | null; explanation: string; recovery: string | null;
+  history: { ready: number; failed: number;
+    last_ok: { project: string; shot: string; model: string; at: number } | null;
+    last_fail: { project: string; shot: string; model: string; at: number; error_kind: string; error: string; recovery: string } | null };
+};
+
+export type ShowItem = { id: string; kind: "number" | "scene" | "intermission"; title: string; dir: string; path: string; transition: "cut" | "black" | "flow";
+  state: string; duration: number; shots: number; rendered: number; analysed: boolean; cost: { usd: number; kie_credits: number };
+  lines: number; has_audio: boolean; problems: string[]; song_pending: boolean;
+  seconds?: number; subtitle?: string; ambience?: { file: string; volume_db: number } };
+export type Overlay = { id: string; kind: "text" | "svg" | "image" | "fill" | "shape" | "icon"; text: string; file?: string; source: string; section?: string; start: number | null; end: number | null;
+  x: number; y: number; size: number; width: number; color: string; font?: string; fade: number; shape?: string; icon?: string; height?: number; stroke?: string; stroke_w?: number; opacity?: number; rotation?: number; radius?: number; filled?: boolean; keys?: Key[]; scale?: number; angle?: number; gradient?: boolean; shadow?: boolean; name?: string; color2?: string; anim?: string; cover?: boolean; group?: string; enabled: boolean; placed: boolean; reason: string; explicit: boolean; explicit_end: boolean };
+export type DirectorAudit = { planned: number; directed: number; ok: boolean;
+  merges: { shot: string; scene: number; start: number; end: number; duration: number; check: boolean; risks: string[]; note: string;
+            sources: { id: string; cue: string[]; people: string[]; description: string }[] }[];
+  drops: { shot: string; beats: string[] }[]; uncovered: { id: string; description: string; cue: string[] }[] };
+export type CaptionLook = { size: number; y: number; color: string; font: string };
+export type CaptionLine = { key: string; text: string; original: string; start: number; end: number; hidden: boolean; edited: boolean; section: string; performer: string;
+  look: CaptionLook; own: Partial<CaptionLook> };
+export type CaptionsState = { enabled: boolean; available: boolean; reason: string; lines: CaptionLine[]; sections: Record<string, Partial<CaptionLook>>; section_names: string[];
+  style: { size: number; y: number; color: string; font: string; names: boolean; srt: boolean; uppercase: boolean } };
+export type RefCandidate = { id: string; name: string; kind: string; reason: string; prompt: string; prompt_from: string; refs: { path: string; label: string }[] };
+export type RefJob = { id: string; asset_id: string; asset_name: string; asset_kind: string; state: string; output: string | null; error: string | null;
+  model: string; provider: string; cost: number | null; cost_unit: string | null; used?: boolean };
+export type PlanCharacter = { id: string; name: string; role: string; identity: string[]; outfit: string; performance: string; classification: string; library_id?: string };
+export type PlanProp = { id: string; name: string; description: string; owner: string; library_id?: string };
+export type PlanPlace = { id: string; name: string; layout: string; light: string; variant_of: string; library_id?: string };
+export type PlanMove = { id: string; name: string; song_section: string; lyric_cue: string; action: string; footwork: string; arms: string; torso: string; head_gaze: string; energy: number };
+export type PlanChoreo = { id: string; character_id: string; classification: string; moves: PlanMove[] };
+export type PlanAssets = { visual_style: string; world: string; always: string; palette: string; never_show: string; rules: string[];
+  characters: PlanCharacter[]; props: PlanProp[]; environments: PlanPlace[]; choreography: PlanChoreo[] };
+export type PlanShot = { id: string; section: string; start: number; end: number; cue: string; action: string; framing: string; camera: string; place: string; people: string[]; props: string[];
+  performance: string; lighting: string; place_id: string; people_ids: string[]; prop_ids: string[] };
+export type PlanMoveView = { who: string; name: string; action: string; footwork: string; arms: string; energy: number };
+export type ProducerPlanView = { stage: "start" | "assets" | "shots" | "built"; assets: PlanAssets | null; shots: PlanShot[]; warnings: string[]; shots_stale: boolean; built: number | null;
+  report: { imported?: Record<string, unknown>; untimed_shots?: string[]; without_images?: { name: string; kind: string }[] } | null; model: string | null;
+  history: { at: number; what: string }[]; brief: { direction_index?: number | null; concept?: Concept | null; notes?: string; cast?: string; dance?: string };
+  counts: { people: number; props: number; places: number; dancers: number; shots: number }; has_renders: boolean; supplied: string[];
+  approved: string[]; moves: Record<string, PlanMoveView[]>;
+  script: { name: string; characters: number; scenes: number; logline: string } | null };
+export type UpdateInfo = { status: "update" | "up_to_date" | "offline" | "unavailable"; current: string; latest: string | null; url: string; notes: string; published: string | null; prerelease: boolean };
+export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
+  rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[] };
+export type LayerTemplate = { name: string; layers: number; seconds: number; saved: number };
+export type LayerStyle = { name: string; kind: string; saved: number; has_keys: boolean };
+export type CustomFrameState = { shots: { id: string; start: number; end: number; intro: boolean; custom: boolean }[]; min: number; max: number; keep: number };
+export type CustomFrameMade = { shot: string; plan: string; start: number; end: number; trimmed: { shot: string; by: number } | null; mode: string; keyframe: boolean };
+export type CleanupItem = { path: string; name: string; kind: "video" | "image" | "audio"; size: number; shot: string | null; model: string | null; created: number; cost: number | null; cost_unit: string | null; what: string };
+export type CleanupScan = { items: CleanupItem[]; bytes: number; kept: number; rendering: number; trash: { batches: number; files: number; bytes: number } };
+import type { Key } from "./overlayKeys";
+export type TitleCardSpec = { title: string; subtitle: string; anim: string; color: string; size: number; font?: string | null; start?: number | null; end?: number | null;
+  background: { type: "none" | "colour" | "picture"; color?: string; color2?: string; picture?: string; file?: string } };
+export type TitleCardState = { gap: [number, number] | null; span: [number, number] | null; card: (TitleCardSpec & { start: number; end: number }) | null; title: string; animations: { id: string; name: string }[] };
+export type CameraGroup = "size" | "angle" | "movement" | "lens" | "lighting" | "focus" | "energy";
+export type CameraVocab = Record<CameraGroup, { label: string; terms: { id: string; label: string; video_only: boolean }[] }>;
+export type ShotCamera = { shot: string; picked: Partial<Record<CameraGroup, string>>; detected: Record<CameraGroup, string | null>;
+  director: { framing: string; lens: string; movement: string; lighting: string; energy: string };
+  effective: { framing: string; movement: string; lens: string; lighting: string; focus: string }; changed_since_take: boolean };
+export type EditorPackage ={ path: string; folder: string; target: "premiere" | "resolve"; app: string; film: string; sequences: number; shot_clips: number;
+  missing: string[]; steps: string };
+export type FontEntry ={ id: string; name: string; file: string };
+export type FontList = { installed: FontEntry[]; project: FontEntry[]; default: string };
+export type SongPlan ={ sections: { name: string; lines: number; seconds: number }[]; seconds: number; warnings: string[] };
+export type SongMade = { path: string; seconds: number; asked_seconds: number; model: string; bytes: number };
+export type RefGenStatus ={ candidates: RefCandidate[]; jobs: RefJob[] };
+export type PictureCard = { id: string; name: string; kind: "character" | "set" | "prop" | "wardrobe" | "choreo"; picture: string | null; yours: boolean; owner: string; owner_ready: boolean;
+  state: "missing" | "making" | "waiting" | "approved" | "yours"; pending: { job: string; output: string; model: string } | null; error: string | null; prompt: string; prompt_from: string };
+export type PictureCards = { cards: PictureCard[]; working: boolean };
+export type ScriptPlan = { title: string; format?: string; characters: string[]; warnings: string[];
+  totals: { acts: number; numbers: number; scenes: number; lines: number; songs_matched: number; songs_missing: number };
+  acts: { name: string; items: { kind: "number" | "scene"; title: string; lines?: unknown[]; song?: string | null }[] }[] };
+export type VoiceEntry = { voice_id: string; speed: number; pitch?: number; emotion?: string | null; provider?: "elevenlabs"; voice_name?: string; model?: string;
+  stability?: number; similarity?: number; style?: number };
+export type ShowStatus = { dir: string; title: string; duration: number; acts: { index: number; name: string; items: ShowItem[]; costumes: Record<string, { file?: string; note?: string }> }[];
+  voices: Record<string, VoiceEntry>; characters: string[];
+  look?: unknown; aspect_ratio?: string; routing?: unknown; cast_dir: string;
+  budget: { cap_usd: number | null; spent_usd: number; rate_per_shot: number | null; remaining_shots: number; estimate_remaining_usd: number | null;
+            remaining_usd: number | null; over: boolean; near: boolean; estimate_over: boolean } };
+
+export type LightDesign = { term: string; label: string; kelvin: number; contrast: string; level: number; key: string; accent: string; motion: string; practical: boolean; haze: boolean; wording: string };
+export type LightShot = { shot: string; scene: number; start: number; end: number; section: string; mood: string; label: string; valence: number; arousal: number; intensity: number;
+  confidence: number; also: string[]; held: boolean; user_set: boolean; director: string; design: LightDesign; why: string };
+export type LightingPlan = { shots: LightShot[]; scenes: { scene: number; heading: string; from: string; to: string; arc: string; terms: string[] }[]; count: number; user_set: number };
+
+export type ComfyInstallPlan = { dest: string; source: string; ok: boolean; reason: string; warnings: string[]; installed?: boolean; path?: string; start?: string | null; manual_url?: string;
+  gpu?: string; vendor?: string | null; vram_gb?: number | null; tag?: string; asset?: { name: string; size: number; url: string; sha256: string | null }; download_gb?: number; need_gb?: number; free_gb?: number | null };
+
+export type ComposeState = { shot: string; shot_seconds: number; video: string | null; video_seconds: number | null; image: string | null; image_is_start: boolean;
+  orientation: "video" | "image"; quality: "std" | "pro"; background: "video" | "image"; note: string; notes: string[]; ready: boolean; missing: string[]; prompt: TakePrompt };
+export type TakePrompt = { mode: "auto" | "mine"; text: string; only: boolean };
+export type PromptIssue = { level: "problem" | "warn" | "tip"; text: string };
+export type PromptRecipe = { id: string; title: string; blurb: string; text: string };
+export type PromptWrite = { prompt: string; why: string; tips: string[]; source: "ai" | "template"; issues: PromptIssue[] };
+export type PromptPreview = { prompt: string; chars: number; limit: number; left_out: string[] };
+export type ComposeModels = { start_end: CatalogItem[]; references: CatalogItem[]; motion: CatalogItem[] };
+
+export type HistoryEntry = { id: string; at: number | null; label: string };
+export type ShotHistory = { undo: HistoryEntry[]; redo: HistoryEntry[]; undo_count: number; redo_count: number; label?: string };
+export type MotionClip = { id: string; name: string; seconds: number | null; width: number | null; height: number | null; added: number | null; thumb: string | null; tags?: string[]; path?: string; already?: boolean };

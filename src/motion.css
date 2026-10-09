@@ -1,0 +1,74 @@
+/* Micro-animations, after the 12 principles of animation. Short (90–320 ms), purposeful, never in the way.
+   Everything here is switched off by prefers-reduced-motion (the global rule in styles.css, repeated below for safety).
+
+   Principle → where
+   1  Squash & stretch   buttons compress a touch when pressed and recover with a small overshoot
+   2  Anticipation       hover lifts a control 1px before it is pressed
+   3  Staging            the backdrop dims first, then the sheet arrives, so the eye goes to one place
+   4  Straight ahead / pose to pose   keyframed entrances with explicit poses (from → overshoot → rest)
+   5  Follow-through     sheets and menus overshoot slightly and settle
+   6  Slow in, slow out  every curve eases (no linear motion except spinners)
+   7  Arcs               toasts rise along a gentle curve (translate + a little rotation that resolves)
+   8  Secondary action   the check badge pops after a choice; the chosen still's frame glows once
+   9  Timing             micro 120 ms, panels 220 ms, sheets 320 ms; exits are faster than entrances
+   10 Exaggeration       selection and approval get one slightly larger-than-life pulse, then rest
+   11 Solid drawing      scale + translate from a sensible origin (menus grow from their button), no distortion
+   12 Appeal             one shared set of curves and durations, so the whole app moves with one personality */
+
+:root {
+  --m-micro: 120ms; --m-panel: 220ms; --m-sheet: 320ms;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);          /* slow out: arrivals */
+  --ease-in: cubic-bezier(.4, 0, 1, 1);             /* slow in: departures */
+  --ease-back: cubic-bezier(.34, 1.56, .64, 1);     /* follow-through: a small overshoot, then settle */
+}
+
+/* 1, 2: anticipation on hover, squash on press, stretch back with follow-through on release */
+.btn, .icon-btn, .chip, .sr-cell, .approve-cell, .vs-ver, .sr-opt-img, .docs-toc .link {
+  transition: transform var(--m-micro) var(--ease-back), background var(--m-micro) var(--ease-out),
+              border-color var(--m-micro) var(--ease-out), box-shadow var(--m-panel) var(--ease-out), opacity var(--m-panel) var(--ease-out);
+}
+.btn:not(:disabled):hover, .sr-cell:not(:disabled):hover, .approve-cell:hover, .sr-opt-img:hover { transform: translateY(-1px); }
+.btn:not(:disabled):active, .icon-btn:active, .sr-cell:not(:disabled):active, .approve-cell:active, .sr-opt-img:active {
+  transform: translateY(0) scale(.96); transition-duration: 60ms; transition-timing-function: var(--ease-in); }
+.btn.primary:not(:disabled):hover, .btn.hero:not(:disabled):hover { box-shadow: 0 6px 18px -8px rgba(232, 180, 92, .55); }
+
+/* 3, 5, 9: staging — backdrop first, then the sheet with a small overshoot */
+.overlay { animation: m-fade var(--m-panel) var(--ease-out) backwards; }
+.overlay > .sheet, .overlay > .cmd { animation: m-sheet var(--m-sheet) var(--ease-back) 40ms backwards; transform-origin: 50% 40%; }
+@keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-sheet { from { opacity: 0; transform: translateY(14px) scale(.965); } to { opacity: 1; transform: none; } }
+
+/* 11: menus grow from the button that opened them */
+.menu { transform-origin: top right; animation: m-menu var(--m-panel) var(--ease-back) both; }
+@keyframes m-menu { from { opacity: 0; transform: translateY(-4px) scale(.94); } to { opacity: 1; transform: none; } }
+
+/* 7: toasts arrive on an arc */
+.toast { animation: m-arc var(--m-sheet) var(--ease-out) backwards; }
+@keyframes m-arc { 0% { opacity: 0; translate: -10px 16px; rotate: -1.5deg; } 60% { opacity: 1; translate: 2px -2px; rotate: .3deg; } 100% { translate: 0 0; rotate: 0deg; } }   /* individual properties: the toast keeps its own centring transform */
+
+/* 4, 12: grids arrive as a cascade (overlapping action), capped so long lists never feel slow */
+.sr-grid > *, .approve-grid > *, .sr-rows > *, .sr-options > *, .bk-list > li, .docs-toc > * { animation: m-rise var(--m-panel) var(--ease-out) backwards; }
+.sr-grid > :nth-child(2), .approve-grid > :nth-child(2), .sr-rows > :nth-child(2), .sr-options > :nth-child(2), .bk-list > li:nth-child(2), .docs-toc > :nth-child(2) { animation-delay: 25ms; }
+.sr-grid > :nth-child(3), .approve-grid > :nth-child(3), .sr-rows > :nth-child(3), .sr-options > :nth-child(3), .bk-list > li:nth-child(3), .docs-toc > :nth-child(3) { animation-delay: 50ms; }
+.sr-grid > :nth-child(4), .approve-grid > :nth-child(4), .sr-rows > :nth-child(4), .sr-options > :nth-child(4), .bk-list > li:nth-child(4), .docs-toc > :nth-child(4) { animation-delay: 75ms; }
+.sr-grid > :nth-child(n+5), .approve-grid > :nth-child(n+5), .sr-rows > :nth-child(n+5), .sr-options > :nth-child(n+5), .bk-list > li:nth-child(n+5), .docs-toc > :nth-child(n+5) { animation-delay: 100ms; }
+@keyframes m-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* 8, 10: a choice gets one pop and one glow, then rests */
+.sr-badge, .sr-meta svg, .vs-ver .chip.ready svg { animation: m-pop 360ms var(--ease-back) both; }
+@keyframes m-pop { 0% { transform: scale(0); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.sr-cell.on, .sr-opt.on .sr-opt-img { animation: m-glow 520ms var(--ease-out) 1; }
+@keyframes m-glow { 0% { box-shadow: 0 0 0 0 rgba(232, 180, 92, .55); } 100% { box-shadow: 0 0 0 10px rgba(232, 180, 92, 0); } }
+.sr-opt.off { transition: opacity var(--m-panel) var(--ease-out), filter var(--m-panel) var(--ease-out); filter: grayscale(.8); }
+
+/* 6: content swaps (steps, docs search) cross-fade instead of jumping */
+.sr-steps button { transition: color var(--m-micro) var(--ease-out), border-color var(--m-micro) var(--ease-out); }
+.sr-steps button .num { transition: background var(--m-panel) var(--ease-out), transform var(--m-panel) var(--ease-back); }
+.sr-steps button.on .num { transform: scale(1.1); }
+.vs-prompt[open] > :not(summary) { animation: m-rise var(--m-panel) var(--ease-out) backwards; }
+.vs-compare > * { animation: m-rise var(--m-panel) var(--ease-out) backwards; }
+.vs-compare > :nth-child(2) { animation-delay: 60ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

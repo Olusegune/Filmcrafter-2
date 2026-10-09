@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>docshots</title>
+    <style>
+      /* screenshot mode: show the sheet on the page instead of floating over a dimmed window, and let it be as tall as it is */
+      .docshot .overlay { position: static; display: block; background: none; backdrop-filter: none; animation: none; padding: 24px; }
+      .docshot .sheet { margin: 0 auto; max-height: none; overflow: visible; animation: none; }
+      .docshot .sheet, .docshot .overlay .sheet { height: auto; }
+      .docshot .look-scroll, .docshot .dl-grid, .docshot .dl-detail, .docshot .mc { max-height: none; overflow: visible; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/docshots/main.tsx"></script>
+  </body>
+</html>

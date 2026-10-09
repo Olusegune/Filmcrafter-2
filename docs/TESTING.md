@@ -1,0 +1,122 @@
+# Testing PULSEFRAME
+
+One command runs every kind of check and prints one table:
+
+```
+python scripts/test_all.py            # everything that is installed
+python scripts/test_all.py --quick    # skip the slow engine types (integration, e2e)
+```
+
+Set `PF_PYTHON` to the Python that has the engine's requirements installed. A step whose tool is not installed is reported as **SKIPPED** with the reason, never as passed.
+
+## The six kinds of test, and where each lives
+
+Every engine test carries one or more markers (`analysis/pytest.ini`, assigned in `analysis/tests/conftest.py`). Run one kind with `python -m pytest -m <kind>` inside `analysis/`.
+
+| Kind | What it proves | Where | Run |
+|---|---|---|---|
+| **Unit** | one function or small module in isolation: parsing, clamping, curves, naming, price maths | most `analysis/tests/test_*.py`; `src/__tests__/*.test.ts` (movement and keyframe curves, helpers) | `pytest -m unit`, `npx vitest run` |
+| **Integration** | several parts together: real ffmpeg, files on disk, a fake provider or local server, a project folder | `test_render`, `test_overlays`, `test_shapes`, `test_keyframes`, `test_title_motion`, `test_customframe`, `test_cleanup`, `test_producer_*`, `test_show*`, … | `pytest -m integration` |
+| **End to end** | a whole journey, from an audio file to a finished film, with the paid services stood in for | `test_e2e_journey.py` (audio → listen → shot plan → rendered take, own clip, moving still → clean-up and restore → inserted frame → layers with keyframes → export → the exported file's length, sound and pixels are checked), `test_create_from_song_flow.py` | `pytest -m e2e` |
+| **Regression** | a bug that really happened stays fixed: video-model failures from real renders, file-in-use errors on Windows, shared temp names, readable crashes, document reading | `test_video_models`, `test_render`, `test_replace_retry`, `test_tmp_names`, `test_crash_report`, `test_doc_text`, `test_stills`, `test_prompt_dedupe`, `test_acting_defaults`, `test_lipsync_mode` | `pytest -m regression` |
+| **Acceptance** | the promises made to the user, written as scenarios and traced to requirements in [ACCEPTANCE.md](ACCEPTANCE.md) | `test_acceptance.py`, `test_golden.py`, the two end-to-end files | `pytest -m acceptance` |
+| **Security** | hostile input, unsafe paths, leaked secrets, unsafe commands, oversized files, and the shell's gatekeeping of the engine | `test_security.py`, `test_fonts.py`, `test_updates.py`; plus the scans below | `pytest -m security` |
+
+The screen has its own tests (`npx vitest run`: the Golden Path strip, dialogs, takes, the keyframe editor, the icon set, the movement and keyframe formulas, the shortcut list, the command palette, the sound panel, the documentation viewer, error wording) and the app shell has Rust tests (`cargo test` in `src-tauri`).
+
+### Where the newest tests sit, by kind
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) |
+|---|---|---|
+| **Unit** | `test_shotsound_unit` (clamping, damaged files, layer rules, the loudness reading, the history file's shape; no ffmpeg) | `shortcuts.test.ts` (keys and modifiers), `palette.test.tsx` (matching and ranking), `errors.test.ts` (wording), `layers.test.tsx` (reduced motion) |
+| **Integration** | `test_shotsound` (layers, levels, mix, preview, native scenes), `test_layer_undo`, `test_split_speech` (the real separator on synthesized speech; Windows only) | `shotsound.test.tsx` (the panel and Shift+M), `help.test.tsx` (pictures and keys in the guide) |
+| **End to end** | `test_e2e_sound` (song, shots, a take with sound, keep, split, trim, preview, layers and undo, loudness; no render repeated) | none: no test drives the real window |
+| **Regression** | `test_regressions_sound` (the mono 3 dB loss, a pristine shot marked changed, temp names) | `shortcuts.test.ts` (Ctrl+R, Ctrl+A, Ctrl+Z are not letter shortcuts), `help.test.tsx` (a repeated block key), `shotsound.test.tsx` ("Back to how it was" only after a change) |
+| **Acceptance** | `test_acceptance` `ACC13` to `ACC16` (REQ-13 to REQ-16) | the shortcut table in the guide matches the list (`shortcuts.test.ts`) |
+| **Security** | `test_security_sound` (hostile ids and layer names, a settings file or history from another project, nothing written outside the project); the shell/engine checks in `test_security` cover the new `shot_sound` command | none |
+
+### Timeline, transitions, lip-sync, dance and camera (1.15)
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) |
+|---|---|---|
+| **Unit** | `test_dance` (the beat line, the dance-ready rules), `test_looks` (the right look for each feeling, never over a choice), `test_lipsync_timing` (early/late/own sound on synthetic vocals), `test_lipsync_mode` (Auto and the explicit modes) | `lanes.test.tsx` (lane packing, drag, trim, snap, bars, the transition picker, the list matching the engine's), `looks.test.tsx`, `dance.test.tsx`, `testShot.test.ts`, `lipsync.test.tsx` |
+| **Unit** (1.16) | `test_changes` (prompt sentences, every kind of change, a real project before and after switching modes or editing beats), `test_track` (counts per model, only real dollars, junk records, the sound check run once and limited), `test_planio` (the light plan reader behaves exactly like the rendering module's and does not load it) | `changes.test.tsx` (the since-last-take strip and the per-model line) |
+| **Integration** | `test_transitions` (all 14 transitions on real red and blue clips: where each side of the picture is, exact length, a longer one still under way), `test_lipsync_timing` (real takes with and without sound) | none |
+| **Regression** | `test_lipsync_mode` (the Seedance 2 first-frame and audio conflict), `test_transitions` (the cache key includes the length) | the shortcut table in the guide matches the list (`T`, `H`) |
+| **Acceptance** | `test_acceptance` `ACC17` to `ACC19` (REQ-17 to REQ-19) | none |
+| **Security** | `test_security_timeline` (junk and out-of-range layer times, unknown transition names and lengths, nothing from the caller reaching an ffmpeg filter, unreadable project files, junk shot ids) | none |
+
+Each fix was checked by undoing it and watching its test fail: the wipe direction, a person's choice being overruled, the sign of the sound lag, Auto applying to wide shots, the off-beat rule and the transition length in the cache key.
+
+### Looking at the real screens (QA by hand, with a script)
+
+No test renders real pixels, so layout bugs (a button on top of another, a squeezed player, a name missing for a screen reader) are found by looking. `scripts/ui-audit.js` and `scripts/ui-audit2.js` (contrast, keyboard focus, language, duplicate ids, cut-off text) does the looking for you: open the Studio in the browser preview (`npm run dev`, `http://localhost:1420/?mock`), set the window to the app's smallest size (1100 x 700) and to a large one, paste the script, and read `window.__audit()`: page scrolling, controls with no accessible name, controls covered by another control, tiny controls. Do it again with the Layers panel open and on each sheet. `layout.test.ts` keeps the specific layout fixes from coming back (it reads the style rules).
+
+### Models, upscaling, OpenRouter, styles and the rest (1.17)
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) |
+|---|---|---|
+| **Unit** | `test_modelinfo` (what each Kie model can see, clean text, recommended, new; pinned to all 56 audited picture models; the `image_input` and code-fence parsing bugs), `test_styleguard` (words that ask for a photograph, the style lock, never dropped), `test_upscale` (the request read from each tool's schema, keyframe and take, undo, failure, resume), `test_openrouter` (settings, client, price list, estimates), `test_review_fix` (a lip-sync model is refused for a shot) | `glyphs.test.tsx`, `upscale.test.tsx`, `reviewfix.test.tsx`, `supervisor.test.tsx`, `splash.test.ts`, `dancers.test.tsx` |
+| **Regression** | `test_styleguard`, `test_review_fix`, `test_modelinfo` (Nano Banana's `image_input`, Kling 3.0's fenced docs), `test_golden` (a copied project is not "stale"), `test_routing` (Kie first) | `supervisor.test.tsx` (an empty answer no longer crashes the sheet) |
+| **Security** | `test_upscale` (a keyframe path that leaves the project, junk factors, junk run files), `test_openrouter` (https only, the key never in the settings file) | `splash.test.ts` (the splash can only ask for what it is allowed to) |
+
+Run for real, not in the test suite: `python -m pulseframe_analysis.model_audit kie --kind image` and `--kind video` read every Kie model's published schema and build the request PULSEFRAME would send for it. As of 1.17: 56 of 56 picture models and 61 of 61 video models pass; 25 picture models are text-only (listed as "blind").
+
+The screen tests have no markers, so the table above is how they are classed.
+
+### Checks outside the test suites
+
+- `python -m tests.speech_check` (in `analysis/`, Windows): measures how well the voice/effects split works on synthesized speech with effects and music at known levels, and prints the numbers quoted in the guide. `test_split_speech` guards them.
+- `node scripts/docshots.mjs` regenerates the guide's screenshots from the browser preview; `PF_OUT=<folder> node scripts/docshots.mjs export review settings ...` captures other screens for an audit, and prints any error the page logs. `node scripts/probe.mjs <scene> "<expression>"` measures something in the page (sizes, text) after a scene's clicks. The preview is `npm run dev`, then `http://localhost:1420/?mock`.
+
+### A dress rehearsal on a real project
+
+```
+python scripts/rehearse.py "C:\path\to\My Project"
+```
+
+Copies a real project (yours is never written to), adds an intro title card, a layer for every lyric line, a travelling shape and a pulsing icon, exports the whole film, and checks that it is as long as the song, has sound and shows every layer; it writes a few frames to look at. It costs nothing and calls no service. It is the closest thing to a real run that needs no account, and it found a real bug the generated tests had missed (an export with about eighty layers failed on Windows because the command line was too long).
+
+### What cannot be tested from the command line
+
+- **The real window.** No automated test clicks through the app. Components are checked as markup and logic; layout, drag and drop on the player, and how it feels are checked by hand.
+- **Sound from a real model.** The separator was measured on synthesized speech, not on what a video model makes, and no test spends money. Whether a real take's voice survives the split is learned by splitting a real take once and playing the Preview.
+- **Real paid services.** Every provider is a stand-in in tests (a fake that returns a real short clip). That a model accepts a request, and how its output looks, is only learned from real renders; each such failure becomes a regression test (see `test_video_models`).
+- **Installers on a clean machine** and the update check on a private repository.
+
+## Security checks
+
+| Check | What it covers | Run |
+|---|---|---|
+| `pytest -m security` | path traversal through shot ids and file names, zip entries that climb out of their folder, zip bombs, fonts chosen by path, pictures that are not pictures, oversized files, links, SVG entities, text and numbers that could become filter expressions, API keys written into a project, the update URL, clean-up deleting outside the project, and that every action the app shell allows is one the engine knows and every command that takes a project folder checks it is a project | `python -m pytest -m security` |
+| `rafter secrets .` | secrets in the repository | `rafter secrets .` |
+| `bandit` | Python code, medium severity and up | `python -m bandit -q -r pulseframe_analysis -ll` (in `analysis/`) |
+| `pip-audit` | known vulnerabilities in the engine's pinned packages | `python -m pip_audit -r requirements-engine.txt --no-deps --disable-pip` |
+| `npm audit` | known vulnerabilities in the screen's packages | `npm audit --omit=dev` |
+| `rafter run` | remote SAST and SCA scan; needs `RAFTER_API_KEY` and, for a private repository, `--github-token` | `rafter run` (the deeper `--mode plus` is paid and needs approval) |
+| `cargo audit` | known vulnerabilities in the shell's Rust crates | `cargo install cargo-audit`, then `cargo audit` in `src-tauri` |
+
+## Adding a test
+
+- A bug was found: add a test that fails without the fix, in the module for that area, and add the module to `REGRESSION` in `conftest.py` if it is not there. Put the real-world detail (the model, the message) in the test's docstring.
+- A feature that draws something: check it on real video (see `test_title_motion.py` and `test_keyframes.py`), not only on the picture it makes.
+- A number or name that comes from outside: add it to `test_security.py`.
+- A promise to the user: add an `ACCxx` scenario to `test_acceptance.py` and a line to `ACCEPTANCE.md`.
+
+
+### Security scan with Rafter (2026-10-08)
+
+Installed with `npm install -g @rafter-security/cli`. `rafter -a secrets .` over the repository (respecting `.gitignore`, patterns engine): **no secrets detected**. `--history` needs Rafter's betterleaks engine, which could not be fetched here, so the git history was not scanned. `rafter run` (remote code analysis) needs a `RAFTER_API_KEY` (and a GitHub token for a private repository), neither of which was available, so it was not run. To run it: set `RAFTER_API_KEY`, then `rafter run`.
+
+## Looking at a screen without the desktop app (the screenshot harness)
+
+`docshots.html` and `src/docshots/` render one real screen of the app with made-up data, so a layout can be looked at (and the guide's pictures regenerated) without a project, a key or the desktop shell. Nothing there ships in the app: only `index.html` is built.
+
+```
+npm run dev                                     (the preview on http://localhost:1420)
+analysis\.venv\Scripts\python src\docshots\make_samples.py     (once: the placeholder pictures and clips)
+node scripts/docshots-edge.mjs                  (every scene into docs/img)    node scripts/docshots-edge.mjs review kt   (just those)
+http://localhost:1420/docshots.html?scene=review     (the same screen in a browser, to click about in)
+```
+
+It needs Edge or Chrome and Node 22 or newer. Each scene is measured and then photographed at exactly its own size (`scripts/docshots-edge.mjs` lists them; `PF_OUT=<folder>` keeps a run out of `docs/img`). To cover a new screen, add a scene to `src/docshots/main.tsx` (and the answers it needs to `mockIPC`), a line to the script, and reference `docs/img/<file>` from the guide. The pictures are made-up scenes, not real project frames.

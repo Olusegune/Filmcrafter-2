@@ -1,0 +1,41 @@
+/* layer lanes and transition handles on the timeline */
+.tl-scroll { overflow-y: auto; }
+.tl-lanes { position: absolute; left: 0; right: 0; }
+.tl-lanes::after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 1px; background: var(--line); }
+.lane-bar { position: absolute; height: 20px; display: flex; align-items: center; border-radius: 6px; border: 1px solid rgba(232, 180, 92, .55);
+  background: linear-gradient(rgba(232, 180, 92, .28), rgba(232, 180, 92, .16)); color: var(--cloud, #f4f7fa); font-size: 11.5px; overflow: hidden; box-sizing: border-box; }
+.lane-bar.k-text { border-color: rgba(100, 183, 255, .6); background: linear-gradient(rgba(100, 183, 255, .3), rgba(100, 183, 255, .16)); }
+.lane-bar.k-icon, .lane-bar.k-shape { border-color: rgba(102, 201, 149, .6); background: linear-gradient(rgba(102, 201, 149, .28), rgba(102, 201, 149, .15)); }
+.lane-bar.sel { outline: 2px solid var(--gold); outline-offset: 0; z-index: 2; }
+.lane-bar.off { opacity: .45; border-style: dashed; }
+.lane-bar.dragging { opacity: .85; box-shadow: 0 4px 14px -6px rgba(0, 0, 0, .7); z-index: 3; }
+.lane-body { flex: 1; min-width: 0; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: grab; line-height: 18px; touch-action: none; }
+.lane-body:active { cursor: grabbing; }
+.lane-body:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; border-radius: 4px; }
+.lane-eye { flex: none; width: 18px; height: 18px; padding: 0; border: 0; background: transparent; color: inherit; font-size: 10px; cursor: pointer; line-height: 1; }
+.lane-eye:hover { color: var(--gold); }
+.lane-edge { flex: none; width: 6px; align-self: stretch; cursor: ew-resize; background: rgba(244, 247, 250, .18); touch-action: none; }
+.lane-edge:hover { background: rgba(244, 247, 250, .45); }
+.lane-key { position: absolute; top: 14px; width: 6px; height: 6px; margin-left: -3px; background: var(--gold); transform: rotate(45deg); pointer-events: none; text-decoration: none; }
+.lane-empty, .lane-unplaced, .lane-err { position: sticky; left: 10px; display: inline-block; font-size: 11.5px; color: var(--smoke); padding: 2px 0; }
+.lane-unplaced { margin-left: 14px; color: var(--warning); }
+.lane-err { color: var(--danger, #ff8a80); }
+
+.tl-trans { position: absolute; left: 0; right: 0; height: 22px; }
+.tr-handle { position: absolute; top: 2px; width: 20px; height: 18px; margin-left: -10px; padding: 0; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--graphite);
+  color: var(--smoke); font-size: 11px; line-height: 1; cursor: pointer; z-index: 4; display: grid; place-items: center; }
+.tr-handle:hover, .tr-handle[aria-expanded="true"] { border-color: var(--gold); color: var(--gold); }
+.tr-handle.set { background: var(--gold-wash, rgba(232, 180, 92, .18)); color: var(--gold); border-color: rgba(232, 180, 92, .6); }
+.tr-pop { position: relative; width: 250px; padding: 10px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--carbon, #10151c);
+  box-shadow: 0 14px 40px -12px rgba(0, 0, 0, .8); font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
+.tr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tr-grid button { padding: 6px 4px; border-radius: 8px; border: 1px solid var(--line); background: rgba(244, 247, 250, .04); color: var(--mist); font-size: 11.5px; cursor: pointer; }
+.tr-grid button:hover { border-color: var(--gold); }
+.tr-grid button[aria-pressed="true"] { border-color: var(--gold); background: var(--gold-wash, rgba(232, 180, 92, .18)); color: var(--gold); }
+.tr-row { display: flex; align-items: center; gap: 8px; }
+.tr-row input[type="range"] { flex: 1; }
+.tl-add { position: relative; }
+.tl-add-menu { position: absolute; top: 30px; right: 0; z-index: 30; min-width: 180px; padding: 6px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--carbon, #10151c);
+  display: flex; flex-direction: column; box-shadow: 0 14px 40px -12px rgba(0, 0, 0, .8); }
+.tl-add-menu button { text-align: left; padding: 7px 10px; border: 0; background: transparent; color: var(--mist); border-radius: 8px; font-size: 12.5px; cursor: pointer; }
+.tl-add-menu button:hover { background: rgba(244, 247, 250, .07); color: var(--cloud, #fff); }

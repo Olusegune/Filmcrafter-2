@@ -1,0 +1,111 @@
+/* acting beats, emotional arcs and signature gestures */
+.beats-panel .beats-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.beats-panel .beats-head svg { color: var(--c-amber, #f5a524); }
+.beats-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.beat { padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: rgba(244, 247, 250, 0.03); }
+.beat-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.beat-row .icon-btn { margin-left: auto; }
+.beat-t { width: 64px; }
+.beat-what { width: 100%; }
+.beat-more { margin-top: 6px; font-size: 12.5px; }
+.beat-more summary { cursor: pointer; color: var(--mist); }
+.beat-details { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-top: 6px; }
+.beat-details label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--smoke); }
+.beats-actions, .arc-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+
+.arc-view, .gestures-view { display: flex; flex-direction: column; gap: 8px; }
+.arc-char summary, .gest-char summary { cursor: pointer; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 10px; padding: 6px 0; }
+.arc-char .arc-strip { grid-column: 1 / -1; }
+.arc-strip { display: flex; gap: 2px; height: 10px; }
+.arc-strip i { flex: 1; background: var(--c-amber, #f5a524); border-radius: 2px; }
+.arc-points, .gest-list { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.arc-points li { display: grid; grid-template-columns: 84px 1fr 90px 22px 28px; align-items: center; gap: 8px; }
+.arc-sec { font-size: 12.5px; color: var(--mist); }
+.arc-n { text-align: right; }
+.gest-list li { display: grid; grid-template-columns: auto 1fr auto 2fr 28px; align-items: center; gap: 6px; }
+.perf-sheet { max-height: 88vh; overflow-y: auto; }
+
+/* the lip-sync note of a sung shot */
+.note .ls-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.note .ls-body p { margin: 0; }
+.ls-choice { display: flex; flex-direction: column; gap: 10px; align-items: stretch; font-size: 12.5px; }
+.ls-choice .dim { line-height: 1.5; }
+.btn.ls-gold { background: var(--gold, #e8b45c); border-color: transparent; color: #1a1205; font-weight: 600; white-space: normal; height: auto; min-height: 34px; padding: 7px 14px; }
+.btn.ls-gold:not(:disabled):hover { background: #f2c677; box-shadow: 0 6px 18px -8px rgba(232, 180, 92, .55); }
+.ls-check { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.ls-timing { margin: 0; font-size: 12.5px; line-height: 1.5; }
+.ls-ok { color: var(--success); }
+.ls-warn { color: var(--warning); }
+.dance-report { margin-top: 10px; font-size: 12.5px; }
+.dance-report p { margin: 4px 0; }
+.dance-report ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.dance-report li { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; }
+.cam-suggest { margin: 8px 0; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(232, 180, 92, .35); background: rgba(232, 180, 92, .07); font-size: 12.5px; }
+.cam-suggest p { margin: 0 0 4px; }
+.cam-suggest ul { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.g-test { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 12px; margin: 0 12px 6px; border-radius: 10px; border: 1px solid rgba(232, 180, 92, .4); background: rgba(232, 180, 92, .08); font-size: 12.5px; }
+.g-test span { flex: 1; min-width: 200px; }
+
+/* what the model is given, as pictures */
+.mi { margin: 10px 0; }
+.mi h4 { margin: 0 0 6px; font-size: 12.5px; }
+.mi-row { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.mi-item { width: 96px; display: flex; flex-direction: column; gap: 3px; font-size: 11px; }
+.mi-thumb { width: 96px; height: 60px; padding: 0; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; background: var(--graphite); cursor: zoom-in; display: block; }
+.mi-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mi-thumb[aria-pressed="true"] { border-color: var(--gold); }
+.mi-item.role-first_frame .mi-thumb { border-color: rgba(232, 180, 92, .7); }
+.mi-audio { display: grid; place-items: center; font-size: 22px; color: var(--gold); cursor: default; }
+.mi-role { font-weight: 600; color: var(--mist); }
+.mi-label { color: var(--smoke); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mi-item.off .mi-thumb { opacity: .4; filter: grayscale(.7); }
+.mi-off { color: var(--warning); line-height: 1.3; }
+.mi-big { display: block; max-width: 100%; max-height: 320px; margin-top: 8px; border-radius: 10px; border: 1px solid var(--line-strong); cursor: zoom-out; }
+
+/* what changed since the last take */
+.cs { margin: 8px 0; font-size: 12.5px; }
+.cs-same { color: var(--smoke); padding: 6px 10px; border-radius: 10px; background: rgba(244, 247, 250, .04); }
+.cs-diff { padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(232, 180, 92, .35); background: rgba(232, 180, 92, .07); }
+.cs-diff summary { cursor: pointer; }
+.cs-diff ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.cs-diff li { display: grid; grid-template-columns: 7.5em 1fr; gap: 8px; }
+.cs-tag { color: var(--smoke); font-size: 11.5px; }
+.cs-prompt_added .cs-text { color: var(--success); }
+.cs-prompt_removed .cs-text { color: var(--warning); text-decoration: line-through; text-decoration-color: rgba(230, 183, 90, .5); }
+.tr-rec { margin: 6px 0; font-size: 12px; color: var(--smoke); }
+.tr-rec summary { cursor: pointer; }
+.tr-rec ul { margin: 6px 0 0 16px; padding: 0; }
+
+/* does someone on screen sing this */
+.ls-sing { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; }
+.ls-sing .dim { flex-basis: 100%; }
+.btn.ls-opt[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); background: var(--gold-wash, rgba(232, 180, 92, .14)); }
+
+/* model picker: recommended, new, text only, clean text */
+.mp-new { color: var(--gold); font-weight: 700; font-size: 10px; letter-spacing: .06em; }
+.mp-warn { margin: 6px 0; padding: 6px 10px; font-size: 12px; color: var(--warning); border: 1px solid rgba(230, 183, 90, .35); background: rgba(230, 183, 90, .07); }
+.mp-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 6px 0; font-size: 12px; }
+.mp-check { display: inline-flex; align-items: center; gap: 6px; color: var(--mist); }
+
+/* upscale */
+.up-sheet { max-width: 640px; }
+.up-choices { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+.up-tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.up-tool { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 9px 11px; border: 1px solid var(--line); background: rgba(244, 247, 250, .03); color: var(--mist); cursor: pointer; }
+.up-tool b { color: var(--frost); font-size: 13px; }
+.up-tool span { font-size: 11.5px; color: var(--smoke); line-height: 1.35; }
+.up-tool.on { border-color: var(--gold); background: var(--gold-wash, rgba(232, 180, 92, .12)); }
+.up-tool:disabled { opacity: .45; cursor: not-allowed; }
+.up-factors { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+
+/* a small square badge holding a picture, at the head of a card */
+.glyph-badge { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; margin-right: 8px; background: var(--gold-wash, rgba(232, 180, 92, .14)); color: var(--gold); border: 1px solid rgba(232, 180, 92, .35); }
+.dl-card-head { display: flex; align-items: center; justify-content: flex-start; text-align: left; }
+.dl-card-head .chip { margin-left: auto; }
+.look-card .ln { display: flex; align-items: center; }
+.look-card .ln .glyph-badge { width: 24px; height: 24px; }
+.dir-level { display: inline-flex; align-items: center; }
+.dir-level .glyph-badge { width: 24px; height: 24px; }
+
+/* the living waveform above the drop card */
+.living-wave { display: block; margin: 2px auto 4px; max-width: 100%; }
