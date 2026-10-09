@@ -59,10 +59,10 @@ describe("choosing shot by shot, and the free sound check", () => {
     const html = note({ keyframeBlocksAudio: true, mode: "auto" });
     expect(html).toContain("too wide for a mouth to be watched");
     expect(html).toContain("Follow the song&#x27;s audio instead");
-    expect(html).not.toContain("Or let PULSEFRAME choose shot by shot");               // already on
+    expect(html).not.toContain("Or let FilmCrafter choose shot by shot");               // already on
   });
   it("outside Auto, offers Auto as the gentler choice", () => {
-    expect(note({ keyframeBlocksAudio: true })).toContain("Or let PULSEFRAME choose shot by shot (close-ups follow the audio)");
+    expect(note({ keyframeBlocksAudio: true })).toContain("Or let FilmCrafter choose shot by shot (close-ups follow the audio)");
   });
   it("offers the free check, says it is free and local, and shows the result", () => {
     const html = note({ lipSync: true, onTiming: () => {}, timing: { verdict: "late", detail: "The take's sound follows the vocal but comes 240 ms late.", lag_ms: 240 } });
@@ -88,7 +88,7 @@ describe("does someone on screen sing this", () => {
   it("offers the three answers, marks the one in force, and names who is asked about", () => {
     const html = choice("off");
     expect(html).toContain("Does Young Sege sing this on screen?");
-    expect(html).toContain("Let PULSEFRAME decide");
+    expect(html).toContain("Let FilmCrafter decide");
     expect(html).toContain("Yes, sync the mouth");
     expect(html).toContain("No: a narrator or voice-over");
     expect(html).toMatch(/aria-pressed="true"[^>]*>No: a narrator/);
@@ -99,7 +99,7 @@ describe("does someone on screen sing this", () => {
   it("shows up under the lip-sync note of a shot that is being synced, so a wrong guess can be corrected", () => {
     expect(note({ lipSync: true, onSing: () => {} })).toContain("No: a narrator or voice-over");
     expect(note({ keyframeBlocksAudio: true, onSing: () => {} })).toContain("Yes, sync the mouth");
-    expect(note({ onSing: () => {} })).toContain("Let PULSEFRAME decide");
+    expect(note({ onSing: () => {} })).toContain("Let FilmCrafter decide");
     expect(note({ lipSync: true })).not.toContain("narrator or voice-over");                      // no handler, no control
   });
 

@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import render, supervisor as SV
+from filmcrafter_engine import render, supervisor as SV
 
 
 def _project(tmp_path, jobs, keyframes=None):

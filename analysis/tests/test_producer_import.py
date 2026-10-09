@@ -6,11 +6,11 @@ import zipfile
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import library, performance, producer_import as PI, render as R
-from pulseframe_analysis.onboarding import choreo_get
+from filmcrafter_engine import library, performance, producer_import as PI, render as R
+from filmcrafter_engine.onboarding import choreo_get
 
 HERE = os.path.dirname(__file__)
-PLUGIN_ZIP = os.path.join(HERE, "fixtures", "PULSEFRAME_Producer_v1.0.0.zip")
+PLUGIN_ZIP = os.path.join(HERE, "fixtures", "FILMCRAFTER_Producer_v1.0.0.zip")
 SONGMAP = {"duration": 40.0, "bpm": 120, "beats": [i * 0.5 for i in range(81)], "downbeats": [i * 2.0 for i in range(21)],
            "sections": [{"start": 0, "end": 10, "label": "INTRO"}, {"start": 10, "end": 25, "label": "VERSE"},
                         {"start": 25, "end": 40, "label": "CHORUS"}],
@@ -136,7 +136,7 @@ def test_zip_with_unsafe_path_is_refused(tmp_path):
 
 
 def test_import_report_shows_in_the_supervisor(tmp_path):
-    from pulseframe_analysis import supervisor
+    from filmcrafter_engine import supervisor
     d = _project(tmp_path)
     PI.apply(d, _minimal_package(tmp_path))
     items = [i for i in supervisor.listing(d)["items"] if i["source"] == "production package"]
@@ -166,7 +166,7 @@ def test_pfproducer_file_opens_like_the_zip(tmp_path):
 
 def test_imported_shots_can_be_directed(tmp_path):
     """Direction reads every shot of the plan: an imported plan must carry every field it needs (it once lacked sync_accents)."""
-    from pulseframe_analysis import director
+    from filmcrafter_engine import director
     d = _project(tmp_path)
     sm = dict(SONGMAP, accents=[1.0, 5.5, 13.0, 26.5, 30.0])
     open(os.path.join(d, "songmap.json"), "w").write(json.dumps(sm))
@@ -250,7 +250,7 @@ def test_expression_and_the_set_variant_reach_the_shot(tmp_path):
     PI.apply(d, _package_with_specs(tmp_path))
     shot = json.load(open(os.path.join(d, "production.json")))["scenes"][0]["shots"][0]
     assert shot["expression"] == "wary, then amused" and shot["environment"].endswith("(Home dressed for the party)")
-    from pulseframe_analysis import render as R
+    from filmcrafter_engine import render as R
     lines = R.compile_request(R._with_movement(d, shot), None, {"scenes": []}, json.load(open(os.path.join(d, "project.json"))),
                               {"roles": {"prompt": "prompt"}, "inputs": [{"name": "prompt", "type": "string", "required": True}], "model": "m", "title": "m"}, [])["prompt"]
     assert "wary, then amused" in lines

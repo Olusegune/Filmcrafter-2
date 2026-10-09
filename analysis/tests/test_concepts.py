@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import concepts as C
+from filmcrafter_engine import concepts as C
 
 SECTIONS = [{"label": "INTRO", "group": "Intro", "start": 0.0, "end": 8.0, "energy": 3, "mood": "calm"},
             {"label": "VERSE", "group": "Verse 1", "start": 8.0, "end": 24.0, "energy": 5, "mood": "tender"},

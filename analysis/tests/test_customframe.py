@@ -5,7 +5,7 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import customframe as CF
+from filmcrafter_engine import customframe as CF
 
 
 @pytest.fixture

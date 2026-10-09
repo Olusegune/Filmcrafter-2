@@ -5,8 +5,8 @@ import os
 
 import pytest
 
-from pulseframe_analysis import render as R, routing
-from pulseframe_analysis.budget import KIE_USD_PER_CREDIT
+from filmcrafter_engine import render as R, routing
+from filmcrafter_engine.budget import KIE_USD_PER_CREDIT
 from tests.test_native_dialogue import SHOT, _talking, scene  # noqa: F401  (a project folder with one shot; a fixture)
 
 

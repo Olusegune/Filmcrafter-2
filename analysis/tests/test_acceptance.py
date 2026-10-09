@@ -1,4 +1,4 @@
-"""Acceptance tests: the promises PULSEFRAME makes to the people who use it, each written as a scenario in the user's words and traced to a requirement in
+"""Acceptance tests: the promises FilmCrafter makes to the people who use it, each written as a scenario in the user's words and traced to a requirement in
 docs/ACCEPTANCE.md. They use the real engine and real ffmpeg; only the paid services are stood in for."""
 import json
 import os
@@ -9,7 +9,7 @@ import wave
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import cleanup, customframe, export as E, library as L, media, overlays as O, refgen, render as R
+from filmcrafter_engine import cleanup, customframe, export as E, library as L, media, overlays as O, refgen, render as R
 from tests.test_render import FakeProvider, field, man
 
 pytestmark = pytest.mark.acceptance
@@ -161,7 +161,7 @@ def test_ACC07_when_something_cannot_be_done_I_am_told_in_plain_words_not_given_
     """REQ-07: refusals are one readable sentence, never a stack trace or a technical class name."""
     import importlib
     d, _ = film
-    mod = importlib.import_module(f"pulseframe_analysis.{module}")
+    mod = importlib.import_module(f"filmcrafter_engine.{module}")
     assert mod.main([a.replace("{d}", d) for a in args]) == 1
     msg = json.loads(capsys.readouterr().out.splitlines()[-1])["message"]
     assert msg and "Traceback" not in msg and "Error:" not in msg and "KeyError" not in msg and msg[0].isupper()
@@ -173,7 +173,7 @@ def test_ACC13_I_can_keep_trim_or_drop_the_sound_a_video_model_made_without_payi
     """As a director I hear a take whose sound I like in one shot and not in another. I keep it for one, split it and keep only the voices, then drop it, and change my mind:
     the film follows every time, no new render is queued, and the take file is exactly what the model returned."""
     import hashlib
-    from pulseframe_analysis import shotsound as SS
+    from filmcrafter_engine import shotsound as SS
     from tests.test_shotsound import fake_demucs, level, make_film
     fake_demucs(monkeypatch)
     d = make_film(tmp_path)
@@ -195,8 +195,8 @@ def test_ACC13_I_can_keep_trim_or_drop_the_sound_a_video_model_made_without_payi
 
 
 def test_ACC14_my_song_is_never_changed_unless_i_choose_to_change_it(tmp_path):
-    """As a musician I do not want PULSEFRAME to touch my song's level behind my back: untouched, the film plays my song as it is; after I change a shot and go back, it is the same again."""
-    from pulseframe_analysis import shotsound as SS
+    """As a musician I do not want FilmCrafter to touch my song's level behind my back: untouched, the film plays my song as it is; after I change a shot and go back, it is the same again."""
+    from filmcrafter_engine import shotsound as SS
     from tests.test_shotsound import make_film
     d = make_film(tmp_path)
     ch = lambda: SS.decode(E.build(d, "square")["path"], 2)
@@ -235,7 +235,7 @@ def test_ACC15_i_can_take_back_a_change_to_my_layers(tmp_path):
 
 def test_ACC16_i_am_told_how_loud_my_film_is_and_never_given_a_made_up_number(tmp_path):
     """As someone about to publish I want the film's loudness. A film with sound gets a real reading; one with none gets no number at all, not a zero."""
-    from pulseframe_analysis import shotsound as SS
+    from filmcrafter_engine import shotsound as SS
     from tests.test_shotsound import make_film, tone
     d = make_film(tmp_path)
     r = E.build(d, "square")["loudness"]
@@ -250,7 +250,7 @@ def test_ACC16_i_am_told_how_loud_my_film_is_and_never_given_a_made_up_number(tm
 
 def test_ACC17_a_layer_i_move_trim_or_hide_is_exactly_what_the_export_shows(tmp_path):
     """As an editor I drag a title to a new time, trim it, and hide another: the export shows the first where I put it, and the hidden one nowhere; hiding is kept, not deleting."""
-    from pulseframe_analysis import overlays as OV
+    from filmcrafter_engine import overlays as OV
     from tests.test_shotsound import make_film
     d = make_film(tmp_path)
     a = OV.add(d, {"kind": "text", "text": "FIRST", "start": 0.2, "end": 1.0})[-1]
@@ -267,7 +267,7 @@ def test_ACC17_a_layer_i_move_trim_or_hide_is_exactly_what_the_export_shows(tmp_
 def test_ACC18_a_transition_never_changes_how_long_the_film_is(tmp_path):
     """As an editor I give three cuts three different transitions; the film is exactly as long as the song, and each shot enters the way I chose."""
     import subprocess
-    from pulseframe_analysis import media as M
+    from filmcrafter_engine import media as M
     from tests.test_media import _project, _img
     d = _project(tmp_path)
     subprocess.run([E.ffmpeg(), "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=8", os.path.join(d, "song.wav")], check=True)
@@ -284,7 +284,7 @@ def test_ACC18_a_transition_never_changes_how_long_the_film_is(tmp_path):
 def test_ACC19_the_free_checks_never_send_anything_anywhere(tmp_path, monkeypatch):
     """As someone watching the cost I want the dance-ready check, the sound check and the camera suggestions to stay on my computer: with the network switched off they still answer."""
     import socket
-    from pulseframe_analysis import dance, looks
+    from filmcrafter_engine import dance, looks
     from tests.test_dance import project, shot
     def no_network(*a, **k):
         raise AssertionError("a free check tried to use the network")

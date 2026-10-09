@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import editor_export as X, export as E
+from filmcrafter_engine import editor_export as X, export as E
 
 
 def _clip(path, secs, sound, color="gray"):
@@ -55,7 +55,7 @@ def test_both_editors_get_a_well_formed_file_with_a_bin_and_two_timelines(projec
         assert text.startswith("<?xml") and "<!DOCTYPE xmeml>" in text.split("\n")[1]
         root = ET.parse(r["path"]).getroot()                                                              # parses: the odd characters were escaped
         assert root.tag == "xmeml" and root.get("version") == "4"
-        assert root.find("project/name").text == "Mother  Queen - PULSEFRAME"                              # characters a file name can't hold are dropped from the title
+        assert root.find("project/name").text == "Mother  Queen - FilmCrafter"                              # characters a file name can't hold are dropped from the title
         assert [s.find("name").text for s in root.iter("sequence")] == ["Mother  Queen: finished film", "Mother  Queen: shots (to re-edit)"]
         assert "S01-01 - a&b.mp4" in [c.find("name").text for c in root.iter("clipitem")]                  # the & was escaped in the file and read back whole
         assert "a&amp;b.mp4" in text and "a&b.mp4" not in text

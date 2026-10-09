@@ -7,7 +7,7 @@ import sys
 import pytest
 import requests
 
-from pulseframe_analysis import comfy_install as CI, comfy_setup as CS
+from filmcrafter_engine import comfy_install as CI, comfy_setup as CS
 
 FIXTURE = os.path.join(os.path.dirname(__file__), "data", "portable_min.7z")
 windows_only = pytest.mark.skipif(sys.platform != "win32", reason="the unpacking tool is Windows' own tar")
@@ -72,7 +72,7 @@ class FakeResp:
 
 @pytest.fixture
 def winplan(home, monkeypatch):
-    from pulseframe_analysis import hardware as H
+    from filmcrafter_engine import hardware as H
     monkeypatch.setattr(sys, "platform", "win32")
     gpu = {"name": "NVIDIA RTX 3060", "vram_gb": 12.0, "vendor": "nvidia"}
     monkeypatch.setattr(H, "report", lambda path=None: {"gpu": gpu, "ram_gb": 32.0})
@@ -84,7 +84,7 @@ def winplan(home, monkeypatch):
 def test_a_good_plan_says_what_where_how_big_and_from_which_source(winplan, home):
     p = CI.plan()
     assert p["ok"] and p["vendor"] == "nvidia" and p["tag"] == "v9.9" and p["asset"]["name"].endswith("nvidia.7z")
-    assert p["download_gb"] == 2.0 and p["dest"] == str(home / "PULSEFRAME ComfyUI") and "github.com" in p["source"] and p["warnings"] == []
+    assert p["download_gb"] == 2.0 and p["dest"] == str(home / "FilmCrafter ComfyUI") and "github.com" in p["source"] and p["warnings"] == []
 
 
 def test_a_small_card_or_a_non_nvidia_card_gets_an_honest_warning(winplan):
@@ -127,7 +127,7 @@ def test_other_systems_are_pointed_to_the_official_app(home, monkeypatch):
 
 
 def test_an_existing_install_is_recognised_instead_of_downloaded_again(winplan, home):
-    root = home / "PULSEFRAME ComfyUI" / "ComfyUI_windows_portable"
+    root = home / "FilmCrafter ComfyUI" / "ComfyUI_windows_portable"
     (root / "ComfyUI").mkdir(parents=True)
     (root / "run_nvidia_gpu.bat").write_text("")
     p = CI.plan()
@@ -242,7 +242,7 @@ def test_install_end_to_end_registers_the_copy_and_makes_it_startable(winplan, h
     monkeypatch.setattr(CI, "download", lambda a, folder: str(home / "pkg.7z"))
     r = CI.install()
     assert r["installed"] and r["start"].endswith("run_nvidia_gpu.bat") and r["tag"] == "v9.9"
-    assert CI.registry() == [r["path"]] and not os.path.exists(str(home / "PULSEFRAME ComfyUI") + ".download")
+    assert CI.registry() == [r["path"]] and not os.path.exists(str(home / "FilmCrafter ComfyUI") + ".download")
     assert any(i["start"] == r["start"] for i in CS.installs())                      # Find ComfyUI can now start it
     assert CI.install()["installed"]                                                  # asking again is harmless
 
@@ -254,7 +254,7 @@ def test_a_failed_unpack_leaves_no_half_folder_and_keeps_the_download(winplan, h
     monkeypatch.setattr(CI, "download", lambda a, folder: str(home / "dl" / "c.7z"))
     with pytest.raises(SystemExit):
         CI.install()
-    assert not os.path.exists(home / "PULSEFRAME ComfyUI") and os.path.exists(home / "dl" / "c.7z")
+    assert not os.path.exists(home / "FilmCrafter ComfyUI") and os.path.exists(home / "dl" / "c.7z")
 
 
 def test_install_refuses_when_the_plan_says_no(winplan, home, monkeypatch):

@@ -5,8 +5,8 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import render as R
-from pulseframe_analysis import stills as ST
+from filmcrafter_engine import render as R
+from filmcrafter_engine import stills as ST
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ def test_check_failure_marks_unchecked_without_blocking(proj, monkeypatch):
 
 
 def test_approval_prefers_the_still_that_passed(tmp_path):
-    from pulseframe_analysis import library as L
+    from filmcrafter_engine import library as L
     d = tmp_path / "q"; (d / "g").mkdir(parents=True)
     for n in ("a", "b"):
         Image.new("RGB", (8, 8)).save(d / "g" / f"{n}.png")
@@ -71,7 +71,7 @@ def test_approval_prefers_the_still_that_passed(tmp_path):
 
 
 def test_budget_reroutes_unsent_jobs_to_the_same_family(tmp_path, monkeypatch):
-    from pulseframe_analysis import budget as B, router
+    from filmcrafter_engine import budget as B, router
     monkeypatch.setenv("KIE_KEY", "k"); monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     d = tmp_path / "r"; d.mkdir()
     (d / "production.json").write_text(json.dumps({"scenes": [{"number": 1, "shots": [{"id": "S01-01", "start": 0, "end": 2, "beats": ["x"], "performers": []}]}]}))
@@ -87,7 +87,7 @@ def test_budget_reroutes_unsent_jobs_to_the_same_family(tmp_path, monkeypatch):
 
 
 def test_budget_fits():
-    from pulseframe_analysis import budget as B
+    from filmcrafter_engine import budget as B
     v = B.fits({"fal": 4.0, "kie": 500}, {"fal": {"known": True, "amount": -2, "unit": "usd"}, "kie": {"known": True, "amount": 400, "unit": "credits"}})
     assert v["fal"]["fits"] is None and "may be refused" in v["fal"]["reason"]   # undocumented figure: warn only
     assert v["kie"] == {"fits": False, "short": 100.0}

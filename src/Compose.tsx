@@ -91,7 +91,7 @@ function MotionLibrary({ dir, shot, hasVideo, onUsed, busy }: { dir: string; sho
   });
   const saveShot = () => run(async () => { const c = await api.compose<MotionClip>(dir, "library_add", { shot }); setNote(c.already ? `Already in the library as “${c.name}”.` : `Saved “${c.name}” to the library.`); await refresh(); });
   const exportAll = () => run(async () => {
-    const p = await save({ defaultPath: "PULSEFRAME motion library.zip", filters: [{ name: "Motion library", extensions: ["zip"] }] });
+    const p = await save({ defaultPath: "FilmCrafter motion library.zip", filters: [{ name: "Motion library", extensions: ["zip"] }] });
     if (typeof p !== "string") return;
     const r = await api.compose<{ count: number }>(dir, "library_export", { path: p });
     setNote(`Saved ${r.count} motion${r.count === 1 ? "" : "s"} to the file.`);

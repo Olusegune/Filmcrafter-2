@@ -31,11 +31,11 @@ describe("how a model is described", () => {
 });
 
 describe("the picker", () => {
-  it("starts on 'Let PULSEFRAME choose' and is a radio group named for what it picks", () => {
+  it("starts on 'Let FilmCrafter choose' and is a radio group named for what it picks", () => {
     const img = renderToStaticMarkup(<ModelChoice dir="d" kind="image" />);
     expect(img).toContain('role="radiogroup"');
     expect(img).toContain("Picture model");
-    expect(img).toContain("Let PULSEFRAME choose");
+    expect(img).toContain("Let FilmCrafter choose");
     expect(img).toContain('aria-checked="true"');
     expect(renderToStaticMarkup(<ModelChoice dir="d" kind="video" />)).toContain("Video model");
   });

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import songgen as G
+from filmcrafter_engine import songgen as G
 
 LYRICS = """[Intro - Spoken]
 Children!

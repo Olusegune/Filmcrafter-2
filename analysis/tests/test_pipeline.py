@@ -7,10 +7,10 @@ import wave
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import export as E
-from pulseframe_analysis import library as L
-from pulseframe_analysis import lyrics as Ly
-from pulseframe_analysis import script_import as S
+from filmcrafter_engine import export as E
+from filmcrafter_engine import library as L
+from filmcrafter_engine import lyrics as Ly
+from filmcrafter_engine import script_import as S
 
 
 # ------------------------------------------------------------------ lyrics
@@ -187,7 +187,7 @@ def test_every_part_of_the_exported_film_carries_the_same_colour_labels(exp_proj
 
 def test_a_preview_is_just_the_part_asked_for_with_its_layers_and_sound_and_leaves_the_full_export_alone(exp_proj):
     """A preview of a few seconds: small, quick, the right length, the song's sound for that part, and layers drawn where they belong in it."""
-    from pulseframe_analysis import overlays as O
+    from filmcrafter_engine import overlays as O
     L.approve(exp_proj, "S01-01", "old")                                                       # 0-1.5 s a red clip; 1.5-3.0 s a slate
     O.add(exp_proj, {"kind": "shape", "shape": "rect", "width": 0.5, "height": 0.5, "x": 0.5, "y": 0.5, "color": "#00ff00", "start": 1.6, "end": 2.9, "fade": 0.05, "shadow": False})
     r = E.build(exp_proj, "preview", window=(1.0, 2.5))

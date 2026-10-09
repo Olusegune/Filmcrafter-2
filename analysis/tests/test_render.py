@@ -2,7 +2,7 @@
 
 Each test pins a real failure found while auditing live generation:
 - Director Mode model switches failed when fal's catalog rate-limited anonymous schema reads (429)
-- models with required inputs PULSEFRAME didn't send were rejected by the provider
+- models with required inputs FilmCrafter didn't send were rejected by the provider
 - Veo durations written as "4s" crashed request building
 - a 429 while *sending* left jobs stuck in "submitting" forever
 - errors surfaced as raw text instead of an actionable category
@@ -15,7 +15,7 @@ import tempfile
 import pytest
 import requests
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 
 
 def field(name, type="string", **kw):
@@ -447,7 +447,7 @@ def test_huge_images_are_uploaded_scaled_down(tmp_path):
 
 
 def test_http_errors_from_client_libraries_are_explained():
-    from pulseframe_analysis import render as R
+    from filmcrafter_engine import render as R
 
     class Resp:
         status_code = 403

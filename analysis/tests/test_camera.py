@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import camera as C, command, director, render as R
+from filmcrafter_engine import camera as C, command, director, render as R
 
 
 def field(name, type="string", **kw):

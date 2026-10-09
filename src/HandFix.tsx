@@ -33,7 +33,7 @@ export function priceLine(p: Plan | null, versions: number): string {
 const EDGES: { i: 0 | 1 | 2 | 3; label: string }[] = [{ i: 0, label: "Left edge" }, { i: 2, label: "Right edge" }, { i: 1, label: "Top edge" }, { i: 3, label: "Bottom edge" }];
 
 /**
- * Fix only the bad hand. Mark the hand on the keyframe (drag a box, or let PULSEFRAME suggest one), and only that part is redrawn; the rest of the picture stays exactly as it is.
+ * Fix only the bad hand. Mark the hand on the keyframe (drag a box, or let FilmCrafter suggest one), and only that part is redrawn; the rest of the picture stays exactly as it is.
  * The result waits beside the old keyframe: nothing is replaced until you use it.
  */
 export function HandFix({ dir, shot, image, onClose, onQueued }: { dir: string; shot: string; image: string; onClose: () => void; onQueued?: () => void }) {

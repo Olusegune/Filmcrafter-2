@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 from tests.test_lipsync_mode import preview
 
 PLAN = {"characters": [{"name": "Sege"}], "meta": {}}

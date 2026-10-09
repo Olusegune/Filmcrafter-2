@@ -165,7 +165,7 @@ export async function installMock() {
         return { shot: "S01-04", shot_seconds: 2, video: st.video_path ? "media/dance.mp4" : null, video_seconds: st.video_path ? 6 : null, image: "assets/kf.png", image_is_start: true, orientation: "video", quality: "pro", background: "video", note: "",
           notes: st.video_path ? ["The motion video is 6 s but the shot is 2 s: the take will be trimmed to the shot when the film is built."] : [], ready: !!st.video_path, missing: st.video_path ? [] : ["a motion video"], prompt: { mode: "auto", text: "", only: false } };
       }
-      case "comfy_install": return { dest: "C:/Users/you/PULSEFRAME ComfyUI", source: "github.com/comfyanonymous/ComfyUI (releases)", ok: true, reason: "", warnings: [], gpu: "NVIDIA GeForce RTX 3060", vendor: "nvidia", vram_gb: 12, tag: "v0.39.0",
+      case "comfy_install": return { dest: "C:/Users/you/FilmCrafter ComfyUI", source: "github.com/comfyanonymous/ComfyUI (releases)", ok: true, reason: "", warnings: [], gpu: "NVIDIA GeForce RTX 3060", vendor: "nvidia", vram_gb: 12, tag: "v0.39.0",
         asset: { name: "ComfyUI_windows_portable_nvidia.7z", size: 2003629308, url: "", sha256: null }, download_gb: 2.0, need_gb: 12.8, free_gb: 640.9 };
       case "providers": return { providers: [], comfyui: { url: "http://127.0.0.1:8188", connected: !new URLSearchParams(location.search).has("nocomfy"), device: "NVIDIA GeForce RTX 3060", workflows: [] } };
       case "lighting": {
@@ -242,7 +242,7 @@ export async function installMock() {
       }
       // falls through to the project-wide estimate
       return { provider: "fal", model: preview.manifest.model, shots: 68, usd: 108.12, usd_known: 108.12, unknown: 0, basis: "≈113k tokens × $0.014/1,000 tokens" };
-      case "export_project": return new Promise((r) => setTimeout(() => r({ loudness: { lufs: -14.6, range_lu: 6.2, true_peak_db: -1.3 }, path: "C:\Users\you\Documents\PULSEFRAME\Exit Plan.pulseframe\exports\Exit Plan - Cinema (draft).mp4", preset: "Cinema 2.39:1", width: 1920, height: 804, fps: 24, duration: 191.44, shots: 70, rendered: 2, draft: true }), 800));
+      case "export_project": return new Promise((r) => setTimeout(() => r({ loudness: { lufs: -14.6, range_lu: 6.2, true_peak_db: -1.3 }, path: "C:\Users\you\Documents\FilmCrafter\Exit Plan.filmcrafter\exports\Exit Plan - Cinema (draft).mp4", preset: "Cinema 2.39:1", width: 1920, height: 804, fps: 24, duration: 191.44, shots: 70, rendered: 2, draft: true }), 800));
       case "plugin:event|listen": return 1;
       default: return null;
     }

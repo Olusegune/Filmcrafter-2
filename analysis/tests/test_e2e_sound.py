@@ -10,7 +10,7 @@ import subprocess
 import numpy as np
 import pytest
 
-from pulseframe_analysis import analyze, export as E, layerkit, media, overlays as O, render as R, shotsound as SS
+from filmcrafter_engine import analyze, export as E, layerkit, media, overlays as O, render as R, shotsound as SS
 from tests.test_e2e_journey import SECONDS, ff, parts  # noqa: F401  (the 16 s click-track song; a fixture)
 from tests.test_render import FakeProvider, field, man
 from tests.test_shotsound import fake_demucs, level

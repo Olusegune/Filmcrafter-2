@@ -43,7 +43,7 @@ export function ComfyInstallCard({ onInstalled }: { onInstalled: (startScript: s
       {plan?.installed && <p>It is installed at <span className="num">{plan.path}</span>. Press Start it.
         {plan.start && <> <button className="btn small" disabled={!!busy} onClick={() => onInstalled(plan.start!)}>Start it</button></>}</p>}
       {plan && !plan.installed && plan.ok && <>
-        <p>ComfyUI is free and runs on your own graphics card, so renders cost nothing. PULSEFRAME can install it for you, with no terminal and no setup:</p>
+        <p>ComfyUI is free and runs on your own graphics card, so renders cost nothing. FilmCrafter can install it for you, with no terminal and no setup:</p>
         <dl className="ci-facts">{installFacts(plan).map((f) => <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>
         {plan.warnings.map((w) => <p key={w} className="fr-note warn"><I.Alert size={13} /> {w}</p>)}
         {busy ? <div role="status" aria-live="polite">

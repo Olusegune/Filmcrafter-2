@@ -53,7 +53,7 @@ export function CreativeDirections({ project, onPlanned, onSettings }: {
       {concepts.length === 0 ? (
         <div className="dir-intro">
           <h2>How should this song look?</h2>
-          <p className="sub">PULSEFRAME will propose three different directions for “{project.project.title}”. You choose one, and it
+          <p className="sub">FilmCrafter will propose three different directions for “{project.project.title}”. You choose one, and it
             writes the treatment and plans every shot on the beat.</p>
           <textarea className="text-input" rows={3} placeholder="Optional: anything you want, e.g. “set in Lagos, no dancing, hopeful ending”"
                     value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -106,7 +106,7 @@ export function CreativeDirections({ project, onPlanned, onSettings }: {
           setError(""); try { await api.media(project.dir, "plan", { bars: 4 }); onPlanned(); } catch (e) { setError(errorText(e)); } }}>
           Cut shots on the beat, no AI</button> (free), then place your media on them.</p>
       <p className="dim" style={{ marginTop: 6 }}><I.Script size={12} /> Have a script already?{" "}
-        <button className="link" onClick={openScriptSheet}>Add your script</button> and PULSEFRAME follows it instead.</p>
+        <button className="link" onClick={openScriptSheet}>Add your script</button> and FilmCrafter follows it instead.</p>
     </div>
   );
 }

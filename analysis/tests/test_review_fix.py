@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 from tests.test_video_models import f, kie
 
 
@@ -29,7 +29,7 @@ def models(monkeypatch):
     table = {"volcengine/video-to-video-lip-sync": LIP, "bytedance/seedance-2-fast": VID, "google/nano-banana": IMG}
     real = R.manifest
     monkeypatch.setattr(R, "manifest", lambda p, m: table[m]() if m in table else real(p, m))
-    monkeypatch.setattr("pulseframe_analysis.routing.guard", lambda *a, **k: None)
+    monkeypatch.setattr("filmcrafter_engine.routing.guard", lambda *a, **k: None)
     return table
 
 
@@ -54,7 +54,7 @@ def test_a_video_model_with_no_duration_setting_is_not_mistaken_for_a_lip_sync_m
     d = project(tmp_path)
     fixed = kie("some/fixed-length-video", f("prompt", required=True), f("first_frame_url"))
     monkeypatch.setattr(R, "manifest", lambda p, m: fixed)
-    monkeypatch.setattr("pulseframe_analysis.routing.guard", lambda *a, **k: None)
+    monkeypatch.setattr("filmcrafter_engine.routing.guard", lambda *a, **k: None)
     assert R.enqueue(d, ["S01-01"], "kie", "some/fixed-length-video", {}, None, "video")[0]["kind"] == "video"
 
 

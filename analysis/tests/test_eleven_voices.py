@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import show as S, voices as V
+from filmcrafter_engine import show as S, voices as V
 
 VID = "21m00Tcm4TlvDq8ikWAM"
 
@@ -129,7 +129,7 @@ def test_a_scene_can_mix_both_providers_and_each_is_priced_its_own_way(show, mon
     V.set_dialogue(scene, {"lines": [{"character": "Ada", "text": "Where were you?"}, {"character": "Ben", "text": "Waiting for you, " + "x" * 20}]})
     V.set_voice(show, "Ada", {"provider": "elevenlabs", "voice_id": VID, "model": "eleven_flash_v2_5"})
     V.set_voice(show, "Ben", {"voice_id": "Deep_Voice_Man"})
-    monkeypatch.setattr("pulseframe_analysis.render._fal_price", lambda m: {"unit": "character", "unit_price": 0.0001})
+    monkeypatch.setattr("filmcrafter_engine.render._fal_price", lambda m: {"unit": "character", "unit_price": 0.0001})
     e = V.estimate(scene)
     assert e["lines"] == 2 and e["eleven_characters"] == len("Where were you?") and e["eleven_credits"] == round(len("Where were you?") * 0.5)
     assert e["usd"] is not None and "ElevenLabs" in e["basis"] and "credits" in e["basis"]

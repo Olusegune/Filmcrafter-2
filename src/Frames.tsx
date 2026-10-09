@@ -303,7 +303,7 @@ export function FramesStage({ dir, shot, hasKey, onChanged, onQueued, onOpenKeyf
               <option value="keyframe">Start on its keyframe</option>
               <option value="previous">Continue from {f.prev}'s last frame</option>
             </select>}
-            {f.prev && f.start_mode === "previous" && <span className="dim fr-exact">Uses the exact last frame of {f.prev}'s take when the provider returns one (Kie's Seedance models do when asked, and PULSEFRAME asks automatically); otherwise it is read from the video.</span>}
+            {f.prev && f.start_mode === "previous" && <span className="dim fr-exact">Uses the exact last frame of {f.prev}'s take when the provider returns one (Kie's Seedance models do when asked, and FilmCrafter asks automatically); otherwise it is read from the video.</span>}
           </figcaption>
         </figure>
         <div className="fr-arrow" aria-hidden>→</div>

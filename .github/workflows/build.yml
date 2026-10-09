@@ -37,7 +37,7 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: python -m compileall -q analysis/pulseframe_analysis
+      - run: python -m compileall -q analysis/filmcrafter_engine
 
   macos-compile:
     name: macOS compile check
@@ -109,17 +109,17 @@ jobs:
         shell: bash
         run: |
           pip install bandit pip-audit
-          python -m bandit -q -r pulseframe_analysis -ll
+          python -m bandit -q -r filmcrafter_engine -ll
           python -m pip_audit -r requirements-engine.txt --no-deps --disable-pip
       - name: Imports
         working-directory: analysis
-        run: python -c "import librosa, demucs, faster_whisper, openai, fal_client, pypdf, imageio_ffmpeg, PIL, yaml, keyring, pulseframe_analysis.render, pulseframe_analysis.concepts, pulseframe_analysis.command; print('imports ok')"
+        run: python -c "import librosa, demucs, faster_whisper, openai, fal_client, pypdf, imageio_ffmpeg, PIL, yaml, keyring, filmcrafter_engine.render, filmcrafter_engine.concepts, filmcrafter_engine.command; print('imports ok')"
       - name: "Analyse a generated test song (known answer: 120 BPM, 6 sections)"
         working-directory: analysis
         shell: bash
         run: |
           python make_test_song.py test.wav
-          python -m pulseframe_analysis test.wav --out sm.json > /dev/null
+          python -m filmcrafter_engine test.wav --out sm.json > /dev/null
           python - <<'EOF'
           import json
           m = json.load(open("sm.json"))
@@ -155,12 +155,12 @@ jobs:
         env:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
-          $pfx = Join-Path $env:RUNNER_TEMP 'pulseframe-signing.pfx'
+          $pfx = Join-Path $env:RUNNER_TEMP 'filmcrafter-signing.pfx'
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
           $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force)
           Remove-Item $pfx -Force
-          "PULSEFRAME_SIGN_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "PULSEFRAME_REQUIRE_SIGNING=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "FILMCRAFTER_SIGN_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "FILMCRAFTER_REQUIRE_SIGNING=1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ contains(matrix.os, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
@@ -179,7 +179,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'build-__VERSION__' }}
-          releaseName: "PULSEFRAME __VERSION__"
+          releaseName: "FilmCrafter __VERSION__"
           releaseBody: "Windows: run the .exe setup. macOS: open the .dmg for your Mac (Apple Silicon or Intel). Unsigned builds show a security warning until code signing is set up."
           releaseDraft: true
           prerelease: true

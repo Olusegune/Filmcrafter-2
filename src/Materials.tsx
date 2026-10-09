@@ -9,7 +9,7 @@ export type References = { characters?: string; sets?: string; cast?: Record<str
 
 type Item = { key: string; title: string; why: string; done: boolean; need: "required" | "recommended" | "optional"; detail?: string };
 
-/** What PULSEFRAME can use, why it helps, and what's there. Shared by New Project and the Studio. */
+/** What FilmCrafter can use, why it helps, and what's there. Shared by New Project and the Studio. */
 export function materialItems(p: { song: boolean; lyrics: boolean; script: boolean; plan: boolean; refs: References; look: boolean }): Item[] {
   const cast = Object.keys(p.refs.cast ?? {});
   return [
@@ -23,7 +23,7 @@ export function materialItems(p: { song: boolean; lyrics: boolean; script: boole
     { key: "sets", title: "Locations & props", need: "optional", done: !!p.refs.sets,
       why: "Keeps places, props and colours consistent between shots." },
     { key: "story", title: "Script or story", need: "optional", done: p.script || p.plan,
-      why: "Scenes and shots you've written are followed exactly. Without one, PULSEFRAME proposes three directions." },
+      why: "Scenes and shots you've written are followed exactly. Without one, FilmCrafter proposes three directions." },
     { key: "look", title: "Look", need: "optional", done: p.look,
       why: "One art or animation style for every shot. Auto matches your character images." },
   ];

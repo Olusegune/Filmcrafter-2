@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import export as E, overlays as O, shotsound as SS
+from filmcrafter_engine import export as E, overlays as O, shotsound as SS
 from tests.test_regressions_sound import left_channel
 from tests.test_shotsound import exported, level, make_film, tone
 

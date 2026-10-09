@@ -1,7 +1,7 @@
 """Video models that failed on real renders (Kie): a field name with a stray space, limits only written in words, frame fields given a character sheet."""
 import pytest
 
-from pulseframe_analysis import model_audit as A, render as R
+from filmcrafter_engine import model_audit as A, render as R
 
 
 def f(name, type="string", **kw):

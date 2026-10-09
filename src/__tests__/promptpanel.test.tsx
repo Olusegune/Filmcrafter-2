@@ -14,11 +14,11 @@ describe("what a take is queued with", () => {
     expect(promptOverrides({ mode: "mine", text: "  Little Sege dissolves.  ", only: false }, "ignored")).toEqual({ _prompt: "Little Sege dissolves." });
     expect(promptOverrides({ mode: "mine", text: "Little Sege dissolves.", only: true }, "")).toEqual({ _prompt: "Little Sege dissolves.", _prompt_only: true });
   });
-  it("is the one line of direction when PULSEFRAME writes it, or nothing", () => {
+  it("is the one line of direction when FilmCrafter writes it, or nothing", () => {
     expect(promptOverrides({ mode: "auto", text: "kept but unused", only: false }, "  a slow push in ")).toEqual({ _note: "a slow push in" });
     expect(promptOverrides({ mode: "auto", text: "", only: false }, "   ")).toEqual({});
   });
-  it("never sends an empty prompt of your own: it falls back to PULSEFRAME's", () => {
+  it("never sends an empty prompt of your own: it falls back to FilmCrafter's", () => {
     expect(promptOverrides({ mode: "mine", text: "   ", only: true }, "a slow push in")).toEqual({ _note: "a slow push in" });
   });
 });
@@ -31,10 +31,10 @@ describe("the words on the screen", () => {
   it("names the three kinds of check plainly", () => {
     expect(LEVEL_LABEL).toEqual({ problem: "Fix this", warn: "Check this", tip: "Tip" });
   });
-  it("offers PULSEFRAME's prompt and your own, and starts with the one-line direction", () => {
+  it("offers FilmCrafter's prompt and your own, and starts with the one-line direction", () => {
     const html = panel("auto");
     expect(html).toContain('role="radiogroup"');
-    expect(html).toContain("PULSEFRAME writes it from the shot");
+    expect(html).toContain("FilmCrafter writes it from the shot");
     expect(html).toContain("I&#x27;ll write it");
     expect(html).toContain("One line of direction");
     expect(html).not.toContain("Write it for me");

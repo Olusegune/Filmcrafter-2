@@ -6,8 +6,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import overlays as O
-from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+from filmcrafter_engine import overlays as O
+from filmcrafter_engine.export import NO_WINDOW, ffmpeg
 
 
 def test_keys_are_checked_sorted_and_clamped():

@@ -38,7 +38,7 @@ def backdrop(im, name):
 first = load("First.png")
 a = cv2.cvtColor(np.array(first), cv2.COLOR_RGB2BGR)
 mask = np.zeros(a.shape[:2], np.uint8)
-mask[505:595, 440:1235] = 255   # PULSEFRAME wordmark
+mask[505:595, 440:1235] = 255   # FilmCrafter wordmark
 mask[598:648, 590:1090] = 255   # tagline
 clean = cv2.inpaint(a, mask, 9, cv2.INPAINT_TELEA)
 # soften the patched band so no smudge of letterforms remains

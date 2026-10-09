@@ -4,7 +4,7 @@ import zipfile
 
 import pytest
 
-from pulseframe_analysis import packer
+from filmcrafter_engine import packer
 
 
 def _proj(tmp_path):
@@ -52,7 +52,7 @@ def test_rejects_unsafe_and_foreign_files(tmp_path):
 
 
 def test_backups_snapshot_skip_unchanged_restore_and_undo(tmp_path):
-    from pulseframe_analysis import packer as P
+    from filmcrafter_engine import packer as P
     d = tmp_path / "proj"
     (d / "generations").mkdir(parents=True)
     (d / "project.json").write_text('{"title": "A"}')
@@ -72,7 +72,7 @@ def test_backups_snapshot_skip_unchanged_restore_and_undo(tmp_path):
 
 
 def test_backups_keep_the_newest_20_and_stay_out_of_pulse_files(tmp_path):
-    from pulseframe_analysis import packer as P
+    from filmcrafter_engine import packer as P
     d = tmp_path / "proj"
     d.mkdir()
     for i in range(23):

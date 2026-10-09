@@ -33,7 +33,7 @@ export function ScriptSheet({ project, onClose, onDone }: { project: LoadedProje
   };
   const ready = tab === "paste" ? text.trim().length > 20 : !!file;
   const adopt = async () => {
-    if (!project.song_map) { setError("PULSEFRAME needs to listen to the song first."); return; }
+    if (!project.song_map) { setError("FilmCrafter needs to listen to the song first."); return; }
     if (plan && !await ask(`Replace the current plan (${shots} shots${takes ? `, ${takes} rendered takes` : ""}) with this script?\n\n` +
       "The current plan, its takes and keyframes are archived in the project folder, not deleted.")) return;
     setBusy(true); setError(""); setNoScenes(false);
@@ -76,13 +76,13 @@ export function ScriptSheet({ project, onClose, onDone }: { project: LoadedProje
           </div>
         )}
         {project.song_map && !(project.song_map.lyrics ?? []).length && <p className="dim" style={{ fontSize: 12.5, marginTop: 10 }}>
-          <I.Alert size={12} /> This project has no lyrics yet. Scenes are timed most precisely when PULSEFRAME can match each scene's
+          <I.Alert size={12} /> This project has no lyrics yet. Scenes are timed most precisely when FilmCrafter can match each scene's
           dialogue to the line where it's sung; without lyrics they are spread across the song.</p>}
         {plan && <p className="dim" style={{ fontSize: 12.5, marginTop: 10 }}><I.Alert size={12} /> This project already has a plan ({shots} shots{takes ? `, ${takes} rendered takes` : ""}).
           It will be archived, not deleted; the new shots start fresh.</p>}
         {error && <div className="error-text" role="alert" style={{ marginTop: 10 }}>{error}</div>}
         {noScenes && <div className="wiz-card wiz-row" style={{ marginTop: 10 }}>
-          <span style={{ flex: 1 }}>Use this text as the brief for PULSEFRAME's creative directions instead?</span>
+          <span style={{ flex: 1 }}>Use this text as the brief for FilmCrafter's creative directions instead?</span>
           <button className="btn" onClick={useAsBrief}>Use as brief</button></div>}
         <div className="sheet-actions" style={{ marginTop: 14 }}>
           <button className="btn ghost" onClick={onClose} disabled={busy}>Cancel</button>

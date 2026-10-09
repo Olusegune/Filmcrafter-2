@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import track as T
+from filmcrafter_engine import track as T
 
 
 def job(i, model="seedance-2", state="ready", **kw):
@@ -68,5 +68,5 @@ def test_the_sound_check_runs_on_unchecked_sung_takes_only_and_is_limited(tmp_pa
 
 def test_the_engine_and_the_app_agree_on_the_action_name():
     lib = open(os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs"), encoding="utf-8").read()
-    assert "async fn track(" in lib and "pulseframe_analysis.track" in lib and 'action != "stats"' in lib
+    assert "async fn track(" in lib and "filmcrafter_engine.track" in lib and 'action != "stats"' in lib
     assert 'choices=["stats"]' in open(T.__file__, encoding="utf-8").read()

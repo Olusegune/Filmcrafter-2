@@ -5,7 +5,7 @@ import types
 
 import pytest
 
-from pulseframe_analysis import acting, llm
+from filmcrafter_engine import acting, llm
 
 
 @pytest.fixture
@@ -13,8 +13,8 @@ def cfg(tmp_path, monkeypatch):
     path = tmp_path / "llm.json"
     monkeypatch.setattr(llm, "CONFIG", str(path))
     monkeypatch.setattr(llm, "MODELS_CACHE", str(tmp_path / "openrouter_models.json"))
-    monkeypatch.delenv("PULSEFRAME_OPENROUTER_KEY", raising=False)
-    monkeypatch.delenv("PULSEFRAME_OPENAI_KEY", raising=False)
+    monkeypatch.delenv("FILMCRAFTER_OPENROUTER_KEY", raising=False)
+    monkeypatch.delenv("FILMCRAFTER_OPENAI_KEY", raising=False)
     return path
 
 
@@ -52,7 +52,7 @@ def test_the_local_brains_and_openai_are_unchanged(cfg):
 
 
 def test_the_key_is_never_written_to_the_settings_file(cfg, monkeypatch):
-    monkeypatch.setenv("PULSEFRAME_OPENROUTER_KEY", "sk-or-secret-123")
+    monkeypatch.setenv("FILMCRAFTER_OPENROUTER_KEY", "sk-or-secret-123")
     llm.save({"provider": "openrouter", "model": "m"})
     assert "secret" not in cfg.read_text() and "key" not in cfg.read_text().lower()
 
@@ -70,13 +70,13 @@ def test_openrouter_is_a_paid_cloud_brain_not_a_free_local_one(cfg):
 def test_the_brain_can_look_at_pictures_only_when_it_has_what_it_needs(cfg, monkeypatch):
     use(cfg)
     assert llm.visual_ready() is False                                      # no OpenRouter key yet
-    monkeypatch.setenv("PULSEFRAME_OPENROUTER_KEY", "k")
+    monkeypatch.setenv("FILMCRAFTER_OPENROUTER_KEY", "k")
     assert llm.visual_ready() is True
     use(cfg, vision_model="")
     assert llm.visual_ready() is False                                      # a key but no model that sees images
     cfg.write_text(json.dumps({"provider": "openai"}))
     assert llm.visual_ready() is False
-    monkeypatch.setenv("PULSEFRAME_OPENAI_KEY", "k")
+    monkeypatch.setenv("FILMCRAFTER_OPENAI_KEY", "k")
     assert llm.visual_ready() is True
     cfg.write_text(json.dumps({"provider": "ollama", "model": "m"}))
     assert llm.visual_ready() is True
@@ -85,11 +85,11 @@ def test_the_brain_can_look_at_pictures_only_when_it_has_what_it_needs(cfg, monk
 # ---------------------------------------------------------------- the client
 def test_the_client_uses_the_openrouter_address_the_key_and_identifies_the_app(cfg, monkeypatch):
     use(cfg)
-    monkeypatch.setenv("PULSEFRAME_OPENROUTER_KEY", "sk-or-test")
+    monkeypatch.setenv("FILMCRAFTER_OPENROUTER_KEY", "sk-or-test")
     c = llm.client()
     assert c.routed is True and c.local is False
     assert str(c._oa.base_url).startswith("https://openrouter.ai/api/v1") and c._oa.api_key == "sk-or-test"
-    assert c._oa.default_headers.get("X-Title") == "PULSEFRAME"
+    assert c._oa.default_headers.get("X-Title") == "FilmCrafter"
     assert llm.local_model(c) == "google/gemini-2.5-flash" and llm.local_model(c, vision=True) == "google/gemini-2.5-flash"
 
 
@@ -103,7 +103,7 @@ def test_without_a_key_the_client_says_where_to_add_it(cfg, monkeypatch):
 
 def test_a_missing_vision_model_is_explained_with_an_openrouter_example(cfg, monkeypatch):
     use(cfg, vision_model="")
-    monkeypatch.setenv("PULSEFRAME_OPENROUTER_KEY", "k")
+    monkeypatch.setenv("FILMCRAFTER_OPENROUTER_KEY", "k")
     with pytest.raises(SystemExit) as e:
         llm.local_model(llm.client(), vision=True)
     assert "OpenRouter model that can see images" in str(e.value) and "google/gemini-2.5-flash" in str(e.value)
@@ -111,13 +111,13 @@ def test_a_missing_vision_model_is_explained_with_an_openrouter_example(cfg, mon
 
 def test_openai_still_uses_its_own_client_and_key(cfg, monkeypatch):
     cfg.write_text(json.dumps({"provider": "openai"}))
-    monkeypatch.setenv("PULSEFRAME_OPENAI_KEY", "sk-test")
+    monkeypatch.setenv("FILMCRAFTER_OPENAI_KEY", "sk-test")
     c = llm.client()
     assert not hasattr(c, "cfg") and llm.local_model(c) is None
 
 
 def test_the_openrouter_rejection_message_names_openrouter(cfg):
-    from pulseframe_analysis.director import openai_error
+    from filmcrafter_engine.director import openai_error
     use(cfg)
     assert "OpenRouter rejected the key" in openai_error(RuntimeError("AuthenticationError: invalid_api_key"))
     cfg.write_text(json.dumps({"provider": "openai"}))
@@ -195,5 +195,5 @@ def test_a_local_brain_is_still_free_and_openrouter_is_never_called_free(cfg):
 def test_the_key_is_kept_in_the_keychain_and_the_engine_gets_it_only_when_it_is_the_chosen_brain():
     lib = open(os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs"), encoding="utf-8").read()
     assert '"elevenlabs", "openrouter"]' in lib                                                  # a provider whose key can be saved and read
-    assert 'brain_provider() == "openrouter"' in lib and 'PULSEFRAME_OPENROUTER_KEY' in lib
+    assert 'brain_provider() == "openrouter"' in lib and 'FILMCRAFTER_OPENROUTER_KEY' in lib
     assert 'matches!(brain_provider().as_str(), "ollama" | "lmstudio")' in lib                    # OpenRouter is not "local": it needs its key

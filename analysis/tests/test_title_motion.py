@@ -6,8 +6,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import overlays as O
-from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+from filmcrafter_engine import overlays as O
+from filmcrafter_engine.export import NO_WINDOW, ffmpeg
 
 W, H, FPS = 320, 180, 12
 
@@ -137,13 +137,13 @@ def test_a_colour_backdrop_and_a_cover_picture_fill_the_frame(tmp_path):
 
 # ---------------------------------------------------------------- stage 3: wipe, typewriter, bounce, pop, pulse
 def _film(d, path, seconds=8):
-    from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+    from filmcrafter_engine.export import NO_WINDOW, ffmpeg
     subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", f"color=c=0x202020:s=320x180:r=12:d={seconds}", "-pix_fmt", "yuv420p", path],
                    check=True, creationflags=NO_WINDOW)
 
 
 def _frame(path, t, out):
-    from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+    from filmcrafter_engine.export import NO_WINDOW, ffmpeg
     subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-ss", str(t), "-i", path, "-frames:v", "1", out], check=True, creationflags=NO_WINDOW)
     return Image.open(out).convert("RGB")
 

@@ -1,6 +1,6 @@
 import json
 
-from pulseframe_analysis import diagnostics as dg
+from filmcrafter_engine import diagnostics as dg
 
 
 def _proj(tmp_path, jobs):

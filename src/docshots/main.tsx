@@ -33,7 +33,7 @@ import { PerformanceSheet } from "../Performance";
 import { LibrarySheet } from "../Board";
 import type { Job, LoadedProject, Shot } from "../api";
 import directions from "./directions.json";
-import styles from "../../analysis/pulseframe_analysis/styles.json";
+import styles from "../../analysis/filmcrafter_engine/styles.json";
 import "../styles.css";
 import "../wizard.css";
 import "../motion.css";
@@ -141,10 +141,10 @@ mockIPC((cmd, a) => {
     case "hand_fix": return x.action === "plan" ? { model: { label: "Nano Banana", price_usd: 0.03 }, variants: 1, usd_est: 0.03 } : null;
     case "retry_cheaper": return { can: true, original_usd: 0.9, options: [
       { provider: "fal", model: "fal-ai/wan/v2.2-a14b/image-to-video/turbo", label: "Wan 2.2 Turbo", price_usd: 0.1, cheaper: true, saves_usd: 0.8, strength: "A cheap, quick Wan; proven to land on an end picture.", warning: "" },
-      { provider: "kie", model: "wan/3-0-video", label: "Wan 3.0", price_usd: 0.45, cheaper: true, saves_usd: 0.45, strength: "Low price. PULSEFRAME's Balanced video choice.", warning: "" }] };
+      { provider: "kie", model: "wan/3-0-video", label: "Wan 3.0", price_usd: 0.45, cheaper: true, saves_usd: 0.45, strength: "Low price. FilmCrafter's Balanced video choice.", warning: "" }] };
     case "routing":
       if (x.action === "pick") return (x.data as { kind?: string } | undefined)?.kind === "video" ? { provider: "kie", model: "wan/3-0-video", label: "Wan 3.0", free: false, mode: "balanced", verified: true, price_usd: 0.45 } : { provider: "kie", model: "google/nano-banana-edit", label: "Nano Banana", free: false, mode: "balanced", verified: true, price_usd: 0.03 };
-      if (x.action === "models") return { video: [row("Seedance 2", "kie", "bytedance/seedance-2", 0.9, true, { strength: "Takes a start and an end picture, can also use reference pictures, video and sound, and can speak lines.", consider: "For shots that must land on an end frame and shots with sung or spoken lines.", watch: "Costs more per shot." }), row("Wan 3.0", "kie", "wan/3-0-video", 0.45, true, { strength: "Low price. PULSEFRAME's Balanced video choice.", consider: "For a whole video on a budget.", watch: "" }), row("Kling", "kie", "kling-2.6/image-to-video", 0.7, true), row("Hailuo 2.3", "fal", "fal-ai/minimax/hailuo-2.3/standard/image-to-video", 0.5, false)],
+      if (x.action === "models") return { video: [row("Seedance 2", "kie", "bytedance/seedance-2", 0.9, true, { strength: "Takes a start and an end picture, can also use reference pictures, video and sound, and can speak lines.", consider: "For shots that must land on an end frame and shots with sung or spoken lines.", watch: "Costs more per shot." }), row("Wan 3.0", "kie", "wan/3-0-video", 0.45, true, { strength: "Low price. FilmCrafter's Balanced video choice.", consider: "For a whole video on a budget.", watch: "" }), row("Kling", "kie", "kling-2.6/image-to-video", 0.7, true), row("Hailuo 2.3", "fal", "fal-ai/minimax/hailuo-2.3/standard/image-to-video", 0.5, false)],
         image: [row("Nano Banana", "kie", "google/nano-banana-edit", 0.03, true, { sees_references: true }), row("GPT Image 2.5 Flare", "kie", "gpt/gpt-image-2-5-flare-image-to-image", 0.25, true, { sees_references: true, strength: "Follows detailed instructions closely and draws clean, readable text. Sees your character sheets.", consider: "For hero shots and anything with writing in it.", watch: "Costs the most of the picture models." }), row("Seedream 4.5", "kie", "seedream/4-5-edit", 0.06, true, { sees_references: true })], advice: "Use one picture model for the whole project. Two models draw people, light and colour differently, so mixing them across keyframes can make a character look different from shot to shot." };
       return { mode: "balanced", chosen: true, budget_usd: 25, spent_usd: 7.4, remaining_usd: 17.6, online: true, auto_retry: false, pins: {},
         modes: [{ id: "local", label: "Local First", blurb: "Only this computer: ComfyUI, a local AI model, moving stills. Free and works offline." }, { id: "cheapest", label: "Cheapest", blurb: "The lowest real price per shot among proven models." }, { id: "balanced", label: "Balanced", blurb: "The cheapest proven cloud models." }, { id: "premium", label: "Premium", blurb: "The best proven models." }],

@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from pulseframe_analysis import llm as L
+from filmcrafter_engine import llm as L
 
 
 class Fake(BaseHTTPRequestHandler):
@@ -85,7 +85,7 @@ def test_vision_review_needs_a_vision_model(server):
 
 
 def test_choreography_engine_runs_on_a_local_model(server, tmp_path, monkeypatch):
-    from pulseframe_analysis import choreo as C, onboarding as O
+    from filmcrafter_engine import choreo as C, onboarding as O
     d = tmp_path / "p"; d.mkdir()
     (d / "songmap.json").write_text(json.dumps({"bpm": 100, "sections": [{"start": 0, "end": 10, "group": "Chorus"}], "lyrics": []}))
     (d / "directed.json").write_text(json.dumps({"characters": [{"name": "Ada"}], "scenes": [{"number": 1, "shots": [
@@ -100,7 +100,7 @@ def test_choreography_engine_runs_on_a_local_model(server, tmp_path, monkeypatch
 
 
 def test_offline_local_server_is_explained(monkeypatch, tmp_path):
-    from pulseframe_analysis.director import openai_error
+    from filmcrafter_engine.director import openai_error
     monkeypatch.setattr(L, "CONFIG", str(tmp_path / "llm.json"))
     L.save({"provider": "ollama", "base_url": "http://127.0.0.1:9", "model": "qwen2.5:14b"})
     assert "Ollama isn't answering" in openai_error(Exception("APIConnectionError: Connection error."))

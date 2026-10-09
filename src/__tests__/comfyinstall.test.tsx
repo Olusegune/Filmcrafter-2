@@ -8,7 +8,7 @@ vi.mock("@tauri-apps/plugin-opener", () => ({ openUrl: vi.fn() }));
 import type { ComfyInstallPlan } from "../api";
 import { ComfyInstallCard, installFacts } from "../ComfyInstall";
 
-const plan = (over: Partial<ComfyInstallPlan> = {}): ComfyInstallPlan => ({ dest: "C:\Users\me\PULSEFRAME ComfyUI", source: "github.com/comfyanonymous/ComfyUI (releases)", ok: true, reason: "", warnings: [],
+const plan = (over: Partial<ComfyInstallPlan> = {}): ComfyInstallPlan => ({ dest: "C:\Users\me\FilmCrafter ComfyUI", source: "github.com/comfyanonymous/ComfyUI (releases)", ok: true, reason: "", warnings: [],
   gpu: "NVIDIA RTX 3060", vendor: "nvidia", tag: "v0.39.0", asset: { name: "a.7z", size: 2e9, url: "u", sha256: "x" }, download_gb: 2.0, need_gb: 12.8, free_gb: 640.9, ...over });
 
 describe("what the install says before anyone presses the button", () => {
@@ -21,7 +21,7 @@ describe("what the install says before anyone presses the button", () => {
     expect(f.Size).toContain("2 GB to download");
     expect(f.Size).toContain("12.8 GB");
     expect(f.Size).toContain("640.9 GB free");
-    expect(f.Where).toBe("C:\Users\me\PULSEFRAME ComfyUI");
+    expect(f.Where).toBe("C:\Users\me\FilmCrafter ComfyUI");
     expect(f["To remove it"]).toBe("delete that folder");
   });
   it("says nothing when there is nothing to install, and copes with an unknown free space", () => {

@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 from tests.test_video_models import f, kie, musical
 
 SEEDANCE = "bytedance/seedance-2-fast"

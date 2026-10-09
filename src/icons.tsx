@@ -5,7 +5,7 @@ const S = ({ size = 20, children }: P & { children: React.ReactNode }) => (
        strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
 );
 
-/** PULSEFRAME mark: two waveform strokes inside an open frame (PRD §47). */
+/** FilmCrafter mark: two waveform strokes inside an open frame (PRD §47). */
 export const Mark = ({ size = 22 }: P) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v15A1.5 1.5 0 0 0 4.5 21H8M16 3h3.5A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5H16"

@@ -132,7 +132,7 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
             <button className="btn small ghost" disabled={!!busy} onClick={() => priceBatch(g.id, `${g.action === "fix" ? "Fix" : "Re-render"} ${g.shots.length} shots: ${g.title}`,
               g.items, g.shots, g.kind, g.action, g.render)}>{g.action === "fix" ? "Fix all" : "Re-render all"} {g.shots.length}</button></div>)}
           {backlog > 0 && <div className="sup-batch">
-            <span><b>{backlog} take{backlog === 1 ? "" : "s"}</b> never visually checked. PULSEFRAME no longer checks old takes on its own; check them now
+            <span><b>{backlog} take{backlog === 1 ? "" : "s"}</b> never visually checked. FilmCrafter no longer checks old takes on its own; check them now
               {route?.brain.local ? " (free on your local model)" : " (one AI look each, a few cents on OpenAI)"}?</span>
             <button className="btn small ghost" disabled={!!busy} onClick={runBacklog}>{busy === "backlog" ? "Checking…" : `Check ${backlog}`}</button></div>}
           {lip && lip.shots > 0 && <div className="sup-batch">

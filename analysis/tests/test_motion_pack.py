@@ -6,8 +6,8 @@ import zipfile
 
 import pytest
 
-from pulseframe_analysis import compose as CO
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import compose as CO
+from filmcrafter_engine.export import ffmpeg
 
 pytestmark = pytest.mark.security
 
@@ -133,10 +133,10 @@ def test_a_file_that_is_not_a_zip_or_not_there(tmp_path, home):
 @pytest.mark.parametrize("entries,message", [
     ({"readme.txt": "hi"}, "no manifest"),
     ({"manifest.json": "{not json"}, "can't be read"),
-    ({"manifest.json": json.dumps({"format": "other", "version": 1, "items": []})}, "isn't a PULSEFRAME"),
-    ({"manifest.json": json.dumps({"format": CO.PACK_FORMAT, "version": 2, "items": []})}, "isn't a PULSEFRAME"),
-    ({"manifest.json": json.dumps({"format": CO.PACK_FORMAT, "version": 1, "items": "x"})}, "isn't a PULSEFRAME"),
-    ({"manifest.json": json.dumps([1, 2])}, "isn't a PULSEFRAME"),
+    ({"manifest.json": json.dumps({"format": "other", "version": 1, "items": []})}, "isn't a FilmCrafter"),
+    ({"manifest.json": json.dumps({"format": CO.PACK_FORMAT, "version": 2, "items": []})}, "isn't a FilmCrafter"),
+    ({"manifest.json": json.dumps({"format": CO.PACK_FORMAT, "version": 1, "items": "x"})}, "isn't a FilmCrafter"),
+    ({"manifest.json": json.dumps([1, 2])}, "isn't a FilmCrafter"),
 ])
 def test_a_damaged_or_foreign_manifest_is_refused(tmp_path, home, entries, message):
     with pytest.raises(SystemExit, match=message):

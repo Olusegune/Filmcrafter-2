@@ -34,8 +34,8 @@ export function EngineSetup({ gpu, onReady }: { gpu: boolean; onReady: () => voi
   const pct = step ? Math.round(((step.step - 1) / step.total) * 100) : 0;
   return (
     <div className="reveal">
-      <div className="wordmark"><Mark size={28} /> PULSEFRAME</div>
-      <div className="reveal-title">Getting PULSEFRAME ready</div>
+      <div className="wordmark"><Mark size={28} /> FilmCrafter</div>
+      <div className="reveal-title">Getting FilmCrafter ready</div>
       <p className="sub" style={{ maxWidth: 560, textAlign: "center", color: "var(--mist)" }}>
         One-time setup of the engine that listens to songs, times lyrics and talks to the AI renderers.
         {gpu ? " Your NVIDIA graphics card will be used to make it fast." : ""} This needs an internet connection and

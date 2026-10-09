@@ -78,7 +78,7 @@ export default function App() {
   }, []);
 
   const chooseProject = useCallback(async () => {
-    const f = await openDialog({ filters: [{ name: "PULSEFRAME Project", extensions: ["pulseframe", "pulse"] }] });
+    const f = await openDialog({ filters: [{ name: "FilmCrafter Project", extensions: ["filmcrafter", "pulse"] }] });
     if (typeof f === "string") openProject(f);
   }, [openProject]);
 
@@ -98,14 +98,14 @@ export default function App() {
             break;
           case "save_as": {
             if (!current) { say("Open a project first."); break; }
-            const dest = await saveDialog({ defaultPath: `${current.project.title} copy.pulseframe`,
-                                            filters: [{ name: "PULSEFRAME Project", extensions: ["pulseframe"] }] });
+            const dest = await saveDialog({ defaultPath: `${current.project.title} copy.filmcrafter`,
+                                            filters: [{ name: "FilmCrafter Project", extensions: ["filmcrafter"] }] });
             if (dest) { const dir = await api.saveProjectAs(current.dir, dest); await openProject(dir); say("Saved a copy"); }
             break;
           }
           case "save_pulse": {
             if (!current) { say("Open a project first."); break; }
-            const dest = await saveDialog({ defaultPath: `${current.project.title}.pulse`, filters: [{ name: "PULSEFRAME project in one file", extensions: ["pulse"] }] });
+            const dest = await saveDialog({ defaultPath: `${current.project.title}.pulse`, filters: [{ name: "FilmCrafter project in one file", extensions: ["pulse"] }] });
             if (dest) {
               setToast("Packing the project into one file…");
               const r = await api.packProject(current.dir, dest);

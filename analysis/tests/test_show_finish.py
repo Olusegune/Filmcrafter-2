@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import export as E, show as S, show_finish as F
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import export as E, show as S, show_finish as F
+from filmcrafter_engine.export import ffmpeg
 
 
 def _wav(path, secs=1.0, amp=0.2):

@@ -5,7 +5,7 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import keyframeset as KS, library as L, render as R, router, routing as RT, shothistory as H, stills as ST
+from filmcrafter_engine import keyframeset as KS, library as L, render as R, router, routing as RT, shothistory as H, stills as ST
 
 NANO = ("kie", "google/nano-banana-edit")
 GPT = ("kie", "gpt/gpt-image-2-5-flare-image-to-image")
@@ -195,7 +195,7 @@ def test_a_model_given_explicitly_wins(world):
 
 
 def test_unknown_unavailable_or_blind_models_are_refused(world):
-    with pytest.raises(SystemExit, match="isn't in PULSEFRAME's list"):
+    with pytest.raises(SystemExit, match="isn't in FilmCrafter's list"):
         KS.remodel_plan(world["dir"], "kie", "nonsense/model")
     with pytest.raises(SystemExit, match="can't see your character pictures"):
         KS.remodel_plan(world["dir"], "kie", "kie/blind")

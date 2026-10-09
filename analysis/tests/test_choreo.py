@@ -4,9 +4,9 @@ import types
 
 import pytest
 
-from pulseframe_analysis import choreo as C
-from pulseframe_analysis import onboarding as O
-from pulseframe_analysis import render as R
+from filmcrafter_engine import choreo as C
+from filmcrafter_engine import onboarding as O
+from filmcrafter_engine import render as R
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ def test_design_saves_a_plan_and_injects_pose_and_motion(proj, monkeypatch):
 
     class Client:
         responses = types.SimpleNamespace(create=lambda **kw: types.SimpleNamespace(output_text=json.dumps(fake)))
-    import pulseframe_analysis.director as D
+    import filmcrafter_engine.director as D
     monkeypatch.setattr(D, "_client", lambda: Client())
     monkeypatch.setattr(D, "resolve_model", lambda c, m: "test-model")
     plan = C.design(proj)
@@ -77,7 +77,7 @@ def test_needs_a_plan_and_a_song_map(tmp_path):
 
 
 def test_openai_out_of_credits_is_explained():
-    from pulseframe_analysis.director import openai_error
+    from filmcrafter_engine.director import openai_error
     e = Exception("Error code: 429 - {'error': {'type': 'insufficient_quota', 'code': 'credit_balance_exhausted'}}")
     assert "out of credits" in openai_error(e) and "Billing" in openai_error(e)
     assert "Wait a minute" in openai_error(Exception("RateLimitError: 429 too many requests"))

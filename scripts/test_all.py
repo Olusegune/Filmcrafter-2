@@ -54,7 +54,7 @@ def main(argv: list[str]) -> int:
         rows.append(step(f"Engine: {kind}", [PY, "-m", "pytest", "-q", "-m", kind, "-p", "no:cacheprovider"] if pytest_ok else None, analysis, f"pytest is not installed for {PY}"))
     rows += [
         step("Scan: secrets (rafter)", [RAFTER, "secrets", "."] if RAFTER else None, why_not="rafter not found"),
-        step("Scan: Python code (bandit, medium and up)", [PY, "-m", "bandit", "-q", "-r", "pulseframe_analysis", "-ll"] if has_module("bandit") else None, analysis, "bandit is not installed (pip install bandit)"),
+        step("Scan: Python code (bandit, medium and up)", [PY, "-m", "bandit", "-q", "-r", "filmcrafter_engine", "-ll"] if has_module("bandit") else None, analysis, "bandit is not installed (pip install bandit)"),
         step("Scan: Python packages (pip-audit)", [PY, "-m", "pip_audit", "-r", "requirements-engine.txt", "--no-deps", "--disable-pip"] if has_module("pip_audit") else None, analysis, "pip-audit is not installed (pip install pip-audit)"),
         step("Scan: npm packages (npm audit)", [NPM, "audit", "--omit=dev"] if NPM else None, why_not="npm not found"),
     ]

@@ -5,8 +5,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import continuity as C
-from pulseframe_analysis import export, media
+from filmcrafter_engine import continuity as C
+from filmcrafter_engine import export, media
 
 
 def _project(tmp_path):
@@ -45,7 +45,7 @@ def test_direction_has_axis_eyeline_and_wardrobe(tmp_path):
 
 
 def test_prompt_carries_continuity(tmp_path):
-    from pulseframe_analysis import render as R
+    from filmcrafter_engine import render as R
     d, shots = _project(tmp_path)
     C.derive(d)
     shot = R._with_movement(d, shots[0])

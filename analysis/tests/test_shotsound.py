@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import export as E, shotsound as SS
+from filmcrafter_engine import export as E, shotsound as SS
 
 pytestmark = pytest.mark.integration
 
@@ -276,7 +276,7 @@ def test_the_exported_film_reports_its_loudness(film):
 
 
 def test_a_silent_film_has_no_loudness(tmp_path):
-    from pulseframe_analysis.export import measure_loudness
+    from filmcrafter_engine.export import measure_loudness
     p = str(tmp_path / "s.wav")
     sf.write(p, np.zeros(RATE * 2, dtype=np.float32), RATE)
     assert measure_loudness(p) is None

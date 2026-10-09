@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 from tests.test_native_dialogue import SHOT, _talking, scene  # noqa: F401  (a project folder with one shot; a fixture)
 from tests.test_render import field, man
 

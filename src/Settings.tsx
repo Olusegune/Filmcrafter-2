@@ -216,7 +216,7 @@ function ComfyPanel() {
           <button className="btn small" onClick={add}>Add your own workflow…</button>
           <p className="dim" style={{ marginTop: 6 }}>In ComfyUI, export your workflow with <b>Export (API)</b>. Type <code>{"{{prompt}}"}</code>,{" "}
             <code>{"{{image}}"}</code>, <code>{"{{seed}}"}</code>, <code>{"{{width}}"}</code>, <code>{"{{height}}"}</code> or <code>{"{{frames}}"}</code> into
-            any field you want PULSEFRAME to fill.</p>
+            any field you want FilmCrafter to fill.</p>
         </div>
       </details>
       {err && <div className="error-text">{err}</div>}

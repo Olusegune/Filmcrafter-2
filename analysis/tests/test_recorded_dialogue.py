@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import show as S, voices as V
+from filmcrafter_engine import show as S, voices as V
 from tests.test_show import _fake_speak
 
 
@@ -66,7 +66,7 @@ def test_a_recorded_line_is_free_needs_no_voice_and_is_trimmed_and_levelled(show
     V.set_recording(scene, lines[0]["id"], _take(tmp_path / "ada.wav", amp=0.1))
     calls = []
     monkeypatch.setattr(V, "_speak", _fake_speak(calls))
-    monkeypatch.setattr("pulseframe_analysis.render._fal_price", lambda m: None)
+    monkeypatch.setattr("filmcrafter_engine.render._fal_price", lambda m: None)
     assert V.estimate(scene)["lines"] == 1                                            # only Ben's line is billed
     r = V.generate(scene)
     assert r["voiced"] == 1 and r["recorded"] == 1 and len(calls) == 1 and calls[0][0] == "Waiting for you."

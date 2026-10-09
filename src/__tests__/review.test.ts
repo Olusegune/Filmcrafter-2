@@ -14,7 +14,7 @@ const est = (e: Partial<Estimate>): Estimate => ({ provider: "fal", model: "m", 
 describe("isProducerPackage", () => {
   it("recognises Producer packages and nothing else", () => {
     expect(isProducerPackage("C:\\Users\\a\\Type 7.pfproducer")).toBe(true);
-    expect(isProducerPackage("C:\\Users\\a\\PULSEFRAME_Producer_v1.0.0.ZIP")).toBe(true);
+    expect(isProducerPackage("C:\\Users\\a\\FILMCRAFTER_Producer_v1.0.0.ZIP")).toBe(true);
     expect(isProducerPackage("C:\\pkg\\manifest.json")).toBe(true);
     expect(isProducerPackage("/Users/a/pkg/manifest.json")).toBe(true);
     expect(isProducerPackage("C:\\a\\project.json")).toBe(false);
@@ -57,8 +57,8 @@ describe("endNote", () => {
 
 describe("showDirOf", () => {
   it("finds the show of an item on Windows and macOS paths, and nothing for ordinary projects", () => {
-    expect(showDirOf(String.raw`C:\Users\a\Documents\PULSEFRAME\QA Musical\items\02 Campfire Talk`)).toBe(String.raw`C:\Users\a\Documents\PULSEFRAME\QA Musical`);
-    expect(showDirOf("/Users/a/Documents/PULSEFRAME/My Show/items/01 Opening/")).toBe("/Users/a/Documents/PULSEFRAME/My Show");
-    expect(showDirOf(String.raw`C:\Users\a\Documents\PULSEFRAME\Type 7`)).toBeNull();
+    expect(showDirOf(String.raw`C:\Users\a\Documents\FilmCrafter\QA Musical\items\02 Campfire Talk`)).toBe(String.raw`C:\Users\a\Documents\FilmCrafter\QA Musical`);
+    expect(showDirOf("/Users/a/Documents/FilmCrafter/My Show/items/01 Opening/")).toBe("/Users/a/Documents/FilmCrafter/My Show");
+    expect(showDirOf(String.raw`C:\Users\a\Documents\FilmCrafter\Type 7`)).toBeNull();
   });
 });

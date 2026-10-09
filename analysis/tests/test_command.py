@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import command as CM
+from filmcrafter_engine import command as CM
 
 
 @pytest.fixture

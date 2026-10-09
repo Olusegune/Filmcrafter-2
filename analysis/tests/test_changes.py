@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import changes as C
+from filmcrafter_engine import changes as C
 from tests.test_lipsync_mode import preview, seedance
 
 MAN = seedance()

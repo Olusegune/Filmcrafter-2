@@ -1,4 +1,4 @@
-# Setting up PULSEFRAME on a new computer
+# Setting up FilmCrafter on a new computer
 
 This gets the code running from a fresh clone. It is written for Windows (the app's main target); macOS differs only where noted.
 
@@ -18,8 +18,8 @@ macOS: Xcode command line tools instead of the Visual Studio Build Tools. Linux 
 ## 2. Get the code and the screens' packages
 
 ```bash
-git clone https://github.com/Olusegune/PulseframeCode.git
-cd PulseframeCode
+git clone https://github.com/Olusegune/FilmCrafterCode.git
+cd FilmCrafterCode
 npm ci
 ```
 
@@ -58,7 +58,7 @@ To keep the build files off a synced or slow folder, set `CARGO_TARGET_DIR` firs
 
 - **Your projects.** A project is a folder (it has `project.json`). Copy the whole folder across, including `generations`, `assets` and the song; or use **Save as One File (.pulse)…** in the File menu to pack it into a single file. Open the folder or the file from Home (or double-click it).
 - **API keys.** They live in the computer's own keychain, so enter them again under **Settings** (fal.ai, Kie.ai, OpenAI, Google, ElevenLabs, whichever you use). They are never stored in a project or in this repository.
-- **Your settings and saved items** in `C:\Users\<you>\.pulseframe`: the directions library (`directions.json`), the language-model settings (`llm.json`), the ComfyUI setup (`comfyui`), and, once you have made them, your saved layer styles (`layer_styles.json`) and templates (`layer_templates.json`). Copy that folder if you want them; the model catalogue cache in it (`manifests`) rebuilds itself.
+- **Your settings and saved items** in `C:\Users\<you>\.filmcrafter`: the directions library (`directions.json`), the language-model settings (`llm.json`), the ComfyUI setup (`comfyui`), and, once you have made them, your saved layer styles (`layer_styles.json`) and templates (`layer_templates.json`). Copy that folder if you want them; the model catalogue cache in it (`manifests`) rebuilds itself.
 
 ## 6. Check that everything works
 
@@ -85,7 +85,7 @@ The Windows installers (`.msi` and `-setup.exe`) appear under `src-tauri/target/
 |---|---|
 | `src/` | the screens (React + TypeScript) and their tests (`src/__tests__`) |
 | `src-tauri/` | the app shell (Rust): windows, the keychain, running the engine |
-| `analysis/pulseframe_analysis/` | the engine (Python): listening to songs, planning, rendering, export, layers |
+| `analysis/filmcrafter_engine/` | the engine (Python): listening to songs, planning, rendering, export, layers |
 | `analysis/tests/` | the engine's tests |
 | `docs/` | the user guide (`GETTING_STARTED.md`), testing, acceptance, code signing, plans |
 | `scripts/` | `test_all.py` (every check) and `rehearse.py` (a dress rehearsal on a real project) |

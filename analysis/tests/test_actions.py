@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from pulseframe_analysis import actions as A
-from pulseframe_analysis import library as L
+from filmcrafter_engine import actions as A
+from filmcrafter_engine import library as L
 
 
 @pytest.fixture

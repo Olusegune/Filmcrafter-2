@@ -7,7 +7,7 @@ import wave
 import numpy as np
 import pytest
 
-from pulseframe_analysis import export, lipsync_check as L
+from filmcrafter_engine import export, lipsync_check as L
 
 RATE = L.RATE
 

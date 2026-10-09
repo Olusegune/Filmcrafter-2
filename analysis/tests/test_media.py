@@ -5,7 +5,7 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import export, library, media
+from filmcrafter_engine import export, library, media
 
 
 def _project(tmp_path, with_plan=True):
@@ -113,7 +113,7 @@ def test_bible_saves_and_keeps_project(tmp_path):
 
 
 def test_song_only_shots_are_never_sent_to_paid_render(tmp_path, monkeypatch):
-    from pulseframe_analysis import render
+    from filmcrafter_engine import render
     d = _project(tmp_path)
     monkeypatch.setattr(render, "manifest", lambda p, m: {"model": m or "x", "roles": {}, "inputs": []})
     assert render.enqueue(d, ["S01-01"], "fal", "x", {}) == []

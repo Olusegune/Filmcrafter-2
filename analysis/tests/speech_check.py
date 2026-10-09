@@ -16,7 +16,7 @@ import tempfile
 import numpy as np
 import soundfile as sf
 
-from pulseframe_analysis import export as E, shotsound as SS
+from filmcrafter_engine import export as E, shotsound as SS
 
 RATE = 44100
 LINES = {"Microsoft David Desktop": "I told you I would come back. Nobody believed me, but here I am, standing at your door.",

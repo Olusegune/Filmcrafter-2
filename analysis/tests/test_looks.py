@@ -4,8 +4,8 @@ import os
 
 import pytest
 
-from pulseframe_analysis import camera as C
-from pulseframe_analysis import looks as L
+from filmcrafter_engine import camera as C
+from filmcrafter_engine import looks as L
 
 
 def shot(i=1, emotion="dread", intensity=8, **kw):
@@ -100,7 +100,7 @@ def test_applying_to_a_shot_with_no_suggestion_or_a_bad_id_changes_nothing(tmp_p
 
 
 def test_a_suggested_choice_reaches_the_prompt(tmp_path):
-    from pulseframe_analysis import render as R
+    from filmcrafter_engine import render as R
     d = project(tmp_path, [shot(1, "dread", 8)])
     L.suggest_apply(d, ["S01-01"])
     sh = json.load(open(os.path.join(d, "production.json")))["scenes"][0]["shots"][0]

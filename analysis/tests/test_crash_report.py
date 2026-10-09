@@ -11,7 +11,7 @@ def run(code):
 
 
 def test_an_unexpected_crash_is_one_readable_line_for_the_app_and_keeps_the_trace(tmp_path):
-    p = run("import pulseframe_analysis\nraise IndexError('list index out of range')")
+    p = run("import filmcrafter_engine\nraise IndexError('list index out of range')")
     assert p.returncode == 1
     ev = json.loads(p.stdout.strip().splitlines()[-1])
     assert ev["event"] == "error" and "IndexError: list index out of range" in ev["message"] and "Nothing was lost" in ev["message"]
@@ -20,12 +20,12 @@ def test_an_unexpected_crash_is_one_readable_line_for_the_app_and_keeps_the_trac
 
 def test_malformed_input_to_a_command_is_reported_not_dumped(tmp_path):
     (tmp_path / "project.json").write_text("{}")
-    p = subprocess.run([sys.executable, "-m", "pulseframe_analysis.refgen", "cards", str(tmp_path), "--data", "not json"], cwd=ENG, capture_output=True, text=True)
+    p = subprocess.run([sys.executable, "-m", "filmcrafter_engine.refgen", "cards", str(tmp_path), "--data", "not json"], cwd=ENG, capture_output=True, text=True)
     ev = json.loads(p.stdout.strip().splitlines()[-1])
     assert p.returncode != 0 and ev["event"] == "error" and "JSONDecodeError" in ev["message"]
 
 
 def test_a_normal_exit_and_a_deliberate_exit_are_untouched():
-    assert run("import pulseframe_analysis").returncode == 0
-    p = run("import pulseframe_analysis, sys\nsys.exit(3)")
+    assert run("import filmcrafter_engine").returncode == 0
+    p = run("import filmcrafter_engine, sys\nsys.exit(3)")
     assert p.returncode == 3 and p.stdout == ""

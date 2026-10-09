@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import show as S, show_script as SS, voices as V
+from filmcrafter_engine import show as S, show_script as SS, voices as V
 
 SCREENPLAY = """# THE FAMILY CIRCUS
 ## Episode 1: I AM YOUR MOTHER!
@@ -142,7 +142,7 @@ def test_music_sections_become_lyrics_with_section_tags_and_consecutive_ones_mer
     assert 'Nine months I carry you,\nNow you tell me, "Mummy, no"?' in song["lyrics"]
     assert "Why did you keep that?" in song["lyrics"] and "sings to her children" not in song["lyrics"]    # action isn't sung
     assert "[Queen Bee]" not in song["lyrics"]                                                      # a [Name] would read as a new section
-    from pulseframe_analysis.lyrics import parse_lyrics
+    from filmcrafter_engine.lyrics import parse_lyrics
     assert [x.tag for x in parse_lyrics(song["lyrics"])] == ["Verse 1", "Pre-chorus", "Chorus"]
 
 

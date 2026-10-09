@@ -1,4 +1,4 @@
-# PULSEFRAME engine dependencies (pinned). torch/torchaudio are installed separately:
+# FilmCrafter engine dependencies (pinned). torch/torchaudio are installed separately:
 #   NVIDIA GPU: --index-url https://download.pytorch.org/whl/cu124   otherwise: CPU wheels
 #   plus nvidia-cublas-cu12 and nvidia-cudnn-cu12==9.* for GPU Whisper
 aiofiles==25.1.0

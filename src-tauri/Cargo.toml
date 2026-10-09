@@ -1,8 +1,8 @@
 [package]
-name = "pulseframe"
-version = "1.36.0"
-description = "PULSEFRAME: direct music into motion"
-authors = ["PULSEFRAME"]
+name = "filmcrafter"
+version = "0.1.0"
+description = "FilmCrafter: direct music into motion"
+authors = ["FilmCrafter"]
 license-file = "../LICENSE.txt"
 publish = false
 edition = "2021"
@@ -13,7 +13,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "pulseframe_lib"
+name = "filmcrafter_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -4,8 +4,8 @@ import subprocess
 
 import pytest
 
-from pulseframe_analysis import review as RV
-from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+from filmcrafter_engine import review as RV
+from filmcrafter_engine.export import NO_WINDOW, ffmpeg
 
 
 def make(path, source, seconds):

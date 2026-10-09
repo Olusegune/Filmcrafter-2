@@ -495,7 +495,7 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
                     r = await api.overnight(project.dir, "start", true);
                   }
                   setNight(await api.overnight(project.dir, "status"));
-                  setMediaNote(`Overnight started: ${r.keyframes_queued ?? 0} keyframes first, then videos on ComfyUI, then an export. Leave PULSEFRAME and ComfyUI running.`); }
+                  setMediaNote(`Overnight started: ${r.keyframes_queued ?? 0} keyframes first, then videos on ComfyUI, then an export. Leave FilmCrafter and ComfyUI running.`); }
                 catch (e) { setMediaNote(errorText(e)); } }}>
                 <b>Render overnight on ComfyUI</b><span>{!night?.ready ? "Needs ComfyUI with a video workflow (Settings → Find ComfyUI)."
                   : (night as { keyframes_from?: string }).keyframes_from === "comfyui" ? "Keyframes, videos and the final cut on your own computer, while you sleep. Free."

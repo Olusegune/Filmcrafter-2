@@ -42,10 +42,10 @@ def main(argv: list[str]) -> int:
     a = ap.parse_args(argv)
     src = os.path.abspath(a.project)
     if not os.path.isfile(os.path.join(src, "project.json")):
-        say("That folder is not a PULSEFRAME project (no project.json).")
+        say("That folder is not a FilmCrafter project (no project.json).")
         return 2
 
-    from pulseframe_analysis import export as E, layerkit, overlays as O, titlecard
+    from filmcrafter_engine import export as E, layerkit, overlays as O, titlecard
 
     work = tempfile.mkdtemp(prefix="pf_rehearsal_")
     d = os.path.join(work, "project")

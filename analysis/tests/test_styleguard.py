@@ -3,8 +3,8 @@ import re
 
 import pytest
 
-from pulseframe_analysis import render as R
-from pulseframe_analysis import styleguard as SG
+from filmcrafter_engine import render as R
+from filmcrafter_engine import styleguard as SG
 from tests.test_video_models import f, kie
 
 IMG = lambda limit=None: kie("google/nano-banana-edit", f("prompt", required=True, **({"max_length": limit} if limit else {})), f("image_urls", "array", items="string", max_items=8))

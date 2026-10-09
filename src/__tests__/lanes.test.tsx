@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import engineSource from "../../analysis/pulseframe_analysis/transitions.py?raw";
+import engineSource from "../../analysis/filmcrafter_engine/transitions.py?raw";
 import { renderToStaticMarkup } from "react-dom/server";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(), convertFileSrc: (p: string) => p }));

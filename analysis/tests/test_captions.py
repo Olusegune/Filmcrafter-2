@@ -8,7 +8,7 @@ import pytest
 import soundfile as sf
 from PIL import Image
 
-from pulseframe_analysis import captions as C, export as E, overlays as O
+from filmcrafter_engine import captions as C, export as E, overlays as O
 
 LYRICS = [{"section": "Verse", "text": "Nine months I carry you,", "start": 0.4, "end": 1.2},
           {"section": "Verse", "text": "Now you tell me, \"Mummy, no\"?", "start": 1.5, "end": 2.0},

@@ -7,7 +7,7 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import export, media, transitions as T
+from filmcrafter_engine import export, media, transitions as T
 
 FF = export.ffmpeg()
 W, H, FPS = 320, 180, export.FPS
@@ -151,7 +151,7 @@ def test_the_length_is_stored_with_the_shot_and_shown_on_the_board(tmp_path):
     media.import_media(d, "S01-02", _img(tmp_path, "b.png", (20, 20, 220)), "none")
     res = media.set_transition(d, ["S01-02"], "wipe_left", 0.8)
     assert res == {"shots": ["S01-02"], "transition": "wipe_left", "seconds": 0.8}
-    from pulseframe_analysis import library
+    from filmcrafter_engine import library
     st = library.shot_state(d)["S01-02"]
     assert st["transition"] == "wipe_left" and st["transition_s"] == 0.8
     shot = next(s for s in library.storyboard(d)["shots"] if s["id"] == "S01-02")

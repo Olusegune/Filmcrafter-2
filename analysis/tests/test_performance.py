@@ -5,9 +5,9 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import export, media
-from pulseframe_analysis import performance as P
-from pulseframe_analysis import render as R
+from filmcrafter_engine import export, media
+from filmcrafter_engine import performance as P
+from filmcrafter_engine import render as R
 
 
 def _man(video=True):

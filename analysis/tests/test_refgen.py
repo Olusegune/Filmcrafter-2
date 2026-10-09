@@ -6,7 +6,7 @@ import shutil
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import library, producer_import as PI, refgen, render as R
+from filmcrafter_engine import library, producer_import as PI, refgen, render as R
 from tests.test_producer_import import _project
 
 SPEC = """# Solomon

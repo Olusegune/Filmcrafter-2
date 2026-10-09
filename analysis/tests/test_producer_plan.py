@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import library, producer_import as PI, producer_plan as P, refgen
+from filmcrafter_engine import library, producer_import as PI, producer_plan as P, refgen
 
 LYRICS = """[Verse 1]
 Nine months I carry you
@@ -253,7 +253,7 @@ def test_the_package_is_the_plugins_format_with_a_prompt_for_every_picture(proj,
     P.plan_assets(proj)
     P.plan_shots(proj)
     root = P.write_package(proj, P.load(proj))
-    m = json.load(open(os.path.join(root, "pulseframe_manifest.json")))
+    m = json.load(open(os.path.join(root, "filmcrafter_manifest.json")))
     assert m["schema_version"] == "1.0" and m["project"]["aspect_ratio"] == "16:9" and m["project"]["visual_style"].startswith("Stylized 3D") and m["project"]["producer_mode"] == "in_app"
     assert {k: len(v) for k, v in m["assets"].items()} == {"characters": 3, "wardrobe": 3, "props": 2, "environments": 2, "references": 0}
     assert m["continuity"]["world"] and m["continuity"]["never_show"] and len(m["continuity"]["rules"]) == 8 and len(m["shots"]) == 10
@@ -306,7 +306,7 @@ def test_a_supplied_person_is_reused_not_duplicated_and_keeps_their_pictures(pro
     assert len(beas) == 1 and beas[0]["id"] == "lib1" and beas[0]["external_id"] == "char_beatrice_queen_bee" and beas[0]["files"] == ["assets/bea.png"]
     assert "Beatrice Queen Bee" not in [w["name"] for w in r["report"]["without_images"]]
     assert "Beatrice Queen Bee" not in {c["name"] for c in refgen.candidates(proj)}                                  # she already has a picture: it is not remade
-    m = json.load(open(os.path.join(proj, "producer", "package", "pulseframe_manifest.json")))
+    m = json.load(open(os.path.join(proj, "producer", "package", "filmcrafter_manifest.json")))
     assert m["assets"]["characters"][0]["files"] == [] and not os.path.exists(os.path.join(proj, "producer", "package", "assets", "characters", "char_beatrice_queen_bee_SPEC.md"))
 
 
@@ -380,7 +380,7 @@ def test_one_model_answer_has_a_known_upper_bound_and_the_answer_is_only_data(pr
             def create(**kw):
                 seen.update(kw)
                 return R()
-    import pulseframe_analysis.director as D
+    import filmcrafter_engine.director as D
     monkeypatch.setattr(D, "_client", lambda: C())
     monkeypatch.setattr(D, "resolve_model", lambda c, m: "m")
     P.plan_assets(proj)
@@ -427,7 +427,7 @@ def test_exporting_makes_a_pfproducer_that_carries_the_pictures_and_opens_again(
     out = P.export_package(proj, str(tmp_path / "show.pfproducer"))
     assert out["pictures"] == 1 and os.path.getsize(out["path"]) == out["bytes"] and not os.path.exists(out["path"] + ".part")
     z = zipfile.ZipFile(out["path"])
-    m = json.loads(z.read("pulseframe_manifest.json"))
+    m = json.loads(z.read("filmcrafter_manifest.json"))
     bell_entry = next(p for p in m["assets"]["props"] if p["name"] == "Brass bell")
     assert bell_entry["files"][0] == f"assets/pictures/{bell_entry['id']}.png" and bell_entry["files"][0] in z.namelist()
     assert any(n.endswith("PRODUCTION_BIBLE.md") for n in z.namelist())

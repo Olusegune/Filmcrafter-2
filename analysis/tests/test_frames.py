@@ -5,9 +5,9 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import frames as FR
-from pulseframe_analysis import library as L
-from pulseframe_analysis import render as R
+from filmcrafter_engine import frames as FR
+from filmcrafter_engine import library as L
+from filmcrafter_engine import render as R
 
 
 def F(**kw):
@@ -59,7 +59,7 @@ def test_last_shot_cannot_flow_into_nothing(proj):
 
 
 def test_chaining_never_becomes_circular(proj):
-    from pulseframe_analysis import continuity
+    from filmcrafter_engine import continuity
     continuity.set_shot(proj, "S01-02", {"continuous": True})        # S01-02 starts from S01-01's last frame
     with pytest.raises(SystemExit, match="one or the other"):
         FR.set_(proj, "S01-01", {"end_mode": "next"})
@@ -130,7 +130,7 @@ def test_enqueue_renders_end_frame_shots_on_the_start_end_version(proj, monkeypa
     mans = {"turbo": _video("turbo", last=False), "pro": _video("pro")}
     monkeypatch.setattr(R, "manifest", lambda p, m, *a, **k: mans[m])
     monkeypatch.setitem(FR.END_VERSIONS, ("fal", "turbo"), "pro")
-    monkeypatch.setattr("pulseframe_analysis.routing.guard", lambda *a, **k: None)
+    monkeypatch.setattr("filmcrafter_engine.routing.guard", lambda *a, **k: None)
     FR.set_(proj, "S01-01", {"end_mode": "next"})
     jobs = {j["shot_id"]: j for j in R.enqueue(proj, ["S01-01", "S01-02"], "fal", "turbo", {})}
     assert jobs["S01-01"]["model"] == "pro" and jobs["S01-01"]["swapped_from"] == "turbo"
@@ -158,7 +158,7 @@ def test_your_own_image_becomes_the_start_frame_and_is_copied_into_the_project(p
 
 
 def test_your_own_start_frame_replaces_a_continue_from_previous_start(proj, tmp_path):
-    from pulseframe_analysis import continuity as CT
+    from filmcrafter_engine import continuity as CT
     CT.set_shot(proj, "S01-02", {"continuous": True})
     assert FR.get(proj)["S01-02"]["start_mode"] == "previous"
     img = tmp_path / "x.jpg"

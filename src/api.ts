@@ -334,7 +334,7 @@ export const fmtTime = (t: number) => {
 export const errorText = (e: unknown): string => {
   if (typeof e === "string") return e;
   if (e instanceof TypeError || e instanceof RangeError || e instanceof ReferenceError || e instanceof SyntaxError)
-    return `Something unexpected happened on this screen. Your project is safe. Try again, and if it keeps happening restart PULSEFRAME and include this when you report it: ${e.message}`;
+    return `Something unexpected happened on this screen. Your project is safe. Try again, and if it keeps happening restart FilmCrafter and include this when you report it: ${e.message}`;
   return e instanceof Error ? e.message : "Something went wrong.";
 };
 

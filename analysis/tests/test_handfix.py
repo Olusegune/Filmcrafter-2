@@ -6,7 +6,7 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import handfix as HF, keyframeset as KS, render as R, router, routing as RT, shothistory as H, stills as ST
+from filmcrafter_engine import handfix as HF, keyframeset as KS, render as R, router, routing as RT, shothistory as H, stills as ST
 
 MODEL = ("kie", "kie/edit-model")
 RED, BLUE = (200, 30, 30), (30, 30, 220)
@@ -81,7 +81,7 @@ def test_the_crop_is_cut_enlarged_and_saved_and_the_keyframe_is_untouched(world)
 
 
 def test_a_shot_that_cannot_be_fixed_says_why(world):
-    from pulseframe_analysis import library as L
+    from filmcrafter_engine import library as L
     with pytest.raises(SystemExit, match="isn't in this project"):
         HF.prepare(world, "S09-09", [0.1, 0.1, 0.5, 0.5])
     kf = jread(world, "keyframes.json")
@@ -236,7 +236,7 @@ def test_a_fix_is_not_remade_automatically_when_the_picture_still_fails_its_chec
 
 
 def test_a_locked_shot_or_a_service_without_a_key_queues_nothing(journey, monkeypatch):
-    from pulseframe_analysis import library as L
+    from filmcrafter_engine import library as L
     d = journey
     monkeypatch.setattr(router, "available", lambda p: False)
     with pytest.raises(SystemExit, match="Add your"):

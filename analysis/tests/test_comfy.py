@@ -7,9 +7,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import comfy as C
-from pulseframe_analysis import render as R
-from pulseframe_analysis import router
+from filmcrafter_engine import comfy as C
+from filmcrafter_engine import render as R
+from filmcrafter_engine import router
 
 WORKFLOW = {
     "3": {"class_type": "KSampler", "inputs": {"seed": "{{seed}}", "positive": ["6", 0], "negative": ["7", 0]}},

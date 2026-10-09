@@ -1,5 +1,5 @@
 """Anatomy: asking for correct hands and limbs, telling the checkers to look at them, and what a flagged picture does."""
-from pulseframe_analysis import anatomy as A, render as R, review as RV, stills as ST
+from filmcrafter_engine import anatomy as A, render as R, review as RV, stills as ST
 
 
 def field(name, type="string", **kw):

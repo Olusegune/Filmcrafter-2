@@ -8,7 +8,7 @@ import pytest
 import soundfile as sf
 from PIL import Image
 
-from pulseframe_analysis import export as E, overlays as O, producer_import as PI, svg_text
+from filmcrafter_engine import export as E, overlays as O, producer_import as PI, svg_text
 
 TITLE_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="180" viewBox="0 0 1600 180"><text x="800" y="70" '
              'text-anchor="middle" font-weight="bold" font-size="44" fill="#d8b35b">I AM YOUR MOTHER!</text></svg>')

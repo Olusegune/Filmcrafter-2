@@ -49,8 +49,8 @@ export function ShowView({ dir, onOpenItem, onHome }: { dir: string; onOpenItem:
     if (typeof f === "string") setAdding({ kind: "number", song: f, title: f.split(/[\\/]/).pop()!.replace(/\.[^.]+$/, ""), act: actIndex });
   };
   const addExisting = async (actIndex: number) => {
-    const f = await open({ filters: [{ name: "PULSEFRAME Project", extensions: ["pulseframe"] }] });
-    if (typeof f === "string") await act("existing", () => api.show("add_existing", dir, { project: f.replace(/[\\/][^\\/]+\.pulseframe$/i, ""), act: actIndex }));
+    const f = await open({ filters: [{ name: "FilmCrafter Project", extensions: ["filmcrafter"] }] });
+    if (typeof f === "string") await act("existing", () => api.show("add_existing", dir, { project: f.replace(/[\\/][^\\/]+\.filmcrafter$/i, ""), act: actIndex }));
   };
   const previewScript = async (file: string, songs?: string, one?: boolean) => {
     setScript({ file, songs, one });

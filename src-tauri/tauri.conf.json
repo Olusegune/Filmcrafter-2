@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "PULSEFRAME",
-  "version": "1.36.0",
-  "identifier": "com.pulseframe.app",
+  "productName": "FilmCrafter",
+  "version": "0.1.0",
+  "identifier": "com.filmcrafter.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "PULSEFRAME",
+        "title": "FilmCrafter",
         "width": 1440,
         "height": 900,
         "minWidth": 1100,
@@ -37,7 +37,7 @@
         "shadow": true,
         "backgroundColor": "#05070a",
         "focus": false,
-        "title": "PULSEFRAME"
+        "title": "FilmCrafter"
       }
     ],
     "security": {
@@ -76,36 +76,36 @@
     "fileAssociations": [
       {
         "ext": [
-          "pulseframe"
+          "filmcrafter"
         ],
-        "name": "PULSEFRAME.Project",
-        "description": "PULSEFRAME music video project",
+        "name": "FilmCrafter.Project",
+        "description": "FilmCrafter music video project",
         "role": "Editor",
-        "mimeType": "application/x-pulseframe"
+        "mimeType": "application/x-filmcrafter"
       },
       {
         "ext": [
           "pulse"
         ],
-        "name": "PULSEFRAME.Package",
-        "description": "PULSEFRAME project in one file",
+        "name": "FilmCrafter.Package",
+        "description": "FilmCrafter project in one file",
         "role": "Editor",
-        "mimeType": "application/x-pulseframe-package"
+        "mimeType": "application/x-filmcrafter-package"
       },
       {
         "ext": [
           "pfproducer"
         ],
-        "name": "PULSEFRAME.Producer",
-        "description": "PULSEFRAME Producer package",
+        "name": "FilmCrafter.Producer",
+        "description": "FilmCrafter Producer package",
         "role": "Viewer",
-        "mimeType": "application/x-pulseframe-producer"
+        "mimeType": "application/x-filmcrafter-producer"
       }
     ],
     "resources": {
       "icons/document.ico": "document.ico",
-      "../analysis/pulseframe_analysis/*.py": "engine/pulseframe_analysis/",
-      "../analysis/pulseframe_analysis/styles.json": "engine/pulseframe_analysis/styles.json",
+      "../analysis/filmcrafter_engine/*.py": "engine/filmcrafter_engine/",
+      "../analysis/filmcrafter_engine/styles.json": "engine/filmcrafter_engine/styles.json",
       "../analysis/requirements-engine.txt": "engine/requirements-engine.txt"
     },
     "windows": {
@@ -116,9 +116,9 @@
       "signCommand": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sign.ps1 -File %1"
     },
     "shortDescription": "Direct music into motion.",
-    "publisher": "PULSEFRAME",
-    "copyright": "Copyright (c) 2026 PULSEFRAME. All rights reserved.",
-    "longDescription": "PULSEFRAME turns a song into a directed music video: it listens, plans every shot on the beat, renders with the AI models you choose (or free on your own ComfyUI), and exports the finished video.",
+    "publisher": "FilmCrafter",
+    "copyright": "Copyright (c) 2026 FilmCrafter. All rights reserved.",
+    "longDescription": "FilmCrafter turns a song into a directed music video: it listens, plans every shot on the beat, renders with the AI models you choose (or free on your own ComfyUI), and exports the finished video.",
     "licenseFile": "../LICENSE.txt"
   }
 }

@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from pulseframe_analysis import golden, lipsync_check, render, routing, supervisor as SV
+from filmcrafter_engine import golden, lipsync_check, render, routing, supervisor as SV
 
 
 def _project(tmp_path, jobs, kf=None, project=None):
@@ -124,7 +124,7 @@ def test_budget_counts_queued_work(tmp_path, monkeypatch):
 
 def test_split_fills_kie_then_fal(tmp_path, monkeypatch):
     d = _project(tmp_path, [])
-    from pulseframe_analysis import budget
+    from filmcrafter_engine import budget
     monkeypatch.setattr(budget, "balance", lambda p: {"known": True, "amount": 150.0} if p == "kie" else {"known": True, "amount": 20.0})
     monkeypatch.setattr(render, "estimate", lambda d_, s, p, m, k: {"kie_credits_est": 70} if p == "kie" else {"usd": 0.25})
     r = golden.split(d, ["S01-01", "S01-02", "S01-03"], "video", {"kie": "wan/3-0-video", "fal": "alibaba/wan-3.0/image-to-video"})

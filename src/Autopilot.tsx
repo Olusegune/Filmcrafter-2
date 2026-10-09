@@ -258,7 +258,7 @@ export function Autopilot({ project: initial, onClose, onReload }: { project: Lo
         <div className="vs-head"><h2>Make my video</h2><span className="chip gold">Autopilot</span><div style={{ flex: 1 }} />
           {spent && <span className="dim num" title={`fal ≈ $${spent.fal_usd} · Kie ${spent.kie_credits} credits ≈ $${spent.kie_usd}`}>Spent ≈ ${spent.total_usd.toFixed(2)}</span>}
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">PULSEFRAME works through every step and stops only for your decisions: the direction, and each price.
+        <p className="sub">FilmCrafter works through every step and stops only for your decisions: the direction, and each price.
           You can close this; renders continue, and Autopilot picks up where it stopped.</p>
 
         <div className="ap-balances">

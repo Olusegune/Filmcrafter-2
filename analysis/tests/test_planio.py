@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from pulseframe_analysis import planio, render
+from filmcrafter_engine import planio, render
 
 
 def plan(tmp_path, **files):
@@ -45,9 +45,9 @@ def test_it_finds_shots_like_the_rendering_module_and_refuses_a_missing_one(tmp_
 
 @pytest.mark.parametrize("module,args", [("camera", ["vocab"]), ("looks", None), ("dance", ["check"])])
 def test_the_quick_actions_do_not_load_the_rendering_module(tmp_path, module, args):
-    code = {"camera": "import pulseframe_analysis.camera as m; m.vocab(); m.get; import sys; print('pulseframe_analysis.render' in sys.modules)",
-            "looks": "import pulseframe_analysis.looks as m, json, sys; d=sys.argv[1]; m.suggest(d); print('pulseframe_analysis.render' in sys.modules)",
-            "dance": "import pulseframe_analysis.dance as m, sys; m.check(sys.argv[1]); print('pulseframe_analysis.render' in sys.modules)"}[module]
+    code = {"camera": "import filmcrafter_engine.camera as m; m.vocab(); m.get; import sys; print('filmcrafter_engine.render' in sys.modules)",
+            "looks": "import filmcrafter_engine.looks as m, json, sys; d=sys.argv[1]; m.suggest(d); print('filmcrafter_engine.render' in sys.modules)",
+            "dance": "import filmcrafter_engine.dance as m, sys; m.check(sys.argv[1]); print('filmcrafter_engine.render' in sys.modules)"}[module]
     d = plan(tmp_path, production={"scenes": [{"number": 1, "shots": [{"id": "S01-01", "start": 0, "end": 2, "emotion": "joy"}]}]})
     out = subprocess.run([sys.executable, "-c", code, d], capture_output=True, text=True, cwd=str(__import__("pathlib").Path(__file__).resolve().parents[1]))
     assert out.stdout.strip().splitlines()[-1] == "False", out.stderr[-300:]

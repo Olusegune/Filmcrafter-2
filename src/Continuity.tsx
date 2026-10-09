@@ -48,7 +48,7 @@ export function ContinuitySheet({ dir, onClose, onSelectShot }: { dir: string; o
           <button className="btn ghost" onClick={() => aiCheck(true)} disabled={!!busy}
                   title="One look per scene by the AI brain (OpenAI costs a few cents per scene; a local model is free)">Check all scenes with AI</button>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">Who stands where, which way they face and what they wear stays the same across a scene. PULSEFRAME writes it into every
+        <p className="sub">Who stands where, which way they face and what they wear stays the same across a scene. FilmCrafter writes it into every
           keyframe and video prompt, keeps the camera on one side of the line (the 180° rule), matches eyelines, and shows the previous
           shot's keyframe to the model when making the next one.</p>
         {busy && <div className="progress indet"><i /></div>}

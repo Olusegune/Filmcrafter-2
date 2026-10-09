@@ -7,7 +7,7 @@ import pytest
 import soundfile as sf
 from PIL import Image
 
-from pulseframe_analysis import library, show as S, show_script as SS, voices as V
+from filmcrafter_engine import library, show as S, show_script as SS, voices as V
 
 SCRIPT = """TITLE: Night Market
 

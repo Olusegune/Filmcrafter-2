@@ -4,7 +4,7 @@ import zlib
 
 import pytest
 
-from pulseframe_analysis import comfy, comfy_setup as CS, hardware as H, localmodels as LM
+from filmcrafter_engine import comfy, comfy_setup as CS, hardware as H, localmodels as LM
 
 
 def hw(kind="gpu", model_gb=12, ram=32):
@@ -118,7 +118,7 @@ def test_the_test_picture_is_a_real_png_with_red_left_and_blue_right():
 
 
 def test_planning_test_reports_the_answer_and_the_time(monkeypatch):
-    monkeypatch.setattr("pulseframe_analysis.llm.config", lambda: {"provider": "ollama", "model": "qwen3:8b", "vision_model": ""})
+    monkeypatch.setattr("filmcrafter_engine.llm.config", lambda: {"provider": "ollama", "model": "qwen3:8b", "vision_model": ""})
     seen = {}
     monkeypatch.setattr(LM.requests, "post", lambda url, json=None, timeout=0: seen.update(url=url, body=json) or chat("ready"))
     r = LM.test("ollama")
@@ -127,7 +127,7 @@ def test_planning_test_reports_the_answer_and_the_time(monkeypatch):
 
 
 def test_vision_test_sends_the_picture_and_checks_the_colours(monkeypatch):
-    monkeypatch.setattr("pulseframe_analysis.llm.config", lambda: {"provider": "ollama", "model": "a", "vision_model": "qwen2.5vl:7b"})
+    monkeypatch.setattr("filmcrafter_engine.llm.config", lambda: {"provider": "ollama", "model": "a", "vision_model": "qwen2.5vl:7b"})
     seen = {}
     monkeypatch.setattr(LM.requests, "post", lambda url, json=None, timeout=0: seen.update(body=json) or chat("Red on the left and blue on the right"))
     r = LM.test("ollama", vision=True)
@@ -139,7 +139,7 @@ def test_vision_test_sends_the_picture_and_checks_the_colours(monkeypatch):
 
 
 def test_test_errors_are_in_plain_words(monkeypatch):
-    monkeypatch.setattr("pulseframe_analysis.llm.config", lambda: {"provider": "ollama", "model": "m", "vision_model": ""})
+    monkeypatch.setattr("filmcrafter_engine.llm.config", lambda: {"provider": "ollama", "model": "m", "vision_model": ""})
     monkeypatch.setattr(LM.requests, "post", lambda *a, **k: (_ for _ in ()).throw(LM.requests.ConnectionError()))
     with pytest.raises(SystemExit) as e:
         LM.test("ollama")
@@ -148,7 +148,7 @@ def test_test_errors_are_in_plain_words(monkeypatch):
     with pytest.raises(SystemExit) as e:
         LM.test("ollama")
     assert "isn't downloaded" in str(e.value)
-    monkeypatch.setattr("pulseframe_analysis.llm.config", lambda: {"provider": "ollama", "model": "", "vision_model": ""})
+    monkeypatch.setattr("filmcrafter_engine.llm.config", lambda: {"provider": "ollama", "model": "", "vision_model": ""})
     with pytest.raises(SystemExit) as e:
         LM.test("ollama")
     assert "Choose a model" in str(e.value)
@@ -203,7 +203,7 @@ def test_health_when_comfy_is_not_there(monkeypatch):
 
 
 def test_comfy_test_refuses_without_an_image_model(monkeypatch):
-    monkeypatch.setattr(CS, "health", lambda url=None: {"connected": True, "templates": [{"id": "pulseframe-keyframes", "ready": False}], "advice": []})
+    monkeypatch.setattr(CS, "health", lambda url=None: {"connected": True, "templates": [{"id": "filmcrafter-keyframes", "ready": False}], "advice": []})
     with pytest.raises(SystemExit) as e:
         CS.test("http://127.0.0.1:8188")
     assert "no image model" in str(e.value).lower()

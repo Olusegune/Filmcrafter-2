@@ -3,7 +3,7 @@ close-up of one woman also said 'Emmanuel is clean shaven; Mercy has no glasses'
 a good way to get them drawn into the frame. The one deliberate exception is the continuity note, which names who a person is looking at, off screen."""
 import pytest
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 from tests.test_native_dialogue import _talking
 
 CAST = ["Beatrice Queen Bee Adeyemi", "Dr Emmanuel Adeyemi", "Auntie Mercy", "Auntie Patience", "Auntie Blessing", "Solomon Adeyemi", "Tunde Adeyemi", "Zara Adeyemi"]

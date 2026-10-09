@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from pulseframe_analysis import export as E, overlays as O, shotsound as SS
+from filmcrafter_engine import export as E, overlays as O, shotsound as SS
 
 
 def take(name="t.mp4", **kw):

@@ -37,11 +37,11 @@ export function Home({ onSong, onNew, onProduce, onOpen, onShow, onChooseProject
       else if (p.type === "leave") setOver(false);
       else if (p.type === "drop") {
         setOver(false);
-        const proj = p.paths.find((f) => /\.(pulseframe|pulse)$/i.test(f) || isProducerPackage(f));
+        const proj = p.paths.find((f) => /\.(filmcrafter|pulse)$/i.test(f) || isProducerPackage(f));
         const song = p.paths.find((f) => AUDIO.includes(f.split(".").pop()!.toLowerCase()));
         if (proj) onOpen(proj);
         else if (song) onSong(song);
-        else setHint("PULSEFRAME accepts songs (MP3, WAV, M4A, FLAC), a video with a soundtrack, a project, or a Producer package.");
+        else setHint("FilmCrafter accepts songs (MP3, WAV, M4A, FLAC), a video with a soundtrack, a project, or a Producer package.");
       }
     });
     return () => { un.then((f) => f()); };
@@ -55,7 +55,7 @@ export function Home({ onSong, onNew, onProduce, onOpen, onShow, onChooseProject
   return (
     <div className="home">
       <div className="home-top">
-        <div className="wordmark"><Mark size={24} /> PULSEFRAME</div>
+        <div className="wordmark"><Mark size={24} /> FilmCrafter</div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <UpdatePill />
           <button className="btn ghost" onClick={onHelp} title="The user guide (F1)">Documentation</button>
@@ -78,7 +78,7 @@ export function Home({ onSong, onNew, onProduce, onOpen, onShow, onChooseProject
         </div>
         <div className="home-secondary">
           <button className="btn ghost chip-btn" data-c="blue" onClick={onChooseProject}><I.Folder size={15} /> Open Project</button>
-          <button className="btn ghost chip-btn" data-c="violet" onClick={() => setImporting(true)} title="A package from PULSEFRAME Producer (ZIP, folder or manifest)"><I.Cube size={15} /> Import production package</button>
+          <button className="btn ghost chip-btn" data-c="violet" onClick={() => setImporting(true)} title="A package from FilmCrafter Producer (ZIP, folder or manifest)"><I.Cube size={15} /> Import production package</button>
           <button className="btn ghost chip-btn" data-c="pink" onClick={() => setMaking(true)} title="Optional: compose a song with ElevenLabs Music, from your lyrics or a description"><I.Wave size={15} /> Make a song</button>
           <button className="btn ghost chip-btn" data-c="teal" onClick={() => setNewShow("")} title="A musical or multi-song production: numbers and spoken scenes with one cast"><I.Mask size={15} /> New show</button>
         </div>

@@ -7,7 +7,7 @@ import sys
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import captions as C, fonts as F, overlays as O
+from filmcrafter_engine import captions as C, fonts as F, overlays as O
 
 
 def _real_fonts():

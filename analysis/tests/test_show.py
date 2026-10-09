@@ -7,7 +7,7 @@ import pytest
 import soundfile as sf
 from PIL import Image
 
-from pulseframe_analysis import library, render as R, show as S, voices as V
+from filmcrafter_engine import library, render as R, show as S, voices as V
 
 
 def _song(tmp_path, secs=3.0, name="song.wav"):
@@ -121,7 +121,7 @@ def test_scene_dialogue_becomes_a_timed_track_and_only_changed_lines_are_paid(sh
     assert V.voices(show)["voices"]["Ben"]["speed"] == 2.0                                        # clamped
     calls = []
     monkeypatch.setattr(V, "_speak", _fake_speak(calls))
-    monkeypatch.setattr("pulseframe_analysis.render._fal_price", lambda m: None)
+    monkeypatch.setattr("filmcrafter_engine.render._fal_price", lambda m: None)
     assert V.estimate(scene)["lines"] == 2
     r = V.generate(scene)
     t = V.dialogue(scene)["timings"]
@@ -149,7 +149,7 @@ def test_dialogue_validation(show):
 
 
 def test_analysis_uses_exact_dialogue_timings(tmp_path):
-    from pulseframe_analysis import analyze as A
+    from filmcrafter_engine import analyze as A
     d = tmp_path / "scene"
     d.mkdir()
     (d / "dialogue.json").write_text(json.dumps({"timings": [{"character": "Ada", "text": "Hi", "start": 0.6, "end": 1.2},

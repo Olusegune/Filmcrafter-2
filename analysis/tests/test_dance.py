@@ -4,8 +4,8 @@ import os
 
 import pytest
 
-from pulseframe_analysis import dance as D
-from pulseframe_analysis import onboarding as O
+from filmcrafter_engine import dance as D
+from filmcrafter_engine import onboarding as O
 
 
 def project(tmp_path, shots, choreo=None, bpm=120, **extra):
@@ -116,7 +116,7 @@ import time as _time
 
 import pytest as _pytest
 
-from pulseframe_analysis import dance as _D
+from filmcrafter_engine import dance as _D
 
 
 @_pytest.mark.parametrize("bpm", [1e9, 0.0001, -5, "fast", None, float("nan"), float("inf"), 600, 29])

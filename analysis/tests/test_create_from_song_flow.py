@@ -8,7 +8,7 @@ import zipfile
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import library, producer_import as PI, producer_plan as P, refgen, render as R
+from filmcrafter_engine import library, producer_import as PI, producer_plan as P, refgen, render as R
 from tests.test_producer_plan import ASSETS, proj, shots_for  # noqa: F401  (fixtures and data)
 from tests.test_refgen import FakeKie, _fake_manifest
 
@@ -74,7 +74,7 @@ def test_the_whole_path_from_a_song_to_an_exported_production(flow, tmp_path):
     out = P.export_package(d, str(tmp_path / "show.pfproducer"))
     assert out["pictures"] >= 3
     names = zipfile.ZipFile(out["path"]).namelist()
-    assert "pulseframe_manifest.json" in names and any(n.startswith("assets/pictures/") for n in names)
+    assert "filmcrafter_manifest.json" in names and any(n.startswith("assets/pictures/") for n in names)
     d2 = tmp_path / "other"
     d2.mkdir()
     json.dump({"title": "Copy", "song": "s.wav", "state": "ready"}, open(d2 / "project.json", "w"))
@@ -106,7 +106,7 @@ def test_names_with_spaces_accents_and_other_scripts_work_everywhere(flow, tmp_p
     assert os.path.exists(res["path"]) and res["pictures"] >= 1
     names = zipfile.ZipFile(res["path"]).namelist()
     assert all(n.isascii() for n in names)                                                           # inside the file every name is plain, whatever the picture was called
-    from pulseframe_analysis import onboarding as O
+    from filmcrafter_engine import onboarding as O
     note = odd / "Notes de danse é.md"
     note.write_text("Couplet : balancé lent.\nRefrain : grand tour.", encoding="utf-8")
     assert "balancé lent" in O.doc_text(str(note))["text"]

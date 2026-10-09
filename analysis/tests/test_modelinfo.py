@@ -5,8 +5,8 @@ import os
 
 import pytest
 
-from pulseframe_analysis import modelinfo as M
-from pulseframe_analysis import render as R
+from filmcrafter_engine import modelinfo as M
+from filmcrafter_engine import render as R
 
 
 # ---------------------------------------------------------------- the two real bugs
@@ -155,7 +155,7 @@ def test_an_older_saved_picture_list_that_still_holds_tools_is_cleaned(tmp_path,
     assert [m["model"] for m in R.catalog("kie", "image")] == ["google/nanobanana-2-1", "midjourney/mj-v7"]
 
 
-# the 25 picture models on Kie that the real-schema audit found cannot take reference pictures (run: python -m pulseframe_analysis.model_audit kie --kind image)
+# the 25 picture models on Kie that the real-schema audit found cannot take reference pictures (run: python -m filmcrafter_engine.model_audit kie --kind image)
 AUDITED_TEXT_ONLY = ["flux2/pro-text-to-image", "flux2/flex-text-to-image", "gpt/gpt-image-2-5-flare-text-to-image", "gpt/gpt-image-2-5-sunburst-text-to-image", "gpt-image/1-5-text-to-image",
                      "gpt/gpt-image-2-text-to-image", "google/nano-banana", "google/imagen4", "google/imagen4-fast", "google/imagen4-ultra", "grok-imagine/text-to-image",
                      "grok-imagine-image-2-0/text-to-image", "ideogram/v3-text-to-image", "qwen/text-to-image", "qwen2-1/text-to-image", "qwen2/text-to-image", "qwen3-pro/text-to-image",

@@ -5,9 +5,9 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import library
-from pulseframe_analysis import render as R
-from pulseframe_analysis import upscale as U
+from filmcrafter_engine import library
+from filmcrafter_engine import render as R
+from filmcrafter_engine import upscale as U
 from tests.test_video_models import f, kie
 
 TOPAZ_IMG = lambda: kie("topaz/image-upscale", f("image_url", required=True), f("upscale_factor", enum=["1", "2", "4"], required=True))
@@ -123,7 +123,7 @@ def test_takes_made_from_the_old_keyframe_are_not_marked_out_of_date(proj):
     U.run_one(d, "kie-topaz-image", "keyframe", "S01-01", None, 2, provider=Fake(out), poll_s=0)
     take = next(j for j in R.Store(d).jobs if j["id"] == "v1")
     assert take["keyframe_ref"] == keyframe(d)                                                                          # still matches: it is the same picture, sharper
-    from pulseframe_analysis import golden
+    from filmcrafter_engine import golden
     assert golden.status(d)["stale"] == []
 
 
@@ -252,5 +252,5 @@ def test_an_unreadable_runs_file_is_started_again_not_fatal(proj):
 
 def test_the_engine_and_the_app_agree_on_the_action_names():
     lib = open(os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs"), encoding="utf-8").read()
-    assert "pulseframe_analysis.upscale" in lib and '"tools", "status", "resume", "revert", "run"' in lib
+    assert "filmcrafter_engine.upscale" in lib and '"tools", "status", "resume", "revert", "run"' in lib
     assert 'choices=["tools", "status", "resume", "revert", "run"]' in open(U.__file__, encoding="utf-8").read()

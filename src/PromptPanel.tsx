@@ -20,7 +20,7 @@ const useDebounced = <T,>(value: T, ms: number): T => {
 };
 
 /**
- * The prompt for a take. Either PULSEFRAME writes it from the shot (and you may add one line of direction), or you write it: what happens between the first picture and the last.
+ * The prompt for a take. Either FilmCrafter writes it from the shot (and you may add one line of direction), or you write it: what happens between the first picture and the last.
  * When you write it you get help: "Write it for me" turns plain words into a prompt that works (with the AI brain if one is set up), recipes for the shots two pictures make possible
  * (a figure dissolving into light, someone ageing, a shot that flows to the next), a live check of what is likely to go wrong, and the exact words that will be sent.
  */
@@ -73,7 +73,7 @@ export function PromptPanel({ dir, shot, provider, model, prompt, onPrompt, dire
   return (
     <section className="pp" aria-label="The prompt for this take">
       <div className="pp-choice" role="radiogroup" aria-label="Who writes the prompt">
-        <button role="radio" aria-checked={!mine} className={!mine ? "on" : ""} onClick={() => set({ mode: "auto" })}>PULSEFRAME writes it from the shot</button>
+        <button role="radio" aria-checked={!mine} className={!mine ? "on" : ""} onClick={() => set({ mode: "auto" })}>FilmCrafter writes it from the shot</button>
         <button role="radio" aria-checked={mine} className={mine ? "on" : ""} onClick={() => set({ mode: "mine" })}>I'll write it</button>
       </div>
       {!mine && <>
@@ -105,7 +105,7 @@ export function PromptPanel({ dir, shot, provider, model, prompt, onPrompt, dire
         {issues.length > 0 && <ul className="pp-issues" aria-label="Checks">
           {issues.map((i) => <li key={i.text} className={i.level}><i>{LEVEL_LABEL[i.level]}</i> {i.text}</li>)}</ul>}
         <label className="pp-only"><input type="checkbox" checked={prompt.only} onChange={(e) => set({ only: e.target.checked })} /> Use only my words
-          <span className="dim"> (leaves out PULSEFRAME's camera, setting, light, wardrobe and character lines; the look and the no-text rule always stay)</span></label>
+          <span className="dim"> (leaves out FilmCrafter's camera, setting, light, wardrobe and character lines; the look and the no-text rule always stay)</span></label>
       </>}
       <details className="pp-sent" open={showSent} onToggle={(e) => setShowSent((e.target as HTMLDetailsElement).open)}>
         <summary>Show exactly what will be sent</summary>

@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import camera as C, lighting as L
+from filmcrafter_engine import camera as C, lighting as L
 
 
 def shot(i, emotion="", start=0.0, end=3.0, **kw):
@@ -143,7 +143,7 @@ def test_apply_writes_camera_choices_with_the_fuller_wording(project):
     assert len(r["changed"]) == 5 and r["undo"]
     pick = C.picked(project, "S01-01")
     assert pick["lighting"] == "lowkey"
-    from pulseframe_analysis.planio import find_shot, load_plan
+    from filmcrafter_engine.planio import find_shot, load_plan
     sh, _ = find_shot(load_plan(project)[1], "S01-01")
     out = C.apply(project, sh)["lighting"]
     assert "about" in out and "K)" in out and "chiaroscuro" in out        # the term's own words, plus the plan's colour, direction and contrast

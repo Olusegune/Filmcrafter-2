@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-import pulseframe_analysis as P
+import filmcrafter_engine as P
 
 
 def test_a_save_survives_a_file_that_is_briefly_locked(tmp_path, monkeypatch):

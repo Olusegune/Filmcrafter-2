@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from pulseframe_analysis import comfy, comfy_setup as CS
+from filmcrafter_engine import comfy, comfy_setup as CS
 
 
 def info(ckpts=(), unets=(), clips=(), vaes=(), nodes_ok=True):
@@ -18,16 +18,16 @@ def info(ckpts=(), unets=(), clips=(), vaes=(), nodes_ok=True):
 def test_plan_ready_when_models_present():
     p = {x["id"]: x for x in CS.plan(info(["juggernautXL_v9.safetensors"], ["wan2.2_ti2v_5B_fp16.safetensors"],
                                           ["umt5_xxl_fp8_e4m3fn_scaled.safetensors"], ["wan2.2_vae.safetensors"]))}
-    assert p["pulseframe-keyframes"]["ready"] and p["pulseframe-keyframes"]["uses"] == "juggernautXL_v9.safetensors"
-    v = p["pulseframe-video-wan22"]
+    assert p["filmcrafter-keyframes"]["ready"] and p["filmcrafter-keyframes"]["uses"] == "juggernautXL_v9.safetensors"
+    v = p["filmcrafter-video-wan22"]
     assert v["ready"] and v["graph"]["1"]["inputs"]["unet_name"] == "wan2.2_ti2v_5B_fp16.safetensors"
     assert v["graph"]["4"]["inputs"]["image"] == "{{image}}" and v["graph"]["12"]["class_type"] == "SaveVideo"
 
 
 def test_plan_names_missing_files_and_old_comfy():
     p = {x["id"]: x for x in CS.plan(info(nodes_ok=False))}
-    assert not p["pulseframe-keyframes"]["ready"] and "checkpoint" in p["pulseframe-keyframes"]["missing"][0]
-    miss = " ".join(p["pulseframe-video-wan22"]["missing"])
+    assert not p["filmcrafter-keyframes"]["ready"] and "checkpoint" in p["filmcrafter-keyframes"]["missing"][0]
+    miss = " ".join(p["filmcrafter-video-wan22"]["missing"])
     assert "newer ComfyUI" in miss and "wan2.2_ti2v_5B" in miss and "umt5" in miss and "wan2.2_vae" in miss
 
 
@@ -49,8 +49,8 @@ def test_setup_writes_only_ready_templates(tmp_path, monkeypatch):
             return info(["sdxl.safetensors"])
     monkeypatch.setattr(CS, "_get", lambda url, timeout=2.0: R())
     res = CS.setup("http://127.0.0.1:8000")
-    assert [w["model"] for w in res["workflows"]] == ["pulseframe-keyframes"]
-    assert {t["id"]: t["ready"] for t in res["templates"]} == {"pulseframe-keyframes": True, "pulseframe-video-wan22": False}
+    assert [w["model"] for w in res["workflows"]] == ["filmcrafter-keyframes"]
+    assert {t["id"]: t["ready"] for t in res["templates"]} == {"filmcrafter-keyframes": True, "filmcrafter-video-wan22": False}
 
 
 def test_detect_nothing_running_and_start_is_restricted(monkeypatch):
@@ -70,7 +70,7 @@ def test_downloads_plan_puts_files_in_comfys_folders(tmp_path, monkeypatch):
     monkeypatch.setattr(CS, "_get", lambda url, timeout=2.0: R())
     (tmp_path / "vae").mkdir()
     (tmp_path / "vae" / "wan2.2_vae.safetensors").write_bytes(b"x")   # already there: not downloaded again
-    p = CS.downloads(["pulseframe-keyframes", "pulseframe-video-wan22"], "http://x")
+    p = CS.downloads(["filmcrafter-keyframes", "filmcrafter-video-wan22"], "http://x")
     names = {f["name"] for f in p["files"]}
     assert names == {"sd_xl_base_1.0.safetensors", "wan2.2_ti2v_5B_fp16.safetensors", "umt5_xxl_fp8_e4m3fn_scaled.safetensors"}
     assert p["gb"] == pytest.approx(23.7, abs=0.1)

@@ -22,7 +22,7 @@ const LEVEL: Record<string, string> = { performance: "Performance-led", hybrid: 
 const hexes = (s: string) => Array.from(s.matchAll(/#[0-9a-fA-F]{6}\b/g)).map((m) => m[0]);
 
 /**
- * Create the production from the song: the Producer plans the cast, outfits, props, places, movement and shots as a PULSEFRAME package,
+ * Create the production from the song: the Producer plans the cast, outfits, props, places, movement and shots as a FilmCrafter package,
  * you shape it, and it is imported exactly like a package from the Producer plugin. Four steps, resumable at any time; the only paid calls
  * are the planning calls (cents), and no picture or video is made here.
  */
@@ -116,7 +116,7 @@ export function Produce({ project, onStudio, onHome, onSettings }: {
   const exportIt = async () => {
     setError(""); setNote("");
     try {
-      const dest = await save({ defaultPath: `${project.project.title.replace(/[^\w .-]+/g, "").trim() || "production"}.pfproducer`, filters: [{ name: "PULSEFRAME Producer package", extensions: ["pfproducer"] }] });
+      const dest = await save({ defaultPath: `${project.project.title.replace(/[^\w .-]+/g, "").trim() || "production"}.pfproducer`, filters: [{ name: "FilmCrafter Producer package", extensions: ["pfproducer"] }] });
       if (!dest) return;
       setBusy("Saving the package…");
       const r = await api.producerPlan<{ path: string; pictures: number; bytes: number }>(dir, "export", { dest });
@@ -171,13 +171,13 @@ export function Produce({ project, onStudio, onHome, onSettings }: {
 
         {step === 1 && (
           <section className="pr-sec">
-            <PanelHead icon={<I.Wand size={18} />} title="Choose a direction" hint="PULSEFRAME listens to your song and proposes three different looks for the whole production. Pick one, or write your own below." />
+            <PanelHead icon={<I.Wand size={18} />} title="Choose a direction" hint="FilmCrafter listens to your song and proposes three different looks for the whole production. Pick one, or write your own below." />
             {plan?.script && concepts.length === 0 && pick === null ? (
               <div className="pr-script">
                 <span className="pr-callout-ic"><I.Doc size={20} /></span>
                 <div>
                   <b>Your script is the brief{plan.script.name ? `: ${plan.script.name}` : ""}</b>
-                  <span>{plan.script.characters || plan.script.scenes ? `PULSEFRAME found ${plan.script.characters} character${plan.script.characters === 1 ? "" : "s"} and ${plan.script.scenes} scene${plan.script.scenes === 1 ? "" : "s"}. ` : ""}The cast, places and shots are designed from what you wrote, so there is nothing to choose. Add notes below if you want to steer it.</span>
+                  <span>{plan.script.characters || plan.script.scenes ? `FilmCrafter found ${plan.script.characters} character${plan.script.characters === 1 ? "" : "s"} and ${plan.script.scenes} scene${plan.script.scenes === 1 ? "" : "s"}. ` : ""}The cast, places and shots are designed from what you wrote, so there is nothing to choose. Add notes below if you want to steer it.</span>
                   <button className="link" onClick={imagine} disabled={!!busy}>or see three other directions instead</button>
                 </div>
               </div>
@@ -263,7 +263,7 @@ export function Produce({ project, onStudio, onHome, onSettings }: {
         {step === 3 && plan && (
           <section className="pr-sec">
             <PanelHead icon={<I.Film size={18} />} title={`${plan.shots.length} shots, laid on your song`} tag={stale ? "Needs planning again" : undefined} tone="warn"
-                       hint="Each shot sits on the real lyric line it belongs to, using what PULSEFRAME heard in your song. You can adjust any shot in the Studio." />
+                       hint="Each shot sits on the real lyric line it belongs to, using what FilmCrafter heard in your song. You can adjust any shot in the Studio." />
             {stale && <div className="note warn"><I.Alert size={14} /> <span>The cast changed after these shots were planned. Plan the shots again so they match.</span></div>}
             {plan.warnings.map((w) => <div key={w} className="note warn"><I.Alert size={14} /> <span>{w}</span></div>)}
             <ShotList plan={plan} busy={!!busy} onEdit={editShot} onApprove={approveSections} />

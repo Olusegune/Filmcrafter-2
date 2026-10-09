@@ -50,7 +50,7 @@ export function LookPicker({ value, director, onCancel, onSave }: {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
           <div>
             <h2>Look</h2>
-            <p className="sub">One style for the whole video. PULSEFRAME applies it to every shot automatically.</p>
+            <p className="sub">One style for the whole video. FilmCrafter applies it to every shot automatically.</p>
           </div>
           <button className="icon-btn" onClick={onCancel} aria-label="Close"><I.Close /></button>
         </div>

@@ -7,7 +7,7 @@ import wave
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import colormatch as CM, export as E, media
+from filmcrafter_engine import colormatch as CM, export as E, media
 
 pytestmark = pytest.mark.integration
 

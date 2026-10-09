@@ -5,7 +5,7 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import compose as CO, promptwriter as P, render as R
+from filmcrafter_engine import compose as CO, promptwriter as P, render as R
 
 LITTLE_OLD = ("little sege hugging older sege, and then there is bright light in older sege's chest and little sege disappears")
 
@@ -126,7 +126,7 @@ def test_the_context_has_the_people_the_seconds_and_what_the_pictures_are(projec
 
 
 def test_without_a_brain_the_writer_still_helps_and_says_so(project, monkeypatch):
-    monkeypatch.setattr("pulseframe_analysis.director._client", lambda: (_ for _ in ()).throw(SystemExit("Add your OpenAI key in Settings")))
+    monkeypatch.setattr("filmcrafter_engine.director._client", lambda: (_ for _ in ()).throw(SystemExit("Add your OpenAI key in Settings")))
     w = P.write(project, "S01-01", LITTLE_OLD)
     assert w["source"] == "template" and "Little Sege dissolves into the light" in w["prompt"] and isinstance(w["issues"], list)
 
@@ -143,8 +143,8 @@ def test_with_a_brain_its_words_are_used_and_checked(project, monkeypatch):
             def create(model, input, text):
                 seen["system"], seen["brief"] = input[0]["content"], json.loads(input[1]["content"])
                 return Resp
-    monkeypatch.setattr("pulseframe_analysis.director._client", lambda: Client)
-    monkeypatch.setattr("pulseframe_analysis.director.resolve_model", lambda c, m: "test-model")
+    monkeypatch.setattr("filmcrafter_engine.director._client", lambda: Client)
+    monkeypatch.setattr("filmcrafter_engine.director.resolve_model", lambda c, m: "test-model")
     w = P.write(project, "S01-01", LITTLE_OLD, 900)
     assert w["source"] == "ai" and w["prompt"].startswith("Little Sege and Older Sege embrace.") and w["tips"] == ["Make the shot 6 s or longer."]
     assert seen["brief"]["seconds"] == 6.0 and seen["brief"]["character_limit"] == 900 and seen["brief"]["characters_in_the_shot"] == ["Little Sege", "Older Sege"]
@@ -159,13 +159,13 @@ def test_a_broken_brain_answer_falls_back_to_the_template(project, monkeypatch):
                 class R_:
                     output_text = "not json"
                 return R_
-    monkeypatch.setattr("pulseframe_analysis.director._client", lambda: Client)
-    monkeypatch.setattr("pulseframe_analysis.director.resolve_model", lambda c, m: "m")
+    monkeypatch.setattr("filmcrafter_engine.director._client", lambda: Client)
+    monkeypatch.setattr("filmcrafter_engine.director.resolve_model", lambda c, m: "m")
     assert P.write(project, "S01-01", LITTLE_OLD)["source"] == "template"
 
 
 def test_the_writer_never_goes_over_the_models_limit_and_needs_some_words(project, monkeypatch):
-    monkeypatch.setattr("pulseframe_analysis.director._client", lambda: (_ for _ in ()).throw(SystemExit("no key")))
+    monkeypatch.setattr("filmcrafter_engine.director._client", lambda: (_ for _ in ()).throw(SystemExit("no key")))
     w = P.write(project, "S01-01", LITTLE_OLD, 120)
     assert len(w["prompt"].encode("utf-8")) <= 120 and w["prompt"].endswith(".")
     with pytest.raises(SystemExit) as e:
@@ -198,7 +198,7 @@ def video_man():
 
 
 def build(project, **shot_extra):
-    from pulseframe_analysis.planio import find_shot, load_plan
+    from filmcrafter_engine.planio import find_shot, load_plan
     _, plan = load_plan(project)
     sh, sc = find_shot(plan, "S01-01")
     sh = {**sh, "acting_beats": "ACTING-BEATS-TEXT", "arc_text": "ARC-TEXT", "continuity": "CONTINUITY-TEXT", "lighting": "warm lamp", "environment": "a bare room", "wardrobe": "grey coat",
@@ -224,7 +224,7 @@ def test_only_my_words_also_leaves_out_camera_set_light_wardrobe_and_characters(
 
 
 def test_the_custom_prompt_is_for_video_only_and_a_still_ignores_it(project):
-    from pulseframe_analysis.planio import find_shot, load_plan
+    from filmcrafter_engine.planio import find_shot, load_plan
     _, plan = load_plan(project)
     sh, sc = find_shot(plan, "S01-01")
     still = R._finish("kie", "google/nanobanana-2-1", "NB", "", [{"name": "prompt", "type": "string", "items": None, "enum": None, "default": None, "minimum": None, "maximum": None,

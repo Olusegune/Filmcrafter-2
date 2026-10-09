@@ -116,7 +116,7 @@ export function RenderPanel({ dir, shot, jobs, director, keys, onQueued, onSetti
   useEffect(() => { const t = setTimeout(() => setSettled(pins), 500); return () => clearTimeout(t); }, [pins]);
   useEffect(() => { if (director) api.renderCatalog(provider).then(setCatalog).catch(() => setCatalog([])); }, [director, provider]);
 
-  // What PULSEFRAME would send (Auto values) — free, uploads nothing.
+  // What FilmCrafter would send (Auto values) — free, uploads nothing.
   useEffect(() => {
     let live = true;
     setBusy("Reading model…"); setError("");
@@ -393,7 +393,7 @@ export function ConfirmRender({ count, seconds, provider, model, onCancel, onCon
         {est?.native_blocked?.length ? <p className="error-text" role="alert">This model makes no sound, and {est.native_blocked.length === 1 ? "a shot" : `${est.native_blocked.length} shots`} here
           {" "}need{est.native_blocked.length === 1 ? "s" : ""} it: this scene's dialogue is spoken by the video model. Choose a model that makes sound (for example Veo 3.1 or Kling 2.6),
           or turn native dialogue off in the scene's dialogue.</p> : est?.native_note ? <p className="fr-note warn">{est.native_note}</p> : null}
-        <p className="dim" style={{ marginTop: 10 }}>{PROVIDER_NAME[provider]} bills your account. PULSEFRAME sends each shot once and never
+        <p className="dim" style={{ marginTop: 10 }}>{PROVIDER_NAME[provider]} bills your account. FilmCrafter sends each shot once and never
           re-sends a render automatically.</p>
         <div className="sheet-actions">
           <button className="btn ghost" onClick={onCancel}>Cancel</button>

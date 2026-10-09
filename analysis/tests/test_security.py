@@ -10,8 +10,8 @@ import zipfile
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import customframe, fonts, media, overlays as O, producer_import as PI, render as R, safe, svg_text, titlecard
-from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+from filmcrafter_engine import customframe, fonts, media, overlays as O, producer_import as PI, render as R, safe, svg_text, titlecard
+from filmcrafter_engine.export import NO_WINDOW, ffmpeg
 from tests.test_render import FakeProvider, field, man
 
 pytestmark = pytest.mark.security
@@ -52,10 +52,10 @@ def test_every_action_the_shell_allows_is_one_the_engine_knows():
     checked = 0
     for blk in _rust_commands():
         acts = re.search(r"const ACTIONS: \[&str; \d+\] = \[([^\]]*)\]", blk)
-        mod = re.search(r"pulseframe_analysis\.(\w+)", blk)
+        mod = re.search(r"filmcrafter_engine\.(\w+)", blk)
         if not (acts and mod):
             continue
-        src = open(os.path.join(ROOT, "analysis", "pulseframe_analysis", mod[1] + ".py"), encoding="utf-8").read()
+        src = open(os.path.join(ROOT, "analysis", "filmcrafter_engine", mod[1] + ".py"), encoding="utf-8").read()
         known = {x for m in re.finditer(r"choices=\[([^\]]+)\]", src) for x in re.findall(r"[\"'](\w+)[\"']", m[1])}
         allowed = set(re.findall(r'"(\w+)"', acts[1]))
         assert allowed <= known, (mod[1], sorted(allowed - known))
@@ -120,7 +120,7 @@ def _zip(path, entries):
 
 def test_a_package_with_an_entry_that_climbs_out_of_its_folder_is_not_opened(tmp_path):
     z = tmp_path / "evil.pfproducer"
-    _zip(z, [("../../escaped.txt", "x"), ("pulseframe_manifest.json", "{}")])
+    _zip(z, [("../../escaped.txt", "x"), ("filmcrafter_manifest.json", "{}")])
     with pytest.raises(SystemExit, match="unsafe path"):
         PI.open_package(str(z))
     assert not (tmp_path.parent / "escaped.txt").exists()
@@ -128,7 +128,7 @@ def test_a_package_with_an_entry_that_climbs_out_of_its_folder_is_not_opened(tmp
 
 def test_a_package_that_is_small_to_send_but_huge_to_open_is_refused(tmp_path, monkeypatch):
     z = tmp_path / "bomb.pfproducer"
-    _zip(z, [("pulseframe_manifest.json", "{}"), ("big.bin", b"\0" * 5000)])
+    _zip(z, [("filmcrafter_manifest.json", "{}"), ("big.bin", b"\0" * 5000)])
     monkeypatch.setattr(PI, "MAX_PACKAGE_BYTES", 1000)
     with pytest.raises(SystemExit, match="too large"):
         PI.open_package(str(z))
@@ -255,7 +255,7 @@ def test_an_api_key_is_never_written_into_the_project(proj, monkeypatch):
 
 
 def test_the_update_check_only_ever_asks_one_fixed_address():
-    from pulseframe_analysis import updates
+    from filmcrafter_engine import updates
     src = open(updates.__file__, encoding="utf-8").read()
     urls = set(re.findall(r"https?://[^\s\"')]+", src))
     assert urls and all(u.startswith(("https://api.github.com/", "https://github.com/")) for u in urls)         # the check asks the API; the page is only a link to open
@@ -265,7 +265,7 @@ def test_the_update_check_only_ever_asks_one_fixed_address():
 # ---------------------------------------------------------------- deletion
 
 def test_clean_up_only_ever_touches_generated_files_inside_the_project(proj, tmp_path):
-    from pulseframe_analysis import cleanup
+    from filmcrafter_engine import cleanup
     keep = tmp_path / "outer" / "important.png"
     Image.new("RGB", (8, 8)).save(keep)
     os.makedirs(os.path.join(proj, "assets"), exist_ok=True)

@@ -1,8 +1,8 @@
-PULSEFRAME END USER LICENSE AGREEMENT
+FilmCrafter END USER LICENSE AGREEMENT
 
-Copyright (c) 2026 PULSEFRAME. All rights reserved.
+Copyright (c) 2026 FilmCrafter. All rights reserved.
 
-PULSEFRAME is proprietary software. By installing, copying or using PULSEFRAME ("the Software"), you agree to the terms below. If you do not agree, do not install or use the Software.
+FilmCrafter is proprietary software. By installing, copying or using FilmCrafter ("the Software"), you agree to the terms below. If you do not agree, do not install or use the Software.
 
 1. LICENSE
 You are granted a personal, non-exclusive, non-transferable, revocable license to install and use the Software on computers you own or control, for creating your own audiovisual works.
@@ -16,7 +16,7 @@ You may not, except where applicable law expressly permits it despite this restr
 (e) use the Software to build a competing product or service.
 
 3. OWNERSHIP
-The Software, including its source code, design, documentation and all copies, is owned by PULSEFRAME and protected by copyright and other laws. All rights not expressly granted are reserved.
+The Software, including its source code, design, documentation and all copies, is owned by FilmCrafter and protected by copyright and other laws. All rights not expressly granted are reserved.
 
 4. YOUR CONTENT
 You keep all rights to the songs, lyrics, scripts, images and other material you bring into the Software, and to the videos you make with it, subject to the rights of others in that material and to the terms of any third-party service you use.
@@ -31,10 +31,10 @@ The Software includes open-source components that are licensed under their own t
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. AI-generated output may be inaccurate or unexpected; you are responsible for reviewing it before use.
 
 8. LIMITATION OF LIABILITY
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, PULSEFRAME SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF DATA, PROFITS OR CHARGES FROM THIRD-PARTY SERVICES, ARISING FROM THE USE OF OR INABILITY TO USE THE SOFTWARE.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, FilmCrafter SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF DATA, PROFITS OR CHARGES FROM THIRD-PARTY SERVICES, ARISING FROM THE USE OF OR INABILITY TO USE THE SOFTWARE.
 
 9. TERMINATION
 This license ends automatically if you breach it. On termination you must stop using the Software and delete all copies.
 
 10. GENERAL
-This agreement is the entire agreement between you and PULSEFRAME about the Software. If any part is found unenforceable, the rest remains in effect.
+This agreement is the entire agreement between you and FilmCrafter about the Software. If any part is found unenforceable, the rest remains in effect.

@@ -1,7 +1,7 @@
 """What the render loop records for the Render queue, and cancelling a render that has not been sent."""
 import pytest
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 
 
 @pytest.mark.parametrize("res,detail,progress", [

@@ -5,8 +5,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import layerkit as K, overlays as O
-from pulseframe_analysis.export import NO_WINDOW, ffmpeg
+from filmcrafter_engine import layerkit as K, overlays as O
+from filmcrafter_engine.export import NO_WINDOW, ffmpeg
 
 MISSING = "isn.t in the project"       # the engine's plain sentence, matched without caring about the apostrophe
 NOT_SAVED = "isn.t saved"

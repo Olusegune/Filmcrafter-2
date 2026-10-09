@@ -21,7 +21,7 @@ export function SingChoice({ performer, value, onChange }: { performer: string |
   return (
     <div className="ls-sing" role="group" aria-label={`Does ${who} sing this on screen?`}>
       <span className="dim">Does {who} sing this on screen?</span>
-      {opt("auto", "Let PULSEFRAME decide", "A lead in a medium shot or closer, or words in the shot that say someone sings or speaks")}
+      {opt("auto", "Let FilmCrafter decide", "A lead in a medium shot or closer, or words in the shot that say someone sings or speaks")}
       {opt("on", "Yes, sync the mouth", "Always sync a mouth to the vocal in this shot")}
       {opt("off", "No: a narrator or voice-over", "Never sync a mouth in this shot: the vocal belongs to someone else, or to a memory")}
     </div>);
@@ -69,7 +69,7 @@ export function LipSyncNote({ performer, lyrics, lipSync, audioFirst, keyframeBl
                                       : "The keyframe becomes a reference picture and the song's vocal is sent, so the mouth follows the music; the opening may differ from the keyframe. "}
             This applies to every sung shot in the project, and you can switch back. Or keep the keyframe and run <i>Lip-sync this take…</i> afterwards (priced by the second).</span>
           <button className="btn small ls-gold" onClick={() => onMode("audio_first")}>Follow the song's audio instead</button>
-          {!auto && <button className="link" onClick={() => onMode("auto")}>Or let PULSEFRAME choose shot by shot (close-ups follow the audio)</button>}
+          {!auto && <button className="link" onClick={() => onMode("auto")}>Or let FilmCrafter choose shot by shot (close-ups follow the audio)</button>}
         </div>
         {check}
         {choice}

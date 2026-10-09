@@ -1,7 +1,7 @@
 """Midjourney through Kie.ai's Midjourney endpoint: the request, the polling, the catalog. Mocked (nothing is billed); a real render has not been run."""
 import pytest
 
-from pulseframe_analysis import modelinfo, render as R
+from filmcrafter_engine import modelinfo, render as R
 
 MJ = "midjourney/mj-v7"
 

@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from pulseframe_analysis import directions_library as DL
-from pulseframe_analysis import performance, render
+from filmcrafter_engine import directions_library as DL
+from filmcrafter_engine import performance, render
 
 
 def _proj(tmp_path, bpm=112, energy=0.8, mood="Euphoric", project=None):

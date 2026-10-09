@@ -22,7 +22,7 @@ export function DanceReport({ report, onSeek }: { report: DanceCheck; onSeek?: (
 export const openChoreoSheet = () => window.dispatchEvent(new Event("pf-open-choreo"));
 
 const MODES: { id: NonNullable<Choreography["mode"]>; label: string }[] = [
-  { id: "ai", label: "PULSEFRAME designs it" }, { id: "upload", label: "From my dance sheet" },
+  { id: "ai", label: "FilmCrafter designs it" }, { id: "upload", label: "From my dance sheet" },
   { id: "written", label: "From my notes" }, { id: "style", label: "Style only" }, { id: "none", label: "No dancing" },
 ];
 

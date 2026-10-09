@@ -23,7 +23,7 @@ export function BackupsSheet({ dir, onClose, onRestored }: { dir: string; onClos
       <div className="sheet glass" role="dialog" aria-label="Restore from backup" onClick={(e) => e.stopPropagation()} style={{ width: "min(560px, calc(100vw - 48px))" }}>
         <div className="vs-head"><h2>Restore from backup</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">PULSEFRAME keeps the last 20 versions of this project's decisions: when you open it, every 10 minutes if something changed,
+        <p className="sub">FilmCrafter keeps the last 20 versions of this project's decisions: when you open it, every 10 minutes if something changed,
           and each time you save. Your renders and media are never touched.</p>
         {list === null && !err && <p className="dim"><span className="spin sm" /> Loading…</p>}
         {list?.length === 0 && <p className="dim">No backups yet. One is made when the project opens and whenever it changes.</p>}

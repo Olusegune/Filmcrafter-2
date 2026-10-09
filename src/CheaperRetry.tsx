@@ -18,7 +18,7 @@ export function confirmText(o: RetryOption, shot: string): string {
   return `Retry ${shot} on ${o.label}.\n\nAbout ${usd(o.price_usd)}. The failed render stays in the list.${o.warning ? `\n\n${o.warning}` : ""}\n\nSend it?`;
 }
 
-/** On a failed render: the cheaper models PULSEFRAME has proved, with prices, and one click to try the shot again on the one you choose. Free until you confirm. */
+/** On a failed render: the cheaper models FilmCrafter has proved, with prices, and one click to try the shot again on the one you choose. Free until you confirm. */
 export function CheaperRetry({ dir, job, onJobs }: { dir: string; job: Job; onJobs: (jobs: Job[]) => void }) {
   const [opts, setOpts] = useState<RetryOptions | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,7 +37,7 @@ export function CheaperRetry({ dir, job, onJobs }: { dir: string; job: Job; onJo
   };
   return (
     <div className="cr">
-      {!open && <button className="btn ghost small" onClick={load} title="See cheaper models that PULSEFRAME has proved with a real render. Free: nothing is sent until you confirm.">Try a cheaper model…</button>}
+      {!open && <button className="btn ghost small" onClick={load} title="See cheaper models that FilmCrafter has proved with a real render. Free: nothing is sent until you confirm.">Try a cheaper model…</button>}
       {open && <div className="cr-box">
         {busy && !opts && <span className="dim"><span className="spin sm" /> Looking at the prices…</span>}
         {opts && !opts.can && <p className="dim">{opts.reason}</p>}

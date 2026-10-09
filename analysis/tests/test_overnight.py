@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import export, overnight as O, render, routing
+from filmcrafter_engine import export, overnight as O, render, routing
 
 
 def _proj(tmp_path):
@@ -18,7 +18,7 @@ def _proj(tmp_path):
 
 @pytest.fixture
 def comfy(monkeypatch):
-    monkeypatch.setattr(routing, "_comfy_flow", lambda k: {"model": f"pulseframe-{k}", "title": k})
+    monkeypatch.setattr(routing, "_comfy_flow", lambda k: {"model": f"filmcrafter-{k}", "title": k})
     monkeypatch.setattr(render, "manifest", lambda p, m: {"model": m, "roles": {}, "inputs": []})
 
 
@@ -59,7 +59,7 @@ def test_advance_does_nothing_when_not_active(tmp_path):
 
 def test_hybrid_picks_kie_keyframes_and_comfy_videos(monkeypatch):
     monkeypatch.setenv("KIE_KEY", "k")
-    monkeypatch.setattr(routing, "_comfy_flow", lambda k: {"model": f"pulseframe-{k}", "title": k} if k == "video" else None)
+    monkeypatch.setattr(routing, "_comfy_flow", lambda k: {"model": f"filmcrafter-{k}", "title": k} if k == "video" else None)
     monkeypatch.setattr(routing, "shot_price", lambda p, m: 0.02 if "nano-banana" in m else 0.03)
     proj = {"routing": {"mode": "hybrid"}}
     img, vid = routing.pick(proj, "image"), routing.pick(proj, "video")
@@ -69,7 +69,7 @@ def test_hybrid_picks_kie_keyframes_and_comfy_videos(monkeypatch):
 
 def test_hybrid_overnight_asks_before_paying_for_keyframes(tmp_path, monkeypatch):
     monkeypatch.setenv("KIE_KEY", "k")
-    monkeypatch.setattr(routing, "_comfy_flow", lambda k: {"model": "pulseframe-video", "title": "v"} if k == "video" else None)
+    monkeypatch.setattr(routing, "_comfy_flow", lambda k: {"model": "filmcrafter-video", "title": "v"} if k == "video" else None)
     monkeypatch.setattr(routing, "shot_price", lambda p, m: 0.02)
     monkeypatch.setattr(routing, "batch_usd", lambda *a: 0.04)
     monkeypatch.setattr(render, "manifest", lambda p, m: {"model": m, "roles": {}, "inputs": []})

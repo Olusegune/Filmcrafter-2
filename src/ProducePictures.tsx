@@ -144,7 +144,7 @@ export function Pictures({ dir, onDone, onError }: { dir: string; onDone: () => 
           <label className="pic-cap"><span>$</span><input className="text-input" inputMode="decimal" value={cap} onChange={(e) => set({ cap: e.target.value })} aria-label="Spend limit in dollars" placeholder="none" /></label>
         </div>
       </div>
-      {local && !noFlow && <div className="note"><I.Info size={14} /> <span>Pictures are made one after another on your own computer, for free. You can start them and leave PULSEFRAME and ComfyUI running overnight; they will be waiting for your approval in the morning.</span></div>}
+      {local && !noFlow && <div className="note"><I.Info size={14} /> <span>Pictures are made one after another on your own computer, for free. You can start them and leave FilmCrafter and ComfyUI running overnight; they will be waiting for your approval in the morning.</span></div>}
       {noFlow && <div className="note warn"><I.Alert size={14} /> <span>No ComfyUI image workflow was found. Add one in Settings → ComfyUI, or choose another provider above.</span></div>}
       {noKey && <div className="note warn"><I.Alert size={14} /> <span>Add your {PROVIDERS.find((p) => p[0] === provider)?.[1]} key in Settings to use it, or pick another provider above.</span></div>}
 

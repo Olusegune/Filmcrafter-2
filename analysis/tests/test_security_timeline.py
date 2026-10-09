@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import dance, looks, media, overlays, transitions
+from filmcrafter_engine import dance, looks, media, overlays, transitions
 
 
 def project(tmp_path):

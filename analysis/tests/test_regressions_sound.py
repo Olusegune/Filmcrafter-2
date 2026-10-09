@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import export as E, shotsound as SS
+from filmcrafter_engine import export as E, shotsound as SS
 from tests.test_shotsound import RATE, exported, level, make_film, tone
 
 pytestmark = pytest.mark.regression

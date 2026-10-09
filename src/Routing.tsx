@@ -188,7 +188,7 @@ export function LocalModelsPanel() {
   );
 }
 
-/** Off by default. When a video fails during a render, PULSEFRAME can send that shot once to the cheapest proven model that costs less, inside the budget. */
+/** Off by default. When a video fails during a render, FilmCrafter can send that shot once to the cheapest proven model that costs less, inside the budget. */
 function AutoRetry({ dir, route, onChanged }: { dir: string; route: RouteStatus; onChanged: () => Promise<void> }) {
   const [err, setErr] = useState("");
   if (route.mode === "local") return null;

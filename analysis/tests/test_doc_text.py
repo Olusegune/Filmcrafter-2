@@ -2,7 +2,7 @@ import zipfile
 
 import pytest
 
-from pulseframe_analysis import onboarding as O
+from filmcrafter_engine import onboarding as O
 
 
 def test_text_and_markdown_are_read_and_capped(tmp_path):

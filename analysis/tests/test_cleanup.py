@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from pulseframe_analysis import cleanup as C
+from filmcrafter_engine import cleanup as C
 
 
 def put(d, rel, data=b"x" * 100, age=3600):

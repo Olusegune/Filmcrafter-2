@@ -13,7 +13,7 @@ const LABEL: Record<string, string> = { characters: "characters", wardrobe: "war
 /** A Producer package opened from Explorer, dropped on the window, or handed over by the Producer plugin. */
 export const isProducerPackage = (p: string) => /\.(pfproducer|zip)$|[\\/]manifest\.json$/i.test(p);
 
-/** Import a PULSEFRAME Producer package → review → a normal project (listening, then the Studio). */
+/** Import a FilmCrafter Producer package → review → a normal project (listening, then the Studio). */
 export function ProducerImport({ onClose, onOpen, initial }: { onClose: () => void; onOpen: (dir: string) => void; initial?: string }) {
   const [pkg, setPkg] = useState("");
   const [info, setInfo] = useState<Inspect | null>(null);
@@ -27,7 +27,7 @@ export function ProducerImport({ onClose, onOpen, initial }: { onClose: () => vo
   };
   useEffect(() => { if (initial) read(initial); }, [initial]);   // eslint-disable-line react-hooks/exhaustive-deps
   const pickFile = async () => {
-    const f = await open({ filters: [{ name: "PULSEFRAME Producer package", extensions: ["pfproducer", "zip", "json"] }] });
+    const f = await open({ filters: [{ name: "FilmCrafter Producer package", extensions: ["pfproducer", "zip", "json"] }] });
     if (typeof f === "string") read(f);
   };
   const pickFolder = async () => { const f = await open({ directory: true }); if (typeof f === "string") read(f); };
@@ -47,7 +47,7 @@ export function ProducerImport({ onClose, onOpen, initial }: { onClose: () => vo
       <div className="sheet glass pi-sheet" role="dialog" aria-label="Import a production package" onClick={(e) => e.stopPropagation()}>
         <div className="vs-head"><h2>Import a production package</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close" disabled={!!busy}><I.Close size={18} /></button></div>
-        <p className="sub">From PULSEFRAME Producer (the ChatGPT plugin): a ZIP, a folder or a manifest. Characters, wardrobe, props and
+        <p className="sub">From FilmCrafter Producer (the ChatGPT plugin): a ZIP, a folder or a manifest. Characters, wardrobe, props and
           places go to the Reference library; continuity rules to the Production Bible; choreography and acting to their characters; and
           the shot plan is placed on your song. Everything stays editable, and nothing is rendered or billed.</p>
         {!info && <div className="wiz-row"><button className="btn primary" onClick={pickFile} disabled={!!busy}>Choose a ZIP or manifest…</button>

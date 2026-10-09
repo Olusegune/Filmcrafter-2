@@ -60,7 +60,7 @@ export function renderGuide(md: string): ReactNode[] {
 }
 
 const slug = (t: string) => "doc-" + t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const ONLINE = "https://github.com/Olusegune/Pulseframe-Music-Video-Maker/blob/main/docs/GETTING_STARTED.md";
+const ONLINE = "https://github.com/Olusegune/FilmCrafter-Music-Video-Maker/blob/main/docs/GETTING_STARTED.md";
 
 /** The user guide, bundled with the app (works offline): contents, search, and a link to the online copy. */
 export function HelpSheet({ onClose }: { onClose: () => void }) {

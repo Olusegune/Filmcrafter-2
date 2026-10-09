@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import budget, localmodels, render, routing
+from filmcrafter_engine import budget, localmodels, render, routing
 
 
 def _proj(tmp_path, routing_cfg=None):
@@ -25,7 +25,7 @@ def test_default_mode_is_premium_and_unchanged():
 def test_pick_follows_mode(monkeypatch):
     monkeypatch.setenv("KIE_KEY", "k")
     monkeypatch.setenv("FAL_KEY", "k")
-    monkeypatch.setenv("PULSEFRAME_OPENAI_KEY", "k")
+    monkeypatch.setenv("FILMCRAFTER_OPENAI_KEY", "k")
     assert routing.pick({"routing": {"mode": "balanced"}}, "video")["model"] == "wan/3-0-video"
     assert routing.pick({"routing": {"mode": "balanced"}}, "image")["model"] == "google/nano-banana-edit"
     assert routing.pick({"routing": {"mode": "premium"}}, "video")["model"] == "bytedance/seedance-2"          # Kie.ai first, where both have it
@@ -36,7 +36,7 @@ def test_pick_follows_mode(monkeypatch):
 def test_premium_falls_back_to_fal_or_openai_when_there_is_no_kie_key(monkeypatch):
     monkeypatch.delenv("KIE_KEY", raising=False)
     monkeypatch.setenv("FAL_KEY", "k")
-    monkeypatch.setenv("PULSEFRAME_OPENAI_KEY", "k")
+    monkeypatch.setenv("FILMCRAFTER_OPENAI_KEY", "k")
     assert routing.pick({"routing": {"mode": "premium"}}, "video")["provider"] == "fal"
     assert routing.pick({"routing": {"mode": "premium"}}, "image")["provider"] == "openai"
 
@@ -113,7 +113,7 @@ def test_cheapest_picks_lowest_real_price_among_proven(monkeypatch):
 
 
 def test_shot_price_units(monkeypatch):
-    from pulseframe_analysis import render
+    from filmcrafter_engine import render
     monkeypatch.setattr(render, "kie_cost_memory", lambda: {"m": 30})
     assert routing.shot_price("kie", "m") == 0.15
     monkeypatch.setattr(render, "_fal_price", lambda m: {"unit": "seconds", "unit_price": 0.05})

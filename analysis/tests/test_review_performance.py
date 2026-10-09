@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import acting as A, director, llm, review as RV
+from filmcrafter_engine import acting as A, director, llm, review as RV
 from tests.test_acting import FakeBrain, PLAN, SHOTS, SONG
 
 SHOT = {**SHOTS[1], "id": "S01-02", "start": 4.0, "end": 8.0}

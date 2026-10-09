@@ -21,7 +21,7 @@ export function modelTags(r: ModelRow, kind: "image" | "video"): string[] {
 }
 
 /**
- * Choose the model that makes the pictures, or the video, for the whole project, with a sentence on what each is good for. "Let PULSEFRAME choose" follows the cost setting above it.
+ * Choose the model that makes the pictures, or the video, for the whole project, with a sentence on what each is good for. "Let FilmCrafter choose" follows the cost setting above it.
  * Choosing one fixes it for every shot, which is what keeps people looking the same from picture to picture.
  */
 export function ModelChoice({ dir, kind, onChanged }: { dir: string; kind: "image" | "video"; onChanged?: () => void }) {
@@ -45,7 +45,7 @@ export function ModelChoice({ dir, kind, onChanged }: { dir: string; kind: "imag
   return (
     <div className="mc" role="radiogroup" aria-label={kind === "image" ? "Picture model" : "Video model"}>
       <button role="radio" aria-checked={none} className={`mc-row mc-auto ${none ? "on" : ""}`} disabled={busy} onClick={() => pin(null)}>
-        <b>Let PULSEFRAME choose</b><span className="dim">Follows the cost setting above. The best choice if you are not sure.</span>
+        <b>Let FilmCrafter choose</b><span className="dim">Follows the cost setting above. The best choice if you are not sure.</span>
       </button>
       {list && rows.length === 0 && <p className="dim">Add a fal.ai, Kie.ai or OpenAI key in Settings to see the models you can use.</p>}
       {rows.map((r) => {

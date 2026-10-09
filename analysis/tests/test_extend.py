@@ -5,9 +5,9 @@ import subprocess
 
 import pytest
 
-from pulseframe_analysis import extend as E, render as R
-from pulseframe_analysis.editor_export import probe
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import extend as E, render as R
+from filmcrafter_engine.editor_export import probe
+from filmcrafter_engine.export import ffmpeg
 
 
 def field(name, type="string", **kw):

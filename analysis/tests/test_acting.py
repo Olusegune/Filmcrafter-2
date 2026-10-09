@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from pulseframe_analysis import acting as A, director, llm, performance as PF, render as R
+from filmcrafter_engine import acting as A, director, llm, performance as PF, render as R
 from tests.test_render import field, man
 
 SHOTS = [{"id": "S01-01", "scene": 1, "number": 1, "start": 0.0, "end": 4.0, "section": "Verse 1", "performers": ["Beatrice", "Zara"], "description": "Beatrice looks over the room.",

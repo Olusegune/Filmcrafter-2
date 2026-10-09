@@ -7,8 +7,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import continuity as CT, frames as FR, render as R
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import continuity as CT, frames as FR, render as R
+from filmcrafter_engine.export import ffmpeg
 
 
 def F(name, type="string", **kw):
@@ -218,7 +218,7 @@ def test_a_chain_of_job_links_that_loops_does_not_hang(project):
 # ---------------------------------------------------------------- a latent bug found on the way: slow frame rates
 
 def test_the_last_frame_of_a_slow_frame_rate_clip_is_found(tmp_path):
-    from pulseframe_analysis.export import last_frame_png
+    from filmcrafter_engine.export import last_frame_png
     for rate in (6, 12, 24, 60):
         v, o = str(tmp_path / f"c{rate}.mp4"), str(tmp_path / f"o{rate}.png")
         subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", f"color=c=red:size=64x36:rate={rate}:duration=2", "-pix_fmt", "yuv420p", "-c:v", "libx264", v], check=True)
@@ -227,7 +227,7 @@ def test_the_last_frame_of_a_slow_frame_rate_clip_is_found(tmp_path):
 
 
 def test_a_file_that_is_not_a_video_has_no_last_frame(tmp_path):
-    from pulseframe_analysis.export import last_frame_png
+    from filmcrafter_engine.export import last_frame_png
     bad = tmp_path / "x.mp4"
     bad.write_bytes(b"nope")
     assert last_frame_png(str(bad), str(tmp_path / "o.png")) is False

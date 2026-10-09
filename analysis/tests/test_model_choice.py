@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import modelblurbs as MB, router, routing as RT
+from filmcrafter_engine import modelblurbs as MB, router, routing as RT
 
 
 def test_every_model_family_has_a_blurb_and_no_blurb_is_for_a_family_that_does_not_exist():

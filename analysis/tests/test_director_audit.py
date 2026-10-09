@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import director as D, director_audit as A
+from filmcrafter_engine import director as D, director_audit as A
 
 
 def _prod():

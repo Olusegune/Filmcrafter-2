@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from pulseframe_analysis import export as E, render as R, show as S, voices as V
-from pulseframe_analysis.voices import _decode
+from filmcrafter_engine import export as E, render as R, show as S, voices as V
+from filmcrafter_engine.voices import _decode
 
 
 def field(name, type="string", **kw):

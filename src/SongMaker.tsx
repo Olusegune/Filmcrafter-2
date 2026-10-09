@@ -34,7 +34,7 @@ export function SongMaker({ onUse, onClose, startLyrics = "" }: {
   const make = async () => {
     const asked = mode === "lyrics" ? `about ${plan?.seconds ?? "?"} seconds` : `${seconds} seconds`;
     if (!await ask(`Make a song (${asked}) with ElevenLabs Music?\n\nThis uses credits from your own ElevenLabs plan (the music API needs a paid plan). `
-      + "PULSEFRAME can't see the price in advance, and it takes a minute or two. You'll hear the result before using it.")) return;
+      + "FilmCrafter can't see the price in advance, and it takes a minute or two. You'll hear the result before using it.")) return;
     setErr(""); setBusy("make"); setMade(null);
     const from = mode === "lyrics" ? lyrics : "";
     try { setMade({ ...(await api.songgen<SongMade>("make", data())), lyrics: from }); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
@@ -45,7 +45,7 @@ export function SongMaker({ onUse, onClose, startLyrics = "" }: {
       <div className="sheet glass" role="dialog" aria-label="Make a song" onClick={(e) => e.stopPropagation()} style={{ width: "min(640px, calc(100vw - 48px))", maxHeight: "86vh", overflow: "auto" }}>
         <div className="vs-head"><h2>Make a song with ElevenLabs Music</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" disabled={!!busy} onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">Optional: PULSEFRAME works from any song you bring. This composes one on your ElevenLabs plan, from your lyrics or a description. Listen first; nothing
+        <p className="sub">Optional: FilmCrafter works from any song you bring. This composes one on your ElevenLabs plan, from your lyrics or a description. Listen first; nothing
           is added to a project until you choose it.</p>
         <div className="seg" role="group" aria-label="How to make it">
           <button className={mode === "lyrics" ? "on" : ""} onClick={() => setMode("lyrics")}>From my lyrics</button>
@@ -74,7 +74,7 @@ export function SongMaker({ onUse, onClose, startLyrics = "" }: {
         <label className="field"><span>Model</span>
           <select className="text-input" value={model} onChange={(e) => setModel(e.target.value)}>{MODELS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
         {err && <p className="error-text" role="alert">{err}</p>}
-        {busy === "make" && <p className="dim" role="status"><span className="spin sm" /> ElevenLabs is composing… this takes a minute or two. Keep PULSEFRAME open.</p>}
+        {busy === "make" && <p className="dim" role="status"><span className="spin sm" /> ElevenLabs is composing… this takes a minute or two. Keep FilmCrafter open.</p>}
         {made && <div className="export-done">
           <div className="status-ok"><I.Check size={16} /> Made a {Math.floor(made.seconds / 60)}:{String(Math.round(made.seconds % 60)).padStart(2, "0")} song</div>
           <audio controls src={api.mediaUrl(made.path)} style={{ width: "100%", marginTop: 6 }} />

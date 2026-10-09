@@ -9,7 +9,7 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import analyze, cleanup, customframe, export as E, library as L, media, overlays as O, render as R
+from filmcrafter_engine import analyze, cleanup, customframe, export as E, library as L, media, overlays as O, render as R
 from tests.test_render import FakeProvider, field, man
 
 pytestmark = pytest.mark.e2e

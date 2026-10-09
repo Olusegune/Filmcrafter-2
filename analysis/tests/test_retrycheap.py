@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import frames as FR, render as R, retrycheap as RC, routing as RT
+from filmcrafter_engine import frames as FR, render as R, retrycheap as RC, routing as RT
 
 
 def row(label, provider, model, price, verified=True, sees=None, strength=""):

@@ -6,7 +6,7 @@ import urllib.request
 
 import pytest
 
-from pulseframe_analysis import updates as U
+from filmcrafter_engine import updates as U
 
 REL = lambda tag, **kw: {"tag_name": tag, "html_url": f"https://github.com/{U.REPO}/releases/tag/{tag}", "body": "Notes\n\n- one  two", "published_at": "2026-10-04T10:00:00Z", **kw}
 

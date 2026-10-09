@@ -6,7 +6,7 @@ import os
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import render as R
+from filmcrafter_engine import render as R
 
 ASPECTS = ["2.39:1", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16", "4:5", "3:2"]
 
@@ -109,7 +109,7 @@ def test_a_finished_keyframe_job_is_fitted_to_a_cinema_project(tmp_path, monkeyp
     m = R._finish("fal", "test/img", "Img", "", [{"name": "prompt", "type": "string", "description": "", "required": True, "enum": None, "default": None, "items": None,
                                                    "minimum": None, "maximum": None, "max_items": None, "max_length": None}])
     monkeypatch.setattr(R, "manifest", lambda provider, model, refresh=False: m)
-    monkeypatch.setattr("pulseframe_analysis.stills.after_still", lambda *a, **k: None)
+    monkeypatch.setattr("filmcrafter_engine.stills.after_still", lambda *a, **k: None)
 
     class Dl:
         status_code = 200
@@ -130,7 +130,7 @@ def test_a_finished_keyframe_job_is_fitted_to_a_cinema_project(tmp_path, monkeyp
 # ---------------------------------------------------------------- the export that follows
 
 def test_a_21_9_project_exports_as_cinema_by_default():
-    from pulseframe_analysis import export
+    from filmcrafter_engine import export
     for ratio, preset in (("21:9", "cinema"), ("2.39:1", "cinema"), ("16:9", "youtube"), ("9:16", "vertical"), ("1:1", "square"), ("4:3", "youtube"), (None, "youtube")):
         assert export.preset_for(ratio) == preset
     assert export.preset_for("21:9") in export.PRESETS

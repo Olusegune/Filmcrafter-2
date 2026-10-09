@@ -6,7 +6,7 @@ import shutil
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import library, refgen, render as R
+from filmcrafter_engine import library, refgen, render as R
 from tests.test_refgen import FakeKie, proj, wired  # noqa: F401  (fixtures)
 
 

@@ -6,8 +6,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import compose as CO, render as R
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import compose as CO, render as R
+from filmcrafter_engine.export import ffmpeg
 
 
 def F(name, type="string", **kw):
@@ -117,7 +117,7 @@ def test_settings_are_checked_and_kept(project):
 
 
 def test_a_locked_shot_is_not_changed_and_clearing_forgets_the_motion(project, video):
-    from pulseframe_analysis import library as L
+    from filmcrafter_engine import library as L
     CO.set_motion(project, "S01-01", {"video_path": video})
     assert CO.clear_motion(project, "S01-01")["video"] is None
     L.set_shot(project, "S01-01", locked=True)

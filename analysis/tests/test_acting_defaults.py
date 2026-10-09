@@ -5,7 +5,7 @@ import re
 
 import pytest
 
-from pulseframe_analysis import performance as PF, render as R
+from filmcrafter_engine import performance as PF, render as R
 
 LIB_RS = os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs")
 

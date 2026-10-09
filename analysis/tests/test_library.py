@@ -6,8 +6,8 @@ import time
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import library as L
-from pulseframe_analysis import render as R
+from filmcrafter_engine import library as L
+from filmcrafter_engine import render as R
 
 
 def F(**kw):
@@ -133,7 +133,7 @@ def test_materials_checklist_additions_reach_the_library(proj):
 
 
 def test_keyframes_never_get_the_sets_sheet(proj):
-    from pulseframe_analysis import render as R
+    from filmcrafter_engine import render as R
     p = json.load(open(os.path.join(proj, "project.json")))
     shot = {"id": "S01-01", "performers": ["Sege"]}
     files = R._reference_files(proj, p, shot)
@@ -154,7 +154,7 @@ def test_approve_all_keyframes_keeps_existing_approvals(proj):
 
 
 def test_sheets_are_not_sent_when_a_keyframe_sets_the_scene(proj, monkeypatch):
-    from pulseframe_analysis import render as R
+    from filmcrafter_engine import render as R
     p = json.load(open(os.path.join(proj, "project.json")))
     files = R._reference_files(proj, p, {"id": "S01-01", "performers": ["Sege"]})
     assert any(f["sheet"] for f in files) and any(not f["sheet"] for f in files)
@@ -187,7 +187,7 @@ def test_keyframe_options_choose_and_reject(proj):
 def test_keyframe_variants_queue_several_options_once(proj, monkeypatch):
     m = R._finish("fal", "test/model", "T", "", [F(**{"name": "prompt", "type": "string"})])
     monkeypatch.setattr(R, "manifest", lambda *a, **k: m)
-    monkeypatch.setattr("pulseframe_analysis.routing.guard", lambda *a, **k: None)
+    monkeypatch.setattr("filmcrafter_engine.routing.guard", lambda *a, **k: None)
     made = R.enqueue(proj, ["S01-01"], "fal", "test/model", {"_variants": 3}, kind="image")
     assert len(made) == 3 and all("_variants" not in j["overrides"] for j in made)
     assert R.enqueue(proj, ["S01-01"], "fal", "test/model", {"_variants": 3}, kind="image") == []   # never doubled

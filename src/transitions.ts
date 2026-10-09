@@ -1,4 +1,4 @@
-/** How a shot enters from the one before it. The same list, labels and default lengths as analysis/pulseframe_analysis/transitions.py (a test keeps them in step). */
+/** How a shot enters from the one before it. The same list, labels and default lengths as analysis/filmcrafter_engine/transitions.py (a test keeps them in step). */
 export type TransitionInfo = { id: string; label: string; group: "Basic" | "Wipe" | "Move"; secs: number };
 export const TRANSITION_LIST: TransitionInfo[] = [
   { id: "cut", label: "Cut", group: "Basic", secs: 0 },

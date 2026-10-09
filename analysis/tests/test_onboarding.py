@@ -7,8 +7,8 @@ import wave
 import numpy as np
 import pytest
 
-from pulseframe_analysis import onboarding as O
-from pulseframe_analysis import render as R
+from filmcrafter_engine import onboarding as O
+from filmcrafter_engine import render as R
 
 
 def _tone(path, seconds=2.0, sr=22050):

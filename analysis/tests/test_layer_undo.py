@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import layerkit as LK, overlays as O
+from filmcrafter_engine import layerkit as LK, overlays as O
 
 pytestmark = pytest.mark.integration
 

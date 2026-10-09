@@ -103,7 +103,7 @@ type NightState = { msg: string; item?: string } | null;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Overnight for the whole show: each directed number and scene in order on ComfyUI (the way a single video's overnight
- *  works), stopping if the show's budget is reached, then the whole show is exported. Needs PULSEFRAME and ComfyUI left running. */
+ *  works), stopping if the show's budget is reached, then the whole show is exported. Needs FilmCrafter and ComfyUI left running. */
 export function useShowOvernight(dir: string, items: ShowItem[], reload: () => Promise<void>, exportShow: () => Promise<void>, say: (t: string) => void) {
   const [night, setNight] = useState<NightState>(null);
   const stop = useRef(false);
@@ -117,7 +117,7 @@ export function useShowOvernight(dir: string, items: ShowItem[], reload: () => P
     if (!todo.length) { say("Nothing to render overnight: direct each number and scene first (Open it, then Direct)."); return; }
     if (!await ask(`Render overnight: ${todo.length} number${todo.length === 1 ? "" : "s"} and scene${todo.length === 1 ? "" : "s"}, one after another, on your ComfyUI.\n\n`
       + (skipped.length ? `Not directed yet, so skipped: ${skipped.map((i) => i.title).join(", ")}.\n\n` : "")
-      + "Leave PULSEFRAME and ComfyUI running. It stops if the show's budget is reached, then exports the show. Start?")) return;
+      + "Leave FilmCrafter and ComfyUI running. It stops if the show's budget is reached, then exports the show. Start?")) return;
     stop.current = false;
     let failed = "";
     try {

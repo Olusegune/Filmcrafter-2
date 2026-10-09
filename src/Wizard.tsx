@@ -105,7 +105,7 @@ export function Wizard({ initialDir, initialFile, onExit, onFinish, produce, onP
       <div className="wiz-backdrop" aria-hidden />
       {heroFor(stage) && <div className="wiz-hero" aria-hidden style={{ backgroundImage: `url("${heroFor(stage)}")` }} />}
       <header className="wiz-top">
-        <div className="wiz-brand"><I.Mark size={26} /><span>PULSEFRAME</span></div>
+        <div className="wiz-brand"><I.Mark size={26} /><span>FilmCrafter</span></div>
         <div className="wiz-top-right">
           {title && <span className="dim wiz-title-chip" title="Project">{title}</span>}
           <button className="btn ghost small" onClick={saveExit}>{dir ? "Save & exit" : "Cancel"}</button>
@@ -178,8 +178,8 @@ export function Wizard({ initialDir, initialFile, onExit, onFinish, produce, onP
 
 const SUBTITLE: Record<string, string> = {
   music: "Start with your song. It is the master timeline: every cut, move and lyric follows it.",
-  lyrics: "Paste them, load a file, or let PULSEFRAME transcribe them from the vocal. Section tags like [Chorus] give the best song map.",
-  script: "Paste a screenplay or story, upload a file, or let PULSEFRAME propose creative directions after it listens to the song.",
+  lyrics: "Paste them, load a file, or let FilmCrafter transcribe them from the vocal. Section tags like [Chorus] give the best song map.",
+  script: "Paste a screenplay or story, upload a file, or let FilmCrafter propose creative directions after it listens to the song.",
   assets: "Reference images keep faces, outfits, objects and places consistent in every shot. Characters matter most.",
   choreography: "Upload a choreography sheet or reference video, write movement notes, pick a style, or skip for acting-led videos.",
 };
@@ -294,7 +294,7 @@ function MusicStage({ dir, initialFile, ob, register, onCreated, onTitle, onErro
           <input id="wiz-title" className="text-input" value={title} onChange={(e) => setTitle(e.target.value)} onBlur={saveTitle} />
         </div>
       )}
-      {probe && <p className="dim wiz-note"><I.Check size={13} /> Imported. PULSEFRAME maps beats, sections and lyrics when you start directing.</p>}
+      {probe && <p className="dim wiz-note"><I.Check size={13} /> Imported. FilmCrafter maps beats, sections and lyrics when you start directing.</p>}
     </div>
   );
 }
@@ -406,7 +406,7 @@ function LyricsStage({ dir, register, onError }: { dir: string; register: Regist
       </div>
       {tab === "auto" && !busy && (
         <div className="wiz-card">
-          <p style={{ margin: "0 0 10px" }}>PULSEFRAME isolates the vocal and writes down what it hears, with timings. It runs on this computer
+          <p style={{ margin: "0 0 10px" }}>FilmCrafter isolates the vocal and writes down what it hears, with timings. It runs on this computer
             (a few minutes; faster with an NVIDIA GPU) and costs nothing. Check the result: section tags and spelling are yours to fix.</p>
           <button className="btn primary" onClick={transcribe}><I.Wave size={16} /> Transcribe the vocal</button>
         </div>
@@ -426,7 +426,7 @@ function LyricsStage({ dir, register, onError }: { dir: string; register: Regist
           <span className="num">{lines} line{lines === 1 ? "" : "s"}</span>
         </div>
       </div>
-      <p className="dim wiz-note">Saved as you type. Lyrics are timed to the song when PULSEFRAME maps it; you can adjust them later in the Studio.</p>
+      <p className="dim wiz-note">Saved as you type. Lyrics are timed to the song when FilmCrafter maps it; you can adjust them later in the Studio.</p>
     </div>
   );
 }
@@ -491,14 +491,14 @@ function ScriptStage({ dir, ob, register, onError, onConcept }: {
         </>}
         {tab === "upload" && (
           <div className="wiz-card">
-            {file ? <div className="wiz-row"><I.Doc size={20} /><div><b>{file}</b><div className="dim">Attached. PULSEFRAME reads its scenes and shots when it maps the song.</div></div></div>
+            {file ? <div className="wiz-row"><I.Doc size={20} /><div><b>{file}</b><div className="dim">Attached. FilmCrafter reads its scenes and shots when it maps the song.</div></div></div>
               : <p className="dim" style={{ marginTop: 0 }}>A PDF, TXT, Markdown or Fountain screenplay. The original is kept unchanged.</p>}
             <button className="btn primary" onClick={upload} style={{ marginTop: 10 }}><I.Upload size={16} /> {file ? "Choose another file" : "Choose script file"}</button>
           </div>
         )}
         {tab === "concept" && (
           <div className="wiz-card">
-            <p style={{ marginTop: 0 }}>No script? After listening to the song, PULSEFRAME proposes <b>three creative directions</b> (performance, story, or both).
+            <p style={{ marginTop: 0 }}>No script? After listening to the song, FilmCrafter proposes <b>three creative directions</b> (performance, story, or both).
               You pick one and it writes the treatment and shot plan. Your uploaded or pasted script, if any, is never replaced without asking.</p>
             <label className="wiz-label" htmlFor="concept-notes">Describe the video you imagine <span className="dim">(optional)</span></label>
             <textarea id="concept-notes" className="wiz-editor short" value={notes} onChange={(e) => setNotes(e.target.value)}
@@ -699,7 +699,7 @@ const MODES: { id: NonNullable<Choreography["mode"]>; label: string; hint: strin
   { id: "upload", label: "Upload choreography", hint: "Reference videos or formation images", icon: <I.Upload size={20} /> },
   { id: "written", label: "Write movement notes", hint: "Describe the moves in words", icon: <I.Doc size={20} /> },
   { id: "style", label: "Pick a movement style", hint: "Hip-hop, afrobeats, ballet and more", icon: <I.Dance size={20} /> },
-  { id: "ai", label: "Let PULSEFRAME design it", hint: "Designed from the song, section by section", icon: <I.Wand size={20} /> },
+  { id: "ai", label: "Let FilmCrafter design it", hint: "Designed from the song, section by section", icon: <I.Wand size={20} /> },
   { id: "none", label: "No choreography", hint: "Acting and story only", icon: <I.Close size={20} /> },
 ];
 const CHOREO_EXT = ["pdf", "txt", "md", "docx", "png", "jpg", "jpeg", "jfif", "webp", "gif", "bmp", "mp4", "mov", "m4v", "webm"];
@@ -775,7 +775,7 @@ function ChoreoStage({ dir, register, onError }: { dir: string; register: Regist
           <div className="wiz-card">
             <label className="wiz-label" htmlFor="ch-style">Overall style</label>
             <select id="ch-style" className="text-input" value={c.style ?? ""} onChange={(e) => set({ style: e.target.value || null })}>
-              <option value="">{c.mode === "ai" ? "Let PULSEFRAME choose from the song" : "No particular style"}</option>
+              <option value="">{c.mode === "ai" ? "Let FilmCrafter choose from the song" : "No particular style"}</option>
               {styles.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
             {c.mode !== "style" && <>
@@ -849,7 +849,7 @@ function ReviewStage({ dir, ob, onEdit, onStart, onProduce, produce, onError }: 
       <div className="wiz-review-head">
         <div className="wiz-review-eyebrow">Production review</div>
         <h1>{p.project.title}</h1>
-        <p className="dim">Everything PULSEFRAME will direct from. Change anything before you start; all of it can also be changed later in the Studio.</p>
+        <p className="dim">Everything FilmCrafter will direct from. Change anything before you start; all of it can also be changed later in the Studio.</p>
       </div>
       <div className="wiz-review-grid">
         <ReviewCard title="Music" required onEdit={() => onEdit("music")}>
@@ -865,7 +865,7 @@ function ReviewStage({ dir, ob, onEdit, onStart, onProduce, produce, onError }: 
           {p.project.script && p.project.script !== "script.txt" ? <><b>{p.project.script}</b><span className="dim">Uploaded screenplay</span></>
             : script.trim() ? <><b>Pasted script</b><span className="dim clamp">{script.trim().slice(0, 160)}</span></>
             : ob.concept === "propose" ? <><b>Creative directions</b><span className="dim clamp">Three directions proposed after listening{ob.concept_notes ? `: “${ob.concept_notes.slice(0, 90)}”` : ""}</span></>
-            : <span className="dim">None. PULSEFRAME will propose creative directions.</span>}
+            : <span className="dim">None. FilmCrafter will propose creative directions.</span>}
         </ReviewCard>
         {CATS.map((c) => (
           <ReviewCard key={c.kind} title={c.title} note={status("assets")} onEdit={() => onEdit("assets")}>
@@ -903,7 +903,7 @@ function ReviewStage({ dir, ob, onEdit, onStart, onProduce, produce, onError }: 
         })()}
         <p className="dim">{produce ? "The Producer plans your cast, outfits, props, places, movement and every shot, and you approve each step. "
           : "All three open this same project. Create the production plans the whole cast, props, places and shots for you, step by step. Director Mode shows every model setting and reference. "}
-          PULSEFRAME first listens to the song (free, on this computer); nothing is rendered or billed until you confirm a price.</p>
+          FilmCrafter first listens to the song (free, on this computer); nothing is rendered or billed until you confirm a price.</p>
       </div>
     </div>
   );
@@ -951,11 +951,11 @@ function RenderChoice({ dir }: { dir: string }) {
       <div className="wrc-grid">{OPTS.map((o) => (
         <button key={o.id} className={`wrc ${mode === o.id ? "on" : ""}`} onClick={() => set(o.id)}><b>{o.label}</b><span>{o.sub}</span></button>))}</div>
       {mode === "local" && <div className="wrc-note">
-        {comfy === "looking" ? "Looking for ComfyUI…" : note || "PULSEFRAME will look for ComfyUI on this computer."}
+        {comfy === "looking" ? "Looking for ComfyUI…" : note || "FilmCrafter will look for ComfyUI on this computer."}
         {comfy !== "looking" && comfy !== "ready" && <button className="link" onClick={find}> Look again</button>}</div>}
       {mode && mode !== "local" && <details className="wrc-models">
         <summary>Choose your picture model and video model <span className="dim">(optional)</span></summary>
-        <p className="dim">Each model has its own strengths. Choosing one fixes it for the whole project, which keeps your characters looking the same in every picture. If you are not sure, leave both on <b>Let PULSEFRAME choose</b>.</p>
+        <p className="dim">Each model has its own strengths. Choosing one fixes it for the whole project, which keeps your characters looking the same in every picture. If you are not sure, leave both on <b>Let FilmCrafter choose</b>.</p>
         <h4>Pictures</h4>
         <ModelChoice dir={dir} kind="image" />
         <h4>Video</h4>

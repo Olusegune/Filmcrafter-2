@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from pulseframe_analysis import onboarding as OB, performance as PF, render as R
+from filmcrafter_engine import onboarding as OB, performance as PF, render as R
 
 NOTES = ("[Producer] Auntie Mercy (group dance choreography): Assembly Step: Enter in color order and form rear line, Mercy left Patience center Blessing right.; "
          "Short forward walking steps; Carry no object during final formation; Upright; Queen; West doorway to north platform")

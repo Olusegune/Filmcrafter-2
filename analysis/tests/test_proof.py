@@ -6,8 +6,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import frames as FR, proof as PR
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import frames as FR, proof as PR
+from filmcrafter_engine.export import ffmpeg
 
 
 @pytest.fixture(autouse=True)

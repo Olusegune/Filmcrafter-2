@@ -11,7 +11,7 @@ export const autoChecks = () => get(AUTO) === "1";
 
 /** What a check found, in words. Pure, so it can be tested. */
 export function updateText(u: UpdateInfo): { tone: "ok" | "new" | "warn"; text: string } {
-  if (u.status === "update") return { tone: "new", text: `PULSEFRAME ${u.latest} is available (you have ${u.current}).` };
+  if (u.status === "update") return { tone: "new", text: `FilmCrafter ${u.latest} is available (you have ${u.current}).` };
   if (u.status === "up_to_date") return { tone: "ok", text: `You have the latest version (${u.current}).` };
   if (u.status === "offline") return { tone: "warn", text: "Couldn't reach the update list. Check your internet connection and try again." };
   return { tone: "warn", text: "The update list isn't available to this app right now. Open the releases page to look for a newer version yourself." };
@@ -31,7 +31,7 @@ export function UpdateRow() {
   const t = info ? updateText(info) : null;
   return (
     <div className="field upd">
-      <label style={{ display: "flex", justifyContent: "space-between" }}><span>Updates <span className="opt">PULSEFRAME checks the public release list on GitHub</span></span></label>
+      <label style={{ display: "flex", justifyContent: "space-between" }}><span>Updates <span className="opt">FilmCrafter checks the public release list on GitHub</span></span></label>
       <div className="upd-row">
         <button className="btn" onClick={run} disabled={busy}><I.Refresh size={14} /> {busy ? "Checking…" : "Check for updates"}</button>
         {info && info.status !== "offline" && <button className="btn ghost" onClick={() => openUrl(info.url).catch(() => {})}>{info.status === "update" ? "Open the download page" : "Open the releases page"}</button>}

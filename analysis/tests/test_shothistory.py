@@ -6,8 +6,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from pulseframe_analysis import compose as CO, frames as FR, library as L, shothistory as H
-from pulseframe_analysis.export import ffmpeg
+from filmcrafter_engine import compose as CO, frames as FR, library as L, shothistory as H
+from filmcrafter_engine.export import ffmpeg
 
 
 def jread(d, name):
