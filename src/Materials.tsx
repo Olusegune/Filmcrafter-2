@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type Library, type LoadedProject } from "./api";
 import { openScriptSheet } from "./ScriptSheet";
-import { openChoreoSheet } from "./ChoreoSheet";
 import * as I from "./icons";
 
 export type References = { characters?: string; sets?: string; cast?: Record<string, string> };
@@ -114,7 +113,6 @@ export function MaterialsPanel({ project, hasPlan, onChanged, onOpenLibrary }: {
       <div className="wiz-row" style={{ marginTop: 6, gap: 6 }}>
         {onOpenLibrary && <button className="btn ghost small" onClick={onOpenLibrary}>Open the reference library…</button>}
         <button className="btn ghost small" onClick={openScriptSheet}>{project.project.script ? "Replace the script…" : "Add a script…"}</button>
-        <button className="btn ghost small" onClick={openChoreoSheet}>Choreography…</button>
       </div>
       <details className="mat-tips"><summary>Tips for best results</summary><ul>{TIPS.map((t) => <li key={t}>{t}</li>)}</ul></details>
       {error && <div className="error-text">{error}</div>}

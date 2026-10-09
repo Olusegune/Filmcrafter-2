@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type LayerStyle, type LayerTemplate, type Overlay } from "./api";
-import { LyricLayersSheet } from "./LyricLayers";
 import { ask } from "./ask";
 import { IntroCardSheet } from "./IntroCard";
 import * as I from "./icons";
@@ -74,7 +73,6 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
   const [menu, setMenu] = useState(false);
   const [styles, setStyles] = useState<LayerStyle[]>([]);
   const [naming, setNaming] = useState(false);
-  const [lyrics, setLyrics] = useState(false);
   const [templates, setTemplates] = useState<LayerTemplate[]>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [tplNaming, setTplNaming] = useState(false);
@@ -169,7 +167,6 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
         <button className="btn small" onClick={() => setMenu((v) => !v)} aria-expanded={menu}>+ Shape or icon ▾</button></div>
       <details className="ly-more-add"><summary>More ways to add</summary>
         <div className="ly-add">
-          <button className="btn small ghost" onClick={() => setLyrics(true)}>Lyrics as layers…</button>
           <button className="btn small ghost" onClick={() => setCard(true)}>Intro card…</button></div></details>
       {note && <div className="ly-note" role="status"><span>{note.text}</span>
         <button className="link" onClick={() => { window.dispatchEvent(new Event("pf-show-timeline")); window.dispatchEvent(new CustomEvent("pf-seek", { detail: note.at })); }}>Show it on the timeline</button></div>}
@@ -275,8 +272,6 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
         {(sel.kind === "image" || sel.kind === "svg") && !sel.cover && <label className="field"><span>Width</span>
           <Range min={0.05} max={1} step={0.01} value={sel.width} onCommit={(v) => call("update", { id: sel.id, width: v })} /></label>}
       </div>}
-      {lyrics && <LyricLayersSheet dir={dir} moves={ANIMS} selected={sel} styles={styles} hasGroup={!!items?.some((o) => o.group === "lyrics:kinetic")} onClose={() => setLyrics(false)}
-                                   onChanged={() => { load(); }} />}
       {card && <IntroCardSheet dir={dir} onClose={() => setCard(false)} onChanged={() => { changed(); load(); }} />}
     </aside>
   );

@@ -48,7 +48,6 @@ import { MaterialsPanel } from "./Materials";
 import { ApproveKeyframes, LibrarySheet, ShotViewer, StoryCards, useBoard } from "./Board";
 import { SelectReview } from "./SelectReview";
 import { ScriptSheet } from "./ScriptSheet";
-import { ChoreoSheet, ShotChoreo } from "./ChoreoSheet";
 import { Autopilot } from "./Autopilot";
 import { Cta, DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
@@ -121,7 +120,6 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
       try { localStorage.setItem("pf-insp-w", String(Math.round(inspRef.current))); } catch { /* optional */ } };
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
-  const [choreoOpen, setChoreoOpen] = useState(false);
   const [contOpen, setContOpen] = useState(false);
   const [perfOpen, setPerfOpen] = useState(false);
   const [routeOpen, setRouteOpen] = useState(false);
@@ -194,11 +192,6 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
     const on = () => setAutopilot(true);
     window.addEventListener("pf-open-autopilot", on);
     return () => window.removeEventListener("pf-open-autopilot", on);
-  }, []);
-  useEffect(() => {
-    const on = () => setChoreoOpen(true);
-    window.addEventListener("pf-open-choreo", on);
-    return () => window.removeEventListener("pf-open-choreo", on);
   }, []);
   useEffect(() => {
     const on = () => setScriptOpen(true);
@@ -652,7 +645,6 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
                                      characters={[...new Set(shots.flatMap((s) => s.performers ?? []))]}
                                      onClose={() => setPerfOpen(false)} onChanged={reloadBoard} />}
       {contOpen && <ContinuitySheet dir={project.dir} onClose={() => setContOpen(false)} onSelectShot={(id) => setSel({ kind: "shot", id })} />}
-      {choreoOpen && <ChoreoSheet project={project} onClose={() => setChoreoOpen(false)} onChanged={() => window.dispatchEvent(new Event("pf-choreo-changed"))} />}
       {scriptOpen && <ScriptSheet project={project} onClose={() => setScriptOpen(false)} onDone={() => { setScriptOpen(false); onReload(); }} />}
       {libraryOpen && <LibrarySheet dir={project.dir} scenes={scenes.map((s) => ({ number: s.number, heading: s.heading }))}
                                     onClose={() => setLibraryOpen(false)} onChanged={reloadBoard} autoMake={openMake} />}
@@ -911,7 +903,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 const TAB_KEY = "pf-inspector-tab";
 const storedTab = (): Tab => { try { const t = localStorage.getItem(TAB_KEY); return TABS.some((x) => x.id === t) ? (t as Tab) : "keyframe"; } catch { return "keyframe"; } };
 
-export function ShotInspector({ shot: s, scene, director, onClose, tabs, project }: {
+export function ShotInspector({ shot: s, scene, director, onClose, tabs }: {
   shot: Shot; scene?: Scene; director: boolean; onClose: () => void; tabs: ShotTabs; project: LoadedProject;
 }) {
   const [tab, setTabState] = useState<Tab>(storedTab);
@@ -956,7 +948,6 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
             {s.beats.length > 1 ? <ol className="beats">{s.beats.map((b, i) => <li key={i}>{b}</li>)}</ol> : <p className="prose">{s.beats[0]}</p>}</div>
           {s.lyrics?.length ? <div className="insp-section"><h4>Lyrics under this shot</h4>{s.lyrics.map((l, i) => <p key={i} className="lyric-q">{l}</p>)}</div> : null}
           {tabs.shot}
-          <ShotChoreo dir={project.dir} shotId={s.id} />
           {(s.performance || s.expression || s.movement) && <div className="insp-section"><h4>Performance</h4><div className="kv">
             {row("Acting", s.performance)}{row("Expression", s.expression)}{row("Movement", s.movement)}</div></div>}
           {director && <>

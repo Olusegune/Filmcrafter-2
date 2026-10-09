@@ -1639,17 +1639,6 @@ async fn refgen(app: AppHandle, dir: String, action: String, data: Value) -> Res
     Ok(res)
 }
 
-/// Make a song with ElevenLabs Music (filmcrafter_engine.songgen): plan | make. `plan` is free and local; `make` spends the user's own
-/// ElevenLabs credits, so the UI confirms first. The key reaches the engine only through the environment.
-#[tauri::command]
-async fn songgen(app: AppHandle, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 2] = ["plan", "make"];
-    if !ACTIONS.contains(&action.as_str()) {
-        return Err("Unknown action.".into());
-    }
-    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.songgen".into(), action, "--data".into(), data.to_string()];
-    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "songgen", &args, &provider_env())).await.map_err(err)?
-}
 
 /// Is there a newer FilmCrafter? (filmcrafter_engine.updates) One read-only request to the project's public release list; sends nothing about the user.
 #[tauri::command]
@@ -2193,7 +2182,7 @@ pub fn run() {
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
             save_project, save_project_as, backups, frames, show, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
             creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
-            onboarding, replace_song, write_project_text, attach_script, set_onboarding, adopt_script, choreography, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, producer, refgen, overlays, captions, director_audit, songgen, fonts, editor_export, camera, producer_plan, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
+            onboarding, replace_song, write_project_text, attach_script, set_onboarding, adopt_script, choreography, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, producer, refgen, overlays, captions, director_audit, fonts, editor_export, camera, producer_plan, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

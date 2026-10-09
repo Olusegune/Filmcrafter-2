@@ -201,7 +201,6 @@ export const api = {
   editorExport: <T = EditorPackage>(dir: string, target: "premiere" | "resolve", film?: string) =>
     invoke<T>("editor_export", { dir, action: "package", data: { target, film } }),
   fonts: <T = FontList>(dir: string, action: "list" | "add", data: Record<string, unknown> = {}) => invoke<T>("fonts", { dir, action, data }),
-  songgen: <T = SongMade>(action: "plan" | "make", data: Record<string, unknown> = {}) => invoke<T>("songgen", { action, data }),
   producer: <T = unknown>(action: "inspect" | "apply", path: string, dir: string | null = null) => invoke<T>("producer", { action, path, dir }),
   golden: <T = unknown>(dir: string, action: "status" | "preview" | "split" | "changes", data: Record<string, unknown> = {}) => invoke<T>("golden", { dir, action, data }),
   upscale: <T = unknown>(dir: string, action: "tools" | "status" | "resume" | "revert" | "run", data: Record<string, unknown> = {}) => invoke<T>("upscale", { dir, action, data }),
@@ -402,8 +401,6 @@ export type EditorPackage ={ path: string; folder: string; target: "premiere" | 
   missing: string[]; steps: string };
 export type FontEntry ={ id: string; name: string; file: string };
 export type FontList = { installed: FontEntry[]; project: FontEntry[]; default: string };
-export type SongPlan ={ sections: { name: string; lines: number; seconds: number }[]; seconds: number; warnings: string[] };
-export type SongMade = { path: string; seconds: number; asked_seconds: number; model: string; bytes: number };
 export type RefGenStatus ={ candidates: RefCandidate[]; jobs: RefJob[] };
 export type PictureCard = { id: string; name: string; kind: "character" | "set" | "prop" | "wardrobe" | "choreo"; picture: string | null; yours: boolean; owner: string; owner_ready: boolean;
   state: "missing" | "making" | "waiting" | "approved" | "yours"; pending: { job: string; output: string; model: string } | null; error: string | null; prompt: string; prompt_from: string };

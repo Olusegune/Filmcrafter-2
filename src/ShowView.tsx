@@ -5,7 +5,6 @@ import { api, errorText, fmtTime, type ScriptPlan, type ShowItem, type ShowStatu
 import { LibrarySheet } from "./Board";
 import { DialogueEditor, VoicesSheet } from "./Dialogue";
 import { AmbienceSheet, BudgetSheet, CardSheet, useShowOvernight } from "./ShowExtras";
-import { SongMaker } from "./SongMaker";
 import * as I from "./icons";
 import { ask } from "./ask";
 
@@ -31,7 +30,6 @@ export function ShowView({ dir, onOpenItem, onHome }: { dir: string; onOpenItem:
   const [ambience, setAmbience] = useState<ShowItem | null>(null);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [subs, setSubs] = useState(true);
-  const [making, setMaking] = useState<number | null>(null);
 
   const load = useCallback(async () => { setSt(await api.show("status", dir)); }, [dir]);
   useEffect(() => { load().catch((e) => setErr(errorText(e))); }, [load]);
@@ -178,7 +176,6 @@ export function ShowView({ dir, onOpenItem, onHome }: { dir: string; onOpenItem:
           </ol>
           <div className="show-add">
             <button className="btn ghost sm" disabled={!!busy} onClick={() => chooseSong(a.index)}>+ Song</button>
-            <button className="btn ghost sm" disabled={!!busy} onClick={() => setMaking(a.index)} title="Compose a song with ElevenLabs Music (optional)">+ Make a song…</button>
             <button className="btn ghost sm" disabled={!!busy} onClick={() => setAdding({ kind: "scene", title: "", setting: "", act: a.index })}>+ Spoken scene</button>
             <button className="btn ghost sm" disabled={!!busy} onClick={() => addExisting(a.index)}>+ Existing project…</button>
             <button className="btn ghost sm" disabled={!!busy} onClick={() => setCard({ act: a.index })}>+ Intermission</button>
@@ -187,9 +184,6 @@ export function ShowView({ dir, onOpenItem, onHome }: { dir: string; onOpenItem:
       ))}
       <button className="btn ghost" disabled={!!busy} onClick={() => act("act", () => api.show("add_act", dir, {}))}>+ Add an act</button>
 
-      {making !== null && <SongMaker onClose={() => setMaking(null)}
-        onUse={(s) => { const a = making; setMaking(null);
-          act("add", () => api.show("add_number", dir, { song: s.path, title: s.title, lyrics: s.lyrics || undefined, act: a })); }} />}
       {adding && <div className="overlay" onClick={() => setAdding(null)}>
         <form className="sheet glass" onClick={(e) => e.stopPropagation()} style={{ width: "min(520px, calc(100vw - 48px))" }}
               onSubmit={(e) => { e.preventDefault(); const x = adding; setAdding(null);

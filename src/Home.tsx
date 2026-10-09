@@ -7,7 +7,6 @@ import { Gear, Mark, Sparkle } from "./icons";
 import * as I from "./icons";
 import { Cta } from "./Dock";
 import { ProducerImport, isProducerPackage } from "./ProducerImport";
-import { SongMaker } from "./SongMaker";
 import { ask } from "./ask";
 import { UpdatePill } from "./Updates";
 
@@ -23,7 +22,6 @@ export function Home({ onSong, onNew, onProduce, onOpen, onShow, onChooseProject
   const [over, setOver] = useState(false);
   const [hint, setHint] = useState("");
   const [importing, setImporting] = useState(false);
-  const [making, setMaking] = useState(false);
 
   const [hiddenN, setHiddenN] = useState(0);
   const reloadList = () => { api.listProjects().then(setProjects).catch(() => setProjects([])); api.hiddenCount().then(setHiddenN).catch(() => {}); };
@@ -79,7 +77,6 @@ export function Home({ onSong, onNew, onProduce, onOpen, onShow, onChooseProject
         <div className="home-secondary">
           <button className="btn ghost chip-btn" data-c="blue" onClick={onChooseProject}><I.Folder size={15} /> Open Project</button>
           <button className="btn ghost chip-btn" data-c="violet" onClick={() => setImporting(true)} title="A package from FilmCrafter Producer (ZIP, folder or manifest)"><I.Cube size={15} /> Import production package</button>
-          <button className="btn ghost chip-btn" data-c="pink" onClick={() => setMaking(true)} title="Optional: compose a song with ElevenLabs Music, from your lyrics or a description"><I.Wave size={15} /> Make a song</button>
           <button className="btn ghost chip-btn" data-c="teal" onClick={() => setNewShow("")} title="A musical or multi-song production: numbers and spoken scenes with one cast"><I.Mask size={15} /> New show</button>
         </div>
         {newShow !== null && <div className="overlay" onClick={() => setNewShow(null)}>
@@ -95,9 +92,6 @@ export function Home({ onSong, onNew, onProduce, onOpen, onShow, onChooseProject
               <button className="btn primary" type="submit">Create show</button></div>
           </form>
         </div>}
-        {making && <SongMaker onClose={() => setMaking(false)}
-          onUse={async (s) => { try { const d = await api.createProject(s.path, s.title, s.lyrics.trim() || null, null, null); setMaking(false); onOpen(d); }
-                                catch (x) { setHint(errorText(x)); setMaking(false); } }} />}
         {importing && <ProducerImport onClose={() => setImporting(false)} onOpen={(d) => { setImporting(false); onOpen(d); }} />}
       </div>
 
