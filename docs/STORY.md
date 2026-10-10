@@ -64,3 +64,18 @@ Each shot is a **Shot Contract** that doesn't depend on any AI model:
 ![Camera: choices come with a reason](img/film/shots-camera.png)
 
 Move, duplicate, split, join and take out shots freely (a shot you take out is moved aside, not deleted). Running the breakdown again only drafts scenes that have no shots; shots you have edited are never changed. A shot whose storyboard is locked can't have its framing, people or place changed until you unlock it.
+
+## Making the film
+
+**Storyboard**, **Make film**, **Review** and **Export** along the top open the same workspace, one step at a time.
+
+![The storyboard wall: choose a panel, lock it, or use your own](img/film/make.png)
+
+1. **Storyboard.** Make a few pictures of each shot's framing (or use your own), choose one and **lock** it. The composition is fixed from here on.
+2. **Keyframes.** The hero frame of each shot is made from the locked storyboard panel, the Cast pictures and the shot's contract. Choose one and **lock** it. A shot's keyframe is only available once its storyboard is chosen.
+3. **Video.** Each shot is brought to life from its locked keyframe (or bring your own video). Compare takes and **approve** the one to use. A shot's video is only available once its keyframe is chosen.
+4. **Sound & export.** Choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film. Shots without a take appear as storyboard cards and the film is marked as a draft.
+
+**Money.** Every generation shows the provider's price first and waits for your yes. Nothing is made until you press **Make**. Chosen and locked work is never replaced by a new generation. Pictures and video go through the same render engine PULSEFRAME uses: your provider keys, budgets, queues and retries all apply, and a render that was running when you closed the app picks up where it left off.
+
+Under the hood the film builds a render project (in the film's `render` folder) from the Shot Contracts and the Bible, so the pictures and clips are made with the characters, places, style, camera, light and acting you set.

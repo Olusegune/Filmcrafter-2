@@ -36,6 +36,7 @@ import { NewFilm } from "../NewFilm";
 import { FilmView } from "../FilmView";
 import { CastWorld } from "../CastWorld";
 import { ShotLab } from "../ShotLab";
+import { MakeFilm } from "../MakeFilm";
 import type { Job, LoadedProject, Shot } from "../api";
 import directions from "./directions.json";
 import styles from "../../analysis/filmcrafter_engine/styles.json";
@@ -141,6 +142,14 @@ const shotContract = { id: "S01-02", scene: 1, index: 2, story_version: 2, title
   opening_state: "Sarah holds the cup with both hands.", closing_state: "She puts the cup down.", continuity: "Ring on her left hand. Letter by the sink.", reference_assets: [], sound: "Kettle ticking as it cools.", generation: { duration: 4.5, aspect: "", notes: "" }, locks: { storyboard: true, keyframe: false } };
 const shotSuggestion = { camera: { framing: "over the shoulder", angle: "low", position: "", lens: "portrait (50mm)", movement: "handheld", focus: "shallow", why: "Tension is felt up close: a tight frame, a slightly low angle and a small unsteadiness keep the audience uneasy." }, lighting: { description: "Hard, low-key light from one side; deep shadow on the rest of the face.", why: "Contrast and shadow say something is being held back." }, from: "the feeling of the shot" };
 
+const opt = (job: string, image: string, state = "ready", model = "Nano Banana") => ({ job, image, state, model, provider: "kie", created: 1, ok: state === "ready" });
+const mkShot = (id: string, scene: number, title: string, framing: string, d: number, sb: string | null, kf: string | null, lockedSb = false, lockedKf = false, takes: unknown[] = []) => ({ id, scene, title, duration: d, framing,
+  storyboard: { options: sb ? [opt(id + "a", sb), opt(id + "b", "s2.png")] : [], chosen: sb, locked: lockedSb }, keyframe: { options: kf ? [opt(id + "k", kf)] : [], chosen: kf, locked: lockedKf }, video: { takes, approved: null } });
+const makeStatus = { render_dir: DIR, active: 1, synced: true, soundtrack: { kind: "silence" }, counts: { shots: 6, storyboard: 4, keyframe: 2, video: 1 },
+  shots: [mkShot("S01-01", 1, "Show where we are: Kitchen", "wide", 4, "s1.png", "s1.png", true, true, [{ job: "v1", video: null, state: "ready", model: "Seedance", provider: "kie", created: 1, approved: true, ok: false }]),
+    mkShot("S01-02", 1, "Sarah speaks to John", "over the shoulder", 4.5, "s3.png", "s3.png", true), mkShot("S01-03", 1, "John speaks to Sarah", "over the shoulder", 3, "s4.png", null),
+    mkShot("S01-04", 1, "A detail that matters: letter", "insert", 3, "s5.png", null), mkShot("S02-01", 2, "Show where we are: Platform", "establishing", 4, null, null), mkShot("S02-02", 2, "Sarah speaks", "close-up", 3, null, null)] };
+
 // ---------------------------------------------------------------- the made-up backend
 mockWindows("main");
 mockIPC((cmd, a) => {
@@ -178,6 +187,7 @@ mockIPC((cmd, a) => {
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
     case "film_bible": return bibleView;
+    case "film_make": return makeStatus;
     case "film_shots": return x.action === "shot" ? { shot: shotContract } : x.action === "suggest" ? shotSuggestion : shotsView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
@@ -235,6 +245,7 @@ const scenes: Record<string, () => ReactNode> = {
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
+  make: () => <div style={{ width: 1240, height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="storyboard" onTab={noop} /></div>,
   shots: () => <div style={{ width: 1240, height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: 1200, height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,

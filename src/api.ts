@@ -292,6 +292,8 @@ export const api = {
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
   shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
+  make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack", target: string, data: Record<string, unknown> = {}) =>
+    invoke<T>("film_make", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set", target: string | null, data: Record<string, unknown> = {}) =>
@@ -481,3 +483,12 @@ export type ShotContract = { id: string; scene: number; index: number; story_ver
   opening_state: string; closing_state: string; continuity: string; reference_assets: string[]; sound: string; generation: { duration: number; aspect: string; notes: string };
   locks: { storyboard: boolean; keyframe: boolean } };
 export type ShotSuggestion = { camera: ShotContract["camera"]; lighting: { description: string; why: string }; from: string };
+
+// ---------------------------------------------------------------- making the film
+export type MakeOption = { job: string; image: string | null; state: string; model: string; provider: string; created: number; error?: string | null; cost?: number | null; ok: boolean };
+export type MakeTake = { job: string; video: string | null; state: string; model: string; provider: string; created: number; error?: string | null; cost?: number | null; approved: boolean; ok: boolean };
+export type MakeShot = { id: string; scene: number; title: string; duration: number; framing: string;
+  storyboard: { options: MakeOption[]; chosen: string | null; locked: boolean }; keyframe: { options: MakeOption[]; chosen: string | null; locked: boolean }; video: { takes: MakeTake[]; approved: string | null } };
+export type MakeStatus = { shots: MakeShot[]; active: number; render_dir: string; synced: boolean; soundtrack: { kind: string; file?: string; name?: string };
+  counts: { shots: number; storyboard: number; keyframe: number; video: number } };
+export type MakeSynced = { render_dir: string; shots: number; seconds: number; references: number; look: string; soundtrack: { kind: string } };

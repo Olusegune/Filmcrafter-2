@@ -17,10 +17,10 @@ export const STAGES: { id: string; label: string; ready: boolean }[] = [
   { id: "story", label: "Story", ready: true },
   { id: "cast", label: "Cast & World", ready: true },
   { id: "shots", label: "Shots", ready: true },
-  { id: "storyboard", label: "Storyboard", ready: false },
-  { id: "make", label: "Make film", ready: false },
-  { id: "review", label: "Review", ready: false },
-  { id: "export", label: "Export", ready: false },
+  { id: "storyboard", label: "Storyboard", ready: true },
+  { id: "make", label: "Make film", ready: true },
+  { id: "review", label: "Review", ready: true },
+  { id: "export", label: "Export", ready: true },
 ];
 
 const SLUG = /^\s*(?:\.[A-Za-z0-9]|(?:INT|EXT|EST|INT\.?\/EXT|EXT\.?\/INT|I\/E)[. ])/im;
