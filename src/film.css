@@ -1,0 +1,90 @@
+/* FILMCRAFTER: the story-first Home, the New film sheet and the story workspace.
+   Calm and architectural: dark glass, silver type, one amber accent, the film itself in the middle. */
+
+/* ---- Home ---- */
+.home-hero h1 { letter-spacing: 0.2em; font-weight: 500; background: linear-gradient(180deg, #fff, #9aa7b8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.dropcard.story { position: relative; overflow: hidden; padding-top: 44px; }
+.dropcard.story .filmstrip { position: absolute; top: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; opacity: 0.35; }
+.dropcard.story .filmstrip i { width: 14px; height: 9px; border-radius: 2px; background: var(--frost, #f4f7fa); }
+.dropcard.story.over .filmstrip { opacity: 0.9; }
+.project-card.is-film { border-left: 2px solid var(--ignite, #e8b45c); }
+.mini-strip { height: 34px; margin-top: 12px; display: flex; gap: 4px; align-items: center; }
+.mini-strip i { flex: 1; height: 22px; border-radius: 3px; background: linear-gradient(135deg, rgba(100, 183, 255, 0.28), rgba(232, 180, 92, 0.22)); }
+
+/* ---- New film ---- */
+.nf-sheet { width: min(640px, calc(100vw - 48px)); }
+.nf-kinds { display: grid; gap: var(--sp-3, 12px); margin: var(--sp-4, 16px) 0; }
+.nf-kind { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: var(--sp-4, 16px); border-radius: 14px; background: var(--surface, rgba(244, 247, 250, 0.04)); border: 1px solid var(--hairline, rgba(244, 247, 250, 0.09)); color: var(--frost); cursor: pointer; transition: border-color 120ms var(--ease, ease), background 120ms var(--ease, ease); }
+.nf-kind:hover { background: var(--surface-hover, rgba(244, 247, 250, 0.07)); }
+.nf-kind.on { border-color: var(--signal, #64b7ff); }
+.nf-kind b { font-size: 15px; font-weight: 600; }
+.nf-kind span { font-size: 12.5px; color: var(--text-quiet, #8b97a7); }
+.nf-or { text-align: center; }
+.nf-kind-row { display: flex; align-items: center; gap: var(--sp-3, 12px); margin: var(--sp-2, 8px) 0; }
+.nf-kind-row select { width: auto; }
+.nf-text { min-height: 220px; font: 13px/1.55 var(--font-mono, ui-monospace, Consolas, monospace); resize: vertical; }
+.nf-found { min-height: 20px; margin: var(--sp-2, 8px) 0; font-size: 13px; color: var(--frost); }
+.nf-promise { margin: var(--sp-2, 8px) 0 var(--sp-3, 12px); }
+
+/* ---- the story workspace ---- */
+.film { display: flex; flex-direction: column; height: 100vh; background: var(--obsidian, #090b0f); }
+.film-load { margin: auto; }
+.film-top { display: flex; align-items: center; gap: var(--sp-4, 16px); padding: 10px var(--sp-5, 20px); border-bottom: 1px solid var(--hairline, rgba(244, 247, 250, 0.08)); }
+.film-title { margin: 0; font: 600 16px var(--font-display); letter-spacing: 0.04em; max-width: 28ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.film-stages { list-style: none; display: flex; gap: var(--sp-1, 4px); margin: 0 auto; padding: 0; }
+.film-stages li { padding: 4px 14px; border-radius: 999px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-quiet, #6f7b8c); }
+.film-stages li.on { color: var(--frost); background: rgba(100, 183, 255, 0.14); }
+.film-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px minmax(0, 1fr) 340px; }
+.film-body h2 { margin: 0 0 var(--sp-2, 8px); font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); font-weight: 600; }
+.film-body h2 .dim { margin-left: 6px; letter-spacing: 0; }
+
+.film-scenes { padding: var(--sp-4, 16px); overflow-y: auto; border-right: 1px solid var(--hairline, rgba(244, 247, 250, 0.08)); }
+.film-scenes ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.film-scenes button { width: 100%; display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: baseline; text-align: left; padding: 7px 8px; border-radius: 8px; background: none; border: 0; color: var(--frost); cursor: pointer; font-size: 12.5px; }
+.film-scenes button:hover, .film-scenes button.on { background: var(--surface-hover, rgba(244, 247, 250, 0.07)); }
+.film-scenes .n { color: var(--text-quiet, #8b97a7); }
+.film-scenes .h { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.film-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.film-readhead { display: flex; align-items: center; gap: var(--sp-4, 16px); padding: 10px var(--sp-5, 20px); border-bottom: 1px solid var(--hairline, rgba(244, 247, 250, 0.06)); font-size: 12.5px; }
+.film-version { display: flex; align-items: center; gap: 8px; }
+.film-version select { width: auto; max-width: 340px; }
+.film-script { flex: 1; overflow: auto; padding: var(--sp-6, 28px) clamp(20px, 6vw, 80px); }
+.film-script .ln { white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+.film-script.sp { font: 13.5px/1.6 var(--font-mono, "Courier New", ui-monospace, monospace); max-width: 78ch; margin: 0 auto; }
+.film-script.prose { font-size: 15px; max-width: 70ch; margin: 0 auto; }
+.film-script .ln.heading { margin-top: 1.4em; font-weight: 700; color: var(--frost); letter-spacing: 0.02em; }
+.film-script .ln.heading.cur { color: var(--ignite, #e8b45c); }
+
+.film-side { overflow-y: auto; padding: var(--sp-4, 16px); border-left: 1px solid var(--hairline, rgba(244, 247, 250, 0.08)); display: flex; flex-direction: column; gap: var(--sp-5, 20px); }
+.film-state { padding: var(--sp-4, 16px); border-radius: 14px; background: var(--surface, rgba(244, 247, 250, 0.04)); border: 1px solid var(--hairline, rgba(244, 247, 250, 0.09)); }
+.film-state.locked { border-color: rgba(95, 212, 154, 0.35); background: rgba(95, 212, 154, 0.06); }
+.film-state h2 { display: flex; align-items: center; gap: 6px; }
+.film-state-text { margin: 0 0 var(--sp-3, 12px); font-size: 14px; }
+.film-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2, 8px); }
+.film-ladder ol { list-style: none; margin: 0 0 var(--sp-3, 12px); padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.film-ladder li { padding: 3px 10px; border-radius: 999px; font-size: 11.5px; background: rgba(244, 247, 250, 0.06); color: var(--text-quiet, #8b97a7); }
+.film-ladder li.done { color: var(--frost); }
+.film-ladder li.now { background: rgba(100, 183, 255, 0.18); color: var(--frost); }
+
+.film-advice ul, .film-aside ul, .film-versions ul { list-style: none; margin: var(--sp-2, 8px) 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3, 12px); }
+.film-advice li { padding: var(--sp-3, 12px); border-radius: 12px; background: var(--surface, rgba(244, 247, 250, 0.04)); }
+.film-advice .topic { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ignite, #e8b45c); }
+.film-advice p { margin: 4px 0 var(--sp-2, 8px); font-size: 13px; line-height: 1.5; }
+.film-advice .row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; }
+.film-aside summary { cursor: pointer; font-size: 12.5px; color: var(--text-quiet, #8b97a7); }
+.film-aside li { font-size: 12.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-3, 12px); }
+.film-cast .chip { display: inline-flex; gap: 6px; align-items: baseline; padding: 3px 10px; border-radius: 999px; background: rgba(244, 247, 250, 0.06); font-size: 12px; }
+.film-cast .chip i { font-style: normal; color: var(--text-quiet, #8b97a7); font-size: 11px; }
+.film-versions li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font-size: 12.5px; }
+.film-versions li.on .link { color: var(--frost); }
+.film-versions .badge { padding: 0 8px; border-radius: 999px; font-size: 10.5px; background: rgba(95, 212, 154, 0.16); color: #7fe0b0; }
+.film-versions .badge.dim { background: rgba(244, 247, 250, 0.08); color: var(--text-quiet, #8b97a7); }
+.film-next { padding-top: var(--sp-3, 12px); border-top: 1px solid var(--hairline, rgba(244, 247, 250, 0.08)); }
+.film-next h3 { margin: 0 0 4px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
+
+@media (max-width: 1100px) { .film-body { grid-template-columns: 200px minmax(0, 1fr) 300px; } .film-stages { display: none; } }
+
+.recent-row { align-content: flex-start; align-items: flex-start; }
+.recent { flex: none; }

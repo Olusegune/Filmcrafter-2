@@ -30,7 +30,7 @@ export type Scene = {
 export type Character = { name: string; archetype: string; appearance: string; motivation: string; acting_notes: string };
 export type Plan = { meta: Record<string, string>; characters: Character[]; scenes: Scene[]; model?: string };
 
-export type ProjectSummary = { dir: string; title: string; state: string; modified: number; song: string; onboarding?: { stage: string } };
+export type ProjectSummary = { dir: string; title: string; state: string; modified: number; song?: string; kind?: "film" | "show"; onboarding?: { stage: string } };
 export type LoadedProject = {
   dir: string;
   project: { title: string; state: string; song: string; lyrics?: string; script?: string; aspect_ratio?: string; artist?: string; look?: Look | string;
@@ -289,6 +289,9 @@ export const api = {
   voices: <T = unknown>(action: "voices" | "set_voice" | "dialogue" | "set_dialogue" | "estimate" | "preview" | "generate" | "set_recording" | "clear_recording" | "eleven_voices", target: string,
                         data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
   isShow: (path: string) => invoke<boolean>("is_show", { path }),
+  isFilm: (path: string) => invoke<boolean>("is_film", { path }),
+  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set", target: string | null, data: Record<string, unknown> = {}) =>
+    invoke<T>("film", { action, target, data }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
   packProject: (dir: string, dest: string) => invoke<{ path: string; files: number; bytes: number }>("pack_project", { dir, dest }),
   openPulse: (path: string) => invoke<string>("open_pulse", { path }),
@@ -436,3 +439,15 @@ export type ComposeModels = { start_end: CatalogItem[]; references: CatalogItem[
 export type HistoryEntry = { id: string; at: number | null; label: string };
 export type ShotHistory = { undo: HistoryEntry[]; redo: HistoryEntry[]; undo_count: number; redo_count: number; label?: string };
 export type MotionClip = { id: string; name: string; seconds: number | null; width: number | null; height: number | null; added: number | null; thumb: string | null; tags?: string[]; path?: string; already?: boolean };
+
+// ---------------------------------------------------------------- films (story first)
+export type StoryKind = "screenplay" | "idea" | "synopsis" | "treatment" | "outline";
+export type FilmScene = { number: number; heading: string; int_ext: string; location: string; time: string; characters: string[]; dialogue_lines: number; action_lines: number; words: number; seconds: number; line?: number; implied?: boolean };
+export type FilmFound = { kind: StoryKind; words: number; pages: number; rung: string; scenes: FilmScene[]; seconds: number; has_headings: boolean;
+  characters: { name: string; scenes: number[]; scene_count: number; first_scene: number }[]; locations: { name: string; scenes: number[] }[] };
+export type FilmAdvice = { id: string; topic: string; text: string; scene: number | null; status: "open" | "noted" | "dismissed" };
+export type FilmVersion = { version: number; kind: StoryKind; note: string; parent: number | null; origin: string; created: number; fingerprint: string; locked: boolean; words: number };
+export type FilmStatus = { dir?: string; title: string; aspect_ratio: string; mode: string; stage: string; created: number;
+  story: { kind: StoryKind; current: number; locked: number | null; lock_history: { version: number; at: number }[]; as_is: number | null; original: string };
+  version: number; text: string; kind: StoryKind; note: string; locked_here: boolean; found: FilmFound; advice: FilmAdvice[]; versions: FilmVersion[] };
+export type StoryPreview = { kind: StoryKind; words: number; scenes: number; characters: number; locations: number; seconds: number; has_headings: boolean };

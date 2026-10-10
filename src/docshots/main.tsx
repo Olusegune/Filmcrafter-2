@@ -31,6 +31,9 @@ import { ColourMatchSheet } from "../ColourMatch";
 import { SupervisorSheet } from "../Supervisor";
 import { PerformanceSheet } from "../Performance";
 import { LibrarySheet } from "../Board";
+import { Home } from "../Home";
+import { NewFilm } from "../NewFilm";
+import { FilmView } from "../FilmView";
 import type { Job, LoadedProject, Shot } from "../api";
 import directions from "./directions.json";
 import styles from "../../analysis/filmcrafter_engine/styles.json";
@@ -41,6 +44,7 @@ import "../acting.css";
 import "../sound.css";
 import "../focus.css";
 import "../polish.css";
+import "../film.css";
 import "../corners.css";
 
 const DIR = "/src/docshots/img";
@@ -92,6 +96,19 @@ const layer = (id: string, kind: string, text: string, start: number | null, end
 const layerList = [layer("l1", "text", "Exit Plan", 2, 7), layer("l2", "icon", "Heart", 4, 9, { icon: "heart" }), layer("l3", "fill", "Warm tint", 0, 30, { color: "#e8b45c", opacity: 0.18 }), layer("l4", "text", "Lagos, 2019", 12, 16)];
 const colourState = { enabled: true, strength: 0.7, reference: null, analysed: 12, adjusted: 2, rows: ids.map((id, i) => ({ shot: id, distance: i === 2 ? 0.34 : i === 5 ? 0.22 : 0.05 + (i % 3) * 0.02, bright: i === 2 ? 0.3 : -0.2, adjusted: i === 2 || i === 5, is_reference: false })) };
 
+const filmText = ["INT. KITCHEN - MORNING", "", "Sarah pours tea. Her hands are not steady.", "", "SARAH", "(quietly)", "He said he would call.", "", "JOHN (O.S.)", "Did you say something?", "", "EXT. PLATFORM - NIGHT", "", "Rain on the roof. A train waits.", "", "SARAH", "I am going.", "", "JOHN", "Then go.", "", "INT. TRAIN - NIGHT", "", "Sarah sits. She looks at her phone. Nothing."].join(String.fromCharCode(10));
+const filmScene = (number: number, heading: string, line: number, location: string, time: string, characters: string[], d: number, a: number, int_ext = "INT") => ({ number, heading, int_ext, location, time, characters, dialogue_lines: d, action_lines: a, words: 20, seconds: 48 + number * 6, line });
+const filmStatus = { title: "Last Train", aspect_ratio: "16:9", mode: "simple", stage: "story", created: now,
+  story: { kind: "screenplay", current: 2, locked: null, lock_history: [], as_is: null, original: "last-train.fountain" }, version: 2, text: filmText, kind: "screenplay", note: "Sharper ending", locked_here: false,
+  found: { kind: "screenplay", words: 61, pages: 2.4, rung: "screenplay", seconds: 144, has_headings: true,
+    scenes: [filmScene(1, "INT. KITCHEN - MORNING", 0, "KITCHEN", "MORNING", ["SARAH", "JOHN"], 2, 1), filmScene(2, "EXT. PLATFORM - NIGHT", 11, "PLATFORM", "NIGHT", ["SARAH", "JOHN"], 2, 1, "EXT"), filmScene(3, "INT. TRAIN - NIGHT", 21, "TRAIN", "NIGHT", [], 0, 1)],
+    characters: [{ name: "SARAH", scenes: [1, 2], scene_count: 2, first_scene: 1 }, { name: "JOHN", scenes: [1, 2], scene_count: 2, first_scene: 1 }], locations: [{ name: "KITCHEN", scenes: [1] }, { name: "PLATFORM", scenes: [2] }, { name: "TRAIN", scenes: [3] }] },
+  advice: [
+    { id: "thin-3", topic: "structure", text: "Scene 3 (INT. TRAIN - NIGHT) has almost nothing in it. Is it a transition, or is something missing?", scene: 3, status: "open" },
+    { id: "talky-1", topic: "visual storytelling", text: "Scene 1 is almost all dialogue. A look, a gesture or an object could carry some of it.", scene: 1, status: "open" },
+    { id: "length", topic: "production", text: "About 2.4 minutes of script. The first pass works best on one scene or a short of 1 to 3 minutes; you can start with one scene.", scene: null, status: "dismissed" }],
+  versions: [{ version: 1, kind: "screenplay", note: "As supplied", parent: null, origin: "imported", created: now - 3600, fingerprint: "a1", locked: false, words: 58 }, { version: 2, kind: "screenplay", note: "Sharper ending", parent: 1, origin: "written", created: now, fingerprint: "b2", locked: false, words: 61 }] };
+
 // ---------------------------------------------------------------- the made-up backend
 mockWindows("main");
 mockIPC((cmd, a) => {
@@ -123,6 +140,15 @@ mockIPC((cmd, a) => {
     case "lipsync_check": return { shots: 0 };
     case "acting": return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
+    case "list_projects": return [
+      { dir: "f1", title: "Last Train", kind: "film", state: "Story locked", modified: now },
+      { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", modified: now - 86400 * 2 },
+      { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
+    case "hidden_count": return 0;
+    case "film":
+      if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
+      if (x.action === "preview") return { kind: "screenplay", words: 61, scenes: 3, characters: 2, locations: 3, seconds: 144, has_headings: true };
+      return filmStatus;
     case "overlays": return x.action === "list" ? layerList : null;
     case "colour_match": return colourState;
     case "lighting": return lightingPlan;
@@ -172,6 +198,10 @@ const card = (children: ReactNode, width = 480) => <div className="sheet glass" 
 const scenes: Record<string, () => ReactNode> = {
   layers: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={DIR} selected="l1" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layerlanes: () => <div style={{ width: 900, height: 120, position: "relative", background: "#10131a", overflow: "hidden" }}><LayerLanes dir={DIR} pps={40} duration={30} selected="l1" onSelect={noop} snap={[]} top={0} time={3} onSeek={noop} /></div>,
+  home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
+  newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
+  newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
+  film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,
   acting: () => <PerformanceSheet dir={DIR} scenes={[{ number: 1, heading: "INT. SEGE'S BEDROOM - BEFORE DAWN" }, { number: 2, heading: "INT. SEGE'S KITCHEN - MORNING" }]} characters={["Sege", "Amara", "Young Sege"]} onClose={noop} onChanged={noop} />,
@@ -227,5 +257,6 @@ setTimeout(() => {
   const w = Math.ceil((first?.getBoundingClientRect().width ?? 1000) + 48);
   const outer = (document.querySelector(".overlay") ?? first) as HTMLElement | null;
   const h = Math.ceil(outer?.getBoundingClientRect().height ?? rootEl.getBoundingClientRect().height);
-  document.title = `${w},${h}`;
+  const full = scene === "home" || scene === "film";                               // whole-window screens are photographed at a desktop window size
+  document.title = full ? "1440,900" : `${w},${h}`;
 }, 2600);

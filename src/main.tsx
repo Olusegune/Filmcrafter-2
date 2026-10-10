@@ -5,6 +5,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { applyScale } from "./uiScale";
 import "./focus.css";
 import "./polish.css";             // the rhythm of every sheet: space, quiet status, one loud action
+import "./film.css";               // the story-first Home, New film and the story workspace
 import "./corners.css";            // last, so that it has the final word on corners
 
 async function boot() {

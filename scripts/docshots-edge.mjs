@@ -39,6 +39,10 @@ const SCENES = {
   lighting: ["lighting.png", "scene=lighting&clickcss=.lt-run:nth-of-type(3) > summary"],
   cleanup: ["cleanup.png", "scene=cleanup"],
   models: ["modelchoice.png", "scene=modelchoice"],
+  home: ["home.png", "scene=home"],
+  newfilm: ["newfilm.png", "scene=newfilm"],
+  newfilmwrite: ["newfilm-story.png", "scene=newfilmwrite"],
+  film: ["film.png", "scene=film"],
   library: ["library.png", "scene=library"],
   supervisor: ["supervisor.png", "scene=supervisor"],
   acting: ["acting.png", "scene=acting"],
@@ -86,7 +90,7 @@ for (const name of names) {
     let size = null;
     for (let i = 0; i < 80 && !size; i++) { await sleep(250); const t = await evalJs("document.title"); if (/^\d+,\d+$/.test(t ?? "")) size = t.split(",").map(Number); }
     if (!size) { console.error(`${name}: the screen never reported its size`); continue; }
-    const [w, h] = [Math.min(1500, size[0]), Math.min(3400, size[1])];
+    const [w, h] = [Math.min(1500, size[0] === 1440 ? 1440 : size[0]), Math.min(3400, size[1])];
     await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: false });
     await sleep(700);
     const shot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });

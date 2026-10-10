@@ -13,6 +13,9 @@ import { BackupsSheet } from "./Backups";
 import { ProducerImport, isProducerPackage } from "./ProducerImport";
 import { EngineSetup } from "./EngineSetup";
 import { Produce } from "./Produce";
+import { FilmView } from "./FilmView";
+import { NewFilm } from "./NewFilm";
+import type { StoryKind } from "./api";
 import "./styles.css";
 import "./motion.css";
 
@@ -26,11 +29,12 @@ type View =
   | { name: "wizard"; dir: string | null; file?: string | null; produce?: boolean }
   | { name: "produce"; project: LoadedProject }
   | { name: "studio"; project: LoadedProject }
-  | { name: "show"; dir: string };
+  | { name: "show"; dir: string }
+  | { name: "film"; dir: string };
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
-  const newProject = useCallback((file?: string | null, produce?: boolean) => setView({ name: "wizard", dir: null, file: file ?? null, produce: !!produce }), []);
+  const [creating, setCreating] = useState<{ file?: string; kind?: StoryKind } | null>(null);       // the New film sheet, from Home or the File menu
   const [settings, setSettings] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
@@ -48,6 +52,7 @@ export default function App() {
     setError("");
     if (isProducerPackage(dir)) { setImportPath(dir); setView({ name: "home" }); return; }   // Producer package: review, then a project
     try {
+      if (await api.isFilm(dir)) { setView({ name: "film", dir: dir.replace(/[\/][^\/]+\.filmcrafter$/i, "") }); return; }
       if (await api.isShow(dir)) { setView({ name: "show", dir: dir.replace(/[\\/]show\.json$/i, "") }); return; }
       if (dir.toLowerCase().endsWith(".pulse")) {   // one-file project: unpack it into the projects folder first
         setToast("Unpacking the project…");
@@ -88,7 +93,7 @@ export default function App() {
     const un = api.onMenu(async (id) => {
       try {
         switch (id) {
-          case "new": newProject(); break;
+          case "new": setCreating({}); break;
           case "open": await chooseProject(); break;
           case "settings": setSettings(true); break;
           case "help": setHelp(true); break;
@@ -122,16 +127,18 @@ export default function App() {
       } catch (e) { setError(errorText(e)); }
     });
     return () => { un.then((f) => f()); };
-  }, [current, chooseProject, openProject, say, newProject]);
+  }, [current, chooseProject, openProject, say]);
 
   return (
     <>
       {engine && !engine.ready && <EngineSetup gpu={engine.gpu} onReady={() => setEngine({ ...engine, ready: true })} />}
-      {(!engine || engine.ready) && view.name === "home" && <Home onSong={(f) => newProject(f)} onNew={() => newProject()} onProduce={() => newProject(null, true)} onOpen={openProject}
-                                                                     onShow={(d) => setView({ name: "show", dir: d })} onChooseProject={chooseProject} onSettings={() => setSettings(true)} onHelp={() => setHelp(true)} />}
+      {(!engine || engine.ready) && view.name === "home" && <Home onNewFilm={(o) => setCreating(o ?? {})} onOpen={openProject} onChooseProject={chooseProject}
+                                                                     onSettings={() => setSettings(true)} onHelp={() => setHelp(true)} />}
+      {creating && <NewFilm file={creating.file} kind={creating.kind} onClose={() => setCreating(null)} onCreated={(d) => { setCreating(null); openProject(d); }} />}
       {toast && <div className="toast glass mini" role="status">{toast}</div>}
       {view.name === "analysis" && <Analysis dir={view.dir} title={view.title}
                                              onDone={() => openProject(view.dir)} onBack={() => backFrom(view.dir)} />}
+      {view.name === "film" && <FilmView key={view.dir} dir={view.dir} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} />}
       {view.name === "show" && <ShowView key={view.dir} dir={view.dir} onOpenItem={openProject} onHome={() => setView({ name: "home" })} />}
       {view.name === "studio" && <Studio project={view.project} onHome={() => backFrom(view.project.dir)}
                                          onSettings={() => setSettings(true)} onReload={() => openProject(view.project.dir)}

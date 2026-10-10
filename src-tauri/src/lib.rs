@@ -535,6 +535,13 @@ fn list_projects(app: AppHandle) -> Result<Vec<Value>, String> {
             out.push(json!({"title": s["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "show", "state": format!("Show · {n} items")}));
             continue;
         }
+        if let (Ok(meta), Some(f)) = (fs::metadata(dir.join("film.json")), read_json(&dir.join("film.json"))) {   // a film
+            let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
+            let locked = f["story"]["locked"].is_number();
+            let kind = f["story"]["kind"].as_str().unwrap_or("idea");
+            out.push(json!({"title": f["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "film", "state": if locked { "Story locked".to_string() } else if kind == "screenplay" { "Screenplay".to_string() } else { format!("Story: {kind}") }}));
+            continue;
+        }
         let Ok(meta) = fs::metadata(dir.join("project.json")) else { continue };
         if let Some(mut p) = read_json(&dir.join("project.json")) {
             let modified = meta.modified().ok()
@@ -1348,6 +1355,39 @@ async fn frames(app: AppHandle, dir: String, action: String, data: Value) -> Res
 fn show_dir(path: &str) -> Result<PathBuf, String> {
     let p = PathBuf::from(path);
     if p.join("show.json").exists() { Ok(p) } else { Err("That isn't a FilmCrafter show.".into()) }
+}
+
+fn film_dir(path: &str) -> Result<PathBuf, String> {
+    let p = PathBuf::from(path);
+    let dir = if p.is_file() { p.parent().map(Path::to_path_buf).unwrap_or(p) } else { p };
+    if dir.join("film.json").exists() { Ok(dir) } else { Err("That isn't a FilmCrafter film.".into()) }
+}
+
+/// Films: a story-first project (filmcrafter_engine.story). `create` makes a new film in the projects folder and `preview` / `read_file` need no film
+/// at all; every other action works on an existing film folder. Reading and advice are free and local; nothing here is sent anywhere.
+#[tauri::command]
+async fn film(app: AppHandle, action: String, target: Option<String>, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 9] = ["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown film action.".into());
+    }
+    let free = ["create", "preview", "read_file"].contains(&action.as_str());
+    let dir = if free { projects_root(&app)? } else { film_dir(target.as_deref().unwrap_or(""))? };
+    if !free { remember(&app, &dir); }
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.story".into(), action.clone(), dir.to_string_lossy().into(),
+                                 "--data".into(), data.to_string()];
+    let app2 = app.clone();
+    let res = tauri::async_runtime::spawn_blocking(move || run_engine_result(&app2, "story", &args, &[])).await.map_err(err)??;
+    if action == "create" {
+        if let Some(d) = res["dir"].as_str() { remember(&app, Path::new(d)); }
+    }
+    Ok(res)
+}
+
+#[tauri::command]
+fn is_film(path: String) -> bool {
+    let p = PathBuf::from(&path);
+    p.join("film.json").exists() || p.parent().map(|d| d.join("film.json").exists() && p.extension().and_then(|x| x.to_str()) == Some(DOC_EXT)).unwrap_or(false)
 }
 
 /// Shows: numbers and spoken scenes with one cast (filmcrafter_engine.show). `create` makes a new show in the
@@ -2180,7 +2220,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, read_text, list_projects, create_project, load_project,
             analyze_project, direct_project, ensure_renderer, render_catalog, model_manifest, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, show, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
+            save_project, save_project_as, backups, frames, show, film, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
             creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             onboarding, replace_song, write_project_text, attach_script, set_onboarding, adopt_script, choreography, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, producer, refgen, overlays, captions, director_audit, fonts, editor_export, camera, producer_plan, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
