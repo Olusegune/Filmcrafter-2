@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, errorText, type FilmAdvice, type FilmProgress, type FilmScene, type FilmStatus, type StoryKind } from "./api";
 import * as I from "./icons";
 import { ask } from "./ask";
+import { askForHelp } from "./AssistSheet";
 import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
@@ -21,6 +22,8 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">(initialStage === "storyboard" ? "make" : "story");        // the studio can bring you back to a step
   const [makeTab, setMakeTab] = useState<MakeTab>("storyboard");
   const [progress, setProgress] = useState<FilmProgress | null>(null);
+  const [suggested, setSuggested] = useState<{ text: string; kind: StoryKind } | null>(null);          // the next step the writing helper proposed: opens in the new-version sheet to edit and save
+  const [helping, setHelping] = useState(false);
   const MAKE_STAGE: Record<string, MakeTab> = { storyboard: "storyboard", make: "keyframe", review: "video", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
   const activeId = stage === "make" ? Object.keys(MAKE_STAGE).find((k) => MAKE_STAGE[k] === makeTab || (k === "make" && makeTab === "keyframe")) ?? "make" : stage;
@@ -123,7 +126,8 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
               {st.as_is !== f.version && st.locked === null && <button className="btn" disabled={!!busy} onClick={() => run("asis", () => api.film<FilmStatus>("as_is", dir, { version: f.version }))}
                 title="Set every suggestion aside. The script stays exactly as it is.">Use story as it is</button>}
               {!f.locked_here && <button className="btn primary" disabled={!!busy} onClick={lock}>Lock this version</button>}
-            </div> : <Ladder kind={f.kind} onWrite={() => setWriting(true)} />}
+            </div> : <Ladder kind={f.kind} onWrite={() => { setSuggested(null); setWriting(true); }} helping={helping}
+              onHelp={async () => { setErr(""); setHelping(true); try { const p = await askForHelp(dir, "story", null, "the next step of your story"); if (p && typeof p.text === "string") { setSuggested({ text: p.text, kind: p.kind as StoryKind }); setWriting(true); } } catch (e) { setErr(errorText(e)); } finally { setHelping(false); } }} />}
           </section>
 
           {advice.length > 0 && <section className="film-advice">
@@ -176,28 +180,29 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <span className="film-hint dim">{nb.hint}</span>
         {nb.next ? <button className="btn primary sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
       </footer>
-      {writing && <NewVersion from={f} onClose={() => setWriting(false)} onSaved={(s) => { setF(s); setWriting(false); setScene(null); }} dir={dir} />}
+      {writing && <NewVersion from={f} initial={suggested} onClose={() => { setWriting(false); setSuggested(null); }} onSaved={(s) => { setF(s); setWriting(false); setScene(null); }} dir={dir} />}
     </div>
   );
 }
 
 /** Where a story that is not a screenplay yet stands on the way to one. */
-function Ladder({ kind, onWrite }: { kind: StoryKind; onWrite: () => void }) {
+function Ladder({ kind, onWrite, onHelp, helping }: { kind: StoryKind; onWrite: () => void; onHelp: () => void; helping: boolean }) {
   const at = ladderAt(kind === "idea" ? "logline" : kind);
   return (
     <div className="film-ladder">
       <ol aria-label="From a spark to a screenplay">{LADDER.map((r, i) => <li key={r} className={i < at ? "done" : i === at ? "now" : ""} aria-current={i === at ? "step" : undefined}>{r}</li>)}</ol>
       <p className="dim">Write or paste the next step as a new version. When the screenplay is written, lock it.</p>
-      <button className="btn" onClick={onWrite}>Add the next step…</button>
+      <div className="film-actions"><button className="btn" onClick={onWrite}>Add the next step…</button>
+        <button className="btn ghost" onClick={onHelp} disabled={helping} title="Optional: the writing helper drafts the next step from your story. You read it and edit it before it is saved as a new version."><I.Sparkle size={13} /> {helping ? "Writing…" : "Write it for me"}</button></div>
     </div>
   );
 }
 
 /** A change to the story is a new version; this is where it is written. */
-function NewVersion({ dir, from, onClose, onSaved }: { dir: string; from: FilmStatus; onClose: () => void; onSaved: (s: FilmStatus) => void }) {
-  const [text, setText] = useState(from.text);
-  const [note, setNote] = useState("");
-  const [kind, setKind] = useState<StoryKind>(from.kind);
+function NewVersion({ dir, from, initial, onClose, onSaved }: { dir: string; from: FilmStatus; initial?: { text: string; kind: StoryKind } | null; onClose: () => void; onSaved: (s: FilmStatus) => void }) {
+  const [text, setText] = useState(initial?.text ?? from.text);
+  const [note, setNote] = useState(initial ? "Written with the writing helper, then edited" : "");
+  const [kind, setKind] = useState<StoryKind>(initial?.kind ?? from.kind);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const save = async () => {

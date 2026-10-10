@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
 import { ask } from "./ask";
 import { FilmContinuity } from "./FilmContinuity";
+import { askForHelp } from "./AssistSheet";
+import { ShotSuggestionSheet } from "./ShotSuggestionSheet";
+import * as I from "./icons";
 
 type Tab = "story" | "acting" | "camera" | "light" | "continuity";
 const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "light", label: "Light" }, { id: "continuity", label: "Continuity" }];
@@ -28,6 +31,8 @@ export function ShotLab({ dir }: { dir: string }) {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [review, setReview] = useState(false);
+  const [helpShot, setHelpShot] = useState<Record<string, unknown> | null>(null);          // the writing helper suggestion for this shot
+  const [helping, setHelping] = useState(false);
   const [cmd, setCmd] = useState<{ text: string; busy: boolean; result: { understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string } | null } | null>(null);   // the Director Command              // the continuity findings instead of one shot
 
   const load = useCallback(async (keep?: string | null) => {
@@ -76,6 +81,11 @@ export function ShotLab({ dir }: { dir: string }) {
     catch (e) { setErr(errorText(e)); setCmd({ ...cmd, busy: false }); }
   };
   const applyCmd = async () => { if (cmd?.result?.understood) { await save(cmd.result.patch); setCmd(null); } };
+  const helpMe = async () => {
+    if (!sel) return;
+    setErr(""); setHelping(true);
+    try { const p = await askForHelp(dir, "shot", sel, `shot ${sel}`); if (p) setHelpShot(p); } catch (e) { setErr(errorText(e)); } finally { setHelping(false); }
+  };
   const locked = !!c?.locks.storyboard;
   const suggest = async () => { if (sel) { try { setSug(await api.shots<ShotSuggestion>("suggest", dir, { id: sel })); } catch (e) { setErr(errorText(e)); } } };
   const apply = async () => { if (sug) { await save({ camera: sug.camera, lighting: { description: sug.lighting.description, why: sug.lighting.why } }); setSug(null); } };
@@ -116,6 +126,7 @@ export function ShotLab({ dir }: { dir: string }) {
               : <><p>I didn't understand that.</p><p className="dim">{cmd.result.help}</p></>}</div>}
           {!cmd.result && <div className="film-actions"><button className="btn primary" disabled={cmd.busy || !cmd.text.trim() || !sel}>Show me the change</button><span className="dim">Nothing changes until you press Apply.</span></div>}
         </form></div>}
+      {helpShot && c && <ShotSuggestionSheet shot={c.id} proposal={helpShot} current={c} onClose={() => setHelpShot(null)} onUse={async (patch) => { setHelpShot(null); if (Object.keys(patch).length) await save(patch); }} />}
       {review ? <main className="sl-main"><FilmContinuity dir={dir} onGo={(id) => { setSel(id); setReview(false); }} onChanged={() => { void load(sel); if (sel) api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch(() => {}); }} /></main>
         : c ? <main className="sl-main">
         <div className="sl-head"><h2>{c.id} <input className="sl-title" aria-label="Shot title" value={draft.title ?? c.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onBlur={() => commit("title")} placeholder="Name this shot" /></h2>
@@ -151,6 +162,8 @@ export function ShotLab({ dir }: { dir: string }) {
               {text("generation.duration", "Length (seconds)")}</div>
           </>}
 
+          {(tab === "acting" || tab === "camera") && <div className="sl-help"><span className="dim">Optional: a writing helper can suggest the acting, camera and light for this shot from your story.</span>
+            <button className="btn ghost sm" onClick={helpMe} disabled={helping}><I.Sparkle size={13} /> {helping ? "Writing…" : "Help me write this shot"}</button></div>}
           {tab === "acting" && <>
             {text("performance.emotional_intention", "What the audience should feel", 2, "e.g. Held-back dread")}
             <div className="field"><span>Acting beats <span className="dim">what each person wants, needs, fears and hides, and how it shows</span></span>

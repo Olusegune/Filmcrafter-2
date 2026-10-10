@@ -447,7 +447,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
         <RailBtn icon={<I.Folder />} label="Project" onClick={() => { setSel(null); setInspector(true); }} />
         <RailBtn icon={<I.Assets />} label="Library" onClick={() => setLibraryOpen(true)} />
         <RailBtn icon={<I.Studio />} label="Studio" active />
-        <RailBtn icon={<I.Mountain />} label="Directions" onClick={() => setDlOpen(true)} />
+        <RailBtn icon={<I.Mountain />} label={isFilm ? "Looks" : "Directions"} onClick={() => setDlOpen(true)} />
         <RailBtn icon={<I.Wand />} label="Supervisor" onClick={() => setSupOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
         <RailBtn icon={<I.User />} label="Acting" onClick={() => setPerfOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
         <RailBtn icon={<I.Film />} label="Continuity" onClick={() => setContOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
@@ -567,7 +567,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
               shown && boardShot.get(shown.id)?.keyframe ? <img className="clip" alt="" src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.keyframe}`)} /> : null}
             {shown ? <Storyboard shot={shown} scene={scenes.find((s) => s.number === shown.scene)} job={latest.get(shown.id)}
                                  hidden={!!boardShot.get(shown.id)?.preview || !!boardShot.get(shown.id)?.keyframe} /> :
-              <div className="empty">{plan ? "Press play to preview the song map" : "Add a script or press Direct My Video to plan shots"}</div>}
+              <div className="empty">{isFilm ? "Press play to preview the film" : plan ? "Press play to preview the song map" : "Add a script or press Direct My Video to plan shots"}</div>}
             <PlayerOverlays dir={project.dir} time={time} beat={beatGrid(map)} accents={map?.accents} selected={layersOpen ? layerSel : null} onSelect={layersOpen ? setLayerSel : undefined} />
             <div className="subtitle" style={{ opacity: lyric ? 1 : 0 }}>{lyric?.text ?? ""}</div>
           </div>
@@ -705,7 +705,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
         onShot={(id) => { const sh = shots.find((x) => x.id === id); setSel({ kind: "shot", id }); setInspector(true); if (sh) seek(sh.start); }}
         commands={([
           plan && { id: "director", label: "Ask the Director", hint: "Change the video in plain words", keys: "Ctrl+K", run: () => setCommanding(true) },
-          plan && { id: "direct", label: project.directed ? "Direct again" : "Direct my video", hint: "Plan every shot on the beat (free)", run: directVideo },
+          plan && !isFilm && { id: "direct", label: project.directed ? "Direct again" : "Direct my video", hint: "Plan every shot on the beat (free)", run: directVideo },
           plan && (keys.fal || keys.kie) && toRender.length > 0 && { id: "render", label: `Render ${toRender.length === shots.length ? "all" : toRender.length} shots`, hint: "Shows the price first", run: () => setConfirmAll(true) },
           plan && board && { id: "select", label: "Select & review", hint: "Choose shots, approve keyframes, pay for video where it is right", run: () => setSelecting(true) },
           plan && { id: "preview", label: "Preview the next seconds", hint: "A small quick version with layers and sound", run: () => { if (playing) toggle(); setPreviewOpen(true); } },
@@ -859,7 +859,7 @@ function Inspector({ sel, shots, scenes, map, plan, director, project, onClose, 
             <span className="k">Mood</span><span className="v">{sec.mood}</span>
             <span className="k">Energy</span><span className="v"><Meter v={sec.energy} /></span>
           </div></div>
-          {lines.length > 0 && <div className="insp-section"><h4>Lyrics</h4>{lines.map((l, i) => <p key={i} className="lyric-q">{l.text}</p>)}</div>}
+          {lines.length > 0 && <div className="insp-section"><h4>{(project.project as { film?: boolean }).film ? "Dialogue" : "Lyrics"}</h4>{lines.map((l, i) => <p key={i} className="lyric-q">{l.text}</p>)}</div>}
         </div>
       </>
     );
@@ -912,7 +912,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 const TAB_KEY = "pf-inspector-tab";
 const storedTab = (): Tab => { try { const t = localStorage.getItem(TAB_KEY); return TABS.some((x) => x.id === t) ? (t as Tab) : "keyframe"; } catch { return "keyframe"; } };
 
-export function ShotInspector({ shot: s, scene, director, onClose, tabs }: {
+export function ShotInspector({ shot: s, scene, director, onClose, tabs, project }: {
   shot: Shot; scene?: Scene; director: boolean; onClose: () => void; tabs: ShotTabs; project: LoadedProject;
 }) {
   const [tab, setTabState] = useState<Tab>(storedTab);
@@ -955,7 +955,7 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs }: {
           {s.purpose && <div className="insp-section"><h4>Purpose</h4><p className="prose">{s.purpose}</p></div>}
           <div className="insp-section"><h4>{s.beats.length > 1 ? `Story beats (${s.beats.length})` : "Action"}</h4>
             {s.beats.length > 1 ? <ol className="beats">{s.beats.map((b, i) => <li key={i}>{b}</li>)}</ol> : <p className="prose">{s.beats[0]}</p>}</div>
-          {s.lyrics?.length ? <div className="insp-section"><h4>Lyrics under this shot</h4>{s.lyrics.map((l, i) => <p key={i} className="lyric-q">{l}</p>)}</div> : null}
+          {s.lyrics?.length ? <div className="insp-section"><h4>{project?.project && (project.project as { film?: boolean }).film ? "Dialogue in this shot" : "Lyrics under this shot"}</h4>{s.lyrics.map((l, i) => <p key={i} className="lyric-q">{l}</p>)}</div> : null}
           {tabs.shot}
           {(s.performance || s.expression || s.movement) && <div className="insp-section"><h4>Performance</h4><div className="kv">
             {row("Acting", s.performance)}{row("Expression", s.expression)}{row("Movement", s.movement)}</div></div>}

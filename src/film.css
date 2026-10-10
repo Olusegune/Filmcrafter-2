@@ -285,3 +285,9 @@
 .as-group .as-row { margin-bottom: 6px; }
 
 .cw-rules textarea.text-input, .cw-fields textarea.text-input, .cw-edit textarea.text-input { min-height: 64px; height: 84px; }
+
+.sl-help { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); padding: var(--sp-3, 12px) var(--sp-4, 16px); border-radius: 12px; background: var(--surface, rgba(244, 247, 250, 0.04)); border: 1px solid var(--hairline, rgba(244, 247, 250, 0.09)); font-size: 13px; }
+.sl-help .btn { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.as-body { grid-column: 2; font-size: 13px; line-height: 1.5; }
+.as-body p { margin: 0 0 6px; }
+.film-ladder .btn { display: inline-flex; align-items: center; gap: 6px; }

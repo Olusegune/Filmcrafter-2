@@ -14,6 +14,7 @@ import { ProducerImport, isProducerPackage } from "./ProducerImport";
 import { EngineSetup } from "./EngineSetup";
 import { Produce } from "./Produce";
 import { FilmView } from "./FilmView";
+import { filmDirOfDoc, filmDirOfRender } from "./filmPaths";
 import { NewFilm } from "./NewFilm";
 import type { StoryKind } from "./api";
 import "./styles.css";
@@ -52,7 +53,7 @@ export default function App() {
     setError("");
     if (isProducerPackage(dir)) { setImportPath(dir); setView({ name: "home" }); return; }   // Producer package: review, then a project
     try {
-      if (await api.isFilm(dir)) { setView({ name: "film", dir: dir.replace(/[\/][^\/]+\.filmcrafter$/i, "") }); return; }
+      if (await api.isFilm(dir)) { setView({ name: "film", dir: filmDirOfDoc(dir) }); return; }
       if (await api.isShow(dir)) { setView({ name: "show", dir: dir.replace(/[\\/]show\.json$/i, "") }); return; }
       if (dir.toLowerCase().endsWith(".pulse")) {   // one-file project: unpack it into the projects folder first
         setToast("Unpacking the project…");
@@ -78,7 +79,7 @@ export default function App() {
 
   // An item of a show goes back to its show; anything else goes Home.
   const backFrom = useCallback(async (dir: string, stage?: string) => {
-    const film = dir.replace(/[\/]render$/i, "");                          // the studio was opened on a film's render project: back goes to the film
+    const film = filmDirOfRender(dir);                                      // the studio was opened on a film's render project: back goes to the film
     if (film !== dir && await api.isFilm(film).catch(() => false)) { setView({ name: "film", dir: film, stage }); return; }
     const show = showDirOf(dir);
     setView(show && (await api.isShow(show).catch(() => false)) ? { name: "show", dir: show } : { name: "home" });

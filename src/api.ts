@@ -503,7 +503,7 @@ export type ContinuityView = { findings: ContinuityFinding[]; open: number; shot
 export type InterchangeResult = { dir: string; files: Record<string, string>; shots: number; placed: number; missing: string[]; audio: string | null; seconds: number };
 
 // ---------------------------------------------------------------- optional writing help
-export type AssistKind = "character" | "environment" | "prop" | "world";
+export type AssistKind = "character" | "environment" | "prop" | "world" | "story" | "shot";
 export type AssistPrice = { calls: number; usd: number; local: boolean; note: string; kind: AssistKind; id?: string | null; sends: string };
 export type AssistResult = AssistPrice & { proposal: Record<string, unknown>; model: string; estimate?: AssistPrice };
 

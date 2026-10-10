@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 (2026-10-10)
+
+- **Fixed: the Storyboard button in the studio went Home.** The path pattern that finds a film from its render folder only understood forward slashes, and Windows paths use backslashes. It is now one tested helper for both (`filmPaths.ts`), also used when a `.filmcrafter` document is opened.
+- **Optional writing help, more of it.** **Write it for me** on the story ladder drafts the next step (idea to synopsis to treatment to outline to screenplay); it opens in the new-version sheet for you to read and edit before it is saved as a new version. **Help me write this shot** (Acting and Camera tabs) suggests feeling, acting beats, small motion, camera and light with reasons; you choose which parts to use. Both show what they send and the price first.
+- **Studio in film language:** the rail says Looks, the inspector says Dialogue, and "Direct my video" is gone from the command list on a film.
+- Tests: the next step of a story, the shot suggestion (only real camera words kept), film paths.
+
 ## 0.5.0 (2026-10-10)
 
 - **One world, one layout.** Cast & World, Rules & style and Make film share one centred frame; Rules & style is two columns that use the width; textareas are a sensible height.
