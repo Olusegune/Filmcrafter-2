@@ -174,3 +174,8 @@ def test_the_command_line(film, capsys):
     assert shots.main(["shot", film, "--data", json.dumps({"id": "S01-01"})]) == 0
     capsys.readouterr()
     assert shots.main(["get", film + "-nope"]) == 1
+
+
+def test_a_title_page_does_not_become_shots():
+    sc = shots.scene_blocks('MY FILM\n\nREVISED DRAFT\n\nINT. KITCHEN - DAY\n\nSarah pours tea.\n')
+    assert [s["number"] for s in sc] == [1] and sc[0]["heading"] == "INT. KITCHEN - DAY"

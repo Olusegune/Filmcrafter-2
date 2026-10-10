@@ -298,7 +298,7 @@ export const api = {
   filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
-  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode", target: string | null, data: Record<string, unknown> = {}) =>
+  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
   packProject: (dir: string, dest: string) => invoke<{ path: string; files: number; bytes: number }>("pack_project", { dir, dest }),
@@ -457,7 +457,7 @@ export type FilmAdvice = { id: string; topic: string; text: string; scene: numbe
 export type FilmVersion = { version: number; kind: StoryKind; note: string; parent: number | null; origin: string; created: number; fingerprint: string; locked: boolean; words: number };
 export type FilmStatus = { dir?: string; title: string; aspect_ratio: string; mode: string; stage: string; created: number;
   story: { kind: StoryKind; current: number; locked: number | null; lock_history: { version: number; at: number }[]; as_is: number | null; original: string };
-  version: number; text: string; kind: StoryKind; note: string; locked_here: boolean; found: FilmFound; advice: FilmAdvice[]; versions: FilmVersion[] };
+  version: number; text: string; kind: StoryKind; note: string; locked_here: boolean; found: FilmFound; advice: FilmAdvice[]; versions: FilmVersion[]; looks_broken?: boolean; original?: string | null };
 export type StoryPreview = { kind: StoryKind; words: number; scenes: number; characters: number; locations: number; seconds: number; has_headings: boolean };
 
 // ---------------------------------------------------------------- the Production Bible, Cast and World

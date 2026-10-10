@@ -128,6 +128,10 @@ def scene_blocks(text: str) -> list[dict]:
                 cur["blocks"].append(blk)
             blk["lines"].append(s)
         prev_blank = False
+    if len(scenes) > 1 and scenes[0].get("implied") and not any(x["type"] == "dialogue" for x in scenes[0]["blocks"]):          # a title page is not a scene
+        scenes = scenes[1:]
+        for i, sc in enumerate(scenes, 1):
+            sc["number"] = i
     return scenes
 
 

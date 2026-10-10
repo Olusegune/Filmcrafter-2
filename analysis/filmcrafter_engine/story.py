@@ -99,6 +99,8 @@ def read_document(path: str) -> dict:
     if low.endswith(TEXT_EXT):
         with open(p, encoding="utf-8-sig", errors="replace") as f:
             text = f.read(MAX_TEXT + 1)
+    elif low.endswith(".pdf"):
+        text = _pdf_text(p)
     else:
         from . import onboarding
         text = onboarding.doc_text(p)["text"]
@@ -106,6 +108,56 @@ def read_document(path: str) -> dict:
     if not text.strip():
         raise SystemExit("No text was found in that file.")
     return {"name": os.path.basename(p), "text": text, "truncated": len(text) >= MAX_TEXT}
+
+
+def words_per_line(text: str) -> float:
+    """The middle number of words on a line: about 1 when a file was read one word to a line, 8 to 15 for ordinary writing."""
+    n = sorted(len(l.split()) for l in str(text).split("\n") if l.strip())
+    return float(n[len(n) // 2]) if n else 0.0
+
+
+def looks_broken(text: str) -> bool:
+    """Text that was read one word to a line (a common fault of some PDFs), so it needs reading again."""
+    lines = [l for l in str(text).split("\n") if l.strip()]
+    return len(lines) >= 60 and words_per_line(text) <= 1.5
+
+
+REPLACEMENT = "\ufffd"
+
+
+def tidy_pdf_text(text: str) -> str:
+    """Repair what a PDF reader leaves behind: the dash that comes out as a replacement mark, indents from the page layout, runs of spaces, and extra blank lines."""
+    t = str(text).replace("\r\n", "\n").replace("\r", "\n")
+    t = re.sub(r"(?<=\S)" + REPLACEMENT + r"(?=\S)", "-", t)         # carefully<mark>not  ->  carefully-not
+    t = t.replace(" " + REPLACEMENT + " ", " - ").replace(REPLACEMENT, "-")
+    t = "\n".join(re.sub(r"[ \t]+", " ", line).strip() for line in t.split("\n"))
+    return re.sub(r"\n{3,}", "\n\n", t).strip()
+
+
+def _pdf_text(path: str) -> str:
+    """The words in a PDF, in reading order. The layout reader keeps each printed line together; the plain reader is the fallback (and wins only if it gives longer lines)."""
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        raise SystemExit("PDF files can't be read here. Paste the text instead, or choose a text or Word file.")
+    try:
+        reader = PdfReader(path)
+        if getattr(reader, "is_encrypted", False):
+            raise SystemExit("That PDF is protected. Paste the text instead.")
+        layout, plain = [], []
+        for pg in reader.pages:
+            try:
+                layout.append(pg.extract_text(extraction_mode="layout") or "")
+            except Exception:
+                layout.append("")
+            plain.append(pg.extract_text() or "")
+    except SystemExit:
+        raise
+    except Exception:
+        raise SystemExit("That PDF couldn't be read. If it is a scan or protected, paste the text instead.")
+    a, b = tidy_pdf_text("\n\n".join(layout)), tidy_pdf_text("\n\n".join(plain))
+    best = a if words_per_line(a) >= words_per_line(b) else b
+    return best
 
 
 # ---------------------------------------------------------------- finding the scenes
@@ -160,7 +212,7 @@ def parse_screenplay(text: str) -> dict:
             cur = {"number": 1, "heading": "Opening", "int_ext": "", "location": "", "time": "", "line": i, "characters": [], "dialogue_lines": 0,
                    "action_lines": 0, "words": 0, "speeches": 0, "implied": True}
             scenes.append(cur)
-        if not in_dialogue and _is_cue(raw, prev_blank, nxt):
+        if not in_dialogue and not cur.get("implied") and _is_cue(raw, prev_blank, nxt):          # lines before the first scene heading are a title page, not people speaking
             speaker = CUE_NOTE.sub("", s).strip().lstrip("@").strip()
             if speaker not in cur["characters"]:
                 cur["characters"].append(speaker)
@@ -176,6 +228,10 @@ def parse_screenplay(text: str) -> dict:
             cur["action_lines"] += 1
             cur["words"] += len(s.split())
         prev_blank = False
+    if len(scenes) > 1 and scenes[0].get("implied"):                    # a title page is not a scene
+        scenes = scenes[1:]
+        for i, sc in enumerate(scenes, 1):
+            sc["number"] = i
     chars: dict[str, dict] = {}
     places: dict[str, list[int]] = {}
     for sc in scenes:
@@ -331,7 +387,27 @@ def status(d: str, version: int | None = None) -> dict:
     an = _read(_vpath(d, n, "analysis")) or {"found": {}, "advice": []}
     return {"title": m["title"], "aspect_ratio": m["aspect_ratio"], "mode": m.get("mode", "simple"), "stage": m["stage"], "created": m["created"],
             "story": st, "version": n, "text": rec["text"], "kind": rec["kind"], "note": rec.get("note", ""), "locked_here": bool(rec.get("locked")),
-            "found": an["found"], "advice": an["advice"], "versions": _versions(d)}
+            "found": an["found"], "advice": an["advice"], "versions": _versions(d), "looks_broken": looks_broken(rec["text"]),
+            "original": _original_file(d)}
+
+
+def _original_file(d: str) -> str | None:
+    name = (_read(os.path.join(d, "film.json"), {}) or {}).get("story", {}).get("original")
+    p = os.path.join(d, "script", "original", name or "")
+    return name if name and os.path.isfile(p) and name != "story.txt" else None
+
+
+def reread_original(d: str) -> dict:
+    """Read the file you brought again, with the current reader, as a NEW version. Nothing existing is changed: the earlier version stays as it was."""
+    _manifest(d)
+    name = _original_file(d)
+    if not name:
+        raise SystemExit("This film has no original file to read again.")
+    r = read_document(os.path.join(d, "script", "original", name))
+    cur = _read(_vpath(d, _manifest(d)["story"]["current"])) or {}
+    if r["text"].strip() == str(cur.get("text", "")).strip():
+        raise SystemExit("Reading the file again gives the same text, so there is nothing new.")
+    return add_version(d, r["text"], "Read from the original file again", "screenplay")
 
 
 def add_version(d: str, text: str, note: str = "", kind: str | None = None) -> dict:
@@ -426,7 +502,7 @@ def rec_set(d: str, version: int, rec_id: str, state: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-story")
-    ap.add_argument("action", choices=["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode"])
+    ap.add_argument("action", choices=["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode", "reread"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -448,6 +524,8 @@ def main(argv: list[str]) -> int:
             res = lock(a.target, x.get("version"))
         elif a.action == "as_is":
             res = as_is(a.target, x.get("version"))
+        elif a.action == "reread":
+            res = reread_original(a.target)
         elif a.action == "set_mode":
             res = set_mode(a.target, str(x.get("mode", "")))
         else:

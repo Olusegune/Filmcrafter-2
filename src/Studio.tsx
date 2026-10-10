@@ -221,6 +221,16 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
   const planName = project.directed ? "directed" : "production";
   const isFilm = !!(project.project as { film?: boolean }).film;                       // a film's render project: no song to plan from, so the song-first guides and the Director are not offered
   const [tourOpen, setTourOpen] = useState(() => !isFilm && !tourSeen());
+  const goCards = (to?: string) => {                                                // back to the film workspace (optionally straight to a step of it)
+    try { if (to) localStorage.setItem(`fc-film-stage:${project.dir.replace(/[\/]render$/i, "")}`, to); } catch { /* a convenience only */ }
+    onHome();
+  };
+  const filmSwitch = isFilm ? (
+    <>
+      <div className="mode-toggle film-view" role="group" aria-label="How to see the film" title="The same film two ways. Cards: the story-first workspace. Timeline: this editing studio.">
+        <button aria-pressed="false" onClick={() => goCards()}>Cards</button><button className="on" aria-pressed="true">Timeline</button></div>
+      <button className="btn" onClick={() => goCards("storyboard")} title="Back to the film: the storyboard wall">Storyboard</button>
+    </>) : null;
   const latest = useMemo(() => latestJobs(jobs, planName), [jobs, planName]);
   // Review judges the newest finished take of each shot (a newer failed attempt doesn't hide it).
   const takes = useMemo(() => latestJobs(jobs.filter((j) => j.state === "ready"), planName), [jobs, planName]);
@@ -462,6 +472,7 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
             {map && <div className="meta num">{isFilm ? "" : `${Math.round(map.bpm)} BPM · `}{fmtTime(map.duration)} · {shots.length} shots
               {isFilm ? " · Film" : project.directed ? " · Directed" : plan ? " · Planned from script" : ""}</div>}
           </div>
+          {filmSwitch}
           <div className="grow" />
           <div className="mode-toggle" role="group" aria-label="Mode">
             <button className={!director ? "on" : ""} onClick={() => setDirector(false)}>Simple</button>
@@ -503,7 +514,6 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
           {plan && <button className="btn ghost cmd-btn" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
           {narrowBar ? <div className="menu-wrap"><button className="btn ghost" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-haspopup="menu">More ▾</button>
             {moreOpen && <div className="menu glass tb-more" role="menu" onClick={() => setMoreOpen(false)} onMouseLeave={() => setMoreOpen(false)}>
-          {isFilm && <div className="mode-toggle film-view" role="group" aria-label="How to see the film" title="The same film two ways."><button aria-pressed="false" onClick={onHome}>Cards</button><button className="on" aria-pressed="true">Timeline</button></div>}
           {!isFilm && <button className="btn" role="menuitem" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}

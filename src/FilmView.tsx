@@ -18,7 +18,8 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
   const [writing, setWriting] = useState(false);
   const [scene, setScene] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">("story");
+  const coming = (() => { try { const k = `fc-film-stage:${dir}`; const v = localStorage.getItem(k); localStorage.removeItem(k); return v; } catch { return null; } })();   // the studio asked to come back to a step
+  const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">(coming === "storyboard" ? "make" : "story");
   const [makeTab, setMakeTab] = useState<MakeTab>("storyboard");
   const MAKE_STAGE: Record<string, MakeTab> = { storyboard: "storyboard", make: "keyframe", review: "video", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
@@ -99,6 +100,9 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
             <div style={{ flex: 1 }} />
             <span className="dim">{f.found.words.toLocaleString()} words{f.found.seconds > 0 ? ` · ${minutes(f.found.seconds)}` : ""}</span>
           </div>
+          {f.looks_broken && f.original && <p className="cw-note film-broken" role="status">This text was read one word to a line, so it can't be broken into scenes properly. Reading <b>{f.original}</b> again usually fixes it.
+            <button className="btn sm" disabled={!!busy} onClick={() => run("reread", () => api.film<FilmStatus>("reread", dir, {}))}>Read the file again</button>
+            <span className="dim"> The version you have stays as it is; this makes a new one.</span></p>}
           <div className={`film-script ${isScreenplay ? "sp" : "prose"}`} ref={reader} tabIndex={0} aria-label="The story, as written">
             {lines.map((l, i) => {
               const h = headingAt.get(i);

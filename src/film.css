@@ -251,3 +251,5 @@
 @media (prefers-reduced-motion: reduce) { .reel-track, .reel-sweep { animation: none !important; } .reel-sweep { display: none; } }
 
 .dropcard.story { padding-top: 60px; padding-bottom: 56px; }
+
+.film-broken { margin: var(--sp-3, 12px) var(--sp-5, 20px) 0; }

@@ -184,3 +184,45 @@ def test_simple_and_studio_are_the_same_film(tmp_path):
     assert story.set_mode(d, "simple")["mode"] == "simple"
     with pytest.raises(SystemExit, match="simple or studio"):
         story.set_mode(d, "expert")
+
+
+TITLE_PAGE = 'SUMMIT SPROUT: "FROM SHAME TO LIVING\nWATER"\n\nANIMATED SHORT FILM - REVISED SCREENPLAY\n\nINT. SCHOOL - DAY\n\nChloe draws.\n\nCHLOE\nHello.\n'
+
+
+def test_a_title_page_is_not_a_scene_or_a_character():
+    f = story.parse_screenplay(TITLE_PAGE)
+    assert [s["heading"] for s in f["scenes"]] == ["INT. SCHOOL - DAY"] and f["scenes"][0]["number"] == 1
+    assert [c["name"] for c in f["characters"]] == ["CHLOE"]
+
+
+def test_text_read_one_word_to_a_line_is_noticed_and_ordinary_text_is_not():
+    broken = "\n\n".join(["INT.", "SCHOOL", "DAY"] * 40)
+    assert story.looks_broken(broken) and story.words_per_line(broken) <= 1
+    assert not story.looks_broken("INT. SCHOOL - DAY\n\nChloe sits alone with her sketchbook open on her lap.\n" * 80)
+    assert not story.looks_broken("a\nb\nc")              # too little to say
+
+
+def test_pdf_text_is_tidied_dashes_indents_and_blank_lines():
+    raw = "        INT. SCHOOL � PLAYGROUND � DAY\r\n\r\n\r\n\r\n   carefully�not   tentatively\r\n"
+    assert story.tidy_pdf_text(raw) == "INT. SCHOOL - PLAYGROUND - DAY\n\ncarefully-not tentatively"
+
+
+def test_the_original_file_can_be_read_again_as_a_new_version(tmp_path):
+    src = tmp_path / "a.txt"
+    src.write_text("INT. ROOM - DAY\n\nA man waits.\n", encoding="utf-8")
+    d = story.create(str(tmp_path / "films"), "T", "screenplay", "INT. ROOM - DAY\n\nA man waits.\n", str(src))["dir"]
+    assert story.status(d)["original"] == "a.txt"
+    with pytest.raises(SystemExit, match="same text"):
+        story.reread_original(d)
+    o = os.path.join(d, "script", "original", "a.txt")
+    open(o, "w", encoding="utf-8").write("INT. ROOM - DAY\n\nA man waits by the window.\n")
+    r = story.reread_original(d)
+    assert r["version"] == 2 and "window" in r["text"] and r["versions"][1]["note"].startswith("Read from the original")
+    assert "window" not in story.status(d, 1)["text"]                 # the first version is untouched
+
+
+def test_a_film_made_from_typed_text_has_no_original_to_read_again(tmp_path):
+    d = story.create(str(tmp_path), "T", "screenplay", "INT. ROOM - DAY\n\nA man waits.\n")["dir"]
+    assert story.status(d)["original"] is None
+    with pytest.raises(SystemExit, match="no original file"):
+        story.reread_original(d)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 (2026-10-10)
+
+- **Fixed: a PDF screenplay was read one word to a line.** The real cause was the PDF reader, not the screen. PDFs are now read by printed line (the layout reader), the dash that came out as a replacement mark is repaired, and a title page is no longer taken for a scene or a speaking character. A film that was read badly shows a notice with **Read the file again**, which makes a new version and leaves the old one untouched.
+- **Fixed: no way back to the storyboard from the timeline view.** The studio's top bar now has **Cards | Timeline** and a **Storyboard** button at the top left, on every window size, and Storyboard takes you straight to the storyboard wall.
+- Tests: title pages, one-word-per-line detection, PDF tidying, reading the original again.
+
 ## 0.4.1 (2026-10-10)
 
 - **Fixed: PULSEFRAME's splash screen sometimes showed on launch.** FilmCrafter had inherited its two opening designs (one of them the music app's "steps" picture, on every other launch). There is now one opening: FilmCrafter's own artwork, with a film strip rolling past and a slow sweep of light. A test keeps the music app's pictures out.
