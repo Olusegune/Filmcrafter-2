@@ -13,7 +13,7 @@ import sys
 import time
 
 MOD = os.path.join(os.environ.get("PROGRAMDATA", r"C:\ProgramData"), "Blackmagic Design", "DaVinci Resolve", "Support", "Developer", "Scripting", "Modules")
-os.environ.setdefault("RESOLVE_SCRIPT_LIB", r"C:\Program Files\Blackmagic Design\DaVinci Resolve\fusionscript.dll")
+os.environ.setdefault("RESOLVE_SCRIPT_LIB", r"C:Program FilesBlackmagic DesignDaVinci Resolveusionscript.dll")
 sys.path.append(MOD)
 import DaVinciResolveScript as dvr  # noqa: E402
 
@@ -61,6 +61,9 @@ def main(folder: str) -> int:
         names = [c.GetName() for c in clips]
         print(f"{label}: imported '{tl.GetName()}': {len(clips)} video clips on {v} track(s), {a} audio track(s), {secs:.1f}s at {fps} fps")
         print("   clips:", ", ".join(names[:8]) + (" …" if len(names) > 8 else ""))
+        if len(set(names)) != len(names):
+            print(f"   !! the same clip name appears more than once: Resolve is not telling the shots apart")
+            ok = False
         if len(clips) != len(expected):
             print(f"   !! expected {len(expected)} clips")
             ok = False

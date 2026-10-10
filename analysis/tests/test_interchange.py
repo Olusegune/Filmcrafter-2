@@ -130,7 +130,16 @@ def test_the_real_opentimelineio_library_reads_the_otio_and_the_edl(film):
     assert tl.name == "Last Train" and len(tl.video_tracks()[0].find_clips()) == placed
     try:
         edl = otio.adapters.read_from_file(os.path.join(out, "Last_Train.edl"), adapter_name="cmx_3600", rate=24)
-    except otio.exceptions.NoKnownAdapterError:
+    except (getattr(otio.exceptions, "NoKnownAdapterError", ()), getattr(otio.exceptions, "NotSupportedError", ())):          # the name differs between versions of the library
         pytest.skip("the CMX 3600 adapter is not installed")
     assert len(edl.video_tracks()[0].find_clips()) == placed
     assert edl.duration().to_frames() == sum(c.duration().to_frames() for c in tl.video_tracks()[0].find_clips())     # the same cut (the OTIO also keeps a gap where a shot has no take yet)
+
+
+def test_the_edl_names_each_clip_after_the_copy_in_the_folder(film):
+    r = X.write(film)
+    out = r["dir"]
+    names = {f for f in os.listdir(os.path.join(out, "media"))}
+    edl_names = [line.split(": ", 1)[1] for line in open(os.path.join(out, [f for f in os.listdir(out) if f.endswith(".edl")][0]), encoding="utf-8").read().splitlines() if line.startswith("* FROM CLIP NAME")]
+    assert edl_names and all(n in names for n in edl_names), (edl_names, names)
+    assert len(set(edl_names)) == len(edl_names)                              # one clip per event, never the same file twice

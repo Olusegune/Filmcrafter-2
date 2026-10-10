@@ -1,14 +1,14 @@
 # Status: what is done, what is partly done, what is not
 
-Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.11.0).
-"Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run against a real provider, a Mac or a professional editor.
+Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.11.1).
+"Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run against a real provider or a Mac; the hand-off has been run in DaVinci Resolve only.
 
 ## What was verified in this release
 
 - Engine: the whole Python suite (about 1,800 tests, including the end-to-end journeys) passes on Windows.
 - Screens: 423 component and logic tests pass; every one of the 40 screen scenes in the screenshot harness opens with no console error or uncaught exception of our own (`PF_QA=1 node scripts/docshots-edge.mjs`).
 - Shell: Rust tests pass; the secrets scan is clean; the command allow-lists in the shell match the engine's choices (a test).
-- Not verified: anything that spends money at a provider, the macOS build, signing, any hand-off file in Resolve or Premiere.
+- Not verified: anything that spends money at a provider, the macOS build, signing, the hand-off in Premiere Pro or Final Cut Pro.
 
 ## Phase 0: architecture and safe reuse
 
@@ -38,7 +38,7 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritt
 | Review versions, choose, lock | Done and tested. |
 | Assemble, basic sound, export | Done and tested with a real FFmpeg export. Sound is one soundtrack file you bring (or silence). |
 | Save, close, reopen, continue | Done at the engine level and tested (a film's whole state is files). |
-| Hand-off | EDL, OpenTimelineIO, Final Cut Pro XML, manifest, subtitles, copied media. The real OpenTimelineIO library reads the `.otio` and the real CMX 3600 adapter reads the `.edl`, with matching cuts (tested). **No professional editor has opened them.** |
+| Hand-off | EDL, OpenTimelineIO, Final Cut Pro XML, manifest, subtitles, copied media. The real OpenTimelineIO library reads the `.otio` and the real CMX 3600 adapter reads the `.edl`, with matching cuts (tested). **Verified in DaVinci Resolve Studio 21.1** (imported through its scripting API: all three files give the six clips and the right length; this found and fixed an EDL naming bug). Not yet tried in Premiere Pro or Final Cut Pro. |
 
 ## Phases 2 to 5
 
@@ -61,7 +61,7 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritt
 ## Known gaps worth fixing next
 
 1. A real run against one provider (a few dollars) on Windows: storyboard, keyframe and video with real models, in three looks, and a filmmaker's approach on a stop-motion film. Needs your provider key.
-2. Open the hand-off files in DaVinci Resolve and Premiere Pro.
+2. Open the hand-off files in Premiere Pro and Final Cut Pro (DaVinci Resolve is verified).
 3. Prove the macOS build and set up signing and notarization (needs a Mac, an Apple Developer account and a Windows certificate).
 4. Finish untangling the music-era code the renderer still imports (onboarding, dance, choreography, voices), then drop the song-first parts of the Studio.
 5. The engine daemon, After Effects and AAF interchange (Phases 3 to 5).

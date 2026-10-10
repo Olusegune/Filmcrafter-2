@@ -77,7 +77,7 @@ def gather(d: str) -> dict:
     return {"rows": rows, "total": t, "soundtrack": st.get("soundtrack", {}), "render_dir": make.render_dir(d)}
 
 
-def edl(title: str, rows: list[dict]) -> str:
+def edl(title: str, rows: list[dict], media_rel: dict[str, str] | None = None) -> str:
     out = [f"TITLE: {title}", "FCM: NON-DROP FRAME", ""]
     n = 0
     for r in rows:
@@ -86,7 +86,8 @@ def edl(title: str, rows: list[dict]) -> str:
         n += 1
         reel = re.sub(r"[^A-Z0-9]", "", r["id"].upper())[:8].ljust(8)
         out.append(f"{n:03d}  {reel} V     C        {tc(0)} {tc(r['frames'])} {tc(r['start'])} {tc(r['start'] + r['frames'])}")
-        out.append(f"* FROM CLIP NAME: {os.path.basename(r['take']['video'] or '')}")
+        clip = os.path.basename((media_rel or {}).get(r["id"]) or r["take"]["video"] or "")          # the name of the copy in the hand-off folder, which is what the editor must find
+        out.append(f"* FROM CLIP NAME: {clip}")
         out.append(f"* COMMENT: {r['id']} scene {r['scene']} {r['framing']}")
         out.append("")
     return "\n".join(out)
@@ -184,7 +185,7 @@ def write(d: str) -> dict:
     w, h = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080), "2.39:1": (1920, 804), "21:9": (1920, 804)}.get(aspect, (1920, 1080))
     files = {}
     with open(os.path.join(out, f"{title}.edl"), "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(edl(pretty, rows))
+        fh.write(edl(pretty, rows, media_rel))
     files["edl"] = f"{title}.edl"
     with open(os.path.join(out, f"{title}.otio"), "w", encoding="utf-8", newline="\n") as fh:
         json.dump(otio(pretty, rows, media_rel, audio_rel, g["total"]), fh, indent=2)

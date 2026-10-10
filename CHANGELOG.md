@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 (2026-10-10)
+
+- **Fixed: the EDL hand-off named every clip after the original file, not the copy in the folder.** DaVinci Resolve could not match them and placed the same clip six times. The EDL now names each clip after its copy in the hand-off folder (found by importing a real hand-off into DaVinci Resolve Studio 21.1). Tested.
+- **The hand-off is now verified in a professional editor.** Resolve Studio 21.1 imports the Final Cut Pro XML, the EDL and the OpenTimelineIO file with the right six clips and the right length. `scripts/resolve_check.py` does this check; it needs Resolve running with External scripting set to Local in Preferences > System > General.
+- The test that reads the hand-off with the real OpenTimelineIO library works with the current library (its EDL reader is now a separate package).
+
 ## 0.11.0 (2026-10-10)
 
 - **A new Home animation: a car chase.** The film strip is gone. Behind the drop card a gold car is chased around a night road by two pursuers while camera rigs follow it: two tripod cameras that pan with it and a drone that flies alongside, each with a viewfinder cone, a line held to the car and a REC light. Drag a screenplay over the card and it speeds up and locks on. With reduced motion it draws one still frame. The road runs around the edge of the card so the words stay clear.
