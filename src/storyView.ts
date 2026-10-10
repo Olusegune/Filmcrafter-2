@@ -12,14 +12,12 @@ export const STORY_KINDS: { id: StoryKind; label: string; blurb: string }[] = [
 export const STORY_EXT = ["txt", "md", "fountain", "text", "pdf", "docx"];
 export const isStoryFile = (path: string) => STORY_EXT.includes(String(path).split(".").pop()!.toLowerCase());
 
-/** The film's stages in the order a film is made. Only the first is built so far; the others are shown so the road ahead is visible. */
+/** The steps of a film, in the order it is made. Making the film (pictures, video, review) is one step: the Studio, seen as cards or as a timeline. */
 export const STAGES: { id: string; label: string; ready: boolean }[] = [
   { id: "story", label: "Story", ready: true },
   { id: "cast", label: "Cast & World", ready: true },
   { id: "shots", label: "Shots", ready: true },
-  { id: "storyboard", label: "Storyboard", ready: true },
-  { id: "make", label: "Make film", ready: true },
-  { id: "review", label: "Review", ready: true },
+  { id: "make", label: "Studio", ready: true },
   { id: "export", label: "Export", ready: true },
 ];
 
@@ -85,16 +83,14 @@ export function storyState(s: { kind: StoryKind; locked: number | null; as_is: n
   return s.kind === "screenplay" ? "Screenplay, not locked yet" : `Still a ${s.kind === "idea" ? "logline or idea" : s.kind}`;
 }
 
-/** A small word under a step along the top: how far along it is. Empty when there is nothing to say yet. */
+/** A small word under a step along the top: how far it is. Empty when there is nothing to say yet. */
 export function stageBadge(id: string, p: import("./api").FilmProgress | null): string {
   if (!p) return "";
   switch (id) {
     case "story": return p.story.locked ? "locked" : "";
-    case "cast": return p.cast.characters + p.cast.places > 0 ? `${p.cast.characters} · ${p.cast.places}` : "";
+    case "cast": return p.cast.characters + p.cast.places > 0 ? `${p.cast.characters} \u00b7 ${p.cast.places}` : "";
     case "shots": return p.shots.count ? String(p.shots.count) : "";
-    case "storyboard": return p.make.shots ? `${p.make.storyboard}/${p.make.shots}` : "";
-    case "make": return p.make.shots ? `${p.make.keyframe}/${p.make.shots}` : "";
-    case "review": return p.make.shots ? `${p.make.video}/${p.make.shots}` : "";
+    case "make": return !p.make.shots ? "" : p.make.video > 0 ? `${p.make.video}/${p.make.shots} video` : p.make.keyframe > 0 ? `${p.make.keyframe}/${p.make.shots} frames` : "";
     case "export": return p.make.video > 0 ? "ready" : "";
     default: return "";
   }
@@ -107,21 +103,17 @@ export function stageDone(id: string, p: import("./api").FilmProgress | null): b
     case "story": return p.story.locked;
     case "cast": return p.cast.characters > 0 && p.cast.style;
     case "shots": return p.shots.count > 0;
-    case "storyboard": return p.make.shots > 0 && p.make.storyboard === p.make.shots;
-    case "make": return p.make.shots > 0 && p.make.keyframe === p.make.shots;
-    case "review": return p.make.shots > 0 && p.make.video === p.make.shots;
+    case "make": return p.make.shots > 0 && p.make.video === p.make.shots;
     default: return false;
   }
 }
 
-const FLOW = ["story", "cast", "shots", "storyboard", "make", "review", "export"];
+const FLOW = ["story", "cast", "shots", "make", "export"];
 const HINT: Record<string, string> = {
   story: "Lock the story when it is final. Everything else is made from it.",
   cast: "Add the people and places, and choose a visual style. Optional: the writing helper can suggest details.",
   shots: "The story is broken into shots you can change.",
-  storyboard: "Make a picture of each shot, choose one and lock it.",
-  make: "Make each shot's hero frame from its storyboard, choose one and lock it.",
-  review: "Bring each shot to life, compare takes and approve one.",
+  make: "Make each shot's picture, choose one, then bring it to life. Switch to Timeline for the full editing studio.",
   export: "Choose a soundtrack, then export the film or hand it to an editor.",
 };
 /** The step before and after this one (Simple mode skips Shots), with what to do here. */

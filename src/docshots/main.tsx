@@ -191,7 +191,7 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
-    case "film_make": return makeStatus;
+    case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : makeStatus;
     case "film_shots": return x.action === "shot" ? { shot: shotContract } : x.action === "suggest" ? shotSuggestion : shotsView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
@@ -250,7 +250,7 @@ const scenes: Record<string, () => ReactNode> = {
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
   studio: () => <Studio project={{ dir: DIR, ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,
-  make: () => <div style={{ width: 1240, height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="storyboard" onTab={noop} /></div>,
+  make: () => <div style={{ width: 1240, height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="keyframe" onTab={noop} /></div>,
   shots: () => <div style={{ width: 1240, height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: 1200, height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,

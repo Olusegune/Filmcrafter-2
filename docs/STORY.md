@@ -65,16 +65,22 @@ Each shot is a **Shot Contract** that doesn't depend on any AI model:
 
 Move, duplicate, split, join and take out shots freely (a shot you take out is moved aside, not deleted). Running the breakdown again only drafts scenes that have no shots; shots you have edited are never changed. A shot whose storyboard is locked can't have its framing, people or place changed until you unlock it.
 
-## Making the film
+## The Studio: one place to make the film
 
-**Storyboard**, **Make film**, **Review** and **Export** along the top open the same workspace, one step at a time.
+Along the top of a film there are five steps: **Story, Cast & World, Shots, Studio, Export**. The **Studio** is where pictures and video are made, and you can see it two ways with the **Cards | Timeline** switch at the top right (or press **‹ Film** in the timeline to go back to the story, cast and shots):
 
-![The storyboard wall: choose a panel, lock it, or use your own](img/film/make.png)
+- **Cards**: a wall of cards, one per shot, with the film strip along the top.
+- **Timeline**: the full editing studio (scenes, cuts, dialogue lane, soundtrack waveform, layers, Supervisor, Review, Lighting, Colour match, Clean up).
 
-1. **Storyboard.** Make a few pictures of each shot's framing (or use your own), choose one and **lock** it. The composition is fixed from here on.
-2. **Keyframes.** The hero frame of each shot is made from the locked storyboard panel, the Cast pictures and the shot's contract. Choose one and **lock** it. A shot's keyframe is only available once its storyboard is chosen.
-3. **Video.** Each shot is brought to life from its locked keyframe (or bring your own video). Compare takes and **approve** the one to use. A shot's video is only available once its keyframe is chosen.
-4. **Sound & export.** Choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film. Shots without a take appear as storyboard cards and the film is marked as a draft.
+![The cards: pictures to choose from and lock, with the film strip across the top](img/film/make.png)
+
+On the cards, three tabs follow the work:
+
+1. **Pictures.** Make a few pictures of each shot, choose one and **lock** it; it is where the video starts. Or use your own picture. A picture needs nothing before it.
+2. **Video.** Each shot is brought to life from its locked picture (or bring your own video). Compare takes and **approve** the one to use. A shot's video is available once its picture is chosen.
+3. **Panels (optional).** A cheaper first pass: a quick picture of each shot's composition. Choose one and lock it, and the picture is then made from it. Skip it if you like.
+
+**Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film or write a hand-off folder for an editor.
 
 **Money.** Every generation shows the provider's price first and waits for your yes. Nothing is made until you press **Make**. Chosen and locked work is never replaced by a new generation. Pictures and video go through the same render engine PULSEFRAME uses: your provider keys, budgets, queues and retries all apply, and a render that was running when you closed the app picks up where it left off.
 

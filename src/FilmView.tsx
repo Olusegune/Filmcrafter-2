@@ -19,14 +19,14 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [writing, setWriting] = useState(false);
   const [scene, setScene] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">(initialStage === "storyboard" ? "make" : "story");        // the studio can bring you back to a step
-  const [makeTab, setMakeTab] = useState<MakeTab>("storyboard");
+  const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">(initialStage === "studio" || initialStage === "storyboard" ? "make" : "story");        // the studio can bring you back to a step
+  const [makeTab, setMakeTab] = useState<MakeTab>(initialStage === "storyboard" ? "storyboard" : "keyframe");
   const [progress, setProgress] = useState<FilmProgress | null>(null);
   const [suggested, setSuggested] = useState<{ text: string; kind: StoryKind } | null>(null);          // the next step the writing helper proposed: opens in the new-version sheet to edit and save
   const [helping, setHelping] = useState(false);
-  const MAKE_STAGE: Record<string, MakeTab> = { storyboard: "storyboard", make: "keyframe", review: "video", export: "deliver" };
+  const MAKE_STAGE: Record<string, MakeTab> = { make: "keyframe", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
-  const activeId = stage === "make" ? Object.keys(MAKE_STAGE).find((k) => MAKE_STAGE[k] === makeTab || (k === "make" && makeTab === "keyframe")) ?? "make" : stage;
+  const activeId = stage === "make" ? (makeTab === "deliver" ? "export" : "make") : stage;
   const reader = useRef<HTMLDivElement>(null);
 
   const load = useCallback((version?: number) =>
@@ -48,7 +48,10 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
 
   if (!f) return <div className="film"><div className="film-load dim">{err || "Opening the film…"}</div></div>;
   const st = f.story;
-  const goStage = (id: string) => { setStage(stageOf(id) as "story" | "cast" | "shots" | "make"); if (id in MAKE_STAGE) setMakeTab(MAKE_STAGE[id]); };
+  const goStage = (id: string) => {
+    setStage(stageOf(id) as "story" | "cast" | "shots" | "make");
+    if (id === "export") setMakeTab("deliver"); else if (id === "make" && makeTab === "deliver") setMakeTab("keyframe");          // Studio keeps the tab you were on; Export is the last one
+  };
   const nb = neighbours(activeId, f.mode === "studio");
   const isScreenplay = f.kind === "screenplay";
   const studio = f.mode === "studio";
@@ -78,7 +81,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
             onClick={async () => { try { await api.shots("get", dir).then(async (v) => { if (!v.shots.length) await api.shots("breakdown", dir); }); const r = await api.make<{ render_dir: string }>("sync", dir); onStudio(r.render_dir); } catch (e) { setErr(errorText(e)); } }}>Timeline</button></div>}
         <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
           {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
-            onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Studio"}</button>)}</div>
+            onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Pro"}</button>)}</div>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
 

@@ -65,8 +65,8 @@ describe("the way from a spark to a film", () => {
   it("has the ladder and the stages in order, and every stage is built", () => {
     expect(LADDER[0]).toBe("Logline"); expect(LADDER[LADDER.length - 1]).toBe("Screenplay");
     expect(ladderAt("logline")).toBe(0); expect(ladderAt("Screenplay")).toBe(5); expect(ladderAt("nonsense")).toBe(0);
-    expect(STAGES.map((s) => s.label)).toEqual(["Story", "Cast & World", "Shots", "Storyboard", "Make film", "Review", "Export"]);
-    expect(STAGES.filter((s) => s.ready).map((s) => s.id)).toEqual(["story", "cast", "shots", "storyboard", "make", "review", "export"]);
+    expect(STAGES.map((s) => s.label)).toEqual(["Story", "Cast & World", "Shots", "Studio", "Export"]);
+    expect(STAGES.filter((s) => s.ready).map((s) => s.id)).toEqual(["story", "cast", "shots", "make", "export"]);
   });
 });
 
@@ -104,6 +104,10 @@ describe("the Home film strip", () => {
   });
 });
 
+
+import { neighbours, stageBadge, stageDone, stageLabel } from "../storyView";
+import type { FilmProgress } from "../api";
+
 describe("the script reader keeps its width", () => {
   it("is centred by padding, not by auto margins (an auto margin on a flex child shrank a long script to one word per line)", () => {
     const css = readFileSync("src/film.css", "utf8");
@@ -114,29 +118,36 @@ describe("the script reader keeps its width", () => {
   });
 });
 
-import { neighbours, stageBadge, stageDone, stageLabel } from "../storyView";
-import type { FilmProgress } from "../api";
-
 describe("progress along the top", () => {
   const p = (over: Partial<FilmProgress> = {}): FilmProgress => ({ story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 11, places: 7, pictures: 0, style: true }, shots: { count: 48, edited: 0 },
     make: { shots: 48, storyboard: 12, keyframe: 0, video: 0 }, ...over });
   it("says how far each step is, and nothing before there is something to say", () => {
-    expect(stageBadge("story", p())).toBe("locked"); expect(stageBadge("cast", p())).toBe("11 · 7"); expect(stageBadge("storyboard", p())).toBe("12/48");
-    expect(stageBadge("make", p())).toBe("0/48"); expect(stageBadge("export", p())).toBe(""); expect(stageBadge("export", p({ make: { shots: 48, storyboard: 48, keyframe: 48, video: 3 } }))).toBe("ready");
-    expect(stageBadge("story", null)).toBe(""); expect(stageBadge("cast", p({ cast: { characters: 0, places: 0, pictures: 0, style: false } }))).toBe("");
+    expect(stageBadge("story", p())).toBe("locked");
+    expect(stageBadge("cast", p())).toBe("11 · 7");
+    expect(stageBadge("make", p())).toBe("");
+    expect(stageBadge("make", p({ make: { shots: 48, storyboard: 0, keyframe: 12, video: 0 } }))).toBe("12/48 frames");
+    expect(stageBadge("make", p({ make: { shots: 48, storyboard: 0, keyframe: 48, video: 3 } }))).toBe("3/48 video");
+    expect(stageBadge("export", p())).toBe("");
+    expect(stageBadge("export", p({ make: { shots: 48, storyboard: 48, keyframe: 48, video: 3 } }))).toBe("ready");
+    expect(stageBadge("story", null)).toBe("");
+    expect(stageBadge("cast", p({ cast: { characters: 0, places: 0, pictures: 0, style: false } }))).toBe("");
   });
   it("marks a step done only when it really is", () => {
-    expect(stageDone("story", p())).toBe(true); expect(stageDone("storyboard", p())).toBe(false);
-    expect(stageDone("storyboard", p({ make: { shots: 48, storyboard: 48, keyframe: 0, video: 0 } }))).toBe(true);
+    expect(stageDone("story", p())).toBe(true);
+    expect(stageDone("make", p())).toBe(false);
+    expect(stageDone("make", p({ make: { shots: 48, storyboard: 0, keyframe: 48, video: 48 } }))).toBe(true);
     expect(stageDone("cast", p({ cast: { characters: 3, places: 1, pictures: 0, style: false } }))).toBe(false);
     expect(stageDone("export", p())).toBe(false);
   });
   it("knows the step before and after, skipping Shots in Simple mode, and what to do here", () => {
     expect(neighbours("story", false)).toMatchObject({ prev: null, next: "cast" });
-    expect(neighbours("cast", false).next).toBe("storyboard"); expect(neighbours("cast", true).next).toBe("shots");
-    expect(neighbours("export", true)).toMatchObject({ next: null, prev: "review" });
+    expect(neighbours("cast", false).next).toBe("make");
+    expect(neighbours("cast", true).next).toBe("shots");
+    expect(neighbours("make", true)).toMatchObject({ prev: "shots", next: "export" });
+    expect(neighbours("export", true)).toMatchObject({ next: null, prev: "make" });
     expect(neighbours("story", true).hint).toMatch(/Lock the story/);
     expect(neighbours("nope", true)).toEqual({ prev: null, next: null, hint: "" });
-    expect(stageLabel("make")).toBe("Make film");
+    expect(stageLabel("make")).toBe("Studio");
   });
 });
+

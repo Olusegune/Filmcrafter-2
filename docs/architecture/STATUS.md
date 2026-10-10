@@ -42,7 +42,7 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, updated
 | Local models (Ollama, LM Studio, ComfyUI) | The routing and local-first logic of the render engine are inherited and untouched; nothing film-specific was added or tested. |
 | Capability-driven model registry | Inherited (`router.py` plus provider manifests); not converted to a data-only registry. |
 | Director Command | Done as a set of plain phrases (Ctrl+K in Shots), shown before it is applied. It does not use a language model. |
-| Simple and Studio modes | Done (same film; Studio shows the Shots workspace). |
+| Simple and Pro modes | Done (same film; Pro shows the Shots workspace). |
 | Interchange for After Effects, AAF, stems | Not done. |
 | FrameCore shared package | Not started. |
 
@@ -52,6 +52,10 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, updated
 - **Cards | Timeline** toggle on the same film (the two views of the same shots; the picks are shared through the render project).
 - **Film strip** in the film workspace: drag a block's edge to change a shot's length, drag a block to reorder; changes are written to the shots (arithmetic tested; the drag was not tried by hand).
 - Song-first parts hidden on a film (Autopilot, Direct My Video, song guide and tour, tempo, Who sings, dance direction).
+
+## Consolidation (0.6.0)
+
+The film workspace had grown a second making-the-film flow (Storyboard, Make film, Review) beside the studio. They are now one **Studio** step seen as **Cards | Timeline**, with Pictures, Video and optional Panels on the cards, and Export as its own step. Five steps: Story, Cast & World, Shots, Studio, Export.
 
 ## Known gaps worth fixing next
 

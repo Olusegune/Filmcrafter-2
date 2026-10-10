@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 (2026-10-10)
+
+- **One Studio instead of three steps.** The steps are now **Story, Cast & World, Shots, Studio, Export**. Making the film (pictures, video, review) is one place seen two ways, **Cards | Timeline**; the separate Storyboard, Make film and Review steps are gone.
+- **Panels are optional.** The cards have **Pictures** (first), **Video**, and **Panels (optional)**. A picture no longer needs a storyboard panel first; a video still needs its picture.
+- **Export is its own step** (soundtrack, export, hand-off to an editor).
+- The studio's top bar has **Cards | Timeline** and **‹ Film**; the separate amber Storyboard button is gone.
+
 ## 0.5.1 (2026-10-10)
 
 - **Fixed: the Storyboard button in the studio went Home.** The path pattern that finds a film from its render folder only understood forward slashes, and Windows paths use backslashes. It is now one tested helper for both (`filmPaths.ts`), also used when a `.filmcrafter` document is opened.
@@ -50,7 +57,7 @@ The first version that takes a film from a screenplay to an exported file.
 - **Making the film:** storyboard panels, hero keyframes and video through the proven render engine, with choose and lock at each stage, your own pictures and video, a soundtrack, and export. Every generation shows its price and waits for a yes.
 - **Continuity Director:** advisory findings ("may have changed") with reasons; your decisions are kept.
 - **Hand-off:** EDL, OpenTimelineIO, Final Cut Pro XML, shot manifest, subtitles, copied takes and soundtrack.
-- **Simple and Studio** modes on the same film; **Director Command** (Ctrl+K) for plain phrases about a shot.
+- **Simple and Pro** modes on the same film; **Director Command** (Ctrl+K) for plain phrases about a shot.
 - New app icon from the FilmCrafter mark.
 - Tests: 90 new engine tests including a whole film from screenplay to export with no provider and no spend.
 

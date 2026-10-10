@@ -7,10 +7,10 @@ import { FilmStrip } from "./FilmStrip";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
 const TABS: { id: MakeTab; label: string; blurb: string }[] = [
-  { id: "storyboard", label: "Storyboard", blurb: "A picture of each shot's framing. Choose one, then lock it: the composition is fixed from here on." },
-  { id: "keyframe", label: "Keyframes", blurb: "The hero frame of each shot, made from the approved storyboard. Choose one, then lock it: it is where the video starts." },
-  { id: "video", label: "Video", blurb: "Each shot brought to life from its locked keyframe. Compare takes and approve the one to use." },
-  { id: "deliver", label: "Sound & export", blurb: "The soundtrack, then the finished film." },
+  { id: "keyframe", label: "Pictures", blurb: "The picture each shot starts from. Make a few, choose one and lock it: it is where the video starts. Or use your own." },
+  { id: "video", label: "Video", blurb: "Each shot brought to life from its locked picture. Compare takes and approve the one to use." },
+  { id: "storyboard", label: "Panels (optional)", blurb: "A cheaper first pass: a quick picture of each shot's composition. Choose one and lock it, and the picture is then made from it. Skip this if you like." },
+  { id: "deliver", label: "Export", blurb: "The soundtrack, then the finished film or a hand-off to an editor." },
 ];
 const NOUN = { storyboard: "storyboard panel", keyframe: "keyframe", video: "video" } as const;
 const PRESETS: [string, string][] = [["youtube", "YouTube 16:9"], ["cinema", "Cinema 2.39:1"], ["vertical", "Vertical 9:16"], ["square", "Square 1:1"], ["preview", "Quick preview"]];
@@ -41,7 +41,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
           if (autoBreakdown && /no shots yet/i.test(errorText(e))) { await api.shots("breakdown", dir); await api.make("sync", dir); } else throw e;
         }
         if (live) void load();
-      } catch (e) { if (live) setErr(errorText(e) + (/no shots yet/i.test(errorText(e)) ? " Open Shots (Studio mode) and break the story down." : "")); }
+      } catch (e) { if (live) setErr(errorText(e) + (/no shots yet/i.test(errorText(e)) ? " Open Shots (Pro mode) and break the story down." : "")); }
     })();
     return () => { live = false; };
   }, [dir, load, autoBreakdown]);
@@ -106,8 +106,8 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   return (
     <div className="mk">
       <div className="mk-head">
-        <div className="cw-tabs" role="tablist">{TABS.map((x) => <button key={x.id} role="tab" aria-selected={tab === x.id} className={tab === x.id ? "on" : ""} onClick={() => onTab(x.id)}>{x.label}
-          {x.id !== "deliver" && <span className="dim"> {st.counts[x.id]}/{st.counts.shots}</span>}</button>)}</div>
+        {tab !== "deliver" ? <div className="cw-tabs" role="tablist">{TABS.filter((x) => x.id !== "deliver").map((x) => <button key={x.id} role="tab" aria-selected={tab === x.id} className={tab === x.id ? "on" : ""} onClick={() => onTab(x.id)}>{x.label}
+          <span className="dim"> {st.counts[x.id as "storyboard" | "keyframe" | "video"]}/{st.counts.shots}</span></button>)}</div> : <h2 className="mk-title">Export</h2>}
         <div style={{ flex: 1 }} />
         {st.active > 0 && <span className="mk-active" role="status">Making {st.active}…</span>}
       </div>
@@ -151,14 +151,14 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
 
 const done = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage === "video" ? !!s.video.takes.find((x) => x.ok) : !!s[stage].chosen || s[stage].options.some((o) => o.ok || ["queued", "submitting", "submitted"].includes(o.state));
 /** A stage is open for a shot once the one before it has a choice. */
-const ready = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage === "storyboard" ? true : stage === "keyframe" ? !!s.storyboard.chosen : !!s.keyframe.chosen;
+const ready = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage === "video" ? !!s.keyframe.chosen : true;      // a video needs its picture; a picture needs nothing (panels are optional)
 
 function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { dir: string; rd: string; stage: "storyboard" | "keyframe" | "video"; s: MakeShot; busy: boolean;
   onMake: (variants: number) => void; onBring: () => void; onChoose: (job: string) => void; onLock: (on: boolean) => void }) {
   void dir;
   const url = (rel: string | null) => (rel ? api.mediaUrl(`${rd}/${rel}`) : "");
   const open_ = stage === "video" ? s.video.takes.some((t) => ["queued", "submitting", "submitted"].includes(t.state)) : s[stage].options.some((o) => ["queued", "submitting", "submitted"].includes(o.state));
-  const gate = !ready(s, stage) ? (stage === "keyframe" ? "Choose a storyboard panel first." : "Choose a keyframe first.") : "";
+  const gate = !ready(s, stage) ? "Choose a picture first." : "";
   const locked = stage !== "video" && s[stage].locked;
   const chosenVideo = s.video.takes.find((t) => t.approved && t.ok) ?? s.video.takes.find((t) => t.ok);
   const preview = stage === "video" ? chosenVideo?.video ?? null : s[stage].chosen;
