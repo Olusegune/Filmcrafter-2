@@ -61,6 +61,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
         <h1>CRAFT STORIES<br />INTO CINEMA</h1>
         <div className={`dropcard story ${over ? "over" : ""}`}>
           <FilmReel active={over} />
+          <div className="home-steps" aria-hidden="true"><span>Story</span><i /><span>Shots</span><i /><span>Film</span><div className="home-steps-line"><b /></div></div>
           <div className="big">Drop a screenplay here</div>
           <div className="home-cta-row">
             <Cta icon={<Sparkle size={18} />} onClick={() => onNewFilm()} title="Start a film from a screenplay, a logline, a synopsis, a treatment or a scene outline">New film</Cta>

@@ -1,7 +1,7 @@
 # Status: what is done, what is partly done, what is not
 
-Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.11.1).
-"Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run against a real provider or a Mac; the hand-off has been run in DaVinci Resolve only.
+Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.12.0).
+"Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run on a Mac; the hand-off has been run in DaVinci Resolve only; one real provider run (Kie.ai) has been made, described below.
 
 ## What was verified in this release
 
@@ -33,7 +33,7 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritt
 | Story development ladder (logline to screenplay) | **Done with the writing helper.** The ladder is shown; *Write it for me* drafts the next step (price first) and opens it in the new-version sheet for you to edit. |
 | Production Bible, characters, places, props, states, pictures | Done and tested. **Look:** six kinds of film and about 100 looks, a genre feel layered on top, the twelve principles of animation. Character pictures are the ones you bring; making pictures of characters from descriptions is not wired into the film workflow. |
 | Breakdown into shots, Shot Contracts, acting, camera, light | Done and tested. The breakdown is a rule-based first pass; camera and light suggestions are rule-based with reasons; the writing helper can suggest acting, camera and light for a shot (price first). Each shot shows the animation principles it will carry. |
-| Storyboard, keyframes, video generation | Wired through the render engine with prices shown and confirmed; tested end to end with locally made pictures and clips. **Not tried against a real provider.** The look leads every prompt, with a style lock, a genre layer, the filmmaker's approach and the animation principles; the prompt text is tested, how a real model obeys it is not known. |
+| Storyboard, keyframes, video generation | Wired through the render engine with prices shown and confirmed; tested end to end with locally made pictures and clips, and **run once against a real provider (Kie.ai, 2026-10-10)**: 7 pictures in five looks and one 4-second video, about $0.96. The looks were distinct, the blocking held, and the video stayed on-model; the run found and fixed two bugs (no-reference pictures, captions drawn from quoted speech). Not yet run: fal, Google or OpenAI as the picture or video provider, a multi-shot film, shots with character pictures, and the hands and faces check with a real vision model. The look leads every prompt, with a style lock, a genre layer, the filmmaker's approach and the animation principles; the prompt text is tested, how a real model obeys it is not known. |
 | Hands, bodies and faces check on chosen pictures | Done: *Check hands & faces* (price first), a flag on the card, and a question before locking or making video from a flagged picture. Tested at the engine level and in the screens; not run with a real vision model. |
 | Review versions, choose, lock | Done and tested. |
 | Assemble, basic sound, export | Done and tested with a real FFmpeg export. Sound is one soundtrack file you bring (or silence). |
@@ -60,7 +60,7 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritt
 
 ## Known gaps worth fixing next
 
-1. A real run against one provider (a few dollars) on Windows: storyboard, keyframe and video with real models, in three looks, and a filmmaker's approach on a stop-motion film. Needs your provider key.
+1. Wider real runs: a whole short film (several shots, character pictures, continuity), the other providers, and the hands and faces check with a real vision model.
 2. Open the hand-off files in Premiere Pro and Final Cut Pro (DaVinci Resolve is verified).
 3. Prove the macOS build and set up signing and notarization (needs a Mac, an Apple Developer account and a Windows certificate).
 4. Finish untangling the music-era code the renderer still imports (onboarding, dance, choreography, voices), then drop the song-first parts of the Studio.

@@ -9,11 +9,11 @@ import { Check, Close } from "./icons";
 
 const PROVIDERS: { id: keyof KeyStatus; name: string; purpose: string }[] = [
   { id: "kie", name: "Kie.ai", purpose: "Video, images and upscaling · the first choice: most models, lowest prices" },
-  { id: "openai", name: "OpenAI", purpose: "Director Engine: treatment, shot planning and direction" },
-  { id: "openrouter", name: "OpenRouter", purpose: "One key for hundreds of cheaper AI models for planning, directing and reviews (pick it under AI brain)" },
+  { id: "openai", name: "OpenAI", purpose: "The writing helper and picture checks: story steps, shot suggestions, hands and faces" },
+  { id: "openrouter", name: "OpenRouter", purpose: "One key for hundreds of cheaper AI models for the writing helper and picture checks (pick it under AI brain)" },
   { id: "fal", name: "fal.ai", purpose: "Video, images and upscaling" },
   { id: "google", name: "Google Gemini", purpose: "Veo video and Nano Banana images, direct from Google" },
-  { id: "elevenlabs", name: "ElevenLabs", purpose: "Voices for spoken scenes, and songs from Eleven Music" },
+  { id: "elevenlabs", name: "ElevenLabs", purpose: "Voices for spoken scenes" },
 ];
 
 /** Keys go straight to the Windows Credential Manager / macOS Keychain; they never touch project files. */
@@ -331,7 +331,7 @@ function BrainPanel({ openaiKey, openrouterKey }: { openaiKey: boolean; openrout
   return (
     <div className="field brain-panel">
       <label style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>AI brain <span className="opt">Plans, directs, choreographs and reviews · renders still use fal / Kie / Google</span></span>
+        <span>AI brain <span className="opt">Writes suggestions and checks pictures · pictures and video still come from Kie / fal / Google</span></span>
         <span className="status-ok">{BRAINS.find((x) => x.id === b.provider)!.name}{local && b.model ? ` · ${b.model}` : ""}</span>
       </label>
       <div className="seg" role="radiogroup" aria-label="AI brain" style={{ marginBottom: 8 }}>

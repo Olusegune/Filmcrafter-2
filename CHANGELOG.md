@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0 (2026-10-10)
+
+- **A real provider test, and what it fixed.** The same shot was made on Kie.ai in photoreal, 3D, 2D hand-drawn and two stop-motion versions (one with Ryan Coogler's approach applied), plus a 4-second video: 7 pictures and 1 video, about $0.96. The looks came out clearly distinct, the over-the-shoulder blocking held in every picture, and the video stayed on-model (same people, same set, same positions). It also found two real problems, both fixed:
+  - **A film with no pictures yet could not make its first picture.** The automatic picture models are editing models that need a reference ("Needs an image for image_urls"). With no reference at all, the same family's text-to-picture model (nano-banana) now draws it from the words; nothing is sent twice and nothing was charged for the refusals.
+  - **Subtitles were drawn into the pictures.** The prompt quoted the spoken lines ("They speak: Sarah: He said he would call."), and models draw quoted speech as a caption. The prompt now says who is speaking, never the words; the lines still reach video through the dialogue lane.
+- **A new Home animation: the director's board.** A blueprint grid, an orbit with two cameras riding it and sweeping their cones across the room, four storyboard frames that flash as a camera takes them in, a timeline with a moving playhead, a STORY - SHOTS - FILM step line and four viewfinder corners. Drag a screenplay over it and it quickens and glows. Still with reduced motion. (It replaces the car chase.)
+- **The Connections sheet speaks film.** OpenAI is "the writing helper and picture checks", OpenRouter likewise, ElevenLabs is "voices for spoken scenes"; the leftover "Director Engine", "planning, directing" and "songs from Eleven Music" wording is gone.
+- Tests: the text-only model choice, the swap in a real render job, the prompt never quoting speech, the board's arithmetic.
+
 ## 0.11.1 (2026-10-10)
 
 - **Fixed: the EDL hand-off named every clip after the original file, not the copy in the folder.** DaVinci Resolve could not match them and placed the same clip six times. The EDL now names each clip after its copy in the hand-off folder (found by importing a real hand-off into DaVinci Resolve Studio 21.1). Tested.

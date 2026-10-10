@@ -224,3 +224,13 @@ def test_progress_on_a_fresh_film_with_no_shots_is_all_zero(tmp_path):
     d = story.create(str(tmp_path), "T", "screenplay", SCRIPT)["dir"]
     p = make.progress(d)
     assert p["shots"]["count"] == 0 and p["make"]["video"] == 0 and p["cast"]["characters"] == 0 and p["story"]["locked"] is False
+
+
+def test_the_prompt_says_who_speaks_but_never_quotes_the_words(film):
+    r = make.sync(film)
+    plan = json.load(open(os.path.join(r["render_dir"], "production.json")))
+    spoken = [s for sc in plan["scenes"] for s in sc["shots"] if "speaking" in s["visual_prompt"] or "talking" in s["visual_prompt"]]
+    assert spoken
+    for sh in spoken:
+        assert "He said he would call" not in sh["visual_prompt"] and "Did you say something" not in sh["visual_prompt"]
+        assert "They speak:" not in sh["visual_prompt"]

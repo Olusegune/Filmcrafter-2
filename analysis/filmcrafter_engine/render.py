@@ -436,6 +436,16 @@ GOOGLE_MODELS = [
     ("gemini-3.1-flash-image", "image"), ("gemini-3-pro-image", "image"), ("gemini-3.1-flash-lite-image", "image"),
 ]
 
+# The automatic picture models are editing models: they redraw reference pictures, so they need one. A film that has no pictures yet (no character art, nothing chosen before) would be refused,
+# so with no reference at all the same family's text-to-picture model is used instead (found in a real run against Kie.ai: "Needs an image for image_urls").
+TEXT_ONLY_SIBLING = {"google/nano-banana-edit": "google/nano-banana", "fal-ai/nano-banana/edit": "fal-ai/nano-banana"}
+
+
+def text_only_model(model: str, has_references: bool) -> str:
+    """The model to draw a picture with: the same one when there is a reference to edit, its text-to-picture sibling when there is none."""
+    return model if has_references else TEXT_ONLY_SIBLING.get(model, model)
+
+
 def default_model(provider: str, kind: str = "video") -> str:
     """The Auto model for a provider (ComfyUI: your first workflow of that kind)."""
     if provider == "comfyui":
@@ -2292,6 +2302,12 @@ def _submit(d: str, store: Store, project: dict, p, j: dict) -> None:
             ref_files = [r for r in ref_files if not r.get("sheet")]
         ref_files, _ = library.fit_to_model(ref_files, ref_limits(man, bool(kf)))
     refs = [] if j.get("kind") == "lipsync" else _uploaded(d, p, ref_files)
+    if j.get("kind") == "image" and not refs and not hf:
+        sib = text_only_model(j["model"], False)
+        if sib != j["model"]:                                       # nothing to edit: draw it from the words alone, on the same family's text model
+            man = manifest(j["provider"], sib)
+            emit(event="progress", stage=f"{j['shot_id']}: no reference picture yet, so {sib.split('/')[-1]} draws it from the words")
+            store.update(j, model=sib, swapped_from=j["model"])
     if j.get("kind") == "lipsync":
         src = next((x for x in store.jobs if x["id"] == j.get("source_job")), None)
         if not src or not src.get("output"):

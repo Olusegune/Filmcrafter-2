@@ -459,3 +459,17 @@ def test_http_errors_from_client_libraries_are_explained():
     said, status = R.http_detail(HTTPStatusError("Client error '403 Forbidden' for url 'https://rest.fal.ai/storage/auth/token'"))
     assert status == 403 and "Exhausted balance" in said and R.classify_error(said, status) == "credits"
     assert R.http_detail(ValueError("plain"))[1] is None
+
+
+def test_a_picture_with_no_reference_uses_the_text_only_model_of_the_same_family(project, fake, monkeypatch):
+    assert R.text_only_model("google/nano-banana-edit", True) == "google/nano-banana-edit"
+    assert R.text_only_model("google/nano-banana-edit", False) == "google/nano-banana"
+    assert R.text_only_model("fal-ai/nano-banana/edit", False) == "fal-ai/nano-banana"
+    assert R.text_only_model("some/other-model", False) == "some/other-model"
+    seen = []
+    monkeypatch.setattr(R, "manifest", lambda provider, model, refresh=False: (seen.append(model), R._finish("fal", model, "Picture", "text-to-image", [field("prompt", required=True)]))[1])
+    R.enqueue(project, ["S01-01"], "fal", "google/nano-banana-edit", {"_variants": 1}, [], "image")
+    R.run(project, poll_every=0)
+    j = R.Store(project).jobs[0]
+    assert j["model"] == "google/nano-banana" and j["swapped_from"] == "google/nano-banana-edit" and j["state"] == "ready"
+    assert "google/nano-banana" in seen

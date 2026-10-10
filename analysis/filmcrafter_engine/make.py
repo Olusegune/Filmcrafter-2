@@ -108,7 +108,9 @@ def _visual(c: dict) -> str:
     who = ", ".join(x["name"].title() for x in c["characters"])
     say = ""
     if c["dialogue"]:
-        say = " They speak: " + " ".join(f"{x['speaker'].title()}: {x['line']}" for x in c["dialogue"][:3])
+        # who is speaking, never the words: a picture or video model draws quoted speech as a caption (found in a real run). The lines themselves reach video through the dialogue lane.
+        speakers = list(dict.fromkeys(x["speaker"].title() for x in c["dialogue"][:6] if x.get("speaker")))
+        say = (" " + " and ".join(speakers) + (" are talking, taking turns." if len(speakers) > 1 else " is speaking.")) if speakers else " Someone is speaking."
     place = f" In {c['environment']['name']}." if c["environment"].get("name") else ""
     return (f"{what}{' ' if what and not what.endswith(('.', '!', '?')) else ''}{('People: ' + who + '.') if who else ''}{place}{say}").strip()
 
