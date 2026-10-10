@@ -1,7 +1,7 @@
 /** The arithmetic of the film strip: shots as blocks along a time ruler, a drag on a block's right edge changing its length, a drag of the block changing its place. No screen code. */
 export const MIN_SECONDS = 1;
 export const MAX_SECONDS = 30;
-export const MIN_BLOCK_PX = 44;
+export const MIN_BLOCK_PX = 76;
 
 export type Block = { id: string; left: number; width: number; seconds: number };
 

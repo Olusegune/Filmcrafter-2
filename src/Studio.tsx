@@ -909,6 +909,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "video", label: "Video", icon: <I.Clapper size={16} /> },
   { id: "media", label: "Media", icon: <I.Upload size={16} /> },
 ];
+const ADVANCED: Tab[] = ["frames", "media"];
 const TAB_KEY = "pf-inspector-tab";
 const storedTab = (): Tab => { try { const t = localStorage.getItem(TAB_KEY); return TABS.some((x) => x.id === t) ? (t as Tab) : "keyframe"; } catch { return "keyframe"; } };
 
@@ -917,6 +918,8 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
 }) {
   const [tab, setTabState] = useState<Tab>(storedTab);
   const [dockEl, setDockEl] = useState<HTMLElement | null>(null);
+  const [adv, setAdv] = useState(() => { try { return localStorage.getItem("pf-inspector-adv") === "1"; } catch { return false; } });          // Compose and Media (prompt, references, start and end frames, your own media) are Advanced
+  const toggleAdv = () => setAdv((v) => { try { localStorage.setItem("pf-inspector-adv", v ? "0" : "1"); } catch { /* a convenience only */ } return !v; });
   const setTab = (t: Tab) => { setTabState(t); try { localStorage.setItem(TAB_KEY, t); } catch { /* remembering the tab is a convenience only */ } };
   useEffect(() => {   // the Golden Path strip can open a tab for you
     const h = (e: Event) => { const t = (e as CustomEvent).detail as Tab; if (TABS.some((x) => x.id === t)) setTab(t); };
@@ -930,13 +933,14 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
       <div className="inspector-head"><span className="t num">Shot {s.id}</span>
         <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
       <div className="insp-tabs" role="tablist" aria-label="Shot sections">
-        {TABS.map((t) => {
+        {TABS.filter((t) => adv || !ADVANCED.includes(t.id) || t.id === tab).map((t) => {
           const b = t.id === "shot" ? "" : tabs.badges[t.id as "keyframe" | "frames" | "video" | "media"];
           return (
             <button key={t.id} role="tab" data-tab={t.id} aria-selected={tab === t.id} className={`insp-tab ${tab === t.id ? "on" : ""}`} onClick={() => setTab(t.id)}>
               {t.icon}<span>{t.label}</span>{b ? <i className={`tab-dot ${b}`} title={b === "ok" ? "Done" : b === "busy" ? "Working" : "Needs a look"} /> : null}
             </button>);
         })}
+        <button className="insp-adv" aria-expanded={adv} onClick={toggleAdv} title="Prompt, references, start and end frames, and your own media. Most shots never need them.">{adv ? "Fewer" : "Advanced"}</button>
       </div>
       <div className="inspector-body">
         <div hidden={tab !== "shot"}>

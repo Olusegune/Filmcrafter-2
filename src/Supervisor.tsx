@@ -32,6 +32,7 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
   const [l, setL] = useState<Listing | null>(null);
   const [show, setShow] = useState<"open" | "all">("open");
   const [sev, setSev] = useState<"all" | "major" | "minor" | "info">("all");
+  const [focus, setFocus] = useState<string | null>(null);          // one shot, picked from the strip
   const [busy, setBusy] = useState("");
   const [card, setCard] = useState(false);
   const [err, setErr] = useState("");
@@ -106,6 +107,14 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
   };
 
   const items = (l?.items ?? []).filter((i) => (show === "all" || ["open", "failed"].includes(i.status)) && (sev === "all" || i.severity === sev));
+  const rank = { major: 0, minor: 1, info: 2 } as const;
+  const SEV = ["major", "minor", "info"] as const;
+  const byShot = new Map<string, Item[]>();
+  items.forEach((i) => byShot.set(i.shot, [...(byShot.get(i.shot) ?? []), i]));
+  const cards = [...byShot].map(([shot, its]) => ({ shot, its, worst: Math.min(...its.map((i) => rank[i.severity] ?? 2)) })).sort((a, b) => a.worst - b.worst || a.shot.localeCompare(b.shot));
+  const shown = focus ? cards.filter((c) => c.shot === focus) : cards;
+  const bg = (shot: string) => (pictureOf(shot) ? { backgroundImage: `url("${pictureOf(shot)}")` } : undefined);
+  const tile = (k: "major" | "minor" | "info", label: string, n: number) => <button key={k} className={`sx-tile ${k} ${sev === k ? "on" : ""}`} aria-pressed={sev === k} onClick={() => setSev(sev === k ? "all" : k)}><b className="num">{n}</b><span>{label}</span></button>;
   const cost = (e: Estimate | null, i_kind: string) => i_kind === "lipsync" ? "priced by the second of video (about $0.13 per second on fal)" : !e ? "Price unknown" : e.usd != null ? `≈ $${e.usd.toFixed(2)}` : e.kie_credits_est ? `≈ ${e.kie_credits_est} Kie credits` : `price not published (the budget counts it as $${i_kind === "image" ? "0.25" : "1.00"})`;
   return (
     <div className="overlay" onClick={onClose}>
@@ -113,22 +122,24 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
         <div className="vs-head"><h2>Production Supervisor</h2><div style={{ flex: 1 }} />
           <button className="btn ghost small" onClick={load}>Refresh</button>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">Every quality finding in one place: take reviews, keyframe checks, continuity, failed renders and shots still
-          missing. Decide each one. Fix re-renders with the finding's correction; Regenerate re-renders as planned. Both show the price first
-          and follow the project's mode and budget. Nothing is ever re-rendered without you.</p>
-        <DirectorChanges dir={dir} onChanged={onChanged} picture={pictureOf} />
-        {l && <div className={`sup-summary ${l.summary.ready ? "ready" : ""}`}>
-          {l.summary.ready ? <><I.Check size={16} /> <b>Release ready:</b> no open major findings.</> :
-            <><I.Alert size={16} /> <b>{l.summary.major} major</b> finding{l.summary.major === 1 ? "" : "s"} to decide before release.</>}
-          <span className="dim">{l.summary.minor} minor · {l.summary.info} notes · {l.summary.decided} decided</span>
+        <p className="sub">Every quality finding, shot by shot. Fix re-renders with the correction; Regenerate re-renders as planned. Both show the price first, and nothing is re-rendered without you.</p>
+        {l && <div className="sx-top">
+          <div className={`sx-state ${l.summary.ready ? "ready" : ""}`}>{l.summary.ready ? <><I.Check size={16} /> <b>Release ready</b><span className="dim">no open major findings</span></> : <><I.Alert size={16} /> <b>Not ready</b><span className="dim">decide the major findings first</span></>}</div>
+          <div className="sx-tiles">{tile("major", "Major", l.summary.major)}{tile("minor", "Minor", l.summary.minor)}{tile("info", "Notes", l.summary.info)}
+            <button className={`sx-tile done ${show === "all" ? "on" : ""}`} aria-pressed={show === "all"} onClick={() => setShow(show === "all" ? "open" : "all")} title="Show decided findings too"><b className="num">{l.summary.decided}</b><span>Decided</span></button></div>
         </div>}
+        {cards.length > 1 && <div className="sx-strip" role="group" aria-label="Shots with findings">
+          <button className={`sx-chip all ${focus ? "" : "on"}`} onClick={() => setFocus(null)}>All shots <span className="num">{cards.length}</span></button>
+          {cards.map((c) => <button key={c.shot} className={`sx-chip sev-${SEV[c.worst]} ${focus === c.shot ? "on" : ""}`} onClick={() => setFocus(focus === c.shot ? null : c.shot)} title={`${c.shot}: ${c.its.length} finding${c.its.length === 1 ? "" : "s"}`}>
+            <span className="sx-thumb" style={bg(c.shot)} /><span className="num">{c.shot}</span><i>{c.its.length}</i></button>)}</div>}
         <div className="sup-batches">
           {stale.length > 0 && <div className="sup-batch">
             <span><b>{stale.length} video{stale.length === 1 ? "" : "s"}</b> made from an older keyframe: {stale.map((i) => i.shot).join(", ")}</span>
             <button className="btn small" disabled={!!busy} onClick={() => priceBatch("stale", `Re-render ${stale.length} videos from their new keyframes`, stale.map((i) => i.id),
               stale.map((i) => i.shot), "video", "regenerate")}>Re-render these</button></div>}
           {(l?.groups ?? []).slice(0, 6).map((g) => <div key={g.id} className="sup-batch">
-            <span>Scene {g.scene} · <b>{g.title}</b> in {g.shots.length} shots ({g.shots.join(", ")})</span>
+            <span className="sx-stack" aria-hidden="true">{g.shots.slice(0, 4).map((x) => <i key={x} style={bg(x)} />)}</span>
+            <span>Scene {g.scene} · <b>{g.title}</b> in {g.shots.length} shots <span className="dim">({g.shots.join(", ")})</span></span>
             <button className="btn small ghost" disabled={!!busy} onClick={() => priceBatch(g.id, `${g.action === "fix" ? "Fix" : "Re-render"} ${g.shots.length} shots: ${g.title}`,
               g.items, g.shots, g.kind, g.action, g.render)}>{g.action === "fix" ? "Fix all" : "Re-render all"} {g.shots.length}</button></div>)}
           {backlog > 0 && <div className="sup-batch">
@@ -143,39 +154,38 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
             <button className="btn primary small" onClick={sendBatch} disabled={batch.pricing}>Send</button>
             <button className="btn ghost small" onClick={() => setBatch(null)}>Cancel</button></div>}
         </div>
-        <div className="sup-filters">
-          <div className="mode-toggle">{(["open", "all"] as const).map((k) => <button key={k} className={show === k ? "on" : ""} onClick={() => setShow(k)}>{k === "open" ? "To decide" : "Everything"}</button>)}</div>
-          <div className="mode-toggle">{(["all", "major", "minor", "info"] as const).map((k) => <button key={k} className={sev === k ? "on" : ""} onClick={() => setSev(k)}>{k === "all" ? "All" : k === "info" ? "Notes" : k[0].toUpperCase() + k.slice(1)}</button>)}</div>
-        </div>
+        <DirectorChanges dir={dir} onChanged={onChanged} picture={pictureOf} />
         {err && <div className="error-text">{err}</div>}
         {!l ? <div className="dim">Checking the production…</div> : items.length === 0 ? <p className="dim">Nothing here. {show === "open" ? "Every finding has a decision." : ""}</p> :
-          <div className="sup-list">{items.map((i) => (
-            <div key={i.id} className={`sup-item sev-${i.severity}`}>
-              {pictureOf(i.shot) && <img className="sup-pic" src={pictureOf(i.shot)!} alt={i.shot} />}
-              <div className="sup-head">
-                <span className={`sup-sev ${i.severity}`}>{i.severity === "info" ? "note" : i.severity}</span>
-                <button className="link num" onClick={() => { onReview(i.shot); onClose(); }} title="Review this shot">{i.shot}</button>
-                <b>{i.title}</b><span className="dim sup-src">{i.source}</span>
-                {i.status !== "open" && <span className={`chip sup-status ${i.status}`}>{STATUS_LABEL[i.status] ?? i.status}</span>}
-              </div>
-              <div className="sup-detail">{i.detail}</div>
-              {i.fix && <div className="sup-fix"><b>Correction:</b> {i.fix}</div>}
-              {pending?.item.id === i.id ? (
-                <div className="sup-confirm">
-                  <span>{pending.action === "fix" ? "Re-render with the correction" : "Re-render as planned"} on <b>{pending.provider}</b> ({pending.model.split("/").slice(-1)[0]}):{" "}
-                    <b>{pending.pricing ? "pricing…" : cost(pending.est, pending.item.kind)}</b></span>
-                  <button className="btn primary small" onClick={confirm} disabled={pending.pricing}>Send</button>
-                  <button className="btn ghost small" onClick={() => setPending(null)}>Cancel</button>
-                </div>
-              ) : (
-                <div className="sup-actions">
-                  <button className="btn ghost small" onClick={() => { onReview(i.shot); onClose(); }}>Review</button>
-                  {i.status !== "open" && <button className="btn ghost small" disabled={busy === i.id} onClick={() => decide(i, "reopen")}>Reopen</button>}
-                  {i.actions.filter((a) => !(i.status === "working" && (a === "fix" || a === "regenerate"))).map((a) => (i.status === a ? null :
-                    <button key={a} className={`btn small ${a === "fix" ? "" : a === "card" ? "primary" : "ghost"}`} disabled={busy === i.id}
-                            onClick={() => a === "fix" || a === "regenerate" ? price(i, a) : a === "card" ? setCard(true) : decide(i, a)}>{ACTION_LABEL[a]}</button>))}
-                </div>)}
-            </div>))}</div>}
+          <div className="sx-list">{shown.map((c) => (
+            <section key={c.shot} className={`sx-shot sev-${SEV[c.worst]}`}>
+              <button className="sx-pic" onClick={() => { onReview(c.shot); onClose(); }} title="Review this shot" style={bg(c.shot)}>
+                {!pictureOf(c.shot) && <span className="dim">No picture yet</span>}<span className="sx-id num">{c.shot}</span><span className="sx-go">Review this shot</span></button>
+              <div className="sx-finds">{c.its.map((i) => (
+                <div key={i.id} className={`sx-find sev-${i.severity}`}>
+                  <div className="sup-head">
+                    <span className={`sup-sev ${i.severity}`}>{i.severity === "info" ? "note" : i.severity}</span>
+                    <b>{i.title}</b><span className="dim sup-src">{i.source}</span>
+                    {i.status !== "open" && <span className={`chip sup-status ${i.status}`}>{STATUS_LABEL[i.status] ?? i.status}</span>}
+                  </div>
+                  <div className="sup-detail">{i.detail}</div>
+                  {i.fix && <div className="sup-fix"><b>Correction:</b> {i.fix}</div>}
+                  {pending?.item.id === i.id ? (
+                    <div className="sup-confirm">
+                      <span>{pending.action === "fix" ? "Re-render with the correction" : "Re-render as planned"} on <b>{pending.provider}</b> ({pending.model.split("/").slice(-1)[0]}):{" "}
+                        <b>{pending.pricing ? "pricing…" : cost(pending.est, pending.item.kind)}</b></span>
+                      <button className="btn primary small" onClick={confirm} disabled={pending.pricing}>Send</button>
+                      <button className="btn ghost small" onClick={() => setPending(null)}>Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="sup-actions">
+                      {i.status !== "open" && <button className="btn ghost small" disabled={busy === i.id} onClick={() => decide(i, "reopen")}>Reopen</button>}
+                      {i.actions.filter((a) => !(i.status === "working" && (a === "fix" || a === "regenerate"))).map((a) => (i.status === a ? null :
+                        <button key={a} className={`btn small ${a === "fix" || a === "card" ? "primary" : "ghost"}`} disabled={busy === i.id}
+                                onClick={() => a === "fix" || a === "regenerate" ? price(i, a) : a === "card" ? setCard(true) : decide(i, a)}>{ACTION_LABEL[a]}</button>))}
+                    </div>)}
+                </div>))}</div>
+            </section>))}</div>}
       </div>
       {card && <IntroCardSheet dir={dir} onClose={() => setCard(false)} onChanged={() => { onChanged(); load(); }} />}
     </div>

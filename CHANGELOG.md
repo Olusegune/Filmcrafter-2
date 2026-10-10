@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 (2026-10-10)
+
+- **Direction library: great filmmakers.** The music-video traditions are replaced by 48 filmmakers from North America, Latin America, Europe, Asia, Africa, the Middle East and Oceania (Brad Bird, Hayao Miyazaki, Ryan Coogler, Agnes Varda, Bong Joon-ho, Ousmane Sembene, Asghar Farhadi, Taika Waititi and more). Each is a visual brief (camera, light, palette, editing, movement, design, a suggested look and acting profile) with what they are known for and a respect note: an approach to learn from, never a copy.
+- **Matching follows your story**, not a song's tempo: mood, genre and energy are found in your script ("Fits your story", "Best for your story").
+- **Production Supervisor, shot by shot.** Findings are grouped by shot with a large picture, a strip of the shots that need you (coloured by severity), clickable Major / Minor / Notes / Decided tiles, batch fixes with a stack of thumbnails, and Director changes below. Click a picture to review the shot.
+- **Simpler shot inspector.** Compose (prompt, references, start and end frames) and Media (your own files) now sit behind an **Advanced** button; the tabs you use every day (Shot, Keyframe, Video) are what you see. It remembers your choice.
+- **A calmer, more premium look.** Cast & World gets an underline tab bar, portrait tiles with a gold marker, one raised editor panel and quieter fields. The Make wall has squarer cards, bigger screens, a yellow **Make** button, a sticky bar with "n of N done", and a taller film strip. **Export** is three numbered panels with a readiness line (no strip).
+
 ## 0.6.0 (2026-10-10)
 
 - **One Studio instead of three steps.** The steps are now **Story, Cast & World, Shots, Studio, Export**. Making the film (pictures, video, review) is one place seen two ways, **Cards | Timeline**; the separate Storyboard, Make film and Review steps are gone.

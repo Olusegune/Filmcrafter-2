@@ -4,7 +4,7 @@ import { api, errorText } from "./api";
 import * as I from "./icons";
 import { paletteBand, swatch } from "./colorWords";
 
-type Direction = { id: string; name: string; region: string; origin: string; tags: string[]; genres: string[]; bpm: [number, number];
+type Direction = { id: string; name: string; region: string; origin: string; tags: string[]; genres: string[]; known_for?: string;
   energy: string; summary: string; camera: string; light: string; palette: string[]; editing: string; movement: string; design: string;
   look: string; acting: string; avoid?: string; respect?: string; custom?: boolean };
 type Match = { id: string; score: number; why: string[] };
@@ -16,13 +16,13 @@ const PARTS = [
   { id: "acting", label: "Acting profile" },
 ];
 
-/** Worldwide creative-direction library: browse, match to the song, apply to the project, or save your own. */
+/** Worldwide creative-direction library: browse, match to the story, apply to the project, or save your own. */
 export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string; onClose: () => void; onApplied: () => void }) {
   const [all, setAll] = useState<Direction[]>([]);
   const [current, setCurrent] = useState<string | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [song, setSong] = useState<{ bpm: number; energy: string; moods: string[] } | null>(null);
-  const [region, setRegion] = useState("Best for this song");
+  const [song, setSong] = useState<{ energy: string; moods: string[]; genres: string[]; words: number } | null>(null);
+  const [region, setRegion] = useState("Best for your story");
   const [q, setQ] = useState("");
   const [sel, setSel] = useState<string | null>(null);
   const [parts, setParts] = useState<string[]>(PARTS.map((p) => p.id));
@@ -32,12 +32,12 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
   const [making, setMaking] = useState(false);
   const load = () => {
     api.directionLibrary<{ directions: Direction[]; current: string | null }>("list", dir).then((r) => { setAll(r.directions); setCurrent(r.current); }).catch((e) => setErr(errorText(e)));
-    api.directionLibrary<{ matches: Match[]; song: typeof song }>("match", dir).then((r) => { setMatches(r.matches); setSong(r.song); }).catch(() => setRegion("All"));
+    api.directionLibrary<{ matches: Match[]; story: typeof song }>("match", dir).then((r) => { setMatches(r.matches); setSong(r.story); if (!r.matches.length) setRegion("All"); }).catch(() => setRegion("All"));
   };
   useEffect(load, [dir]); // eslint-disable-line react-hooks/exhaustive-deps
-  const regions = useMemo(() => ["Best for this song", "All", ...[...new Set(all.map((d) => d.region))]], [all]);
+  const regions = useMemo(() => ["Best for your story", "All", ...[...new Set(all.map((d) => d.region))]], [all]);
   const why = new Map(matches.map((m) => [m.id, m]));
-  const shown = (region === "Best for this song" ? matches.map((m) => all.find((d) => d.id === m.id)!).filter(Boolean)
+  const shown = (region === "Best for your story" ? matches.map((m) => all.find((d) => d.id === m.id)!).filter(Boolean)
     : all.filter((d) => region === "All" || d.region === region))
     .filter((d) => !q || `${d.name} ${d.origin} ${d.tags.join(" ")} ${d.genres.join(" ")} ${d.summary}`.toLowerCase().includes(q.toLowerCase()));
   const d = all.find((x) => x.id === sel);
@@ -55,8 +55,8 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
         <div className="vs-head"><h2>Direction library</h2><div style={{ flex: 1 }} />
           <button className="btn ghost small" onClick={() => { setMaking(true); setSel(null); }}>Save my own…</button>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">Visual traditions from cinema and music video around the world, each a working brief for camera, light, palette, editing and design. Apply one and it guides the whole video. Free.</p>
-        {song && <p className="dl-song"><I.Wave size={13} /> This song: {song.bpm} BPM, {song.energy} energy{song.moods.length ? `, ${song.moods.slice(0, 3).join(", ").toLowerCase()}` : ""}</p>}
+        <p className="sub">Great filmmakers from around the world, each turned into a working brief for camera, light, colour, pace and design: a way of seeing to learn from, never a copy. Apply one and it guides your Bible and the pictures. Free.</p>
+        {song && song.words > 0 && <p className="dl-song"><I.Wave size={13} /> Your story: {song.energy} energy{song.genres.length ? `, ${song.genres.join(", ")}` : ""}{song.moods.length ? `, ${song.moods.slice(0, 3).join(", ")}` : ""}</p>}
         <div className="dl-filters">
           <div className="dl-regions" role="tablist" aria-label="Where it comes from">{regions.map((r) => <button key={r} role="tab" aria-selected={region === r} className={region === r ? "on" : ""} onClick={() => setRegion(r)}>{r}</button>)}</div>
           <input className="text-input dl-search" type="search" placeholder="Search: mood, genre, country…" aria-label="Search directions" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -69,7 +69,7 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
               <span className="dl-band" style={{ background: paletteBand(x.palette) }}>
                 <Badge icon={directionGlyph(x.name, x.origin, x.summary)} size={20} />
                 {current === x.id && <span className="dl-flag use">In use</span>}
-                {current !== x.id && why.get(x.id)?.why.length ? <span className="dl-flag fit" title={why.get(x.id)!.why.join(" · ")}>Fits your song</span> : null}
+                {current !== x.id && why.get(x.id)?.why.length ? <span className="dl-flag fit" title={why.get(x.id)!.why.join(" · ")}>Fits your story</span> : null}
               </span>
               <span className="dl-body-text">
                 <b>{x.name}</b>
@@ -82,6 +82,7 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
             {making ? <SaveOwn onSaved={() => { setMaking(false); load(); setRegion("My directions"); }} /> : !d ? <div className="dl-empty"><span className="dl-empty-art" aria-hidden="true"><i /><i /><i /><i /></span><b>Pick a direction</b><span className="dim">Its camera, light, palette, editing and design appear here, ready to apply.</span></div> : <>
               <div className="dl-hero" style={{ background: paletteBand(d.palette) }} aria-hidden="true" />
               <h3>{d.name}</h3><div className="dim">{d.origin} · {d.region}</div>
+              {d.known_for && <div className="dl-known">{d.known_for}</div>}
               <p className="dl-lead">{d.summary}</p>
               <div className="dl-swatches" aria-label="Palette">{d.palette.map((c) => <span key={c} className="dl-sw"><i style={{ background: swatch(c) }} />{c}</span>)}</div>
               <dl className="dl-kv">
@@ -90,7 +91,7 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
               </dl>
               <details className="dl-more"><summary>Suits, look and acting</summary>
                 <dl className="dl-kv">
-                  <dt>Suits</dt><dd>{d.genres.join(", ") || "any"} · {d.bpm[0]}–{d.bpm[1]} BPM · {d.energy} energy</dd>
+                  <dt>Suits</dt><dd>{d.genres.join(", ") || "any"} · {d.energy} energy</dd>
                   <dt>Look · acting</dt><dd>{d.look || "—"} · {d.acting || "—"}</dd>
                   {d.avoid && <><dt>Avoid</dt><dd>{d.avoid}</dd></>}
                 </dl></details>

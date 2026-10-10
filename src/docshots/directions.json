@@ -1,1146 +1,1648 @@
 [
  {
-  "id": "lagos-nights",
-  "name": "Lagos Nights",
-  "region": "Africa",
-  "origin": "Nigeria · Afrobeats video",
+  "id": "brad-bird",
+  "name": "Brad Bird",
+  "region": "North America",
+  "origin": "USA · animated adventure with a family at its heart",
+  "known_for": "Clear, dynamic animation with real feeling",
   "tags": [
-   "romantic",
    "joyful",
-   "confident",
-   "night"
-  ],
-  "genres": [
-   "afrobeats",
-   "amapiano",
-   "r&b"
-  ],
-  "bpm": [
-   95,
-   118
-  ],
-  "energy": "mid",
-  "summary": "Warm, glossy city nights: rooftops, danfo lights, fashion-forward friends, easy swagger and romance.",
-  "camera": "Smooth gimbal glides and slow push-ins; low angles for swagger; wide rooftop establishing shots.",
-  "light": "Warm practicals, neon signage, sodium streetlight, soft golden skin light.",
-  "palette": [
-   "amber",
-   "magenta neon",
-   "deep teal",
-   "gold"
-  ],
-  "editing": "Cuts on the kick; hold the romantic beats longer.",
-  "movement": "Relaxed grooves, shoulder bounces, group dance breaks on the hook.",
-  "design": "Contemporary Lagos fashion, ankara accents, busy markets, rooftops, bridges.",
-  "look": "live-action",
-  "acting": "expressive",
-  "avoid": "Poverty tourism, generic 'Africa' imagery.",
-  "respect": "Show a real, modern city; credit local stylists and dancers where you can."
- },
- {
-  "id": "nollywood-melodrama",
-  "name": "Nollywood Melodrama",
-  "region": "Africa",
-  "origin": "Nigeria · home-video drama",
-  "tags": [
-   "dramatic",
+   "epic",
    "family",
-   "emotional"
+   "energetic"
   ],
   "genres": [
-   "ballad",
-   "gospel",
-   "highlife"
-  ],
-  "bpm": [
-   60,
-   95
-  ],
-  "energy": "low",
-  "summary": "Heightened family drama told in close faces, reaction shots and big emotional turns.",
-  "camera": "Frontal mediums and close-ups, reaction inserts, occasional dramatic zoom.",
-  "light": "Bright domestic interiors; hard window light for confrontations.",
-  "palette": [
-   "warm beige",
-   "wax-print colour",
-   "deep red"
-  ],
-  "editing": "Beat-by-beat reaction cutting; pauses before revelations.",
-  "movement": "Little dance; gestures and confrontations carry the scenes.",
-  "design": "Living rooms, church halls, family compounds, wax-print dress.",
-  "look": "live-action",
-  "acting": "dramatic",
-  "avoid": "Mocking the genre's conventions.",
-  "respect": "Played sincerely, not as parody."
- },
- {
-  "id": "sahel-golden",
-  "name": "Sahel Golden Hour",
-  "region": "Africa",
-  "origin": "West African art cinema",
-  "tags": [
-   "contemplative",
-   "spiritual",
-   "melancholic"
-  ],
-  "genres": [
-   "folk",
-   "desert blues",
-   "ambient"
-  ],
-  "bpm": [
-   60,
-   100
-  ],
-  "energy": "low",
-  "summary": "Wide, patient frames of earth, wind and light; people small in vast landscapes; music as meditation.",
-  "camera": "Locked-off wides, slow lateral tracks, long takes.",
-  "light": "Low golden sun, dust haze, deep blue dusk.",
-  "palette": [
-   "ochre",
-   "indigo",
-   "sand",
-   "white"
-  ],
-  "editing": "Long holds, few cuts, cut on phrase endings.",
-  "movement": "Walking, weaving, hands at work; stillness.",
-  "design": "Adobe architecture, indigo cloth, open desert.",
-  "look": "live-action",
-  "acting": "restrained",
-  "avoid": "Exoticising or 'timeless' clichés.",
-  "respect": "Name real places; avoid sacred sites and ceremonies without permission."
- },
- {
-  "id": "amapiano-house-party",
-  "name": "Amapiano House Party",
-  "region": "Africa",
-  "origin": "South Africa · amapiano",
-  "tags": [
-   "joyful",
-   "energetic",
-   "party"
-  ],
-  "genres": [
-   "amapiano",
-   "house",
-   "gqom"
-  ],
-  "bpm": [
-   108,
-   118
+   "animation",
+   "family",
+   "adventure"
   ],
   "energy": "high",
-  "summary": "Township-to-club energy: log-drum drops, dance crews, sneakers, crowds that move as one.",
-  "camera": "Handheld in the crowd, overhead dance formations, wide-angle close to dancers.",
-  "light": "Coloured party lights, strobes on drops, warm dusk outside.",
+  "summary": "Dynamic, readable staging: strong silhouettes, caricatured faces that still feel true, and a family at the centre of the stakes.",
+  "camera": "Wide, clean staging with the camera moving through the space; bold angles for action; cuts on movement so the geography is never lost.",
+  "light": "Graphic key light with strong shape; warm domestic interiors; saturated, stylised daylight.",
   "palette": [
-   "electric blue",
-   "hot pink",
-   "concrete grey",
-   "white sneakers"
-  ],
-  "editing": "Cut to the log drum; freeze or speed-ramp on the drop.",
-  "movement": "Signature amapiano steps, crew formations, call-and-response dancing.",
-  "design": "Street fashion, bucket hats, yard parties, taverns.",
-  "look": "live-action",
-  "acting": "energetic",
-  "avoid": "Staging dances nobody does.",
-  "respect": "Use real dance vocabulary; credit choreographers."
- },
- {
-  "id": "afrofuturist-epic",
-  "name": "Afrofuturist Epic",
-  "region": "Africa",
-  "origin": "Afrofuturism · diaspora",
-  "tags": [
-   "epic",
-   "triumphant",
-   "mystical"
-  ],
-  "genres": [
-   "hip-hop",
-   "afrobeats",
-   "electronic",
-   "soul"
-  ],
-  "bpm": [
-   80,
-   130
-  ],
-  "energy": "high",
-  "summary": "Myth and technology fused: regal figures, sculptural costume, futuristic cities grown from tradition.",
-  "camera": "Hero low angles, symmetrical compositions, sweeping crane moves.",
-  "light": "Rim-lit silhouettes, bioluminescent accents, gold highlights.",
-  "palette": [
-   "gold",
-   "royal purple",
-   "obsidian",
-   "cyan"
-  ],
-  "editing": "Grand reveals on the downbeat; tableau holds.",
-  "movement": "Ceremonial processions, powerful poses, synchronised movement.",
-  "design": "Sculptural armour, adinkra-like geometry (invented, not copied), floating architecture.",
-  "look": "afrofuturist",
-  "acting": "dramatic",
-  "avoid": "Copying real sacred regalia.",
-  "respect": "Invent symbols rather than borrowing sacred ones."
- },
- {
-  "id": "cairo-cinema",
-  "name": "Cairo Golden Age",
-  "region": "Middle East & North Africa",
-  "origin": "Egypt · classic cinema",
-  "tags": [
-   "romantic",
-   "nostalgic",
-   "elegant"
-  ],
-  "genres": [
-   "arabic pop",
-   "tarab",
-   "ballad"
-  ],
-  "bpm": [
-   70,
-   110
-  ],
-  "energy": "mid",
-  "summary": "Black-and-white elegance of mid-century Egyptian film: grand staircases, orchestras, longing looks.",
-  "camera": "Graceful dolly moves, soft close-ups, staged two-shots.",
-  "light": "Glamour key light, soft halation, deep shadows.",
-  "palette": [
-   "silver",
-   "black",
-   "pearl"
-  ],
-  "editing": "Classical continuity, dissolve-like pacing.",
-  "movement": "Elegant gestures, waltz-like couples, orchestra performance.",
-  "design": "Art-deco salons, Nile balconies, tailored suits and gowns.",
-  "look": "live-action",
-  "acting": "expressive",
-  "avoid": "Belly-dance clichés out of context.",
-  "respect": "Reference the era's real stars and craft respectfully."
- },
- {
-  "id": "bollywood-spectacle",
-  "name": "Bollywood Spectacle",
-  "region": "Asia",
-  "origin": "India · Hindi film song",
-  "tags": [
-   "joyful",
-   "romantic",
-   "celebratory"
-  ],
-  "genres": [
-   "filmi",
-   "bhangra",
-   "pop"
-  ],
-  "bpm": [
-   90,
-   140
-  ],
-  "energy": "high",
-  "summary": "The song as a dream: costume changes, sweeping locations, big group choreography and star close-ups.",
-  "camera": "Crane sweeps, whip pans between locations, hero close-ups on the chorus.",
-  "light": "Saturated, bright, sunlit; fairy lights at night.",
-  "palette": [
-   "marigold",
-   "fuchsia",
-   "emerald",
-   "gold"
-  ],
-  "editing": "Location jumps on phrase changes; choreography on the beat.",
-  "movement": "Large synchronised choreography, hand mudra-inspired flourishes, playful couple dance.",
-  "design": "Lehengas and kurtas, palaces, mountain meadows, festival streets.",
-  "look": "live-action",
-  "acting": "expressive",
-  "avoid": "Using sacred festivals as backdrop decoration.",
-  "respect": "Research the region and occasion each costume belongs to."
- },
- {
-  "id": "k-pop-concept",
-  "name": "K-pop Concept Video",
-  "region": "Asia",
-  "origin": "South Korea · idol video",
-  "tags": [
-   "confident",
-   "energetic",
-   "stylish"
-  ],
-  "genres": [
-   "k-pop",
-   "pop",
-   "edm"
-  ],
-  "bpm": [
-   100,
-   140
-  ],
-  "energy": "high",
-  "summary": "Set-per-concept precision: sculpted sets, crisp formation dance, individual close-ups for each member.",
-  "camera": "Precise dolly and crane moves, snap zooms, symmetrical formation wides.",
-  "light": "Clean high-key sets, coloured gels per concept, glossy reflections.",
-  "palette": [
-   "pastel pink",
-   "chrome",
-   "black",
-   "neon accent"
-  ],
-  "editing": "Hard cuts on every accent; point-choreography on the hook.",
-  "movement": "Tight formation choreography with a signature 'point' move.",
-  "design": "Concept sets (school, lab, candy, dystopia), coordinated styling.",
-  "look": "live-action",
-  "acting": "energetic",
-  "avoid": "Copying a real group's signature moves.",
-  "respect": "Create original choreography."
- },
- {
-  "id": "wong-kar-wai-mood",
-  "name": "Hong Kong Mood Piece",
-  "region": "Asia",
-  "origin": "Hong Kong · 1990s art cinema",
-  "tags": [
-   "melancholic",
-   "romantic",
-   "lonely",
-   "night"
-  ],
-  "genres": [
-   "r&b",
-   "trip-hop",
-   "indie",
-   "ballad"
-  ],
-  "bpm": [
-   60,
-   100
-  ],
-  "energy": "low",
-  "summary": "Neon loneliness: step-printed motion, smoky corridors, lovers who never quite meet.",
-  "camera": "Handheld step-print blur, tight doorframes, off-centre compositions.",
-  "light": "Neon green and red, fluorescent corridors, rain reflections.",
-  "palette": [
-   "emerald",
-   "crimson",
-   "tungsten amber"
-  ],
-  "editing": "Slow motion against normal speed; repeated moments.",
-  "movement": "Smoking, waiting, walking past each other.",
-  "design": "Narrow apartments, noodle bars, qipao and sharp suits.",
-  "look": "live-action",
-  "acting": "restrained",
-  "avoid": "Orientalist clichés.",
-  "respect": "Treat the city as lived-in, not exotic."
- },
- {
-  "id": "anime-opening",
-  "name": "Anime Opening",
-  "region": "Asia",
-  "origin": "Japan · TV anime OP",
-  "tags": [
-   "energetic",
-   "hopeful",
-   "epic"
-  ],
-  "genres": [
-   "j-pop",
-   "rock",
-   "edm"
-  ],
-  "bpm": [
-   120,
-   180
-  ],
-  "energy": "high",
-  "summary": "Ninety seconds of promise: character line-ups, sky shots, speed-line runs and a title-card-worthy finale.",
-  "camera": "Dynamic smears, pans across line-ups, sakuga action beats.",
-  "light": "Bright skies, lens flares, dramatic sunset backlight.",
-  "palette": [
-   "sky blue",
-   "white",
-   "vivid accent colours"
-  ],
-  "editing": "Cut on every beat in the verse; hold the hero shot on the hook.",
-  "movement": "Running, jumping, wind in hair, action poses.",
-  "design": "School rooftops, city skylines, stylised fantasy.",
-  "look": "anime",
-  "acting": "expressive",
-  "avoid": "Copying a real show's characters.",
-  "respect": "Original characters and designs."
- },
- {
-  "id": "ghibli-pastoral",
-  "name": "Pastoral Wonder",
-  "region": "Asia",
-  "origin": "Japan · hand-drawn feature animation",
-  "tags": [
-   "gentle",
-   "hopeful",
-   "nostalgic",
-   "whimsical"
-  ],
-  "genres": [
-   "folk",
-   "acoustic",
-   "orchestral",
-   "lo-fi"
-  ],
-  "bpm": [
-   60,
-   110
-  ],
-  "energy": "low",
-  "summary": "Wind across fields, small kindnesses, food, flight and weather; wonder in ordinary life.",
-  "camera": "Gentle pans, low grassy angles, sky-filled wides.",
-  "light": "Soft daylight, cloud shadows, warm lamplight.",
-  "palette": [
-   "meadow green",
-   "sky blue",
+   "warm orange",
+   "deep blue",
    "cream",
-   "red roof"
+   "red"
   ],
-  "editing": "Unhurried; let moments breathe.",
-  "movement": "Everyday gestures, cycling, running through grass.",
-  "design": "Rural houses, trains, bakeries, forests.",
-  "look": "hand-drawn-2d",
-  "acting": "natural",
-  "avoid": "Copying a studio's characters.",
-  "respect": "Original world and creatures."
+  "editing": "Cut on action, keep the space clear, let comedy and thrill share the same energy.",
+  "movement": "Quick, exact physical performance; exaggerated poses that land on the beat.",
+  "design": "Mid-century-leaning shapes, bold graphic backgrounds, expressive caricature of faces and bodies.",
+  "look": "feature-3d",
+  "acting": "expressive",
+  "avoid": "Muddy action; unclear space.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "chinese-wuxia",
-  "name": "Wuxia Poetry",
-  "region": "Asia",
-  "origin": "China · martial-arts cinema",
+  "id": "pete-docter",
+  "name": "Pete Docter",
+  "region": "North America",
+  "origin": "USA · emotional animated worlds",
+  "known_for": "Inner feelings made into places and colours",
   "tags": [
-   "epic",
-   "romantic",
-   "graceful"
-  ],
-  "genres": [
-   "orchestral",
-   "c-pop",
-   "cinematic"
-  ],
-  "bpm": [
-   70,
-   120
-  ],
-  "energy": "mid",
-  "summary": "Swordplay as dance: bamboo forests, flowing silk, colour-coded chapters and weightless motion.",
-  "camera": "Wire-work arcs, slow motion, overhead choreographed wides.",
-  "light": "Diffused forest light, colour-washed chapters.",
-  "palette": [
-   "jade",
-   "vermilion",
-   "ink black",
-   "silk white"
-  ],
-  "editing": "Rhythmic action beats, slow-motion peaks.",
-  "movement": "Flowing martial choreography, leaps, fabric trails.",
-  "design": "Temples, bamboo, lakes, flowing robes.",
-  "look": "live-action",
-  "acting": "restrained",
-  "avoid": "Mixing dynasties carelessly.",
-  "respect": "Research the era's dress and architecture."
- },
- {
-  "id": "thai-dreamlike",
-  "name": "Tropical Dreamlike",
-  "region": "Asia",
-  "origin": "Southeast Asian art cinema",
-  "tags": [
-   "mystical",
-   "contemplative",
+   "tender",
+   "whimsical",
+   "emotional",
    "dreamy"
   ],
   "genres": [
-   "ambient",
-   "indie",
-   "dream pop"
-  ],
-  "bpm": [
-   60,
-   100
-  ],
-  "energy": "low",
-  "summary": "Jungle nights, spirits and memory drifting into each other; slow, hypnotic and gentle.",
-  "camera": "Static wides, slow dollies into darkness.",
-  "light": "Moonlight, fireflies, fluorescent tubes in the jungle.",
-  "palette": [
-   "deep green",
-   "violet night",
-   "warm lamp"
-  ],
-  "editing": "Long takes, time slips.",
-  "movement": "Stillness, slow walking, sleeping figures.",
-  "design": "Rural clinics, rivers, jungle paths.",
-  "look": "live-action",
-  "acting": "restrained",
-  "avoid": "Presenting belief as superstition.",
-  "respect": "Treat local beliefs with seriousness."
- },
- {
-  "id": "french-new-wave",
-  "name": "French New Wave",
-  "region": "Europe",
-  "origin": "France · 1960s cinema",
-  "tags": [
-   "playful",
-   "romantic",
-   "rebellious"
-  ],
-  "genres": [
-   "indie",
-   "chanson",
-   "pop",
-   "jazz"
-  ],
-  "bpm": [
-   80,
-   130
+   "animation",
+   "family",
+   "fantasy"
   ],
   "energy": "mid",
-  "summary": "Jump cuts, street shooting, lovers talking in cafés and running through Paris; cool and free.",
-  "camera": "Handheld street tracking, looks to camera, long walking takes.",
-  "light": "Available light, overcast Paris grey, café interiors.",
+  "summary": "Imaginative worlds that make feelings visible, with small true gestures carrying big emotion and colour doing quiet storytelling.",
+  "camera": "Gentle push-ins on faces, patient wides to show a world, simple compositions that let the character lead.",
+  "light": "Soft, glowing key light; colour-coded moods; warm practicals in ordinary rooms.",
   "palette": [
-   "black and white",
-   "primary red",
-   "blue",
-   "yellow"
+   "soft blue",
+   "warm yellow",
+   "teal",
+   "pink"
   ],
-  "editing": "Jump cuts, playful rule-breaking.",
-  "movement": "Walking, running, spontaneous dancing in a café.",
-  "design": "Striped tops, trench coats, cafés, bookshops.",
-  "look": "live-action",
-  "acting": "natural",
-  "avoid": "Paris postcard clichés.",
-  "respect": ""
- },
- {
-  "id": "nordic-noir",
-  "name": "Nordic Noir",
-  "region": "Europe",
-  "origin": "Scandinavia · crime drama",
-  "tags": [
-   "dark",
-   "melancholic",
-   "tense",
-   "cold"
-  ],
-  "genres": [
-   "electronic",
-   "indie",
-   "synth",
-   "ambient"
-  ],
-  "bpm": [
-   60,
-   110
-  ],
-  "energy": "low",
-  "summary": "Cold light, empty landscapes and quiet dread; faces that hide more than they show.",
-  "camera": "Slow drone wides, static interiors, long lenses.",
-  "light": "Overcast daylight, blue hour, practical lamps.",
-  "palette": [
-   "slate blue",
-   "grey",
-   "muted green",
-   "white"
-  ],
-  "editing": "Slow, tense, cut on silence.",
-  "movement": "Minimal; people alone in big spaces.",
-  "design": "Concrete, pine forests, wool knits, minimal interiors.",
-  "look": "live-action",
+  "editing": "Let quiet moments breathe, then pay them off; cut to reactions.",
+  "movement": "Small, precise acting: a look, a breath, a hand.",
+  "design": "Rounded, friendly shapes in a rich imaginative world; everyday objects that matter.",
+  "look": "feature-3d",
   "acting": "restrained",
-  "avoid": "",
-  "respect": ""
+  "avoid": "Sentimentality that is not earned.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "italian-neorealism",
-  "name": "Neorealist Streets",
-  "region": "Europe",
-  "origin": "Italy · postwar cinema",
+  "id": "ryan-coogler",
+  "name": "Ryan Coogler",
+  "region": "North America",
+  "origin": "USA · grounded, kinetic, community-centred",
+  "known_for": "Warm community, intimate faces, mythic scale",
   "tags": [
-   "honest",
-   "melancholic",
-   "hopeful"
-  ],
-  "genres": [
-   "folk",
-   "acoustic",
-   "indie"
-  ],
-  "bpm": [
-   60,
-   110
-  ],
-  "energy": "low",
-  "summary": "Ordinary people, real streets, non-actors' faces; hardship and warmth side by side.",
-  "camera": "Handheld at eye level, real locations, deep focus.",
-  "light": "Natural daylight, black-and-white or muted colour.",
-  "palette": [
-   "black and white",
-   "stone",
-   "faded blue"
-  ],
-  "editing": "Plain, observational.",
-  "movement": "Work, walking, family life.",
-  "design": "Working-class streets, bicycles, laundry lines.",
-  "look": "live-action",
-  "acting": "natural",
-  "avoid": "Aestheticising poverty.",
-  "respect": "Dignity first."
- },
- {
-  "id": "uk-garage-grime",
-  "name": "UK Estates & Grime",
-  "region": "Europe",
-  "origin": "UK · grime and drill video",
-  "tags": [
-   "confident",
-   "gritty",
-   "energetic"
-  ],
-  "genres": [
-   "grime",
-   "drill",
-   "uk garage",
-   "hip-hop"
-  ],
-  "bpm": [
-   130,
-   145
-  ],
-  "energy": "high",
-  "summary": "Crews on the block, fisheye close-ups, tracksuits and council-estate architecture.",
-  "camera": "Fisheye close to lens, low-angle crew shots, tracking through walkways.",
-  "light": "Flat daylight, sodium night, car headlights.",
-  "palette": [
-   "concrete grey",
-   "black",
-   "one bold colour"
-  ],
-  "editing": "Hard cuts on bars; stutter edits.",
-  "movement": "Bar delivery to camera, crew energy, skanking.",
-  "design": "Estates, chicken shops, tracksuits.",
-  "look": "live-action",
-  "acting": "energetic",
-  "avoid": "Glamorising violence.",
-  "respect": "Work with the scene, not about it."
- },
- {
-  "id": "soviet-montage",
-  "name": "Constructivist Montage",
-  "region": "Europe",
-  "origin": "Soviet 1920s montage",
-  "tags": [
+   "triumphant",
+   "emotional",
    "epic",
-   "rebellious",
-   "powerful"
-  ],
-  "genres": [
-   "industrial",
-   "electronic",
-   "rock",
-   "orchestral"
-  ],
-  "bpm": [
-   100,
-   160
-  ],
-  "energy": "high",
-  "summary": "Collision editing, diagonals, machines and crowds; graphic, rhythmic and bold.",
-  "camera": "Extreme low angles, diagonals, graphic close-ups.",
-  "light": "High contrast, hard sun, deep blacks.",
-  "palette": [
-   "red",
-   "black",
-   "cream"
-  ],
-  "editing": "Rhythmic montage: images collide on the beat.",
-  "movement": "Marching crowds, machines, workers in rhythm.",
-  "design": "Factories, typography-inspired graphics.",
-  "look": "live-action",
-  "acting": "dramatic",
-  "avoid": "Real propaganda symbols.",
-  "respect": "Keep it graphic, not political endorsement."
- },
- {
-  "id": "flamenco-duende",
-  "name": "Flamenco Duende",
-  "region": "Europe",
-  "origin": "Spain · Andalusian flamenco film",
-  "tags": [
-   "passionate",
-   "dramatic",
-   "intense"
-  ],
-  "genres": [
-   "flamenco",
-   "latin",
-   "ballad"
-  ],
-  "bpm": [
-   80,
-   140
-  ],
-  "energy": "mid",
-  "summary": "Heat, stamping heels, clapping circles and faces full of feeling in whitewashed courtyards.",
-  "camera": "Low angles on feet, circling dollies, tight faces.",
-  "light": "Hard sun and shadow; candlelit tablao at night.",
-  "palette": [
-   "blood red",
-   "black",
-   "whitewash",
-   "gold"
-  ],
-  "editing": "Cut on the palmas; hold the singer.",
-  "movement": "Flamenco footwork, arms, clapping circles.",
-  "design": "Courtyards, tablaos, ruffled dresses, fitted jackets.",
-  "look": "live-action",
-  "acting": "dramatic",
-  "avoid": "Costume caricature.",
-  "respect": "Flamenco is Gitano/Andalusian heritage; credit and consult artists."
- },
- {
-  "id": "latin-reggaeton",
-  "name": "Reggaetón Heat",
-  "region": "Americas",
-  "origin": "Puerto Rico / Latin urban video",
-  "tags": [
-   "sensual",
-   "party",
    "confident"
   ],
   "genres": [
-   "reggaeton",
-   "dembow",
-   "latin pop"
-  ],
-  "bpm": [
-   88,
-   100
-  ],
-  "energy": "high",
-  "summary": "Beach-to-club heat: bright sun, flashy cars, perreo crowds and bold colour.",
-  "camera": "Slow-motion hero walks, low angles, orbiting gimbal.",
-  "light": "Tropical sun, neon night, coloured haze.",
-  "palette": [
-   "hot pink",
-   "turquoise",
-   "sunset orange"
-  ],
-  "editing": "Dembow rhythm cuts, speed ramps.",
-  "movement": "Perreo, group dance, confident struts.",
-  "design": "Beaches, block parties, streetwear.",
-  "look": "live-action",
-  "acting": "energetic",
-  "avoid": "Objectifying framing.",
-  "respect": "Keep performers empowered and consenting."
- },
- {
-  "id": "telenovela-gloss",
-  "name": "Telenovela Gloss",
-  "region": "Americas",
-  "origin": "Latin American telenovela",
-  "tags": [
-   "dramatic",
-   "romantic",
-   "emotional"
-  ],
-  "genres": [
-   "bolero",
-   "ballad",
-   "latin pop"
-  ],
-  "bpm": [
-   60,
-   100
+   "drama",
+   "action",
+   "sports",
+   "myth"
   ],
   "energy": "mid",
-  "summary": "Glossy passion: mansions, secret letters, slaps and tears in soft focus.",
-  "camera": "Slow push-ins to faces, dramatic zooms, over-shoulder confrontations.",
-  "light": "Soft glamour light, candlelight, storms.",
+  "summary": "Grounded and kinetic: long fluid takes, warm celebratory community scenes, intimate close-ups, and grand mythic scale when the story reaches for it.",
+  "camera": "Long, moving takes that follow people through a place; handheld energy in motion, steady close-ups in feeling; wide scale when it matters.",
+  "light": "Warm, natural light on skin; golden hours; practical light in crowded rooms; richer colour in the mythic scenes.",
   "palette": [
-   "wine red",
-   "cream",
-   "gold"
+   "gold",
+   "deep green",
+   "warm brown",
+   "royal purple"
   ],
-  "editing": "Hold the reaction; cliffhanger freeze.",
-  "movement": "Embraces, turns away, letters and rings.",
-  "design": "Haciendas, ballrooms, elegant dress.",
+  "editing": "Hold the take as long as it plays; cut for the emotional beat, not to hide the stage.",
+  "movement": "Real, specific behaviour; groups moving and laughing together; physical, grounded action.",
+  "design": "Lived-in, culturally specific places, wardrobe and music, with bold designed worlds when the story calls for them.",
   "look": "live-action",
   "acting": "dramatic",
-  "avoid": "",
-  "respect": "Heightened but sincere."
+  "avoid": "Generic backdrops; flattening a culture into a look.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "brazil-carnival",
-  "name": "Carnaval Colour",
-  "region": "Americas",
-  "origin": "Brazil · carnival and baile",
+  "id": "barry-jenkins",
+  "name": "Barry Jenkins",
+  "region": "North America",
+  "origin": "USA · intimate, lush portraiture",
+  "known_for": "Close faces, saturated colour, quiet",
   "tags": [
-   "joyful",
-   "celebratory",
-   "energetic"
+   "romantic",
+   "intimate",
+   "melancholic",
+   "tender"
   ],
   "genres": [
-   "samba",
-   "funk carioca",
-   "baile funk",
-   "pop"
+   "drama",
+   "romance"
   ],
-  "bpm": [
-   95,
-   140
-  ],
-  "energy": "high",
-  "summary": "Streets exploding with colour, drums, feathers and friends dancing until sunrise.",
-  "camera": "Handheld in parades, overhead drum lines, close-ups of joy.",
-  "light": "Midday sun, festival lights at night.",
+  "energy": "low",
+  "summary": "Intimate portraiture: steady close faces that look near the lens, saturated colour, soft light and a quiet, patient pace.",
+  "camera": "Steady, close frames on faces; people looking almost into the lens; slow drifts and gentle circling.",
+  "light": "Soft, diffused light; colour-washed night; skin lit to glow.",
   "palette": [
-   "green",
-   "yellow",
-   "electric pink",
-   "feather white"
+   "teal",
+   "magenta",
+   "amber",
+   "deep blue"
   ],
-  "editing": "Drum-driven cutting, fast montage.",
-  "movement": "Samba steps, passinho, parade formations.",
-  "design": "Samba-school costume (as craft), favela hills, beaches.",
+  "editing": "Long holds on faces; let silence and music speak.",
+  "movement": "Still, held looks; very little movement.",
+  "design": "Everyday places photographed as if precious.",
   "look": "live-action",
-  "acting": "energetic",
-  "avoid": "Sexualised tourism framing.",
-  "respect": "Credit samba schools and communities."
+  "acting": "restrained",
+  "avoid": "Rushing a feeling.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "mexican-magic-realism",
-  "name": "Magic Realism",
-  "region": "Americas",
-  "origin": "Latin American literature and cinema",
+  "id": "greta-gerwig",
+  "name": "Greta Gerwig",
+  "region": "North America",
+  "origin": "USA · warm, theatrical, comic and intimate",
+  "known_for": "Bright colour, quick talk, big feeling",
   "tags": [
-   "mystical",
-   "nostalgic",
+   "joyful",
+   "romantic",
+   "family",
    "whimsical"
   ],
   "genres": [
-   "folk",
-   "latin alternative",
-   "ballad"
-  ],
-  "bpm": [
-   60,
-   110
-  ],
-  "energy": "low",
-  "summary": "The impossible told plainly: butterflies from letters, the dead at the dinner table, rain that lasts for years.",
-  "camera": "Calm, observational frames where wonders happen without comment.",
-  "light": "Warm adobe interiors, marigold afternoons, candle nights.",
-  "palette": [
-   "marigold",
-   "cobalt",
-   "terracotta",
-   "papel-picado colours"
-  ],
-  "editing": "Unhurried; wonders appear in the cut.",
-  "movement": "Daily life that bends into the fantastic.",
-  "design": "Courtyards, family altars, village streets.",
-  "look": "painterly",
-  "acting": "natural",
-  "avoid": "Using Día de Muertos as mere decoration.",
-  "respect": "Research the meaning of altars and rituals you show."
- },
- {
-  "id": "hip-hop-90s",
-  "name": "90s Hip-Hop Video",
-  "region": "Americas",
-  "origin": "USA · golden-era rap video",
-  "tags": [
-   "confident",
-   "gritty",
-   "nostalgic"
-  ],
-  "genres": [
-   "hip-hop",
-   "boom bap",
-   "r&b"
-  ],
-  "bpm": [
-   80,
-   100
+   "comedy",
+   "drama",
+   "coming-of-age"
   ],
   "energy": "mid",
-  "summary": "Fisheye lenses, stoops and block parties, crews and B-boys, film grain and swagger.",
-  "camera": "Fisheye, low angle, handheld through the crowd.",
-  "light": "Daylight on the block, club spotlights, film grain.",
+  "summary": "Warm, bright and theatrical: overlapping talk, saturated costume and set colour, comedy and sadness in the same breath.",
+  "camera": "Mid-shots that let ensembles share a frame; handheld lightness; sudden intimate close-ups.",
+  "light": "Soft, warm daylight; golden interiors; saturated colour.",
   "palette": [
-   "denim blue",
-   "timberland tan",
-   "brick red"
-  ],
-  "editing": "Cut on the snare; scratch stutters.",
-  "movement": "Head nods, B-boying, crew shots.",
-  "design": "Brownstones, basketball courts, baggy denim.",
-  "look": "live-action",
-  "acting": "energetic",
-  "avoid": "",
-  "respect": "Nod to the culture's originators."
- },
- {
-  "id": "americana-road",
-  "name": "Americana Road Movie",
-  "region": "Americas",
-  "origin": "USA · road movie",
-  "tags": [
-   "nostalgic",
-   "free",
-   "melancholic",
-   "hopeful"
-  ],
-  "genres": [
-   "country",
-   "folk",
-   "rock",
-   "americana"
-  ],
-  "bpm": [
-   70,
-   130
-  ],
-  "energy": "mid",
-  "summary": "Open highways, diners, motel neon and dust; freedom and loneliness in wide screen.",
-  "camera": "Car-mount shots, wide deserts, dolly along the highway.",
-  "light": "Golden hour, motel neon, dashboard glow.",
-  "palette": [
-   "dusty orange",
-   "faded denim",
-   "neon pink"
-  ],
-  "editing": "Montage of miles; hold the horizon.",
-  "movement": "Driving, walking the shoulder, dancing at a roadside bar.",
-  "design": "Pickup trucks, diners, gas stations, boots.",
-  "look": "live-action",
-  "acting": "natural",
-  "avoid": "",
-  "respect": ""
- },
- {
-  "id": "caribbean-dancehall",
-  "name": "Dancehall Yard",
-  "region": "Americas",
-  "origin": "Jamaica · dancehall video",
-  "tags": [
-   "party",
-   "confident",
-   "joyful"
-  ],
-  "genres": [
-   "dancehall",
-   "reggae",
-   "soca"
-  ],
-  "bpm": [
-   90,
-   110
-  ],
-  "energy": "high",
-  "summary": "Sound systems, yard dances, bright colour and signature steps from the crowd.",
-  "camera": "Handheld dance circles, low wides of speaker stacks.",
-  "light": "Sunset, string lights, sound-system glow.",
-  "palette": [
-   "green",
-   "gold",
-   "black",
-   "sunset red"
-  ],
-  "editing": "Cut on the riddim accents.",
-  "movement": "Dancehall steps and crews.",
-  "design": "Yards, sound systems, streetwear.",
-  "look": "live-action",
-  "acting": "energetic",
-  "avoid": "Parodying patois or dance.",
-  "respect": "Work with dancers from the scene."
- },
- {
-  "id": "aboriginal-country",
-  "name": "Country and Sky",
-  "region": "Oceania",
-  "origin": "Australian First Nations filmmaking (with permission)",
-  "tags": [
-   "spiritual",
-   "contemplative",
-   "proud"
-  ],
-  "genres": [
-   "folk",
-   "hip-hop",
-   "ambient"
-  ],
-  "bpm": [
-   60,
-   110
-  ],
-  "energy": "low",
-  "summary": "Land as a living presence: red earth, vast sky, family and continuity told from within.",
-  "camera": "Grounded wides, aerials of country, intimate family close-ups.",
-  "light": "Hard outback sun, fire at night, star fields.",
-  "palette": [
-   "red ochre",
+   "warm pink",
+   "mustard",
    "sky blue",
-   "white",
-   "charcoal"
+   "green"
   ],
-  "editing": "Patient, respectful pacing.",
-  "movement": "Walking country, family gatherings.",
-  "design": "Contemporary life on country.",
-  "look": "live-action",
-  "acting": "natural",
-  "avoid": "Using sacred designs, dot-painting imitation, or depicting deceased people without consent.",
-  "respect": "Only with First Nations collaborators and community permission."
- },
- {
-  "id": "pacific-island",
-  "name": "Ocean Voyager",
-  "region": "Oceania",
-  "origin": "Pacific Island storytelling",
-  "tags": [
-   "hopeful",
-   "epic",
-   "joyful"
-  ],
-  "genres": [
-   "island reggae",
-   "pop",
-   "choral"
-  ],
-  "bpm": [
-   80,
-   120
-  ],
-  "energy": "mid",
-  "summary": "Ocean, canoes, family and song: horizons as home, not the edge of the world.",
-  "camera": "Water-level shots, drone over reefs, group singing circles.",
-  "light": "Tropical clarity, sunset gold, starlit navigation.",
-  "palette": [
-   "lagoon turquoise",
-   "coral",
-   "sand",
-   "deep ocean blue"
-  ],
-  "editing": "Swells with the chorus.",
-  "movement": "Paddling, group song and dance.",
-  "design": "Canoes, villages, contemporary island life.",
+  "editing": "Brisk overlapping dialogue; cut on laughs and wounds.",
+  "movement": "Quick, natural, overlapping performances.",
+  "design": "Lived-in, colourful, handmade-feeling sets and costume.",
   "look": "live-action",
   "acting": "expressive",
-  "avoid": "Tiki kitsch; using tattoos (tatau, tā moko) as decoration.",
-  "respect": "Tattoo designs are personal and sacred; collaborate."
+  "avoid": "Cynicism.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "black-and-white-poem",
-  "name": "Black-and-White Poem",
-  "region": "Global",
-  "origin": "International art cinema",
+  "id": "wes-anderson",
+  "name": "Wes Anderson",
+  "region": "North America",
+  "origin": "USA · symmetrical storybook worlds",
+  "known_for": "Symmetry, pastel palettes, dollhouse sets",
+  "tags": [
+   "whimsical",
+   "melancholic",
+   "tender"
+  ],
+  "genres": [
+   "comedy",
+   "drama",
+   "fantasy"
+  ],
+  "energy": "mid",
+  "summary": "Storybook precision: centred, symmetrical frames, pastel palettes, deadpan faces and sets like dollhouses.",
+  "camera": "Flat, frontal, symmetrical compositions; whip pans; tracking shots along cut-away rooms.",
+  "light": "Even, soft, shadowless light.",
+  "palette": [
+   "pastel pink",
+   "powder blue",
+   "mustard",
+   "mint"
+  ],
+  "editing": "Crisp, deliberate, chaptered; title cards.",
+  "movement": "Deadpan, stylised, precise; characters walk in straight lines.",
+  "design": "Dollhouse interiors, meticulous props and typography.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Messy handheld; naturalism.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "steven-spielberg",
+  "name": "Steven Spielberg",
+  "region": "North America",
+  "origin": "USA · wonder, adventure and family",
+  "known_for": "Backlit wonder, fluid staging",
+  "tags": [
+   "epic",
+   "joyful",
+   "tender",
+   "dreamy"
+  ],
+  "genres": [
+   "adventure",
+   "family",
+   "drama"
+  ],
+  "energy": "mid",
+  "summary": "The camera finds wonder in faces: backlit shafts of light, slow push-ins on a look, and long fluid staging that keeps people in one connected space.",
+  "camera": "Slow push-ins on awed faces; long fluid takes; low angles for scale; children's-eye views.",
+  "light": "Backlit beams through haze; warm practicals; blue night with a bright source.",
+  "palette": [
+   "warm gold",
+   "deep blue",
+   "silver",
+   "amber"
+  ],
+  "editing": "Let a take play; cut on a reveal; show reactions before the thing.",
+  "movement": "Open, readable emotion; wonder and fear on the face.",
+  "design": "Suburban and epic worlds with a clear, strong silhouette.",
+  "look": "live-action",
+  "acting": "expressive",
+  "avoid": "Cold, distant coverage.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "henry-selick",
+  "name": "Henry Selick",
+  "region": "North America",
+  "origin": "USA · stop-motion gothic fantasy",
+  "known_for": "Handmade, eerie, funny worlds",
+  "tags": [
+   "dark",
+   "whimsical",
+   "mystical",
+   "dreamy"
+  ],
+  "genres": [
+   "animation",
+   "fantasy",
+   "horror"
+  ],
+  "energy": "mid",
+  "summary": "Handmade and a little eerie: stop-motion puppets with long limbs, glowing fairy-tale worlds and wit in the dark.",
+  "camera": "Low, close camera in miniature sets; slow tracks through puppet worlds; dramatic depth.",
+  "light": "Moody pools of coloured light in deep shadow.",
+  "palette": [
+   "midnight blue",
+   "orange",
+   "bone white",
+   "violet"
+  ],
+  "editing": "Rhythmic, a little jerky, musical.",
+  "movement": "Stop-motion movement: slightly staccato, expressive, with real weight.",
+  "design": "Textured miniatures, felt and clay, twisted trees and tall thin figures.",
+  "look": "stop-motion",
+  "acting": "expressive",
+  "avoid": "Smooth CG motion.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "ava-duvernay",
+  "name": "Ava DuVernay",
+  "region": "North America",
+  "origin": "USA · urgent, humane drama",
+  "known_for": "Faces, history, quiet power",
+  "tags": [
+   "dramatic",
+   "emotional",
+   "powerful",
+   "tense"
+  ],
+  "genres": [
+   "drama",
+   "history"
+  ],
+  "energy": "mid",
+  "summary": "Urgent and humane: close, dignified faces, history felt through people, and a steady, confident camera that does not look away.",
+  "camera": "Steady, composed coverage; lingering close-ups; symmetrical, formal wides in public spaces.",
+  "light": "Natural, honest light; strong window light in intimate scenes.",
+  "palette": [
+   "warm brown",
+   "deep blue",
+   "white",
+   "gold"
+  ],
+  "editing": "Measured; hold on the face when a truth lands.",
+  "movement": "Controlled, dignified, restrained performances.",
+  "design": "Real places and archive-like detail.",
+  "look": "live-action",
+  "acting": "dramatic",
+  "avoid": "Melodrama.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "spike-lee",
+  "name": "Spike Lee",
+  "region": "North America",
+  "origin": "USA · bold, urban, direct",
+  "known_for": "Colour, music and direct address",
+  "tags": [
+   "confident",
+   "energetic",
+   "dramatic"
+  ],
+  "genres": [
+   "drama",
+   "comedy",
+   "music"
+  ],
+  "energy": "high",
+  "summary": "Bold and direct: saturated colour, music-driven scenes, characters who look straight into the lens and the camera that glides without their feet touching the ground.",
+  "camera": "Floating dolly shots; direct address to camera; Dutch tilts; bold, close, confrontational framings.",
+  "light": "Saturated, sometimes theatrical light; hot sunsets and neon.",
+  "palette": [
+   "red",
+   "yellow",
+   "blue",
+   "orange"
+  ],
+  "editing": "Rhythmic, music-led; sudden direct cuts.",
+  "movement": "Charged, talkative, physical performance.",
+  "design": "Neighbourhood streets, sneakers, murals and sports gear.",
+  "look": "live-action",
+  "acting": "energetic",
+  "avoid": "Neutral, anonymous style.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "denis-villeneuve",
+  "name": "Denis Villeneuve",
+  "region": "North America",
+  "origin": "Canada · vast, quiet scale",
+  "known_for": "Immense space, hush, texture",
+  "tags": [
+   "epic",
+   "contemplative",
+   "tense"
+  ],
+  "genres": [
+   "science fiction",
+   "drama"
+  ],
+  "energy": "low",
+  "summary": "Vast and hushed: tiny people in immense spaces, muted palettes, fog, texture and a slow, tense build.",
+  "camera": "Monumental wides; slow, deliberate pushes; low horizon lines; silhouettes against huge shapes.",
+  "light": "Hazy, diffused daylight; monochrome fog; single strong sources.",
+  "palette": [
+   "sand",
+   "grey",
+   "burnt orange",
+   "steel blue"
+  ],
+  "editing": "Slow, tense, built on sound and silence.",
+  "movement": "Minimal, held, near-still.",
+  "design": "Brutalist and desert forms, monumental objects.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Busy, fast cutting.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "hayao-miyazaki",
+  "name": "Hayao Miyazaki",
+  "region": "Asia",
+  "origin": "Japan · hand-drawn wonder and nature",
+  "known_for": "Wind, water, flight and quiet",
+  "tags": [
+   "dreamy",
+   "tender",
+   "whimsical",
+   "spiritual",
+   "family"
+  ],
+  "genres": [
+   "animation",
+   "fantasy",
+   "family",
+   "adventure"
+  ],
+  "energy": "low",
+  "summary": "Hand-drawn worlds where wind, water and light are characters: small, truthful gestures, wonder, and quiet moments between the action.",
+  "camera": "Gentle, wide, painterly staging; the camera drifts like a breeze; flight sequences with wide sweeping movement.",
+  "light": "Soft, luminous natural light; cloud-filtered sun; warm interior lamps; deep green shade.",
+  "palette": [
+   "sky blue",
+   "leaf green",
+   "warm cream",
+   "soft red"
+  ],
+  "editing": "Unhurried; give small actions (a meal, a breath) their full time; cut to nature.",
+  "movement": "Truthful, small behaviour; children and elders observed with love.",
+  "design": "Lovingly painted backgrounds, countryside and old towns, machines that look lived in.",
+  "look": "hand-drawn-2d",
+  "acting": "natural",
+  "avoid": "Cynicism; fast chaotic cutting.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "isao-takahata",
+  "name": "Isao Takahata",
+  "region": "Asia",
+  "origin": "Japan · gentle realism, watercolour",
+  "known_for": "Everyday life drawn with a sketch line",
   "tags": [
    "melancholic",
-   "intimate",
+   "tender",
+   "family",
    "contemplative"
   ],
   "genres": [
-   "ballad",
-   "acoustic",
-   "classical",
-   "indie"
-  ],
-  "bpm": [
-   50,
-   100
+   "animation",
+   "drama",
+   "family"
   ],
   "energy": "low",
-  "summary": "Faces, hands and light in monochrome; every frame a photograph.",
-  "camera": "Static portraits, slow dollies, shallow focus.",
-  "light": "Single hard key, deep shadows, window light.",
+  "summary": "Gentle realism: everyday life drawn with a loose sketch line and watercolour wash, and a deep, unshowy feeling for time passing.",
+  "camera": "Observational, patient framing; lingering on small domestic details; occasional wild, free sketch sequences.",
+  "light": "Soft, watery daylight; the particular light of each season.",
+  "palette": [
+   "pale green",
+   "soft pink",
+   "grey",
+   "washed blue"
+  ],
+  "editing": "Slow, observational, with room around moments.",
+  "movement": "Naturalistic, ordinary movement; children and families.",
+  "design": "Watercolour textures, unfinished-looking edges that breathe.",
+  "look": "painterly",
+  "acting": "natural",
+  "avoid": "Over-polish.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "makoto-shinkai",
+  "name": "Makoto Shinkai",
+  "region": "Asia",
+  "origin": "Japan · luminous skies and longing",
+  "known_for": "Light, sky and yearning",
+  "tags": [
+   "romantic",
+   "melancholic",
+   "dreamy",
+   "emotional"
+  ],
+  "genres": [
+   "animation",
+   "romance",
+   "fantasy"
+  ],
+  "energy": "mid",
+  "summary": "Luminous and yearning: skies full of light, lens-flare and rain-wet streets, and two people separated by time or distance.",
+  "camera": "Cinematic, camera-like framing; shallow-focus close details; wide skies; trains and windows.",
+  "light": "Radiant, sunlit skies; dusk gradients; light flaring through glass and leaves.",
+  "palette": [
+   "sky blue",
+   "orange",
+   "pink",
+   "teal"
+  ],
+  "editing": "Lyrical montage; cut on the music and the light.",
+  "movement": "Restrained, wistful.",
+  "design": "Highly detailed real places, stations, skies and city skylines.",
+  "look": "anime",
+  "acting": "restrained",
+  "avoid": "Flat, dull light.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "satoshi-kon",
+  "name": "Satoshi Kon",
+  "region": "Asia",
+  "origin": "Japan · dream and reality blending",
+  "known_for": "Match cuts between worlds",
+  "tags": [
+   "mystical",
+   "tense",
+   "dreamy",
+   "dark"
+  ],
+  "genres": [
+   "animation",
+   "thriller",
+   "psychological"
+  ],
+  "energy": "high",
+  "summary": "Dream and reality blur: match cuts that carry us between worlds, crowds of faces, mirrors and a mounting dread.",
+  "camera": "Match cuts and transitions that melt one scene into another; mirrors and reflections; sudden zooms.",
+  "light": "Realistic light that tips into the surreal; saturated neon; hard shadows.",
+  "palette": [
+   "magenta",
+   "teal",
+   "deep red",
+   "white"
+  ],
+  "editing": "Seamless transitions between memory, dream and now.",
+  "movement": "Intense, nervous, extreme expression when reality slips.",
+  "design": "Real city detail with surreal intrusions.",
+  "look": "anime",
+  "acting": "dramatic",
+  "avoid": "Clear boundaries between real and imagined.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "akira-kurosawa",
+  "name": "Akira Kurosawa",
+  "region": "Asia",
+  "origin": "Japan · weather, motion and epic scale",
+  "known_for": "Wind, rain, telephoto action",
+  "tags": [
+   "epic",
+   "tense",
+   "triumphant",
+   "dramatic"
+  ],
+  "genres": [
+   "drama",
+   "action",
+   "history"
+  ],
+  "energy": "high",
+  "summary": "Weather and motion as drama: wind, rain and dust, telephoto compression, formal compositions and sudden, decisive action.",
+  "camera": "Telephoto compression; multiple cameras on action; strong diagonal compositions; wipes between scenes.",
+  "light": "Hard sun, storm light, rain and mist, strong contrast.",
   "palette": [
    "black",
    "white",
-   "silver"
+   "grey",
+   "earth brown"
   ],
-  "editing": "Very few cuts; cut on breath.",
-  "movement": "Minimal; the smallest gesture matters.",
-  "design": "Bare rooms, textures, weather.",
+  "editing": "Wipes and decisive cuts; stillness before a burst of action.",
+  "movement": "Big, formal, physical.",
+  "design": "Fog-bound fields, castles, rain-soaked villages.",
   "look": "live-action",
-  "acting": "restrained",
-  "avoid": "",
-  "respect": ""
+  "acting": "dramatic",
+  "avoid": "Soft, undefined weather.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "one-take",
-  "name": "One-Take Performance",
-  "region": "Global",
-  "origin": "Music video tradition",
+  "id": "wong-kar-wai",
+  "name": "Wong Kar-wai",
+  "region": "Asia",
+  "origin": "Hong Kong · romantic longing and neon",
+  "known_for": "Step-printed motion, glances, neon night",
   "tags": [
+   "romantic",
+   "melancholic",
+   "night",
+   "intimate"
+  ],
+  "genres": [
+   "romance",
+   "drama"
+  ],
+  "energy": "mid",
+  "summary": "Longing in neon: step-printed slow-motion streaks, glances across crowded rooms, narrow corridors and rain on glass.",
+  "camera": "Handheld, close; step-printed slow motion; framing through doorways and glass; shallow focus.",
+  "light": "Neon and sodium light, colour-washed shadows, smoky low light.",
+  "palette": [
+   "red",
+   "green",
+   "amber",
+   "teal"
+  ],
+  "editing": "Fragmented time; repeated moments; music-led.",
+  "movement": "Held glances, small gestures, restraint.",
+  "design": "Tight apartments, noodle shops, narrow stairwells, rain.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Bright, flat, daylight coverage.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "bong-joon-ho",
+  "name": "Bong Joon-ho",
+  "region": "Asia",
+  "origin": "South Korea · genre-blending social drama",
+  "known_for": "Staircases, space and class",
+  "tags": [
+   "tense",
+   "dark",
+   "comic"
+  ],
+  "genres": [
+   "thriller",
+   "comedy",
+   "drama"
+  ],
+  "energy": "mid",
+  "summary": "Precise and playful: genre turns on a dime, space and architecture tell the story of class, and comedy slides into dread.",
+  "camera": "Precise, storyboarded compositions; vertical staging (stairs, levels); smooth tracking; sudden tonal swerves.",
+  "light": "Clean, natural light that turns harsh as the mood does.",
+  "palette": [
+   "grey",
+   "green",
+   "warm beige",
+   "red"
+  ],
+  "editing": "Exact, rhythmic; comedy and tension in the same cut.",
+  "movement": "Natural, with sharp comic timing.",
+  "design": "Houses and neighbourhoods built to show levels of life.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Single-tone storytelling.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "zhang-yimou",
+  "name": "Zhang Yimou",
+  "region": "Asia",
+  "origin": "China · colour-saturated epic",
+  "known_for": "Colour as story",
+  "tags": [
+   "epic",
+   "romantic",
+   "dramatic"
+  ],
+  "genres": [
+   "epic",
+   "drama",
+   "martial arts"
+  ],
+  "energy": "high",
+  "summary": "Colour as story: whole scenes drenched in one saturated hue, vast choreographed crowds and formal, painterly composition.",
+  "camera": "Wide formal compositions; slow, sweeping crane moves; overhead patterns of people.",
+  "light": "Strong, coloured light; saturated fabrics glowing in even daylight.",
+  "palette": [
+   "crimson",
+   "gold",
+   "indigo",
+   "jade"
+  ],
+  "editing": "Chapters keyed to colour; measured and grand.",
+  "movement": "Stylised, graceful, disciplined group movement.",
+  "design": "Silk, dyes, courtyards, bamboo, lanterns, armour.",
+  "look": "live-action",
+  "acting": "dramatic",
+  "avoid": "Muted, colourless palettes.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "satyajit-ray",
+  "name": "Satyajit Ray",
+  "region": "Asia",
+  "origin": "India · humane realism",
+  "known_for": "Children, seasons and quiet truth",
+  "tags": [
+   "tender",
+   "contemplative",
+   "family",
+   "melancholic"
+  ],
+  "genres": [
+   "drama",
+   "family",
+   "coming-of-age"
+  ],
+  "energy": "low",
+  "summary": "Humane realism: ordinary lives observed with great tenderness, children's wonder, the weather of the seasons and a clear, simple style.",
+  "camera": "Simple, clear frames at eye level; patient tracking with a walking figure; windows and doorways.",
+  "light": "Honest natural light; monsoon grey, hot noon, evening lamps.",
+  "palette": [
+   "warm brown",
+   "green",
+   "grey",
+   "cream"
+  ],
+  "editing": "Unhurried; let moments of looking carry feeling.",
+  "movement": "Natural, never theatrical.",
+  "design": "Villages, trains, courtyards and the real textures of home.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Showy camera work.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "ss-rajamouli",
+  "name": "S. S. Rajamouli",
+  "region": "Asia",
+  "origin": "India · mythic spectacle",
+  "known_for": "Heroic scale, slow-motion myth",
+  "tags": [
+   "epic",
+   "triumphant",
+   "energetic",
+   "dramatic"
+  ],
+  "genres": [
+   "epic",
+   "action",
+   "myth"
+  ],
+  "energy": "high",
+  "summary": "Mythic spectacle: heroes made larger than life with slow motion, low heroic angles, sweeping crane shots and emotion at full volume.",
+  "camera": "Low heroic angles; sweeping crane and drone moves; slow motion at the moment of impact; huge wides.",
+  "light": "Golden-hour glow; fire and shafts of light; bright, rich colour.",
+  "palette": [
+   "saffron",
+   "royal blue",
+   "gold",
+   "deep green"
+  ],
+  "editing": "Build, pause, then release; music-driven set pieces.",
+  "movement": "Heroic, large, physical.",
+  "design": "Vast palaces, forests and battle-lines, ornate armour.",
+  "look": "live-action",
+  "acting": "dramatic",
+  "avoid": "Understatement.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "hirokazu-kore-eda",
+  "name": "Hirokazu Kore-eda",
+  "region": "Asia",
+  "origin": "Japan · quiet family and small moments",
+  "known_for": "Meals, hands and the in-between",
+  "tags": [
+   "tender",
+   "family",
+   "melancholic",
+   "contemplative"
+  ],
+  "genres": [
+   "drama",
+   "family"
+  ],
+  "energy": "low",
+  "summary": "Quiet family drama: shared meals, hands, children's glances and the small, unspoken things between people.",
+  "camera": "Low, steady, unobtrusive camera at table height; static frames with people overlapping; handheld only for children.",
+  "light": "Soft natural window light; the colour of an ordinary home.",
+  "palette": [
+   "warm cream",
+   "soft green",
+   "faded blue",
+   "grey"
+  ],
+  "editing": "Gentle, observational; time passes between scenes.",
+  "movement": "Natural, overlapping, unscripted-feeling.",
+  "design": "Small apartments, kitchens, schoolyards.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Big dramatic gestures.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "ousmane-sembene",
+  "name": "Ousmane Sembène",
+  "region": "Africa",
+  "origin": "Senegal · direct, social storytelling",
+  "known_for": "Plain, powerful, community",
+  "tags": [
+   "emotional",
+   "dramatic",
+   "tense"
+  ],
+  "genres": [
+   "drama",
+   "social"
+  ],
+  "energy": "low",
+  "summary": "Plain and powerful: stories of ordinary people told with direct framing, clear light and a deep sense of community and justice.",
+  "camera": "Frontal, clear compositions; static wides of streets and courtyards; close-ups for dignity.",
+  "light": "Honest daylight; harsh sun and strong shadow.",
+  "palette": [
+   "earth red",
+   "white",
+   "indigo",
+   "ochre"
+  ],
+  "editing": "Direct, uncluttered; let a scene finish.",
+  "movement": "Natural, dignified.",
+  "design": "Real streets, markets and courtyards, fabric and daily work.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Exotic gloss.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "djibril-diop-mambety",
+  "name": "Djibril Diop Mambéty",
+  "region": "Africa",
+  "origin": "Senegal · bold, poetic and playful",
+  "known_for": "Rhythm, colour and irreverence",
+  "tags": [
+   "whimsical",
+   "joyful",
+   "dramatic"
+  ],
+  "genres": [
+   "drama",
+   "comedy",
+   "poetic"
+  ],
+  "energy": "mid",
+  "summary": "Bold and poetic: rhythmic cutting, vivid colour, irreverent humour and sudden strange images.",
+  "camera": "Dynamic, low, unusual angles; whip pans; collage-like cutting.",
+  "light": "Strong sunlight; saturated colour.",
+  "palette": [
+   "yellow",
+   "red",
+   "blue",
+   "white"
+  ],
+  "editing": "Rhythmic, abrupt, musical; sound and image against each other.",
+  "movement": "Expressive, bold, playful.",
+  "design": "Busy streets, markets, horses and carts, tailored street style.",
+  "look": "live-action",
+  "acting": "expressive",
+  "avoid": "Polite, even pacing.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "abderrahmane-sissako",
+  "name": "Abderrahmane Sissako",
+  "region": "Africa",
+  "origin": "Mauritania · lyrical and patient",
+  "known_for": "Wide, still, poetic",
+  "tags": [
+   "contemplative",
+   "melancholic",
+   "spiritual"
+  ],
+  "genres": [
+   "drama",
+   "poetic"
+  ],
+  "energy": "low",
+  "summary": "Lyrical and patient: wide still frames, people small in landscape, humour in the margins and a gentle political anger.",
+  "camera": "Locked-off wides; slow, wide pans; frames within frames (doorways, windows).",
+  "light": "Hard desert light; clear dusk; blue evenings.",
+  "palette": [
+   "sand",
+   "indigo",
+   "white",
+   "ochre"
+  ],
+  "editing": "Unhurried; poetry between scenes.",
+  "movement": "Still, dignified, near-silent.",
+  "design": "Sand, tents, sea and long white walls.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Hurry.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "wanuri-kahiu",
+  "name": "Wanuri Kahiu",
+  "region": "Africa",
+  "origin": "Kenya · joyful colour (Afrobubblegum)",
+  "known_for": "Fun, fierce and colourful",
+  "tags": [
+   "joyful",
+   "romantic",
+   "whimsical",
+   "confident"
+  ],
+  "genres": [
+   "romance",
+   "drama",
+   "youth"
+  ],
+  "energy": "mid",
+  "summary": "Joyful and fearless: bubblegum colour, bold costume, fresh romance and a refusal to be only serious.",
+  "camera": "Bright, playful framing; handheld energy; centred, confident close-ups.",
+  "light": "Bright daylight; candy-coloured neon at night.",
+  "palette": [
+   "hot pink",
+   "turquoise",
+   "yellow",
+   "lilac"
+  ],
+  "editing": "Light and quick; pop-music energy.",
+  "movement": "Warm, bright, expressive.",
+  "design": "Bold wardrobe, braids and colour-blocked sets.",
+  "look": "live-action",
+  "acting": "expressive",
+  "avoid": "Poverty-only images.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "kunle-afolayan",
+  "name": "Kunle Afolayan",
+  "region": "Africa",
+  "origin": "Nigeria · polished Yoruba-rooted drama",
+  "known_for": "Rich colour, heritage, drama",
+  "tags": [
+   "dramatic",
+   "emotional",
+   "epic",
+   "family"
+  ],
+  "genres": [
+   "drama",
+   "history",
+   "thriller"
+  ],
+  "energy": "mid",
+  "summary": "Polished and rooted: Yoruba language and heritage in rich colour, period detail and clear, cinematic drama.",
+  "camera": "Classic coverage with graceful tracking shots; wide establishing views of towns; elegant close-ups.",
+  "light": "Warm, golden interior light; strong sun outdoors.",
+  "palette": [
+   "deep red",
+   "gold",
+   "indigo",
+   "green"
+  ],
+  "editing": "Clear, classical; space for ritual and ceremony.",
+  "movement": "Dramatic, dignified, full-voiced.",
+  "design": "Traditional fabric, architecture and ceremony, with careful period detail.",
+  "look": "live-action",
+  "acting": "dramatic",
+  "avoid": "Generic African imagery.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "mati-diop",
+  "name": "Mati Diop",
+  "region": "Africa",
+  "origin": "Senegal and France · dreamy, ghostly night",
+  "known_for": "Sea, night and spirits",
+  "tags": [
+   "dreamy",
+   "mystical",
+   "melancholic"
+  ],
+  "genres": [
+   "drama",
+   "fantasy",
+   "poetic"
+  ],
+  "energy": "low",
+  "summary": "Dreamy and haunted: night by the sea, glowing lights, bodies and voices of the unquiet dead, and a trance-like pace.",
+  "camera": "Slow, drifting handheld; low-light close faces; wide black seas; light as a presence.",
+  "light": "Night light: sodium, neon and firelight; glowing skin; blue-black.",
+  "palette": [
+   "midnight blue",
+   "orange",
+   "silver",
+   "red"
+  ],
+  "editing": "Trance-like; music and sea sound over the picture.",
+  "movement": "Quiet, inward, hypnotic.",
+  "design": "Coast, construction sites, dance floors and shoreline.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Bright day, plain exposition.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "tunde-kelani",
+  "name": "Túndé Kèlání",
+  "region": "Africa",
+  "origin": "Nigeria · literary, proverb-rich community stories",
+  "known_for": "Proverbs, music and warmth",
+  "tags": [
+   "family",
+   "joyful",
+   "spiritual",
+   "tender"
+  ],
+  "genres": [
+   "drama",
+   "family",
+   "comedy"
+  ],
+  "energy": "mid",
+  "summary": "Rich in proverb and song: community stories from literature, warm humour, music and clear moral shape.",
+  "camera": "Warm, open staging of group scenes; steady medium shots; musical interludes in the wide.",
+  "light": "Warm daylight, soft interiors; lantern and evening glow.",
+  "palette": [
+   "warm brown",
+   "green",
+   "gold",
+   "indigo"
+  ],
+  "editing": "Clear, story-first; songs as scenes.",
+  "movement": "Expressive, warm, stage-trained.",
+  "design": "Villages, compounds, markets and festivals.",
+  "look": "live-action",
+  "acting": "expressive",
+  "avoid": "Irony that sneers.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "agnes-varda",
+  "name": "Agnès Varda",
+  "region": "Europe",
+  "origin": "France · playful, handmade and humane",
+  "known_for": "Small things, big heart",
+  "tags": [
+   "whimsical",
+   "tender",
+   "contemplative"
+  ],
+  "genres": [
+   "drama",
+   "documentary",
+   "comedy"
+  ],
+  "energy": "mid",
+  "summary": "Playful and humane: documentary curiosity inside fiction, collage, colour pops and a deep fondness for ordinary people and objects.",
+  "camera": "Curious, close observation; static tableaux; sudden playful camera ideas.",
+  "light": "Natural light, sunlit beaches and fields; colour used like paint.",
+  "palette": [
+   "sunflower yellow",
+   "sea blue",
+   "red",
+   "green"
+  ],
+  "editing": "Collage-like, essay-like; playful rhythm.",
+  "movement": "Natural, lightly performed.",
+  "design": "Beaches, markets, gleaned objects and handmade sets.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Cynicism.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "jean-pierre-jeunet",
+  "name": "Jean-Pierre Jeunet",
+  "region": "Europe",
+  "origin": "France · storybook colour and wide-angle whimsy",
+  "known_for": "Warm green-gold fairy-tale cities",
+  "tags": [
+   "whimsical",
+   "romantic",
+   "dreamy"
+  ],
+  "genres": [
+   "comedy",
+   "romance",
+   "fantasy"
+  ],
+  "energy": "mid",
+  "summary": "Storybook city: warm green-gold colour, wide-angle close-ups, tiny clockwork details and affectionate eccentrics.",
+  "camera": "Wide-angle lenses close to faces; elaborate tracking through clockwork spaces; overhead details.",
+  "light": "Warm golden light; a green-and-red palette glowing from within.",
+  "palette": [
+   "green",
+   "gold",
+   "red",
+   "amber"
+  ],
+  "editing": "Playful, narrated, crisp.",
+  "movement": "Exaggerated, charming, precise.",
+  "design": "Old Paris cafés, tiny trinkets, painted walls.",
+  "look": "live-action",
+  "acting": "expressive",
+  "avoid": "Greige realism.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "pedro-almodovar",
+  "name": "Pedro Almodóvar",
+  "region": "Europe",
+  "origin": "Spain · saturated melodrama",
+  "known_for": "Red rooms, bold women, big feeling",
+  "tags": [
+   "dramatic",
+   "romantic",
+   "confident"
+  ],
+  "genres": [
+   "drama",
+   "comedy",
+   "melodrama"
+  ],
+  "energy": "mid",
+  "summary": "Saturated melodrama: red walls, bold costume, women at the centre, and comedy, desire and grief tangled together.",
+  "camera": "Composed, graphic frames; centred, confident close-ups; elegant tracking.",
+  "light": "Rich, even light that lets colour glow; warm, lamp-lit interiors.",
+  "palette": [
+   "red",
+   "yellow",
+   "blue",
+   "pink"
+  ],
+  "editing": "Clear, dramatic; music cues; sudden reveals.",
+  "movement": "Heightened, vivid, truthful.",
+  "design": "Brightly painted apartments, patterned fabric, bold fashion.",
+  "look": "live-action",
+  "acting": "dramatic",
+  "avoid": "Muted, drab interiors.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "andrei-tarkovsky",
+  "name": "Andrei Tarkovsky",
+  "region": "Europe",
+  "origin": "Russia · patient, elemental long takes",
+  "known_for": "Water, fire, time",
+  "tags": [
+   "contemplative",
+   "spiritual",
+   "melancholic",
+   "dreamy"
+  ],
+  "genres": [
+   "drama",
+   "science fiction",
+   "poetic"
+  ],
+  "energy": "low",
+  "summary": "Patient and elemental: very long takes, water, fire and wind, memory and dream, and time you can feel passing.",
+  "camera": "Very long, slow takes; creeping tracks and zooms; reflections in water; frames of rain.",
+  "light": "Soft, overcast light; candle and firelight; sepia against colour.",
+  "palette": [
+   "sepia",
+   "grey",
+   "green",
+   "gold"
+  ],
+  "editing": "Slow and long; sparse cuts; sound of water and wind.",
+  "movement": "Minimal, absorbed, near-still.",
+  "design": "Ruined rooms, wet fields, trees, dripping interiors.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Quick cutting.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "ingmar-bergman",
+  "name": "Ingmar Bergman",
+  "region": "Europe",
+  "origin": "Sweden · faces in stark light",
+  "known_for": "The human face, in silence",
+  "tags": [
+   "dark",
    "intimate",
-   "raw",
+   "melancholic",
+   "tense"
+  ],
+  "genres": [
+   "drama",
+   "psychological"
+  ],
+  "energy": "low",
+  "summary": "The face as landscape: stark close-ups held in silence, chamber-drama staging and sharp contrasts of light.",
+  "camera": "Tight, held close-ups; two faces sharing a frame; static, formal compositions.",
+  "light": "Stark, high-contrast daylight; deep shadow; a single window.",
+  "palette": [
+   "white",
+   "black",
+   "red",
+   "grey"
+  ],
+  "editing": "Few cuts; long silences; hold on faces.",
+  "movement": "Spare, intense, still.",
+  "design": "Austere rooms, summer houses, sea and bare trees.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Busy coverage.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "sylvain-chomet",
+  "name": "Sylvain Chomet",
+  "region": "Europe",
+  "origin": "France · hand-drawn, wry and nearly wordless",
+  "known_for": "Caricature, music and melancholy",
+  "tags": [
+   "whimsical",
+   "melancholic",
+   "tender"
+  ],
+  "genres": [
+   "animation",
+   "comedy"
+  ],
+  "energy": "low",
+  "summary": "Hand-drawn and wry: caricatured bodies, nearly no dialogue, music-hall charm and a bittersweet ache.",
+  "camera": "Theatrical, wide stage-like staging; unhurried pans across painted cities; close detail on hands.",
+  "light": "Painted, atmospheric, often rain-washed or smoky light.",
+  "palette": [
+   "sepia",
+   "grey",
+   "deep green",
+   "mustard"
+  ],
+  "editing": "Gently comic rhythm; silent-film timing.",
+  "movement": "Exaggerated, mimed physical comedy.",
+  "design": "Sketchy, caricatured people, smoky cafés, steep streets.",
+  "look": "hand-drawn-2d",
+  "acting": "expressive",
+  "avoid": "Over-explaining in words.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "tomm-moore",
+  "name": "Tomm Moore",
+  "region": "Europe",
+  "origin": "Ireland · folklore in illustrated, flat-colour worlds",
+  "known_for": "Celtic pattern, myth, family",
+  "tags": [
+   "mystical",
+   "dreamy",
+   "family",
+   "tender"
+  ],
+  "genres": [
+   "animation",
+   "fantasy",
+   "family"
+  ],
+  "energy": "mid",
+  "summary": "Folklore in flat colour: Celtic spirals and patterns, illustrated storybook backgrounds, sea and forest spirits and a family bond.",
+  "camera": "Flat, graphic, side-on framing; slow lateral moves across illustrations; circular compositions.",
+  "light": "Soft, jewel-coloured light; glowing magic; misty greens.",
+  "palette": [
+   "sea blue",
+   "forest green",
+   "gold",
+   "cream"
+  ],
+  "editing": "Lyrical and musical; story flowing through pattern.",
+  "movement": "Expressive, gentle, childlike.",
+  "design": "Spirals, knotwork, hand-painted woodland and coast.",
+  "look": "hand-drawn-2d",
+  "acting": "expressive",
+  "avoid": "Photoreal depth.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "michel-ocelot",
+  "name": "Michel Ocelot",
+  "region": "Europe",
+  "origin": "France · silhouettes and flat colour fairy tales",
+  "known_for": "Cut-paper silhouettes in jewel colour",
+  "tags": [
+   "whimsical",
+   "mystical",
+   "dreamy"
+  ],
+  "genres": [
+   "animation",
+   "fairy tale"
+  ],
+  "energy": "mid",
+  "summary": "Cut-paper silhouettes against jewel-bright flat backgrounds: fairy tales told as living shadow theatre.",
+  "camera": "Flat, frontal, theatrical framing; slow lateral moves; very clean shapes.",
+  "light": "Even, graphic colour; no shadows except as shape.",
+  "palette": [
+   "ruby",
+   "emerald",
+   "gold",
+   "deep blue"
+  ],
+  "editing": "Clear, storybook chapters.",
+  "movement": "Graceful, stylised, simple.",
+  "design": "Black silhouettes, patterned fabrics, mosaics and tapestry backgrounds.",
+  "look": "silhouette",
+  "acting": "expressive",
+  "avoid": "Realistic shading.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "guillermo-del-toro",
+  "name": "Guillermo del Toro",
+  "region": "Latin America",
+  "origin": "Mexico · gothic fairy tale",
+  "known_for": "Monsters with hearts",
+  "tags": [
+   "dark",
+   "mystical",
+   "tender",
+   "dreamy"
+  ],
+  "genres": [
+   "fantasy",
+   "horror",
+   "fairy tale"
+  ],
+  "energy": "mid",
+  "summary": "Gothic fairy tale: monsters with hearts, amber and teal light, old houses and a tender view of outsiders.",
+  "camera": "Slow, graceful tracking and cranes through ornate sets; low angles on creatures; careful depth.",
+  "light": "Amber and teal contrast; candlelight; blue moonlight in dark rooms.",
+  "palette": [
+   "amber",
+   "teal",
+   "blood red",
+   "bone"
+  ],
+  "editing": "Patient, atmospheric; build to a tender reveal.",
+  "movement": "Gentle, theatrical, heartfelt.",
+  "design": "Ornate, decaying houses, clockwork and rich creature design.",
+  "look": "live-action",
+  "acting": "expressive",
+  "avoid": "Cynical monsters.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "alfonso-cuaron",
+  "name": "Alfonso Cuarón",
+  "region": "Latin America",
+  "origin": "Mexico · long takes and natural light",
+  "known_for": "Immersive long takes",
+  "tags": [
+   "emotional",
+   "tense",
+   "contemplative"
+  ],
+  "genres": [
+   "drama",
+   "science fiction"
+  ],
+  "energy": "mid",
+  "summary": "Immersive and natural: very long takes in which the camera moves with people through real spaces, and natural light.",
+  "camera": "Very long takes; slow tracking and pans that reveal more of the world; deep staging in layers.",
+  "light": "Natural, available light; soft window light; dusk.",
+  "palette": [
+   "grey",
+   "warm brown",
+   "soft blue",
+   "white"
+  ],
+  "editing": "Let the take do the cutting; sound mixes the world.",
+  "movement": "Natural, unforced, life-like.",
+  "design": "Real streets, houses and vehicles filled with background life.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Hard cuts that break the space.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "walter-salles",
+  "name": "Walter Salles",
+  "region": "Latin America",
+  "origin": "Brazil · roads and intimate humanity",
+  "known_for": "People on the move",
+  "tags": [
+   "tender",
+   "contemplative",
+   "emotional"
+  ],
+  "genres": [
+   "drama",
+   "road movie"
+  ],
+  "energy": "mid",
+  "summary": "Intimate road stories: handheld closeness, landscape passing by, and strangers becoming close.",
+  "camera": "Handheld, close and warm; the camera in the car; wide landscapes between faces.",
+  "light": "Natural, sunlit, dusty light; warm dusk; night headlights.",
+  "palette": [
+   "warm yellow",
+   "green",
+   "dust brown",
+   "blue"
+  ],
+  "editing": "Flowing, patient; journeys structure the story.",
+  "movement": "Natural, tender, lived-in.",
+  "design": "Roads, buses, small towns, hand-painted signs.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Studio gloss.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "fernando-meirelles",
+  "name": "Fernando Meirelles",
+  "region": "Latin America",
+  "origin": "Brazil · kinetic, saturated streets",
+  "known_for": "Energy of the street",
+  "tags": [
+   "energetic",
+   "tense",
+   "dramatic"
+  ],
+  "genres": [
+   "drama",
+   "crime"
+  ],
+  "energy": "high",
+  "summary": "Kinetic and saturated: handheld street energy, whip pans, overexposed warmth and quick, rhythmic editing.",
+  "camera": "Fast handheld; whip pans; circling shots; split screens; close and restless.",
+  "light": "Hot, overexposed sun; saturated colour grade; yellow-orange warmth.",
+  "palette": [
+   "yellow",
+   "orange",
+   "green",
+   "red"
+  ],
+  "editing": "Quick, rhythmic, music-driven; time jumps.",
+  "movement": "Energetic, loose, natural.",
+  "design": "Hillside neighbourhoods, football pitches, alleyways.",
+  "look": "live-action",
+  "acting": "energetic",
+  "avoid": "Slow, careful coverage.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "asghar-farhadi",
+  "name": "Asghar Farhadi",
+  "region": "Middle East",
+  "origin": "Iran · moral drama in ordinary rooms",
+  "known_for": "One decision, many sides",
+  "tags": [
+   "tense",
+   "family",
+   "dramatic"
+  ],
+  "genres": [
+   "drama",
+   "thriller",
+   "family"
+  ],
+  "energy": "mid",
+  "summary": "Moral drama in ordinary rooms: one small decision, many points of view, and tension from what people choose not to say.",
+  "camera": "Long takes in tight rooms; people seen through doors and glass; handheld, unfussy coverage.",
+  "light": "Natural, flat interior light; the cold of stairwells and offices.",
+  "palette": [
+   "grey",
+   "warm brown",
+   "white",
+   "deep blue"
+  ],
+  "editing": "Withholding; reveal information by shifting viewpoint.",
+  "movement": "Naturalistic, overlapping talk, held emotion.",
+  "design": "Apartments, courtrooms, schools, cars.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Villains; easy answers.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "abbas-kiarostami",
+  "name": "Abbas Kiarostami",
+  "region": "Middle East",
+  "origin": "Iran · simple frames, car windows, poetry",
+  "known_for": "Conversation and winding roads",
+  "tags": [
+   "contemplative",
+   "tender",
+   "spiritual"
+  ],
+  "genres": [
+   "drama",
+   "poetic"
+  ],
+  "energy": "low",
+  "summary": "Simple and poetic: a car window and a winding road, conversations in long takes, and the line between life and fiction blurred.",
+  "camera": "Fixed camera inside a car; very wide shots of a zig-zag road; long static takes.",
+  "light": "Honest natural light; dusty afternoon haze.",
+  "palette": [
+   "olive green",
+   "sand",
+   "blue",
+   "gold"
+  ],
+  "editing": "Slow, minimal; leave silences in.",
+  "movement": "Natural, unperformed.",
+  "design": "Hillside villages, vehicles, olive groves, everyday objects.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Ornament.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "nadine-labaki",
+  "name": "Nadine Labaki",
+  "region": "Middle East",
+  "origin": "Lebanon · warm, humane ensemble",
+  "known_for": "Community and kindness",
+  "tags": [
+   "tender",
+   "joyful",
+   "family"
+  ],
+  "genres": [
+   "drama",
+   "comedy",
+   "ensemble"
+  ],
+  "energy": "mid",
+  "summary": "Warm and humane: ensembles of ordinary people, humour in hard places, and a camera that stays close and kind.",
+  "camera": "Handheld, close and friendly; ensemble medium shots; children's eye-level.",
+  "light": "Warm natural light; colourful interiors; sun-filled streets.",
+  "palette": [
+   "warm pink",
+   "turquoise",
+   "yellow",
+   "brown"
+  ],
+  "editing": "Light, musical; comedy and sadness side by side.",
+  "movement": "Natural, warm, overlapping.",
+  "design": "Salons, kitchens, narrow streets, painted walls.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Pity.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "youssef-chahine",
+  "name": "Youssef Chahine",
+  "region": "Middle East",
+  "origin": "Egypt · musical melodrama with social energy",
+  "known_for": "Song, passion and politics",
+  "tags": [
+   "dramatic",
+   "romantic",
    "energetic"
   ],
   "genres": [
-   "any"
+   "drama",
+   "musical",
+   "history"
   ],
-  "bpm": [
-   60,
-   180
-  ],
-  "energy": "mid",
-  "summary": "The whole song as one continuous move around the performer: no cuts, pure presence.",
-  "camera": "A single unbroken Steadicam or gimbal move that reveals the world as the song builds.",
-  "light": "Practicals that change as the camera travels.",
+  "energy": "high",
+  "summary": "Musical melodrama with social energy: dance numbers, big passions, crowds and politics, shot with a restless, theatrical camera.",
+  "camera": "Sweeping tracking; theatrical staging; bold close-ups; crowd choreography.",
+  "light": "Warm, contrasty studio light; golden exteriors; stylised colour in musical numbers.",
   "palette": [
-   "depends on the location"
+   "gold",
+   "red",
+   "deep blue",
+   "white"
   ],
-  "editing": "None; transitions happen inside the shot.",
-  "movement": "Performer walks and sings to camera through a changing space.",
-  "design": "A route through connected spaces.",
+  "editing": "Passionate, rhythmic, musical numbers as story.",
+  "movement": "Heightened, expressive, theatrical.",
+  "design": "Cairo and Alexandria streets, cafés, ballrooms, harbour.",
   "look": "live-action",
-  "acting": "natural",
-  "avoid": "",
-  "respect": "",
-  "continuous": true
+  "acting": "dramatic",
+  "avoid": "Understatement.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  },
  {
-  "id": "stop-motion-handmade",
-  "name": "Handmade Stop Motion",
-  "region": "Global",
-  "origin": "Craft animation tradition",
+  "id": "taika-waititi",
+  "name": "Taika Waititi",
+  "region": "Oceania",
+  "origin": "New Zealand · deadpan warmth and bright colour",
+  "known_for": "Comedy with heart",
   "tags": [
+   "joyful",
    "whimsical",
-   "gentle",
-   "playful"
+   "tender"
   ],
   "genres": [
-   "indie",
-   "folk",
-   "pop"
-  ],
-  "bpm": [
-   80,
-   130
+   "comedy",
+   "family",
+   "adventure"
   ],
   "energy": "mid",
-  "summary": "Felt, clay and paper worlds built by hand; visible fingerprints and charm.",
-  "camera": "Miniature-scale moves, macro detail.",
-  "light": "Soft practical light on sets, tiny lamps.",
+  "summary": "Deadpan warmth: awkward humour, bright colour, tender family feeling and a soft sadness underneath.",
+  "camera": "Centred, symmetrical comedic frames; handheld ease; slow zooms for awkward beats.",
+  "light": "Bright, soft daylight; sunsets; colourful practicals.",
   "palette": [
-   "pastel felt",
-   "kraft paper",
-   "primary accents"
+   "sunny yellow",
+   "teal",
+   "orange",
+   "pink"
   ],
-  "editing": "On the beat, playful loops.",
-  "movement": "Jerky charm, cardboard waves, handmade weather.",
-  "design": "Miniature rooms, paper cities.",
-  "look": "stop-motion",
-  "acting": "expressive",
-  "avoid": "",
-  "respect": "Credit the makers."
+  "editing": "Quick, comic timing; pauses for awkward silence.",
+  "movement": "Understated, improvised-feeling, warm.",
+  "design": "Rural, colourful, handmade, lovingly shabby.",
+  "look": "live-action",
+  "acting": "natural",
+  "avoid": "Cruelty.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "jane-campion",
+  "name": "Jane Campion",
+  "region": "Oceania",
+  "origin": "New Zealand and Australia · intimate landscapes",
+  "known_for": "Bodies, nature and tension",
+  "tags": [
+   "tense",
+   "intimate",
+   "dark",
+   "romantic"
+  ],
+  "genres": [
+   "drama",
+   "period",
+   "romance"
+  ],
+  "energy": "low",
+  "summary": "Intimate and wild: landscapes pressing in on small rooms, bodies and textures in close-up, and a quiet, simmering tension.",
+  "camera": "Close, tactile details; wide landscapes; slow, deliberate framing through windows and trees.",
+  "light": "Natural, moody light; mist, rain, candle and lamplight.",
+  "palette": [
+   "moss green",
+   "grey",
+   "deep blue",
+   "earth brown"
+  ],
+  "editing": "Measured, building; stillness charged with feeling.",
+  "movement": "Restrained, held, physical.",
+  "design": "Mud, wool, lace, wet fields and old timber.",
+  "look": "live-action",
+  "acting": "restrained",
+  "avoid": "Glossy beauty.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
+ },
+ {
+  "id": "george-miller",
+  "name": "George Miller",
+  "region": "Oceania",
+  "origin": "Australia · kinetic, practical action",
+  "known_for": "Speed, colour-coding and clarity",
+  "tags": [
+   "energetic",
+   "epic",
+   "tense"
+  ],
+  "genres": [
+   "action",
+   "adventure",
+   "science fiction"
+  ],
+  "energy": "high",
+  "summary": "Kinetic and clear: practical stunts, centred subjects so the eye never loses them, colour-coded worlds and wordless storytelling.",
+  "camera": "Centred, fast, wide-angle action with the subject locked in the middle; undercranked speed; crash zooms.",
+  "light": "Hard desert sun; saturated orange against teal night.",
+  "palette": [
+   "orange",
+   "teal",
+   "chrome",
+   "sand"
+  ],
+  "editing": "Fast but legible; the action tells the story.",
+  "movement": "Physical, wordless, intense.",
+  "design": "Dust, chrome, improvised machines and war-painted faces.",
+  "look": "live-action",
+  "acting": "energetic",
+  "avoid": "Confusing geography.",
+  "respect": "A visual approach to learn from. FilmCrafter turns it into traits (camera, light, colour, pace); it never copies a film, a character or a scene. Credit your influences."
  }
 ]

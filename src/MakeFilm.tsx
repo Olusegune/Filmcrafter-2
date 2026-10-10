@@ -111,17 +111,17 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
         <div style={{ flex: 1 }} />
         {st.active > 0 && <span className="mk-active" role="status">Making {st.active}…</span>}
       </div>
-      <FilmStrip dir={dir} rd={rd} shots={st.shots} selected={picked} onChanged={() => void load()}
-                 onSelect={(id) => { setPicked(id); document.getElementById(`mk-${id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} />
+      {tab !== "deliver" && <FilmStrip dir={dir} rd={rd} shots={st.shots} selected={picked} onChanged={() => void load()}
+                 onSelect={(id) => { setPicked(id); document.getElementById(`mk-${id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} />}
       <p className="dim mk-blurb">{t.blurb}</p>
       {note && <p className="cw-note" role="status">{note} <button className="link" onClick={() => setNote("")}>OK</button></p>}
       {err && <p className="error-text" role="alert">{err}</p>}
 
       {stage && <>
         <div className="mk-bar">
-          <button className="btn" disabled={!!busy} onClick={() => generate(stage, st.shots.filter((s) => ready(s, stage) && (stage === "video" || !s[stage].locked) && !done(s, stage)).map((s) => s.id))}>
+          <button className="btn primary" disabled={!!busy} onClick={() => generate(stage, st.shots.filter((s) => ready(s, stage) && (stage === "video" || !s[stage].locked) && !done(s, stage)).map((s) => s.id))}>
             Make all that are missing</button>
-          <span className="dim">Each one shows its price first. Locked and chosen work is never replaced.</span>
+          <span className="mk-sum num">{st.counts[stage]} of {st.counts.shots} done</span><span className="dim">Each one shows its price first. Locked and chosen work is never replaced.</span>
         </div>
         <div className="mk-grid">{st.shots.map((s) => <Card key={s.id} dir={dir} rd={rd} stage={stage} s={s} busy={!!busy}
           onMake={(n) => generate(stage, [s.id], n)} onBring={() => bring(s.id, stage)}
@@ -129,21 +129,31 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
           onLock={(on) => call("lock", () => api.make("lock", dir, { shot: s.id, stage, on }))} />)}</div></>}
 
       {tab === "deliver" && <div className="mk-deliver">
-        <section><h3>Soundtrack</h3>
-          <p>{st.soundtrack.kind === "file" ? <>Using <b>{st.soundtrack.name ?? st.soundtrack.file}</b>.</> : "Silence, the length of the film."}</p>
-          <div className="film-actions"><button className="btn" disabled={!!busy} onClick={soundtrack}>Choose a soundtrack…</button>
-            {st.soundtrack.kind === "file" && <button className="btn ghost" disabled={!!busy} onClick={() => call("sound", () => api.make("soundtrack", dir, { file: null }))}>Use silence</button>}</div>
-          <p className="dim">Music, a dialogue mix or an ADR track you made elsewhere. It is copied in untouched and laid under the film.</p></section>
-        <section><h3>Export</h3>
-          <p className="dim">{st.counts.video} of {st.counts.shots} shots have a take. Shots without one appear as storyboard cards, so the film is marked as a draft.</p>
-          <div className="film-actions"><select className="text-input" value={preset} onChange={(e) => setPreset(e.target.value)} aria-label="Format">{PRESETS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select>
-            <button className="btn primary" disabled={!!busy || st.counts.video === 0} onClick={doExport}>{busy === "export" ? "Exporting…" : "Export the film"}</button></div>
-          {result && <div className="mk-result"><b>{result.draft ? "Draft exported" : "Exported"}</b> · {result.width}×{result.height} · {result.duration.toFixed(1)}s<br />
-            <span className="dim">{result.path}</span><br /><button className="link" onClick={() => revealItemInDir(result.path)}>Show in folder</button></div>}</section>
-        <section><h3>Hand off to an editor</h3>
-          <p className="dim">Writes one folder: the cut as an EDL (Premiere Pro, Resolve, Avid), OpenTimelineIO and Final Cut Pro XML (Resolve, Final Cut), a shot manifest, subtitles, and copies of the takes and soundtrack. Your film is never trapped here.</p>
-          <div className="film-actions"><button className="btn" disabled={!!busy || st.counts.video === 0} onClick={doHandoff}>{busy === "handoff" ? "Writing…" : "Write the hand-off folder"}</button></div>
-          {handoff && <div className="mk-result"><b>Written</b> · {handoff.placed} of {handoff.shots} shots placed{handoff.missing.length ? `; no take yet: ${handoff.missing.join(", ")}` : ""}<br /><span className="dim">{handoff.dir}</span></div>}</section>
+        <div className="mk-ready" role="status">
+          <div><b className="num">{st.counts.video}</b><span>of {st.counts.shots} shots have a take</span></div>
+          <div className="mk-meter" aria-hidden="true"><i style={{ width: `${st.counts.shots ? Math.round((100 * st.counts.video) / st.counts.shots) : 0}%` }} /></div>
+          <span className={st.counts.video === st.counts.shots && st.counts.shots > 0 ? "mk-flag ok" : "mk-flag"}>{st.counts.video === st.counts.shots && st.counts.shots > 0 ? "Complete" : "Draft: missing shots show as pictures"}</span>
+        </div>
+        <div className="mk-panels">
+          <section className="mk-panel"><span className="mk-n num">1</span><h3>Soundtrack</h3>
+            <p className="mk-big">{st.soundtrack.kind === "file" ? <>Using <b>{st.soundtrack.name ?? st.soundtrack.file}</b></> : "Silence, the length of the film"}</p>
+            <p className="dim">Music, a dialogue mix or an ADR track you made elsewhere. It is copied in untouched and laid under the film.</p>
+            <div className="film-actions"><button className="btn" disabled={!!busy} onClick={soundtrack}>Choose a soundtrack…</button>
+              {st.soundtrack.kind === "file" && <button className="btn ghost" disabled={!!busy} onClick={() => call("sound", () => api.make("soundtrack", dir, { file: null }))}>Use silence</button>}</div></section>
+          <section className="mk-panel"><span className="mk-n num">2</span><h3>Export the film</h3>
+            <p className="mk-big">One video file</p>
+            <p className="dim">Shots without a take appear as picture cards, so the film is marked as a draft until every shot has one.</p>
+            <div className="film-actions"><select className="text-input" value={preset} onChange={(e) => setPreset(e.target.value)} aria-label="Format">{PRESETS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select>
+              <button className="btn primary" disabled={!!busy || st.counts.video === 0} onClick={doExport}>{busy === "export" ? "Exporting…" : "Export the film"}</button></div>
+            {st.counts.video === 0 && <p className="dim mk-gate">Make at least one video first.</p>}
+            {result && <div className="mk-result"><b>{result.draft ? "Draft exported" : "Exported"}</b> · {result.width}×{result.height} · {result.duration.toFixed(1)}s<br />
+              <span className="dim">{result.path}</span><br /><button className="link" onClick={() => revealItemInDir(result.path)}>Show in folder</button></div>}</section>
+          <section className="mk-panel"><span className="mk-n num">3</span><h3>Hand off to an editor</h3>
+            <p className="mk-big">Your film is never trapped here</p>
+            <p className="dim">One folder: the cut as an EDL (Premiere Pro, Resolve, Avid), OpenTimelineIO and Final Cut Pro XML, a shot manifest, subtitles, and copies of the takes and soundtrack.</p>
+            <div className="film-actions"><button className="btn" disabled={!!busy || st.counts.video === 0} onClick={doHandoff}>{busy === "handoff" ? "Writing…" : "Write the hand-off folder"}</button></div>
+            {handoff && <div className="mk-result"><b>Written</b> · {handoff.placed} of {handoff.shots} shots placed{handoff.missing.length ? `; no take yet: ${handoff.missing.join(", ")}` : ""}<br /><span className="dim">{handoff.dir}</span></div>}</section>
+        </div>
       </div>}
     </div>
   );
@@ -167,7 +177,7 @@ function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { 
     <article id={`mk-${s.id}`} className={`mk-card ${locked ? "locked" : ""}`}>
       <div className="mk-pic">
         {preview ? (stage === "video" ? <video src={url(preview)} controls preload="metadata" /> : <img src={url(preview)} alt={`${s.id}`} />) : <span className="dim">{open_ ? "Making…" : "Nothing yet"}</span>}
-        <span className="mk-id num">{s.id}</span>{locked && <span className="mk-lock">locked</span>}
+        <span className="mk-id num">{s.id}</span>{open_ && <span className="mk-busy">making</span>}{locked && <span className="mk-lock">locked</span>}
       </div>
       <div className="mk-meta"><b>{s.title || s.id}</b><span className="dim">{s.framing || "—"} · {s.duration}s</span></div>
       {stage === "video" && s.video.takes.length > 1 && <div className="mk-opts">{s.video.takes.filter((t) => t.ok).map((t, i) => (
@@ -178,7 +188,7 @@ function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { 
       {s[stage === "video" ? "keyframe" : stage].options.some((o) => o.state === "failed") && <p className="error-text mk-fail">One failed: {s[stage === "video" ? "keyframe" : stage].options.find((o) => o.state === "failed")?.error ?? "try again"}</p>}
       {gate && <p className="dim mk-gate">{gate}</p>}
       <div className="mk-actions">
-        <button className="btn sm" disabled={busy || !!gate || locked || open_} onClick={() => onMake(2)}>{preview ? "Make more" : "Make"}</button>
+        <button className="btn primary sm" disabled={busy || !!gate || locked || open_} onClick={() => onMake(2)}>{preview ? "Make more" : "Make"}</button>
         {stage !== "video" && <button className="btn ghost sm" disabled={busy || locked} onClick={onBring}>Use mine…</button>}
         {stage === "video" && <button className="btn ghost sm" disabled={busy} onClick={onBring}>Use my video…</button>}
         {stage !== "video" && (locked ? <button className="link" disabled={busy} onClick={() => onLock(false)}>Unlock</button>
