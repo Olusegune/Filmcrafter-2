@@ -78,7 +78,7 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
     setBusy("lip"); setLipMsg("Checking lip-sync…"); setErr("");
     try {
       const r = await api.lipsyncCheck<{ checked: number; off: string[]; errors: string[] }>(dir, "run");
-      setLipMsg(`Checked ${r.checked} singing shot${r.checked === 1 ? "" : "s"}: ${r.off.length ? `${r.off.length} out of sync (listed below)` : "all in sync"}.`);
+      setLipMsg(`Checked ${r.checked} speaking shot${r.checked === 1 ? "" : "s"}: ${r.off.length ? `${r.off.length} out of sync (listed below)` : "all in sync"}.`);
       if (r.errors.length) setErr(r.errors.join(" "));
       await load();
     } catch (e) { setErr(errorText(e)); setLipMsg(""); } finally { setBusy(""); }
@@ -147,7 +147,7 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
               {route?.brain.local ? " (free on your local model)" : " (one AI look each, a few cents on OpenAI)"}?</span>
             <button className="btn small ghost" disabled={!!busy} onClick={runBacklog}>{busy === "backlog" ? "Checking…" : `Check ${backlog}`}</button></div>}
           {lip && lip.shots > 0 && <div className="sup-batch">
-            <span>{lipMsg || <>Lip-sync: <b>{lip.shots} singing shot{lip.shots === 1 ? "" : "s"}</b> can be checked (one AI look each{route?.brain.local ? ", free on your local model" : ", a few cents each on OpenAI"}).</>}</span>
+            <span>{lipMsg || <>Lip-sync: <b>{lip.shots} speaking shot{lip.shots === 1 ? "" : "s"}</b> can be checked (one AI look each{route?.brain.local ? ", free on your local model" : ", a few cents each on OpenAI"}).</>}</span>
             <button className="btn small ghost" disabled={!!busy} onClick={runLip}>{busy === "lip" ? "Checking…" : "Check lip-sync"}</button></div>}
           {batch && <div className="sup-confirm sup-batch-confirm">
             <span>{batch.label} on <b>{batch.provider}</b> ({batch.model.split("/").slice(-1)[0]}): <b>{batch.pricing ? "pricing…" : cost(batch.est, batch.kind)}</b></span>

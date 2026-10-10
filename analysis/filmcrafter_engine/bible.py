@@ -21,14 +21,19 @@ import shutil
 import sys
 import time
 
+from . import animation_principles as AP
 from .safe import check_id, file_part
 
 SCHEMA = 1
 KINDS = ("character", "environment", "prop")
 FOLDER = {"character": "cast", "environment": "world", "prop": "props"}
 LISTKEY = {"character": "characters", "environment": "environments", "prop": "props"}
-STYLE_LANES = ("photoreal cinematic", "stylized 3D", "graphic 3D", "2D animation", "painterly animation", "anime-inspired", "graphic comic-inspired animation",
-               "stop motion", "clay", "miniature", "mixed media", "experimental animation")
+# the film's visual style is chosen in two steps: a family (photorealistic, 3D animation, 2D animation, hands-on crafts), then a style within it
+LANE_GROUPS = (("photoreal", ("photoreal cinematic", "photoreal CGI")),
+               ("3d", ("feature 3D", "stylized 3D", "graphic 3D", "low-poly 3D")),
+               ("2d", ("hand-drawn 2D", "2D animation", "painterly animation", "anime-inspired", "graphic comic-inspired animation")),
+               ("craft", ("stop motion", "clay", "miniature", "mixed media", "experimental animation")))
+STYLE_LANES = tuple(l for _, ls in LANE_GROUPS for l in ls)
 MEDIA_KINDS = ("master", "front", "three-quarter", "side", "back", "expression", "pose", "wardrobe", "reference", "other")
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".webp")
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
@@ -189,10 +194,37 @@ def update_rules(d: str, data: dict) -> dict:
         lane = _text(st["lane"], 80)
         if lane and lane not in STYLE_LANES:
             raise SystemExit("Choose one of the listed visual styles.")
+        if lane != b["style"].get("lane"):
+            b["style"].pop("look", None)               # a newer choice of the broad lane replaces an exact look chosen before
         b["style"]["lane"] = lane
+    if "look" in st:                                    # the exact look, one of styles.json (not a genre layer)
+        lid = _text(st["look"], 60)
+        known = AP.styles().get(lid)
+        if lid and (not known or known.get("family") in ("genre", "auto")):
+            raise SystemExit("Choose one of the listed visual styles.")
+        if lid:
+            b["style"]["look"] = lid
+            b["style"]["lane"] = known["name"]
+        else:
+            b["style"].pop("look", None)
+    if "genre" in st:                                   # an optional genre feel layered on top of the look
+        gid = _text(st["genre"], 60)
+        known = AP.styles().get(gid)
+        if gid and (not known or known.get("family") != "genre"):
+            raise SystemExit("Choose one of the listed genre feels.")
+        if gid:
+            b["style"]["genre"] = gid
+        else:
+            b["style"].pop("genre", None)
     for k in ("notes", "traits"):
         if k in st:
             b["style"][k] = _text(st[k])
+    if "principles" in st:                          # the twelve principles of animation: a list of ids, or null for "the style's own defaults"
+        keep = AP.clean(st["principles"])
+        if keep is None:
+            b["style"].pop("principles", None)
+        else:
+            b["style"]["principles"] = keep
     if "references" in st:
         b["style"]["references"] = [_text(r, 300) for r in (st["references"] or [])][:20]
     if b != before:
@@ -344,17 +376,33 @@ def remove_media(d: str, kind: str, id_: str, path: str) -> dict:
 
 # ---------------------------------------------------------------- reading
 
+def effective_look(b: dict) -> str:
+    """The exact look (a styles.json id): the one chosen, or the one the broad lane stands for, or 'auto'."""
+    from .make import LOOK_FOR_LANE
+    st = b["style"]
+    return st.get("look") or LOOK_FOR_LANE.get(st.get("lane", ""), "auto")
+
+
 def view(d: str) -> dict:
     b = load(d)
     need = []
-    if not b["style"]["lane"]:
+    if not b["style"]["lane"] and not b["style"].get("look"):
         need.append("Choose a visual style.")
     if not b["characters"]:
         need.append("Add the characters.")
     if not b["environments"]:
         need.append("Add the places.")
     pics = sum(1 for c in b["characters"] if c["media"])
-    return {**b, "lanes": list(STYLE_LANES), "media_kinds": list(MEDIA_KINDS), "need": need,
+    look = effective_look(b)
+    chosen = b["style"].get("principles")
+    sty = AP.styles()
+    families = [{"id": f, "name": AP.FAMILY_NAMES[f], "blurb": AP.FAMILY_BLURB[f], "lanes": list(dict(LANE_GROUPS).get(f, ())),
+                 "looks": [{"id": k, "name": v["name"], "description": v["description"]} for k, v in sty.items() if v.get("family") == f]} for f in AP.FAMILIES]
+    genres = [{"id": k, "name": v["name"], "description": v["description"]} for k, v in sty.items() if v.get("family") == "genre"]
+    have = bool(b["style"]["lane"] or b["style"].get("look"))
+    return {**b, "lanes": list(STYLE_LANES), "families": families, "genres": genres, "look": look if have else "", "genre": b["style"].get("genre", ""),
+            "family": AP.style_family(look) if have else "",
+            "principles": AP.catalog(look), "principles_on": AP.defaults(look) if chosen is None else chosen, "principles_custom": chosen is not None, "media_kinds": list(MEDIA_KINDS), "need": need,
             "counts": {"characters": len(b["characters"]), "environments": len(b["environments"]), "props": len(b["props"]), "characters_with_pictures": pics}}
 
 

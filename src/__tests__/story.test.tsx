@@ -87,17 +87,19 @@ describe("the New film sheet", () => {
 });
 
 describe("the Home film strip", () => {
-  it("rolls two rows of frames and speeds up when a story is dragged over", async () => {
+  it("rolls four strips of frames and speeds up when a story is dragged over", async () => {
     const { FilmReel } = await import("../FilmReel");
     const calm = renderToStaticMarkup(<FilmReel active={false} />);
     const fast = renderToStaticMarkup(<FilmReel active />);
     expect(calm).toContain("reel-row top");
     expect(calm).toContain("reel-row bottom");
+    expect(calm).toContain("reel-row top2");
+    expect(calm).toContain("reel-row bottom2");
     expect(calm).toContain("reel-sweep");
     expect(calm).not.toContain("reel fast");
     expect(fast).toContain("reel fast");
     expect(calm).toContain('aria-hidden="true"');
-    expect((calm.match(/<i /g) ?? []).length).toBe(88);
+    expect((calm.match(/<i /g) ?? []).length).toBe(128);
   });
   it("is still with reduced motion", () => {
     expect(readFileSync("src/film.css", "utf8")).toMatch(/prefers-reduced-motion: reduce\) \{ \.reel-track, \.reel-sweep \{ animation: none/);
@@ -121,6 +123,11 @@ describe("the script reader keeps its width", () => {
 describe("progress along the top", () => {
   const p = (over: Partial<FilmProgress> = {}): FilmProgress => ({ story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 11, places: 7, pictures: 0, style: true }, shots: { count: 48, edited: 0 },
     make: { shots: 48, storyboard: 12, keyframe: 0, video: 0 }, ...over });
+  it("never throws on a reply with a part missing", () => {
+    const partial = { story: { kind: "idea", locked: false, as_is: false } } as unknown as FilmProgress;
+    for (const id of ["story", "cast", "shots", "make", "export"]) { expect(stageBadge(id, partial)).toBe(""); expect(stageDone(id, partial)).toBe(false); }
+    expect(stageBadge("story", {} as FilmProgress)).toBe("");
+  });
   it("says how far each step is, and nothing before there is something to say", () => {
     expect(stageBadge("story", p())).toBe("locked");
     expect(stageBadge("cast", p())).toBe("11 · 7");

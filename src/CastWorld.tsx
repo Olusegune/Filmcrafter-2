@@ -107,8 +107,18 @@ export function CastWorld({ dir }: { dir: string }) {
 function RulesStyle({ b, onSave, onHelp, helping }: { b: BibleView; onSave: (d: Record<string, unknown>) => void; onHelp: () => void; helping: boolean }) {
   const [rules, setRules] = useState(b.rules);
   const [phil, setPhil] = useState(b.philosophy);
-  const [style, setStyle] = useState(b.style);
-  const dirty = JSON.stringify([rules, phil, style]) !== JSON.stringify([b.rules, b.philosophy, b.style]);
+  const base = (({ principles: _p, ...rest }) => rest)(b.style);                       // the saved style without the principles, which are kept apart
+  const [style, setStyle] = useState(base);
+  const [fam, setFam] = useState(b.family);                                                                      // the kind of film: photorealistic, 3D, 2D, hybrid, crafts or art
+  const [look, setLook] = useState(b.look);                                                                      // the exact look, one of the library
+  const [genre, setGenre] = useState(b.genre);                                                                   // an optional genre feel layered on top
+  const [princ, setPrinc] = useState<string[]>(b.principles_on);
+  const [custom, setCustom] = useState(b.principles_custom);
+  const sending = custom ? princ : null;
+  const dirty = JSON.stringify([rules, phil, style, sending, look, genre]) !== JSON.stringify([b.rules, b.philosophy, base, b.principles_custom ? b.principles_on : null, b.look, b.genre]);
+  const looks = b.families.find((f) => f.id === fam)?.looks ?? [];
+  const picked = b.families.flatMap((f) => f.looks).find((l) => l.id === look);
+  const toggle = (id: string) => { setCustom(true); setPrinc((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id])); };
   return (
     <div className="cw-rules">
       <div className="cw-helprow"><span className="dim">Stuck? Optional: let the writing helper suggest a visual style, the rules of the world and how the film is made, from your story. You choose what to use.</span>
@@ -116,9 +126,25 @@ function RulesStyle({ b, onSave, onHelp, helping }: { b: BibleView; onSave: (d: 
       <section>
         <h2>Visual style</h2>
         <p className="dim">The look affects characters, places, materials, light, camera and movement together, not just a phrase added to a prompt.</p>
-        <div className="cw-lanes" role="radiogroup" aria-label="Visual style">
-          {b.lanes.map((l) => <button key={l} role="radio" aria-checked={style.lane === l} className={style.lane === l ? "on" : ""} onClick={() => setStyle({ ...style, lane: l })}>{l}</button>)}
+        <div className="cw-fams" role="radiogroup" aria-label="Kind of film">
+          {b.families.map((f) => <button key={f.id} role="radio" aria-checked={fam === f.id} className={`cw-fam fam-${f.id} ${fam === f.id ? "on" : ""}`} onClick={() => setFam(f.id)}><b>{f.name}</b><span>{f.blurb}</span></button>)}
         </div>
+        {fam && <div className="cw-lanes" role="radiogroup" aria-label="Look">
+          {looks.map((l) => <button key={l.id} role="radio" aria-checked={look === l.id} className={look === l.id ? "on" : ""} title={l.description} onClick={() => { setLook(l.id); if (!custom) setPrinc(b.principles.filter((p) => p.default).map((p) => p.id)); }}>{l.name}</button>)}
+        </div>}
+        {picked && <p className="cw-picked"><b>{picked.name}.</b> {picked.description} <span className="dim">Its look is written into every picture and video prompt, and kept strong against anything that pulls the other way.</span></p>}
+        <div className="cw-genre"><span className="dim">Genre feel, optional, layered on top of the look</span>
+          <div className="cw-lanes" role="radiogroup" aria-label="Genre feel">
+            <button role="radio" aria-checked={!genre} className={!genre ? "on" : ""} onClick={() => setGenre("")}>None</button>
+            {b.genres.map((g) => <button key={g.id} role="radio" aria-checked={genre === g.id} className={genre === g.id ? "on" : ""} title={g.description} onClick={() => setGenre(g.id)}>{g.name}</button>)}
+          </div></div>
+        <details className="cw-principles" open={fam !== "photoreal" && !!fam}>
+          <summary>Animation principles <span className="dim">{custom ? `${princ.length} of 12 on` : "the style's own choice"}</span></summary>
+          <p className="dim">The twelve principles the great animation studios work by. For each shot, the few that fit what happens in it are added to the prompt, so a jump gets anticipation and a flowing coat gets follow-through. Photorealistic films use only the ones that are also good acting and camera craft.</p>
+          <div className="cw-pr">{b.principles.map((p) => <button key={p.id} className={`cw-prc ${princ.includes(p.id) ? "on" : ""} ${p.fits ? "" : "off"}`} aria-pressed={princ.includes(p.id)} onClick={() => toggle(p.id)} title={p.plain}>
+            <b>{p.name}</b><span>{p.plain}</span></button>)}</div>
+          {custom && <button className="link" onClick={() => { setCustom(false); setPrinc(b.principles.filter((p) => p.default).map((p) => p.id)); }}>Use the style's own choice</button>}
+        </details>
         <label className="field"><span>What defines this look</span><textarea className="text-input" rows={2} value={style.traits} onChange={(e) => setStyle({ ...style, traits: e.target.value })} placeholder="Materials, textures, how things move" /></label>
         <label className="field"><span>References (one per line: a film, a painter, a link)</span><textarea className="text-input" rows={3} value={style.references.join("\n")}
           onChange={(e) => setStyle({ ...style, references: e.target.value.split("\n") })} placeholder="Describe the qualities you want, not a film to copy" /></label>
@@ -132,7 +158,7 @@ function RulesStyle({ b, onSave, onHelp, helping }: { b: BibleView; onSave: (d: 
         <div className="cw-grid2">{PHILOSOPHY.map(([k, name]) => <label key={k} className="field"><span>{name}</span><textarea className="text-input" rows={2} value={phil[k] ?? ""} onChange={(e) => setPhil({ ...phil, [k]: e.target.value })} /></label>)}</div>
       </section>
       <div className="cw-save"><span className="dim">{dirty ? "Unsaved changes" : `Saved · revision ${b.rev}`}</span>
-        <button className="btn primary" disabled={!dirty} onClick={() => onSave({ rules, philosophy: phil, style: { ...style, references: style.references.map((r) => r.trim()).filter(Boolean) } })}>Save</button></div>
+        <button className="btn primary" disabled={!dirty} onClick={() => onSave({ rules, philosophy: phil, style: { ...style, look, genre, references: style.references.map((r) => r.trim()).filter(Boolean), principles: sending } })}>Save</button></div>
     </div>
   );
 }

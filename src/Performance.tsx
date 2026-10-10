@@ -64,7 +64,7 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
             </div>
           </div>
           <p className="dim">A shot's own choice (in its panel) wins, then the scene, then the character, then the whole video.</p></details>
-          <details className="perf-more"><summary>Emotional arc <span className="dim">how each character's feeling travels through the song</span></summary>
+          <details className="perf-more"><summary>Emotional arc <span className="dim">how each character's feeling travels through the film</span></summary>
             <ArcSection dir={dir} onChanged={onChanged} /></details>
           <details className="perf-more"><summary>Signature gestures <span className="dim">the small habits that make a character themselves</span></summary>
             <GesturesSection dir={dir} onChanged={onChanged} /></details>

@@ -91,7 +91,7 @@ export const AUTO_IMAGE_MODEL: Record<string, string> = {
   google: "gemini-3.1-flash-image",
 };
 
-export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string };
+export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string; family?: string };
 export type Look = { style: string; notes?: string; prompt?: string; avoid?: string };
 
 export type ExportResult = {
@@ -468,8 +468,11 @@ export type BibleCharacter = { id: string; name: string; role: string; age: stri
   wardrobe: { id: string; name: string; notes: string }[]; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
 export type BibleEnvironment = { id: string; name: string; description: string; notes: string; spatial: Record<string, string>; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
 export type BibleProp = { id: string; name: string; notes: string; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
-export type BibleView = { rev: number; updated: number; rules: Record<string, string>; philosophy: Record<string, string>; style: { lane: string; notes: string; traits: string; references: string[] };
-  characters: BibleCharacter[]; environments: BibleEnvironment[]; props: BibleProp[]; lanes: string[]; media_kinds: string[]; need: string[];
+export type BibleView = { rev: number; updated: number; rules: Record<string, string>; philosophy: Record<string, string>; style: { lane: string; notes: string; traits: string; references: string[]; principles?: string[]; look?: string; genre?: string };
+  characters: BibleCharacter[]; environments: BibleEnvironment[]; props: BibleProp[]; lanes: string[];
+  families: { id: string; name: string; blurb: string; lanes: string[]; looks: { id: string; name: string; description: string }[] }[]; family: string;
+  genres: { id: string; name: string; description: string }[]; look: string; genre: string;
+  principles: { id: string; name: string; plain: string; fits: boolean; default: boolean }[]; principles_on: string[]; principles_custom: boolean; media_kinds: string[]; need: string[];
   counts: { characters: number; environments: number; props: number; characters_with_pictures: number }; added?: { characters: number; environments: number }; id?: string; state?: string };
 
 // ---------------------------------------------------------------- scenes and shots

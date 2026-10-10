@@ -85,7 +85,7 @@ export function storyState(s: { kind: StoryKind; locked: number | null; as_is: n
 
 /** A small word under a step along the top: how far it is. Empty when there is nothing to say yet. */
 export function stageBadge(id: string, p: import("./api").FilmProgress | null): string {
-  if (!p) return "";
+  if (!p || !p.story || !p.cast || !p.shots || !p.make) return "";                 // a reply with a part missing shows no badge instead of taking the screen down
   switch (id) {
     case "story": return p.story.locked ? "locked" : "";
     case "cast": return p.cast.characters + p.cast.places > 0 ? `${p.cast.characters} \u00b7 ${p.cast.places}` : "";
@@ -98,7 +98,7 @@ export function stageBadge(id: string, p: import("./api").FilmProgress | null): 
 
 /** Whether a step is finished: the badge turns green. */
 export function stageDone(id: string, p: import("./api").FilmProgress | null): boolean {
-  if (!p) return false;
+  if (!p || !p.story || !p.cast || !p.shots || !p.make) return false;
   switch (id) {
     case "story": return p.story.locked;
     case "cast": return p.cast.characters > 0 && p.cast.style;

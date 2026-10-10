@@ -71,7 +71,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
             <input className="text-input" autoFocus value={title} placeholder="Untitled film" onChange={(e) => { titled.current = true; setTitle(e.target.value); }} /></label>
           <div className="nf-kind-row">
             <span className="dim">This is</span>
-            <select className="text-input" value={kind!} onChange={(e) => setKind(e.target.value as StoryKind)} aria-label="What kind of story this is">
+            <select className="text-input" value={kind ?? "idea"} onChange={(e) => setKind(e.target.value as StoryKind)} aria-label="What kind of story this is">
               {STORY_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label.toLowerCase()}</option>)}</select>
             <button className="link" onClick={choose}>{fileName ? "choose a different file" : "or choose a file"}</button>
           </div>

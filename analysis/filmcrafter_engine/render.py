@@ -684,9 +684,14 @@ def resolve_look(project: dict) -> dict:
         return {"id": "custom", "prompt": look, "avoid": ""}
     base = styles().get(look.get("style", "auto"), styles()["auto"])
     prompt = look.get("prompt") or base["prompt"]
+    avoid = look.get("avoid") if look.get("avoid") is not None else base["avoid"]
+    genre = styles().get(look.get("genre") or "")
+    if genre and genre.get("family") == "genre":                  # a genre feel (epic fantasy, noir, solarpunk...) is layered on top of the look, never in place of it
+        prompt = f"{prompt} {genre['prompt'].strip()}"
+        avoid = ", ".join(x for x in (avoid, genre.get("avoid")) if x)
     if look.get("notes"):
         prompt = f"{prompt} {look['notes'].strip()}"
-    return {"id": base["id"], "prompt": prompt, "avoid": look.get("avoid") if look.get("avoid") is not None else base["avoid"]}
+    return {"id": base["id"], "prompt": prompt, "avoid": avoid}
 
 
 # ---------------------------------------------------------------- compile: Shot Contract -> request
@@ -960,6 +965,8 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         if shot.get("performers"):  # identity up front too: close framings (hands, fragments) otherwise drift
             ident = "Same people as the reference images (" + ", ".join(shot["performers"]) + "): identical skin tone, face, hair and clothes. "
         body = f"{lead}. {frame}{ident}A single still, the first frame of this shot, in exactly that style: " + body
+    elif not only and look["id"] not in ("auto", "custom"):          # a video model weighs its opening words most too: name the look first
+        body = f"{look['prompt'].split(':')[0].rstrip('.')}. " + body
     blocks.append((10, body.strip()))
     if shot.get("performers") and not only:
         # Name AND describe them: with partial faces (hands, profiles, fragments) the name alone lets models drift.
@@ -976,6 +983,16 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         blocks.append((8, acting))
     if perf and perf.get("extra") and not custom:   # micro-animation for video; the matching expression for a still
         blocks.append((7, perf["extra"]))
+    brief = (project.get("direction_brief") or {}) if not custom else {}
+    if brief and not only:                          # the filmmaker's approach the person applied (camera, light, rhythm, movement): traits only, in whatever look the film has
+        bits = [f"{k}: {str(brief[k]).rstrip('.')}" for k in ("camera", "light", "movement", "editing") if brief.get(k) and brief.get(k) != "—"]
+        if bits:
+            blocks.append((7, "Directing approach (" + "; ".join(bits) + ")."))
+    if not custom:                                  # the twelve principles of animation that fit this shot (animation_principles.py): a few, not all
+        from . import animation_principles as AP
+        craft = AP.direction(project, shot, look["id"], video="duration" in roles)
+        if craft:
+            blocks.append((6, craft))
     if custom:
         pass                                                    # your words say what happens: the shot's own timed acting, arc and business would compete with them
     elif "duration" in roles and shot.get("acting_beats"):        # the performance as timed moments: the most specific acting direction there is

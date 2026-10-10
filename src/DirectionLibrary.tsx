@@ -100,7 +100,7 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
                 <div className="dl-parts">{PARTS.map((p) => <label key={p.id}><input type="checkbox" checked={parts.includes(p.id)}
                   onChange={(e) => setParts((s) => e.target.checked ? [...s, p.id] : s.filter((x) => x !== p.id))} /> {p.label}</label>)}
                   <label><input type="checkbox" checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} /> Replace my own look, acting and bible entries too</label></div></details>
-              <p className="dim dl-then">Then press “Show me three directions”: the AI builds on this brief.</p>
+              <p className="dim dl-then">A direction works with any look. Your look stays (stop motion, 3D, photorealistic…); the direction adds its camera, light, movement and pace to every shot’s prompt.</p>
               <div className="dl-apply-bar">
                 {d.custom && <button className="btn ghost" onClick={() => api.directionLibrary("delete", null, { id: d.id }).then(() => { setSel(null); load(); })}>Delete</button>}
                 <button className="btn primary" onClick={apply} disabled={!parts.length}>Use this direction</button></div>

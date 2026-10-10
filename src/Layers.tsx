@@ -193,7 +193,7 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
               <label title={o.enabled ? "Shown in the film" : "Hidden"}><input type="checkbox" aria-label={`Show ${label(o)} in the film`} checked={o.enabled} onChange={(e) => call("update", { id: o.id, enabled: e.target.checked })} /></label>
               <label title="Tick to keep with other layers as a template"><input type="checkbox" className="ly-pick" aria-label={`Keep ${label(o)} for a template`} checked={picked.has(o.id)} onChange={() => togglePick(o.id)} /></label>
               <button className="link ly-name" onClick={() => onSelect(o.id === selected ? null : o.id)}>{label(o)}</button>
-              <span className="dim num" title={o.placed ? "When it shows in the film" : "It has no time on the song yet, so it is not on the timeline. Set a start and end below."}>{o.placed ? `${clock(o.start!)} – ${clock(o.end!)}` : "no time yet"}</span>
+              <span className="dim num" title={o.placed ? "When it shows in the film" : "It has no time in the film yet, so it is not on the timeline. Set a start and end below."}>{o.placed ? `${clock(o.start!)} – ${clock(o.end!)}` : "no time yet"}</span>
               <button className="icon-btn" title="Bring forward" disabled={i === 0} onClick={() => call("reorder", { id: o.id, to: "up" })}><span className="ly-arrow">▲</span></button>
               <button className="icon-btn" title="Send back" disabled={i === list.length - 1} onClick={() => call("reorder", { id: o.id, to: "down" })}><span className="ly-arrow">▼</span></button>
               <button className="icon-btn" title="Duplicate" onClick={() => call("duplicate", { id: o.id })}><I.Layers size={14} /></button>

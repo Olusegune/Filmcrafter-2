@@ -42,9 +42,27 @@ Open **Cast & World** along the top. The first time, FilmCrafter fills it from y
 ![Characters: pictures, traits, wardrobe, and related states](img/film/cast.png)
 
 - **Characters, Places, Props**: each is one entry with **states** (Sarah at 8, at 28, at 70; the kitchen by day and by night). Bring your own artwork (the first picture is the master); it is copied into the film and the original is left alone. Places have a layout (doors, windows, landmarks, where actors can stand and the camera can go) so a set doesn't change between shots.
-- **Rules & style**: the visual style (photoreal cinematic, stylized 3D, 2D, painterly, anime-inspired, stop motion, clay and more), the rules of the world, and how the film is made (cinematography, lighting, acting, colour, continuity).
+- **Rules & style**: the visual style, the rules of the world, and how the film is made (cinematography, lighting, movement, sound).
 
-![Rules and style](img/film/bible.png)
+![Rules and style: six kinds of film, a look within one, an optional genre feel, and the twelve principles of animation](img/film/bible.png)
+
+### Choosing the look
+
+1. **Pick the kind of film**: *Photorealistic*, *3D animation*, *2D animation*, *Hybrid 2D/3D*, *Hands-on crafts* (stop motion, clay, felt, paper), or *Art movements & experimental*.
+2. **Pick the look** inside it, about 100 in all (Hyperrealism, Documentary realism, Film noir, Painterly 3D, Clay-look 3D, Watercolour storybook, Shonen action anime, Felt and wool stop-motion, Ukiyo-e, Art Deco and more). Hover for what each one is.
+3. **Optionally add a genre feel** on top of any look: epic fantasy, dark fantasy, solarpunk, gothic horror, magical realism, biblical epic and others. It is layered on the look, never in place of it.
+
+The look is **written into every picture and video prompt**, with its name first (models weigh the first words most), a fuller description, a *style lock* sentence that is the last thing dropped if a prompt gets long, and a list of what it must never look like. For a drawn, 3D or crafted look, words elsewhere in the prompt that ask for a photograph are reworded so they cannot pull the picture back to photorealism; photorealistic looks are left alone.
+
+### Animation principles
+
+The twelve principles of animation (squash and stretch, anticipation, staging, pose to pose, follow-through, slow in and out, arcs, secondary action, timing, exaggeration, solid drawing, appeal) are in **Rules & style**. For each shot, the few that fit what happens in it are added to its prompt (a jump gets anticipation and squash and stretch; a coat in the wind gets follow-through), never all twelve. Drawn and 3D looks use most of them, crafts fewer, and photorealistic films keep only the ones that are also good acting and camera craft. Switch any on or off, or press *Use the style's own choice*. A quiet acting profile (Restrained, Natural) leaves exaggeration out unless you chose it.
+
+### A filmmaker's approach, in any look
+
+The **Direction library** (Studio, *Directions*, or from the film) has 48 filmmakers from North America, Latin America, Europe, Asia, Africa, the Middle East and Oceania. Each is a visual approach turned into traits: camera, light, colour, editing, movement, design, a suggested look and an acting profile. They are not copies of any film, and the traits (never the filmmaker's name) are sent to the models. **A direction works with any look**: apply Ryan Coogler's approach to a stop-motion film and the look stays stop motion while every shot gets his long moving takes, warm natural light on skin and groups moving together. Matching follows your story (genre, mood, energy), not a tempo.
+
+![The Direction library: filmmakers by region, matched to your story](img/film/directionlib.png)
 
 Taking an entry out never destroys it: the Bible before each change is kept (the newest 30).
 
@@ -76,9 +94,17 @@ Along the top of a film there are five steps: **Story, Cast & World, Shots, Stud
 
 On the cards, three tabs follow the work:
 
-1. **Pictures.** Make a few pictures of each shot, choose one and **lock** it; it is where the video starts. Or use your own picture. A picture needs nothing before it.
+1. **Pictures.** Make a few pictures of each shot, choose one and **lock** it; it is where the video starts. Or use your own picture. A picture needs nothing before it. **Check hands & faces** looks once at each chosen picture for wrong hands, bodies and faces (about two cents each, price shown first); problems appear on the card, and locking a flagged picture or making a video from one asks you first.
 2. **Video.** Each shot is brought to life from its locked picture (or bring your own video). Compare takes and **approve** the one to use. A shot's video is available once its picture is chosen.
 3. **Panels (optional).** A cheaper first pass: a quick picture of each shot's composition. Choose one and lock it, and the picture is then made from it. Skip it if you like.
+
+### Production Supervisor
+
+![The Production Supervisor: findings shot by shot, with a picture and a strip of the shots that need you](img/film/supervisor.png)
+
+Every quality finding in one place, **shot by shot**, each with its picture. The strip along the top shows only the shots that need you, coloured by severity (red major, gold minor, blue notes). The tiles count Major, Minor, Notes and Decided and filter the list. Click a picture to review the shot. *Fix* re-renders with the correction and *Regenerate* re-renders as planned, both showing the price first; batch fixes (such as a run of jump cuts in a scene) show a stack of the shots they cover. Director changes are listed below.
+
+In the **Timeline**, the inspector keeps the everyday tabs (Shot, Keyframe, Video) in view; **Compose** (prompt, references, start and end frames) and **Media** (your own files) sit behind **Advanced**.
 
 **Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film or write a hand-off folder for an editor.
 

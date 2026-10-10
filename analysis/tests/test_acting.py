@@ -333,6 +333,8 @@ def test_a_keyframe_prompt_gets_the_opening_moment_not_the_timeline(d):
 
 
 def test_when_the_prompt_is_too_long_the_beats_outlast_the_gesture(d, monkeypatch):
+    from filmcrafter_engine import animation_principles as AP
+    monkeypatch.setattr(AP, "direction", lambda *x, **k: "")      # the animation-craft line is the first thing cut (tested elsewhere); this is about the order of the acting blocks
     A.beats_set(d, "S01-02", [{"t0": 0, "t1": 3, "what": "She lifts her hand to the glasses"}])
     A.business_set(d, "Beatrice", [{"when": "embarrassed", "do": "touches the front of her gele"}])
     wide = prompt(d, SHOTS[1])

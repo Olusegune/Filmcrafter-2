@@ -79,7 +79,7 @@ export function CleanupSheet({ dir, onClose, onChanged }: { dir: string; onClose
               <button className="link" onClick={() => setPicked((s) => { const n = new Set(s); g.forEach((i) => n.delete(i.path)); return n; })}>None</button></div>
             <div className="cl-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${TILE_MIN[tile]}px, 1fr))` }}>
               {g.map((i) => (
-                <div key={i.path} className={`cl-card ${picked.has(i.path) ? "on" : "off"}`}>
+                <div key={`${i.path}|${i.name}`} className={`cl-card ${picked.has(i.path) ? "on" : "off"}`}>
                   <button className="cl-thumb" onClick={() => setViewing(i.path)} aria-label={`Look at ${i.name} larger`} title="Look at it larger">
                     {i.kind === "video" ? <video src={`${url(i)}#t=0.3`} muted preload="metadata" playsInline /> : <img src={url(i)} alt="" loading="lazy" />}
                     <span className="cl-zoom" aria-hidden="true">⤢</span>

@@ -86,7 +86,7 @@ export function BeatsPanel({ dir, shotId, onChanged }: { dir: string; shotId: st
 
 // ---------------------------------------------------------------- the emotional arc
 
-/** One thin strip across the song for a character: a cell per section, brighter where the feeling is stronger; hover for the feeling. */
+/** One thin strip across the film for a character: a cell per scene, brighter where the feeling is stronger; hover for the feeling. */
 export function ArcStrip({ sections, points }: { sections: string[]; points: ArcPoint[] }) {
   const by = new Map(points.map((p) => [p.section, p]));
   return (
@@ -100,10 +100,10 @@ export function ArcView({ data, drafts, dirty, busy, err, onEdit, onSave, onWrit
   data: ArcData; drafts: Record<string, ArcPoint[]>; dirty: Record<string, boolean>; busy: string; err: string;
   onEdit: (name: string, pts: ArcPoint[]) => void; onSave: (name: string) => void; onWrite: () => void;
 }) {
-  if (!data.sections.length) return <p className="dim">The song has not been listened to yet, so there are no sections to put a feeling on.</p>;
+  if (!data.sections.length) return <p className="dim">The film has no scenes to put a feeling on yet. Make the shots first.</p>;
   return (
     <div className="arc-view">
-      <p className="dim">How each character's feeling travels through the song, section by section. Each shot's prompt says where its people are, and the Director follows it, so the feeling progresses instead of starting over in every shot.</p>
+      <p className="dim">How each character's feeling travels through the film, scene by scene. Each shot's prompt says where its people are, and the Director follows it, so the feeling progresses instead of starting over in every shot.</p>
       {data.characters.map((name) => {
         const pts = drafts[name] ?? data.arcs[name]?.points ?? [];
         const used = new Set(pts.map((p) => p.section));
@@ -152,7 +152,7 @@ export function ArcSection({ dir, onChanged }: { dir: string; onChanged?: () => 
     try {
       const est = await api.acting<AiPrice>(dir, "arc_estimate", {});
       const replacing = data.characters.some((c) => (data.arcs[c]?.points.length ?? 0) > 0);
-      if (!await ask(confirmText(`The Director will write an emotional arc for ${data.characters.length} character${data.characters.length === 1 ? "" : "s"} across the song's sections.${replacing ? " Arcs that exist will be replaced." : ""}`, est), { ok: "Write the arcs" })) return;
+      if (!await ask(confirmText(`The Director will write an emotional arc for ${data.characters.length} character${data.characters.length === 1 ? "" : "s"} across the film's scenes.${replacing ? " Arcs that exist will be replaced." : ""}`, est), { ok: "Write the arcs" })) return;
       await run("write", () => api.acting(dir, "arc_write", {}));
     } catch (e) { setErr(errorText(e)); }
   };

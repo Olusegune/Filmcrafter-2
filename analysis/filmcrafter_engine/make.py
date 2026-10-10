@@ -24,7 +24,8 @@ import time
 
 from .safe import check_id, file_part
 
-LOOK_FOR_LANE = {"photoreal cinematic": "live-action", "stylized 3D": "stylized-3d", "graphic 3D": "cel-shaded-3d", "2D animation": "digital-2d", "painterly animation": "painterly",
+LOOK_FOR_LANE = {"photoreal cinematic": "live-action", "photoreal CGI": "photoreal-cgi", "feature 3D": "feature-3d", "low-poly 3D": "low-poly", "hand-drawn 2D": "hand-drawn-2d",
+                 "stylized 3D": "stylized-3d", "graphic 3D": "cel-shaded-3d", "2D animation": "digital-2d", "painterly animation": "painterly",
                  "anime-inspired": "anime", "graphic comic-inspired animation": "motion-comic", "stop motion": "stop-motion", "clay": "claymation", "miniature": "diorama",
                  "mixed media": "mixed-media", "experimental animation": "mixed-media"}
 STAGES = ("storyboard", "keyframe", "video")
@@ -157,7 +158,11 @@ def sync(d: str) -> dict:
     total = plan["scenes"][-1]["end"] if plan["scenes"] else 0
     pj = _read(os.path.join(rd, "project.json"), {}) or {}
     pj.update({"schema_version": 2, "title": m["title"], "song": "", "state": "directed", "aspect_ratio": m.get("aspect_ratio", "16:9"),
-               "look": {"style": LOOK_FOR_LANE.get(bible["style"].get("lane", ""), "auto"), **({"notes": bible["style"]["notes"]} if bible["style"].get("notes") else {})}, "film": True})
+               "look": {"style": B.effective_look(bible), **({"genre": bible["style"]["genre"]} if bible["style"].get("genre") else {}), **({"notes": bible["style"]["notes"]} if bible["style"].get("notes") else {})}, "film": True})
+    if "principles" in bible["style"]:               # the twelve principles of animation the film switched on (none saved: the style's own defaults)
+        pj["animation"] = {"principles": bible["style"]["principles"]}
+    else:
+        pj.pop("animation", None)
     _write(os.path.join(rd, "project.json"), pj)
     _write(os.path.join(rd, "production.json"), plan)
     # the pictures people brought become the render project's references: characters in the shots they are in, places in their scenes, props everywhere
@@ -346,7 +351,7 @@ def progress(d: str) -> dict:
         s = status(d)
         done = s["counts"]
     return {"story": {"kind": st["kind"], "locked": st.get("locked") is not None, "as_is": st.get("as_is") is not None},
-            "cast": {"characters": len(b["characters"]), "places": len(b["environments"]), "pictures": sum(1 for c in b["characters"] if c["media"]), "style": bool(b["style"]["lane"])},
+            "cast": {"characters": len(b["characters"]), "places": len(b["environments"]), "pictures": sum(1 for c in b["characters"] if c["media"]), "style": bool(b["style"]["lane"] or b["style"].get("look"))},
             "shots": {"count": len(cons), "edited": sum(1 for c in cons if c.get("edited"))},
             "make": {"shots": len(cons), "storyboard": done["storyboard"], "keyframe": done["keyframe"], "video": done["video"]}}
 

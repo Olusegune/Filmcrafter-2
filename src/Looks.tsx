@@ -32,6 +32,7 @@ export function LookPicker({ value, director, onCancel, onSave }: {
   const groups = useMemo(() => {
     const m = new Map<string, Style[]>();
     for (const s of styles) {
+      if (s.family === "genre") continue;                 // genre feels are layered on a look in Rules & style; they are not looks of their own
       if (q && !`${s.name} ${s.description} ${s.group}`.toLowerCase().includes(q.toLowerCase())) continue;
       m.set(s.group, [...(m.get(s.group) ?? []), s]);
     }

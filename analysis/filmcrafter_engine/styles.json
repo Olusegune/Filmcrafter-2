@@ -1,139 +1,1061 @@
 {
   "schema_version": 1,
-  "note": "Look library. 'prompt' is injected into every render prompt; 'avoid' goes to the model's negative prompt when it has one, otherwise into the prompt. Descriptions are user-facing. Studio and artist names are deliberately not used.",
+  "note": "Look library. 'prompt' is injected into every render prompt; 'avoid' goes to the model's negative prompt when it has one, otherwise into the prompt. Descriptions are user-facing. Studio and artist names are deliberately not used. 'family' is photoreal, 3d, 2d, hybrid, craft, art, genre or auto; 'genre' looks are layered on top of another look.",
   "styles": [
-    {"id": "auto", "name": "Auto: match my references", "group": "Recommended",
-     "description": "Follow the look of your character and set sheets exactly.",
-     "prompt": "Match the visual style of the reference images exactly: the same rendering technique, character design, proportions, colours and level of detail.",
-     "avoid": "a different art style from the references"},
-
-    {"id": "feature-3d", "name": "Feature animation 3D", "group": "3D",
-     "description": "Polished, expressive characters, rich lighting and detailed worlds, the look of big-screen animated features.",
-     "prompt": "High-end 3D animated feature film style: appealing stylized characters with expressive faces and large eyes, soft subsurface-scattered skin, detailed hair and fabric, rich global illumination, cinematic depth of field, polished art-directed environments.",
-     "avoid": "photorealistic humans, live-action footage, flat 2D shading, low-poly models"},
-    {"id": "stylized-3d", "name": "Stylized 3D", "group": "3D",
-     "description": "3D characters with deliberately simplified or exaggerated shapes, from cute to dramatic.",
-     "prompt": "Stylized 3D animation: deliberately simplified, exaggerated character shapes and proportions, bold graphic silhouettes, clean readable forms, painterly textures, strong art-directed colour.",
-     "avoid": "photorealism, realistic human proportions, live-action footage"},
-    {"id": "cel-shaded-3d", "name": "Cel-shaded 3D", "group": "3D",
-     "description": "3D animation rendered to look hand-drawn, with flat colour and ink outlines.",
-     "prompt": "Cel-shaded 3D animation: 3D characters and sets rendered with flat toon shading, crisp ink outlines, limited shadow tones and a hand-drawn comic finish.",
-     "avoid": "soft realistic shading, photorealism, painterly blur"},
-    {"id": "photoreal-cgi", "name": "Photorealistic CGI", "group": "3D",
-     "description": "Digital characters and environments designed to resemble live-action footage.",
-     "prompt": "Photorealistic CGI: physically accurate materials, realistic skin pores and hair, natural lighting and lens behaviour, indistinguishable from live-action cinematography.",
-     "avoid": "cartoon proportions, cel shading, illustrated look, plastic skin"},
-    {"id": "low-poly", "name": "Low-poly 3D", "group": "3D",
-     "description": "Faceted, geometric 3D with a clean modern-game feel.",
-     "prompt": "Low-poly 3D style: faceted geometric characters and environments, flat-shaded polygons, clean gradient lighting, minimal textures.",
-     "avoid": "smooth high-detail surfaces, photorealism"},
-
-    {"id": "2-5d", "name": "2.5D animation", "group": "2D",
-     "description": "Flat artwork arranged in layers in 3D space: depth with an illustrated look.",
-     "prompt": "2.5D animation: flat illustrated artwork arranged on layered planes in 3D space, parallax camera moves revealing depth, painted textures that remain two-dimensional.",
-     "avoid": "fully modelled 3D characters, photorealism"},
-    {"id": "hand-drawn-2d", "name": "Traditional hand-drawn 2D", "group": "2D",
-     "description": "Characters redrawn frame by frame, with fluid lines and expressive changes in shape.",
-     "prompt": "Traditional hand-drawn 2D animation: pencil-and-ink line art with subtle line boil, hand-painted cel colours, painted watercolour backgrounds, fluid squash-and-stretch, animated on twos.",
-     "avoid": "3D render, CGI shading, photorealism, vector-perfect lines"},
-    {"id": "digital-2d", "name": "Digital 2D", "group": "2D",
-     "description": "Drawn characters and backgrounds made digitally: can mimic traditional or look crisp and modern.",
-     "prompt": "Modern digital 2D animation: clean confident line work, flat colour with soft digital shading, crisp illustrated backgrounds, smooth motion.",
-     "avoid": "3D render, photorealism, grainy film look"},
-    {"id": "anime", "name": "Anime-inspired", "group": "2D",
-     "description": "Distinctive character design, cinematic framing and expressive key poses, from quiet holds to intense action.",
-     "prompt": "Anime-inspired 2D animation: clean line art, cel-shaded characters with expressive eyes, detailed painted backgrounds, dramatic cinematic framing, lighting effects and lens flares, expressive key poses with quiet held moments.",
-     "avoid": "3D CGI look, photorealism, western cartoon proportions"},
-    {"id": "western-tv", "name": "Western TV cartoon", "group": "2D",
-     "description": "Bold shapes, clear expressions and efficient, often exaggerated movement.",
-     "prompt": "Western TV cartoon style: bold simple shapes, thick clean outlines, flat bright colours, clear exaggerated expressions, snappy efficient animation.",
-     "avoid": "realistic proportions, 3D render, detailed shading"},
-    {"id": "rubber-hose", "name": "Rubber-hose cartoon", "group": "2D",
-     "description": "Bouncy vintage cartoon motion with flexible limbs, rounded forms and musical timing.",
-     "prompt": "1930s rubber-hose cartoon style: rounded characters with bendy tube limbs and white gloves, bouncy rhythmic motion timed to music, vintage film grain, limited muted palette.",
-     "avoid": "modern digital look, realistic anatomy, 3D render"},
-    {"id": "limited", "name": "Limited animation", "group": "2D",
-     "description": "Carefully chosen poses and selective movement: the body holds while the face, hands or camera move.",
-     "prompt": "Limited animation: strong held key poses, selective movement of faces, hands, hair and camera while bodies stay still, graphic flat backgrounds.",
-     "avoid": "full fluid body animation, 3D render, photorealism"},
-    {"id": "painterly", "name": "Painterly / watercolour", "group": "2D",
-     "description": "Moving paintings: visible brushwork, soft washes and textured paper.",
-     "prompt": "Painterly animation: every frame looks hand-painted, visible brushstrokes and watercolour washes on textured paper, soft edges, luminous colour.",
-     "avoid": "clean vector lines, 3D render, photorealism"},
-    {"id": "afrofuturist", "name": "Afrofuturist illustration", "group": "2D",
-     "description": "Bold graphic illustration mixing African pattern, colour and futurism.",
-     "prompt": "Afrofuturist illustrated animation: bold graphic shapes, rich African textile patterns and colour, luminous gold and jewel tones, stylized futuristic architecture, confident poster-like composition.",
-     "avoid": "photorealism, muted desaturated palette, generic sci-fi chrome"},
-    {"id": "rotoscope", "name": "Rotoscope", "group": "2D",
-     "description": "Animation traced from filmed movement: realistic motion with an illustrated surface.",
-     "prompt": "Rotoscoped animation: realistic human motion and timing traced into illustrated line art, flat colour fills with slight frame-to-frame line wobble.",
-     "avoid": "cartoon proportions, 3D render, live-action footage"},
-    {"id": "motion-comic", "name": "Motion comics", "group": "2D",
-     "description": "Comic panels brought to life with camera moves, layered depth and limited character movement.",
-     "prompt": "Motion comic: inked comic-book panels with halftone shading, layered cut-out depth, slow camera pans and pushes, limited character movement, bold comic colouring.",
-     "avoid": "fluid full animation, 3D render, photorealism"},
-
-    {"id": "cutout", "name": "Cutout animation", "group": "Stop motion & handmade",
-     "description": "Flat characters built from movable pieces, paper or digital.",
-     "prompt": "Cutout animation: flat characters assembled from jointed paper or card pieces, visible edges and textures, puppet-like jointed movement.",
-     "avoid": "smooth 3D render, photorealism, fluid drawn animation"},
-    {"id": "stop-motion", "name": "Stop motion", "group": "Stop motion & handmade",
-     "description": "Physical objects photographed frame by frame, with a tactile, handmade quality.",
-     "prompt": "Stop-motion animation: handcrafted physical puppets and miniature sets, real fabric and material textures, practical lighting on miniatures, slightly stepped frame-by-frame movement.",
-     "avoid": "smooth CGI motion, digital perfection, photorealistic humans"},
-    {"id": "claymation", "name": "Claymation", "group": "Stop motion & handmade",
-     "description": "Sculpted clay characters with soft forms and visible material texture.",
-     "prompt": "Claymation: characters sculpted from plasticine clay with visible fingerprints and tool marks, soft rounded forms, miniature handmade sets, stepped stop-motion movement.",
-     "avoid": "smooth CGI surfaces, photorealism, 2D drawing"},
-    {"id": "puppet", "name": "Puppet animation", "group": "Stop motion & handmade",
-     "description": "Articulated physical puppets with fabricated costumes, faces and sets.",
-     "prompt": "Puppet stop-motion animation: articulated puppets with sculpted replacement faces, tailored miniature costumes, detailed handmade sets, warm practical lighting.",
-     "avoid": "CGI render, photorealistic humans, 2D drawing"},
-    {"id": "paper-stop-motion", "name": "Paper cutout stop motion", "group": "Stop motion & handmade",
-     "description": "Physical paper shapes animated on a flat surface or layered miniature set.",
-     "prompt": "Paper cutout stop motion: layered coloured paper and card shapes with torn edges and paper grain, shallow miniature depth, frame-by-frame movement.",
-     "avoid": "3D render, photorealism, smooth digital motion"},
-    {"id": "brickfilm", "name": "Brick-toy stop motion", "group": "Stop motion & handmade",
-     "description": "Building-brick figures and sets: playful, modular and visibly physical.",
-     "prompt": "Brickfilm stop motion: minifigure-style characters and sets built from plastic building bricks, glossy plastic surfaces, modular architecture, stepped stop-motion movement.",
-     "avoid": "realistic humans, organic shapes, 2D drawing"},
-    {"id": "diorama", "name": "Diorama / miniature", "group": "Stop motion & handmade",
-     "description": "Miniature-looking characters and environments with a small-world feel.",
-     "prompt": "Miniature diorama look: tiny handcrafted world with tilt-shift shallow focus, model-scale props and figures, soft practical lighting.",
-     "avoid": "full-scale photorealism, flat 2D"},
-    {"id": "paint-on-glass", "name": "Paint-on-glass", "group": "Stop motion & handmade",
-     "description": "Paint changed directly between frames, creating flowing, dreamlike transformations.",
-     "prompt": "Paint-on-glass animation: oil paint smeared and reworked frame by frame, fluid dreamlike transformations between images, glowing backlit colour, visible paint trails.",
-     "avoid": "clean outlines, 3D render, photorealism"},
-    {"id": "sand", "name": "Sand animation", "group": "Stop motion & handmade",
-     "description": "Sand reshaped frame by frame: fluid silhouettes and a transient, textured look.",
-     "prompt": "Sand animation on a backlit glass table: images drawn in sand, granular silhouettes and textures, fluid morphing transitions, warm monochrome light.",
-     "avoid": "colour-rich rendering, 3D render, photorealism"},
-    {"id": "silhouette", "name": "Silhouette animation", "group": "Stop motion & handmade",
-     "description": "Dark figures against contrasting backgrounds, emphasizing shape, gesture and atmosphere.",
-     "prompt": "Silhouette animation: characters as solid black cut-paper silhouettes against luminous coloured or gradient backgrounds, expressive gesture and profile, shadow-puppet elegance.",
-     "avoid": "visible facial detail, 3D render, photorealism"},
-
-    {"id": "mixed-media", "name": "Mixed media", "group": "Experimental & graphic",
-     "description": "Combines methods, such as 3D characters in painted 2D backgrounds, or collage.",
-     "prompt": "Mixed-media animation: stylized 3D characters composited into hand-painted 2D backgrounds with collage textures and paper elements, deliberate contrast between techniques.",
-     "avoid": "a single uniform photorealistic look"},
-    {"id": "pixel-art", "name": "Pixel art", "group": "Experimental & graphic",
-     "description": "Retro video-game pixels with limited palettes.",
-     "prompt": "Pixel-art animation: low-resolution sprite characters and tiled backgrounds, crisp square pixels, limited retro colour palette, stepped sprite animation.",
-     "avoid": "smooth gradients, anti-aliased lines, 3D render, photorealism"},
-    {"id": "motion-graphics", "name": "Motion graphics", "group": "Experimental & graphic", "fit": "Best for lyric or graphic videos",
-     "description": "Animated typography, icons, shapes and graphic layouts driven by the music.",
-     "prompt": "Motion-graphics style: bold flat shapes, icons and graphic layouts animated in rhythm, clean vector design, strong colour blocking.",
-     "avoid": "photorealism, detailed character animation"},
-    {"id": "whiteboard", "name": "Whiteboard animation", "group": "Experimental & graphic", "fit": "Best for lyric or explainer videos",
-     "description": "Drawings appear as they're being made; common in educational videos.",
-     "prompt": "Whiteboard animation: black marker line drawings appearing stroke by stroke on a clean white board, occasional single accent colour.",
-     "avoid": "full colour rendering, 3D, photorealism"},
-
-    {"id": "live-action", "name": "Cinematic live action", "group": "Live action",
-     "description": "Looks filmed with real actors and a cinema camera.",
-     "prompt": "Cinematic live-action footage: real actors and locations, shot on a cinema camera with anamorphic lenses, natural skin texture, filmic colour grade and grain.",
-     "avoid": "animation, cartoon, CGI look, illustration"}
+    {
+      "id": "auto",
+      "name": "Auto: match my references",
+      "group": "Recommended",
+      "description": "Follow the look of your character and set sheets exactly.",
+      "prompt": "Match the visual style of the reference images exactly: the same rendering technique, character design, proportions, colours and level of detail.",
+      "avoid": "a different art style from the references",
+      "family": "auto"
+    },
+    {
+      "id": "photoreal-cgi",
+      "name": "Photorealistic CGI",
+      "group": "Photorealistic",
+      "description": "Digital characters and environments designed to resemble live-action footage.",
+      "prompt": "Photorealistic CGI: physically accurate materials, realistic skin pores and hair, natural lighting and lens behaviour, indistinguishable from live-action cinematography.",
+      "avoid": "cartoon proportions, cel shading, illustrated look, plastic skin",
+      "family": "photoreal"
+    },
+    {
+      "id": "live-action",
+      "name": "Cinematic live action",
+      "group": "Photorealistic",
+      "description": "Looks filmed with real actors and a cinema camera.",
+      "prompt": "Cinematic live-action footage: real actors and locations, shot on a cinema camera with anamorphic lenses, natural skin texture, filmic colour grade and grain.",
+      "avoid": "animation, cartoon, CGI look, illustration",
+      "family": "photoreal"
+    },
+    {
+      "id": "hyperreal",
+      "name": "Hyperrealism",
+      "group": "Photorealistic",
+      "description": "Extreme surface detail: every pore, thread and reflection, almost microscopic.",
+      "prompt": "Hyperrealistic cinematic imagery: extreme surface detail, visible skin pores and fine hair, precise fabric weave, accurate reflections and micro-texture, razor-sharp focus, true-to-life proportions, physically accurate light.",
+      "avoid": "illustration, cartoon, soft focus, plastic skin, stylised proportions",
+      "family": "photoreal"
+    },
+    {
+      "id": "documentary-real",
+      "name": "Documentary realism",
+      "group": "Photorealistic",
+      "description": "Unpolished, observational, natural light; it feels lived in and true.",
+      "prompt": "Documentary realism: handheld observational camera, available natural light, unretouched skin, lived-in real locations, muted honest colour, slightly imperfect framing, candid moments that were not staged for the camera.",
+      "avoid": "glossy lighting, studio polish, fantasy colour grade, animation, stylised",
+      "family": "photoreal"
+    },
+    {
+      "id": "stylized-photoreal",
+      "name": "Stylised photorealism",
+      "group": "Photorealistic",
+      "description": "Real forms and materials pushed by bold colour grading and expressive light.",
+      "prompt": "Stylised photorealism: real people, materials and places, heightened by a strong colour grade, dramatic expressive lighting and graphic composition; believable, but clearly art-directed.",
+      "avoid": "flat lighting, cartoon proportions, illustration, washed-out neutral grade",
+      "family": "photoreal"
+    },
+    {
+      "id": "editorial-fashion",
+      "name": "Editorial fashion photography",
+      "group": "Photorealistic",
+      "description": "Polished, controlled light, elegant poses, luxury-magazine composition.",
+      "prompt": "High-end editorial fashion photography look: precisely controlled studio and natural light, elegant posing, couture styling, clean luxurious composition, flawless but real skin, shallow depth of field.",
+      "avoid": "snapshot look, cluttered background, harsh amateur flash, cartoon, illustration",
+      "family": "photoreal"
+    },
+    {
+      "id": "fine-art-photo",
+      "name": "Fine-art photography",
+      "group": "Photorealistic",
+      "description": "Mood, symbolism and artistic composition in photographic form.",
+      "prompt": "Fine-art photography: contemplative composition, symbolic objects and gestures, restrained tonal palette, soft directional light, deliberate negative space, a quiet painterly mood captured with a real camera.",
+      "avoid": "busy commercial look, cartoon, illustration, oversaturated colour",
+      "family": "photoreal"
+    },
+    {
+      "id": "analog-film",
+      "name": "Analog film realism",
+      "group": "Photorealistic",
+      "description": "Film grain, halation and the warm, imperfect colour of real film stock.",
+      "prompt": "Analog film realism: visible organic grain, soft halation around bright lights, gentle gate weave, faded blacks, warm vintage colour reproduction of real photochemical film, vintage lenses with slight softness at the edges.",
+      "avoid": "clean digital sharpness, plastic skin, animation, HDR look",
+      "family": "photoreal"
+    },
+    {
+      "id": "film-noir",
+      "name": "Film noir",
+      "group": "Photorealistic",
+      "description": "Deep shadows, dramatic highlights, rain-slick streets and mystery.",
+      "prompt": "Film noir: high-contrast black-and-white cinematography, hard single-source key light, venetian-blind shadows, deep blacks, cigarette smoke and wet streets, low angles, moody off-centre composition.",
+      "avoid": "bright flat lighting, saturated colour, cartoon, cheerful mood",
+      "family": "photoreal"
+    },
+    {
+      "id": "hdr-real",
+      "name": "HDR realism",
+      "group": "Photorealistic",
+      "description": "Rich detail kept in both deep shadows and bright highlights.",
+      "prompt": "HDR realism: wide dynamic range with detail preserved in both shadows and highlights, rich local contrast, vivid but natural colour, crisp textures, luminous skies and clean deep blacks.",
+      "avoid": "blown highlights, crushed blacks, flat dull contrast, cartoon",
+      "family": "photoreal"
+    },
+    {
+      "id": "feature-3d",
+      "name": "Feature animation 3D",
+      "group": "3D",
+      "description": "Polished, expressive characters, rich lighting and detailed worlds, the look of big-screen animated features.",
+      "prompt": "High-end 3D animated feature film style: appealing stylized characters with expressive faces and large eyes, soft subsurface-scattered skin, detailed hair and fabric, rich global illumination, cinematic depth of field, polished art-directed environments.",
+      "avoid": "photorealistic humans, live-action footage, flat 2D shading, low-poly models",
+      "family": "3d"
+    },
+    {
+      "id": "stylized-3d",
+      "name": "Stylized 3D",
+      "group": "3D",
+      "description": "3D characters with deliberately simplified or exaggerated shapes, from cute to dramatic.",
+      "prompt": "Stylized 3D animation: deliberately simplified, exaggerated character shapes and proportions, bold graphic silhouettes, clean readable forms, painterly textures, strong art-directed colour.",
+      "avoid": "photorealism, realistic human proportions, live-action footage",
+      "family": "3d"
+    },
+    {
+      "id": "cel-shaded-3d",
+      "name": "Cel-shaded 3D",
+      "group": "3D",
+      "description": "3D animation rendered to look hand-drawn, with flat colour and ink outlines.",
+      "prompt": "Cel-shaded 3D animation: 3D characters and sets rendered with flat toon shading, crisp ink outlines, limited shadow tones and a hand-drawn comic finish.",
+      "avoid": "soft realistic shading, photorealism, painterly blur",
+      "family": "3d"
+    },
+    {
+      "id": "low-poly",
+      "name": "Low-poly 3D",
+      "group": "3D",
+      "description": "Faceted, geometric 3D with a clean modern-game feel.",
+      "prompt": "Low-poly 3D style: faceted geometric characters and environments, flat-shaded polygons, clean gradient lighting, minimal textures.",
+      "avoid": "smooth high-detail surfaces, photorealism",
+      "family": "3d"
+    },
+    {
+      "id": "painterly-3d",
+      "name": "Painterly 3D",
+      "group": "3D",
+      "description": "3D models rendered with visible brushwork and the warmth of oil paint.",
+      "prompt": "Painterly 3D: three-dimensional characters and sets rendered with visible oil-paint brushwork, hand-painted textures, soft edges, warm colour, depth and volume with the feel of a moving painting.",
+      "avoid": "plastic CGI sheen, photorealism, flat vector shading, hard digital edges",
+      "family": "3d"
+    },
+    {
+      "id": "clay-look-3d",
+      "name": "Clay-look 3D",
+      "group": "3D",
+      "description": "Digital modelling clay with fingerprints and handmade stop-motion charm.",
+      "prompt": "Clay-look 3D: digitally rendered characters that look sculpted from modelling clay, thumbprints and tool marks in the surface, soft rounded forms, slightly stepped timing, handmade miniature feeling.",
+      "avoid": "glossy plastic, photorealistic skin, smooth perfect surfaces, flat 2D",
+      "family": "3d"
+    },
+    {
+      "id": "cozy-diorama-3d",
+      "name": "Cozy diorama 3D",
+      "group": "3D",
+      "description": "Miniature storybook worlds with intimate lighting and tiny details.",
+      "prompt": "Cozy diorama 3D: a miniature storybook world, tilt-shift depth of field, warm intimate practical lights, tiny hand-placed props, soft felt-and-wood materials, glowing windows, snug and handmade.",
+      "avoid": "photorealism, harsh lighting, empty vast landscapes, flat 2D",
+      "family": "3d"
+    },
+    {
+      "id": "semi-real-3d",
+      "name": "Semi-realistic 3D",
+      "group": "3D",
+      "description": "Realistic proportions with gently exaggerated, expressive features.",
+      "prompt": "Semi-realistic 3D animation: believable human proportions and skin, subtly enlarged expressive eyes, detailed hair and clothing, cinematic lighting, grounded but stylised performances.",
+      "avoid": "cartoon proportions, uncanny photoreal humans, flat 2D shading, low-poly",
+      "family": "3d"
+    },
+    {
+      "id": "caricature-3d",
+      "name": "Caricature 3D",
+      "group": "3D",
+      "description": "Oversized heads and bold facial exaggeration for comic personality.",
+      "prompt": "Caricature 3D animation: oversized heads and hands, bold exaggerated facial features, rubbery squash-and-stretch faces, comic personalities, bright saturated colour, glossy stylised materials.",
+      "avoid": "realistic proportions, photorealism, subtle expressions, flat 2D",
+      "family": "3d"
+    },
+    {
+      "id": "anime-3d",
+      "name": "Anime-inspired 3D",
+      "group": "3D",
+      "description": "3D models with anime proportions, expressive faces and graphic shading.",
+      "prompt": "Anime-inspired 3D: three-dimensional models with anime proportions and large expressive eyes, hand-tuned cel shading, crisp ink-like outlines, dynamic camera angles and graphic impact effects.",
+      "avoid": "photorealistic humans, western cartoon proportions, flat soft shading, live-action",
+      "family": "3d"
+    },
+    {
+      "id": "vinyl-toy-3d",
+      "name": "Vinyl toy 3D",
+      "group": "3D",
+      "description": "Collectible-figure look: smooth surfaces and simple, charming features.",
+      "prompt": "Vinyl toy 3D: characters like collectible designer figures, smooth glossy vinyl surfaces, simple rounded features with minimal detail, bold flat colours, studio-light product feel and tiny painted accents.",
+      "avoid": "realistic skin, fine hair, photorealism, rough textures",
+      "family": "3d"
+    },
+    {
+      "id": "papercraft-3d",
+      "name": "Papercraft 3D",
+      "group": "3D",
+      "description": "Folded-paper objects, crisp edges and handcrafted geometric worlds.",
+      "prompt": "Papercraft 3D: everything appears folded and cut from coloured paper, crisp creases and layered edges, visible paper grain, soft shadows between layers, geometric handcrafted environments.",
+      "avoid": "smooth CGI, photorealism, glossy plastic, organic realistic textures",
+      "family": "3d"
+    },
+    {
+      "id": "voxel",
+      "name": "Voxel art",
+      "group": "3D",
+      "description": "Worlds and characters built from small coloured cubes.",
+      "prompt": "Voxel art: characters and environments constructed from small visible coloured cubes, blocky stepped silhouettes, bright clean colour, soft ambient occlusion, a toy-like three-dimensional pixel world.",
+      "avoid": "smooth curved surfaces, photorealism, painterly texture, thin lines",
+      "family": "3d"
+    },
+    {
+      "id": "plasticine-3d",
+      "name": "Plasticine 3D",
+      "group": "3D",
+      "description": "Soft sculpted characters with visible kneading and pliable surfaces.",
+      "prompt": "Plasticine 3D: soft sculpted characters with visible kneading and smoothing marks, slightly lumpy pliable surfaces, matte colourful modelling material, gentle imperfections, tactile close-up detail.",
+      "avoid": "hard glossy surfaces, photorealism, flat 2D, precise geometry",
+      "family": "3d"
+    },
+    {
+      "id": "creature-real",
+      "name": "Photoreal creature animation",
+      "group": "3D",
+      "description": "Highly detailed animated creatures: fur, muscle and believable motion.",
+      "prompt": "Photorealistic creature animation: lifelike animals and creatures with individually rendered fur or scales, visible muscle and skin movement under the surface, realistic weight, wet eyes and natural light interaction.",
+      "avoid": "cartoon proportions, flat shading, toy look, 2D drawing",
+      "family": "3d"
+    },
+    {
+      "id": "puppet-3d",
+      "name": "Puppet-style 3D",
+      "group": "3D",
+      "description": "Digital characters that move with the charm of physical puppets.",
+      "prompt": "Puppet-style 3D: digitally built characters with fabric, felt and wooden-joint details, slightly stiff articulated movement like a physical puppet, visible stitching, small imperfect handmade proportions.",
+      "avoid": "fluid rubbery motion, photorealistic skin, flat 2D, perfect surfaces",
+      "family": "3d"
+    },
+    {
+      "id": "gothic-3d",
+      "name": "Gothic stylized 3D",
+      "group": "3D",
+      "description": "Angular figures, dark-fantasy architecture and theatrical lighting.",
+      "prompt": "Gothic stylised 3D: tall angular exaggerated figures, pointed arches and twisted dark-fantasy architecture, theatrical rim and candle lighting, deep blues and blacks with sickly accent colours.",
+      "avoid": "cheerful bright palette, rounded cute shapes, photorealism, flat 2D",
+      "family": "3d"
+    },
+    {
+      "id": "stopmotion-cgi",
+      "name": "Stop-motion-look CGI",
+      "group": "3D",
+      "description": "Digital animation with stepped poses and simulated handmade materials.",
+      "prompt": "Stop-motion-look CGI: digitally animated but deliberately stepped on twos with slight jitter, felt, wood and clay textures with visible fibres and fingerprints, practical-looking miniature lighting.",
+      "avoid": "smooth fluid motion, glossy perfect CGI, photorealism, flat 2D",
+      "family": "3d"
+    },
+    {
+      "id": "hand-drawn-2d",
+      "name": "Traditional hand-drawn 2D",
+      "group": "2D",
+      "description": "Characters redrawn frame by frame, with fluid lines and expressive changes in shape.",
+      "prompt": "Traditional hand-drawn 2D animation: pencil-and-ink line art with subtle line boil, hand-painted cel colours, painted watercolour backgrounds, fluid squash-and-stretch, animated on twos.",
+      "avoid": "3D render, CGI shading, photorealism, vector-perfect lines",
+      "family": "2d"
+    },
+    {
+      "id": "digital-2d",
+      "name": "Digital 2D",
+      "group": "2D",
+      "description": "Drawn characters and backgrounds made digitally: can mimic traditional or look crisp and modern.",
+      "prompt": "Modern digital 2D animation: clean confident line work, flat colour with soft digital shading, crisp illustrated backgrounds, smooth motion.",
+      "avoid": "3D render, photorealism, grainy film look",
+      "family": "2d"
+    },
+    {
+      "id": "anime",
+      "name": "Anime-inspired",
+      "group": "2D",
+      "description": "Distinctive character design, cinematic framing and expressive key poses, from quiet holds to intense action.",
+      "prompt": "Anime-inspired 2D animation: clean line art, cel-shaded characters with expressive eyes, detailed painted backgrounds, dramatic cinematic framing, lighting effects and lens flares, expressive key poses with quiet held moments.",
+      "avoid": "3D CGI look, photorealism, western cartoon proportions",
+      "family": "2d"
+    },
+    {
+      "id": "western-tv",
+      "name": "Western TV cartoon",
+      "group": "2D",
+      "description": "Bold shapes, clear expressions and efficient, often exaggerated movement.",
+      "prompt": "Western TV cartoon style: bold simple shapes, thick clean outlines, flat bright colours, clear exaggerated expressions, snappy efficient animation.",
+      "avoid": "realistic proportions, 3D render, detailed shading",
+      "family": "2d"
+    },
+    {
+      "id": "rubber-hose",
+      "name": "Rubber-hose cartoon",
+      "group": "2D",
+      "description": "Bouncy vintage cartoon motion with flexible limbs, rounded forms and musical timing.",
+      "prompt": "1930s rubber-hose cartoon style: rounded characters with bendy tube limbs and white gloves, bouncy rhythmic motion timed to music, vintage film grain, limited muted palette.",
+      "avoid": "modern digital look, realistic anatomy, 3D render",
+      "family": "2d"
+    },
+    {
+      "id": "limited",
+      "name": "Limited animation",
+      "group": "2D",
+      "description": "Carefully chosen poses and selective movement: the body holds while the face, hands or camera move.",
+      "prompt": "Limited animation: strong held key poses, selective movement of faces, hands, hair and camera while bodies stay still, graphic flat backgrounds.",
+      "avoid": "full fluid body animation, 3D render, photorealism",
+      "family": "2d"
+    },
+    {
+      "id": "painterly",
+      "name": "Painterly / watercolour",
+      "group": "2D",
+      "description": "Moving paintings: visible brushwork, soft washes and textured paper.",
+      "prompt": "Painterly animation: every frame looks hand-painted, visible brushstrokes and watercolour washes on textured paper, soft edges, luminous colour.",
+      "avoid": "clean vector lines, 3D render, photorealism",
+      "family": "2d"
+    },
+    {
+      "id": "afrofuturist",
+      "name": "Afrofuturist illustration",
+      "group": "2D",
+      "description": "Bold graphic illustration mixing African pattern, colour and futurism.",
+      "prompt": "Afrofuturist illustrated animation: bold graphic shapes, rich African textile patterns and colour, luminous gold and jewel tones, stylized futuristic architecture, confident poster-like composition.",
+      "avoid": "photorealism, muted desaturated palette, generic sci-fi chrome",
+      "family": "2d"
+    },
+    {
+      "id": "rotoscope",
+      "name": "Rotoscope",
+      "group": "2D",
+      "description": "Animation traced from filmed movement: realistic motion with an illustrated surface.",
+      "prompt": "Rotoscoped animation: realistic human motion and timing traced into illustrated line art, flat colour fills with slight frame-to-frame line wobble.",
+      "avoid": "cartoon proportions, 3D render, live-action footage",
+      "family": "2d"
+    },
+    {
+      "id": "watercolor-storybook",
+      "name": "Watercolour storybook",
+      "group": "2D",
+      "description": "Soft pigment washes, textured paper and a dreamy illustrated feel.",
+      "prompt": "Watercolour storybook illustration: soft translucent pigment washes that bleed at the edges, visible textured paper, gentle pencil contours, muted harmonious colour, dreamy light and unfinished edges.",
+      "avoid": "hard digital edges, photorealism, glossy 3D, heavy black outlines",
+      "family": "2d"
+    },
+    {
+      "id": "flat-vector",
+      "name": "Flat vector animation",
+      "group": "2D",
+      "description": "Crisp silhouettes, minimal shading and simple colour.",
+      "prompt": "Flat vector animation: crisp clean-edged shapes, minimal or no shading, limited bold palette, simple geometric character design, strong readable silhouettes, graphic storytelling.",
+      "avoid": "gradients and realistic shading, textured brushwork, photorealism, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "saturday-cartoon",
+      "name": "Saturday-morning cartoon",
+      "group": "2D",
+      "description": "Bold colour, simple designs and energetic comic action.",
+      "prompt": "Saturday-morning cartoon: bold flat colours, thick clean outlines, simplified energetic character designs, exaggerated action poses, bright primary palette, speed lines and comic impact.",
+      "avoid": "photorealism, muted palette, thin sketchy lines, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "chibi",
+      "name": "Chibi anime",
+      "group": "2D",
+      "description": "Tiny bodies, oversized heads and playful exaggerated reactions.",
+      "prompt": "Chibi anime: two-to-three-head-tall characters with oversized heads and tiny bodies, huge sparkling eyes, blush marks and sweat-drop reaction symbols, pastel candy colour, bouncy cute poses.",
+      "avoid": "realistic proportions, photorealism, dark gritty tone, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "shonen",
+      "name": "Shonen action anime",
+      "group": "2D",
+      "description": "Dynamic motion, dramatic battles and high-energy effects.",
+      "prompt": "Shonen action anime: dynamic extreme-angle poses, bold ink outlines, speed lines and impact frames, glowing energy effects, intense determined expressions, saturated colour and dramatic backlighting.",
+      "avoid": "soft pastel romance, static poses, photorealism, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "shojo",
+      "name": "Shojo anime",
+      "group": "2D",
+      "description": "Delicate character styling, romantic visuals and decorative effects.",
+      "prompt": "Shojo anime: delicate fine-lined characters with large luminous eyes and flowing hair, sparkles, petals and soft bokeh, pastel romantic colour, emotive close-ups and decorative floral backgrounds.",
+      "avoid": "rough gritty lines, photorealism, harsh action effects, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "seinen",
+      "name": "Seinen anime",
+      "group": "2D",
+      "description": "Grounded character designs and mature cinematic composition.",
+      "prompt": "Seinen anime: grounded realistic character proportions and detailed faces, restrained naturalistic colour, cinematic wide compositions, textured backgrounds, mature quiet storytelling.",
+      "avoid": "chibi proportions, glitter and sparkles, photorealism, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "western-adult",
+      "name": "Western adult animation",
+      "group": "2D",
+      "description": "Bold simplified graphics for comedy, satire and drama.",
+      "prompt": "Western adult animation: bold simplified character designs with distinct silhouettes, flat colour fills with thin outlines, deadpan expressions, limited stylised backgrounds and a dry comic tone.",
+      "avoid": "photorealism, painterly texture, 3D rendering, glossy effects",
+      "family": "2d"
+    },
+    {
+      "id": "ink-wash",
+      "name": "Ink-and-wash animation",
+      "group": "2D",
+      "description": "Expressive ink lines, fluid shading and painterly washes.",
+      "prompt": "Ink-and-wash animation: expressive calligraphic brush lines, fluid grey and black ink washes on rice paper, soft gradients that fade into empty space, sparse restrained colour accents.",
+      "avoid": "hard digital edges, saturated colour, photorealism, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "charcoal",
+      "name": "Charcoal animation",
+      "group": "2D",
+      "description": "Smudged marks, rough texture and atmospheric monochrome.",
+      "prompt": "Charcoal animation: smudged charcoal strokes on rough paper, visible erased and redrawn ghosts, heavy atmospheric shadows, monochrome greys and blacks with occasional white highlights.",
+      "avoid": "clean vector lines, bright colour, photorealism, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "pencil-sketch",
+      "name": "Pencil sketch animation",
+      "group": "2D",
+      "description": "Visible construction lines and sketchbook energy.",
+      "prompt": "Pencil sketch animation: graphite lines with visible construction marks and loose hatching, line boil, sketchbook paper texture, unfinished shading, spontaneous energetic drawing.",
+      "avoid": "clean polished lines, saturated colour fills, photorealism, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "gouache",
+      "name": "Gouache illustration",
+      "group": "2D",
+      "description": "Opaque matte painted surfaces and sophisticated handmade textures.",
+      "prompt": "Gouache illustration: opaque matte paint with soft dry-brush edges, flat layered shapes, rich yet slightly chalky colour, visible paper tooth, mid-century poster sophistication.",
+      "avoid": "glossy digital gradients, photorealism, thin outlines, 3D rendering",
+      "family": "2d"
+    },
+    {
+      "id": "comic-book-2d",
+      "name": "Comic-book animation",
+      "group": "2D",
+      "description": "Graphic outlines, panel framing, halftones and dynamic action.",
+      "prompt": "Comic-book animation: bold black ink outlines, halftone dot shading, flat saturated colour, panel-style framing with dramatic angles, onomatopoeia-style impact effects.",
+      "avoid": "soft painterly blending, photorealism, 3D rendering, thin outlines",
+      "family": "2d"
+    },
+    {
+      "id": "woodcut",
+      "name": "Woodcut animation",
+      "group": "2D",
+      "description": "Strong carved marks, folk-art texture and dramatic graphic shapes.",
+      "prompt": "Woodcut animation: bold carved gouge marks, stark black-and-white or two-colour print, rough ink texture, folk-art stylisation and dramatic graphic contrast.",
+      "avoid": "soft gradients, photorealism, 3D rendering, delicate thin lines",
+      "family": "2d"
+    },
+    {
+      "id": "2-5d",
+      "name": "2.5D animation",
+      "group": "Hybrid 2D/3D",
+      "description": "Flat artwork arranged in layers in 3D space: depth with an illustrated look.",
+      "prompt": "2.5D animation: flat illustrated artwork arranged on layered planes in 3D space, parallax camera moves revealing depth, painted textures that remain two-dimensional.",
+      "avoid": "fully modelled 3D characters, photorealism",
+      "family": "hybrid"
+    },
+    {
+      "id": "motion-comic",
+      "name": "Motion comics",
+      "group": "Hybrid 2D/3D",
+      "description": "Comic panels brought to life with camera moves, layered depth and limited character movement.",
+      "prompt": "Motion comic: inked comic-book panels with halftone shading, layered cut-out depth, slow camera pans and pushes, limited character movement, bold comic colouring.",
+      "avoid": "fluid full animation, 3D render, photorealism",
+      "family": "hybrid"
+    },
+    {
+      "id": "mixed-media",
+      "name": "Mixed media",
+      "group": "Hybrid 2D/3D",
+      "description": "Combines methods, such as 3D characters in painted 2D backgrounds, or collage.",
+      "prompt": "Mixed-media animation: stylized 3D characters composited into hand-painted 2D backgrounds with collage textures and paper elements, deliberate contrast between techniques.",
+      "avoid": "a single uniform photorealistic look",
+      "family": "hybrid"
+    },
+    {
+      "id": "comic-hybrid-3d",
+      "name": "Comic-book hybrid 3D",
+      "group": "Hybrid 2D/3D",
+      "description": "3D characters with comic outlines, halftone textures and illustrated effects.",
+      "prompt": "Comic-book hybrid 3D: three-dimensional characters rendered with hand-inked outlines and halftone dot textures, graphic comic effects and onomatopoeia overlays, animated illustration layers on top of the 3D.",
+      "avoid": "pure photorealism, soft smooth CGI, flat vector only",
+      "family": "hybrid"
+    },
+    {
+      "id": "anime-hybrid",
+      "name": "2D/3D anime hybrid",
+      "group": "Hybrid 2D/3D",
+      "description": "3D models with anime shading, hand-drawn accents and dynamic effects.",
+      "prompt": "2D/3D anime hybrid: 3D models with anime cel shading and hand-drawn outline accents, hand-drawn effects layered over them, dynamic cinematic camera moves and painted anime backgrounds.",
+      "avoid": "photorealistic humans, soft realistic shading, western cartoon proportions",
+      "family": "hybrid"
+    },
+    {
+      "id": "living-painting",
+      "name": "Living painting",
+      "group": "Hybrid 2D/3D",
+      "description": "3D animation with moving brushstrokes and a fine-art surface.",
+      "prompt": "Living painting: three-dimensional space with animated visible brushstrokes, textured canvas surface, thick impasto highlights, colour that shimmers as brushwork shifts between frames.",
+      "avoid": "smooth clean CGI, photorealism, flat vector, plastic sheen",
+      "family": "hybrid"
+    },
+    {
+      "id": "collage",
+      "name": "Mixed-media collage",
+      "group": "Hybrid 2D/3D",
+      "description": "Photographs, illustration, type and paper textures layered together.",
+      "prompt": "Mixed-media collage: cut-out photographs layered with drawn illustration, typography, torn paper edges and paper textures, animated objects overlapping in a handmade scrapbook composition.",
+      "avoid": "single clean medium, photorealism, smooth CGI",
+      "family": "hybrid"
+    },
+    {
+      "id": "paper-theater",
+      "name": "Paper-theatre animation",
+      "group": "Hybrid 2D/3D",
+      "description": "Illustrated scenery arranged like dimensional theatre sets.",
+      "prompt": "Paper-theatre animation: illustrated flat scenery in stacked layers like a miniature stage, visible depth between cut-out wings, theatrical spotlight, painted proscenium frame and gently swaying cut-out figures.",
+      "avoid": "photorealism, single flat plane, smooth CGI",
+      "family": "hybrid"
+    },
+    {
+      "id": "photo-cutout",
+      "name": "Photographic cutout animation",
+      "group": "Hybrid 2D/3D",
+      "description": "Real photographs animated as articulated pieces.",
+      "prompt": "Photographic cutout animation: real photographs of faces, hands and objects cut out and animated as jointed paper pieces, visible cut edges, flat jerky puppet movement and composited backgrounds.",
+      "avoid": "smooth 3D, illustration only, fluid realistic motion",
+      "family": "hybrid"
+    },
+    {
+      "id": "texture-cgi",
+      "name": "Texture-animated CGI",
+      "group": "Hybrid 2D/3D",
+      "description": "3D surfaces where hand-drawn marks and paint textures keep moving.",
+      "prompt": "Texture-animated CGI: three-dimensional forms whose surfaces carry boiling hand-drawn marks and shifting paint textures, hatching that crawls across the volume and slightly unstable outlines.",
+      "avoid": "static perfect textures, photorealism, flat vector",
+      "family": "hybrid"
+    },
+    {
+      "id": "mixed-framerate",
+      "name": "Mixed frame-rate animation",
+      "group": "Hybrid 2D/3D",
+      "description": "Different subjects animated at different frame rates for rhythm.",
+      "prompt": "Mixed frame-rate animation: some elements move smoothly while others are held and stepped on twos or threes, a deliberate stylised rhythm and contrast between fluid camera and jerky characters.",
+      "avoid": "uniform smooth motion, photorealism",
+      "family": "hybrid"
+    },
+    {
+      "id": "graphic-novel",
+      "name": "Graphic-novel cinematic",
+      "group": "Hybrid 2D/3D",
+      "description": "Illustrated cinematic sequences with dramatic shadows.",
+      "prompt": "Graphic-novel cinematic: illustrated frames with heavy ink shadows, dramatic chiaroscuro, limited desaturated palette with one accent colour, widescreen panel composition and subtle drifting camera moves.",
+      "avoid": "bright cheerful palette, soft smooth CGI, photorealism",
+      "family": "hybrid"
+    },
+    {
+      "id": "cutout",
+      "name": "Cutout animation",
+      "group": "Stop motion & handmade",
+      "description": "Flat characters built from movable pieces, paper or digital.",
+      "prompt": "Cutout animation: flat characters assembled from jointed paper or card pieces, visible edges and textures, puppet-like jointed movement.",
+      "avoid": "smooth 3D render, photorealism, fluid drawn animation",
+      "family": "craft"
+    },
+    {
+      "id": "stop-motion",
+      "name": "Stop motion",
+      "group": "Stop motion & handmade",
+      "description": "Physical objects photographed frame by frame, with a tactile, handmade quality.",
+      "prompt": "Stop-motion animation: handcrafted physical puppets and miniature sets, real fabric and material textures, practical lighting on miniatures, slightly stepped frame-by-frame movement.",
+      "avoid": "smooth CGI motion, digital perfection, photorealistic humans",
+      "family": "craft"
+    },
+    {
+      "id": "claymation",
+      "name": "Claymation",
+      "group": "Stop motion & handmade",
+      "description": "Sculpted clay characters with soft forms and visible material texture.",
+      "prompt": "Claymation: characters sculpted from plasticine clay with visible fingerprints and tool marks, soft rounded forms, miniature handmade sets, stepped stop-motion movement.",
+      "avoid": "smooth CGI surfaces, photorealism, 2D drawing",
+      "family": "craft"
+    },
+    {
+      "id": "puppet",
+      "name": "Puppet animation",
+      "group": "Stop motion & handmade",
+      "description": "Articulated physical puppets with fabricated costumes, faces and sets.",
+      "prompt": "Puppet stop-motion animation: articulated puppets with sculpted replacement faces, tailored miniature costumes, detailed handmade sets, warm practical lighting.",
+      "avoid": "CGI render, photorealistic humans, 2D drawing",
+      "family": "craft"
+    },
+    {
+      "id": "paper-stop-motion",
+      "name": "Paper cutout stop motion",
+      "group": "Stop motion & handmade",
+      "description": "Physical paper shapes animated on a flat surface or layered miniature set.",
+      "prompt": "Paper cutout stop motion: layered coloured paper and card shapes with torn edges and paper grain, shallow miniature depth, frame-by-frame movement.",
+      "avoid": "3D render, photorealism, smooth digital motion",
+      "family": "craft"
+    },
+    {
+      "id": "brickfilm",
+      "name": "Brick-toy stop motion",
+      "group": "Stop motion & handmade",
+      "description": "Building-brick figures and sets: playful, modular and visibly physical.",
+      "prompt": "Brickfilm stop motion: minifigure-style characters and sets built from plastic building bricks, glossy plastic surfaces, modular architecture, stepped stop-motion movement.",
+      "avoid": "realistic humans, organic shapes, 2D drawing",
+      "family": "craft"
+    },
+    {
+      "id": "diorama",
+      "name": "Diorama / miniature",
+      "group": "Stop motion & handmade",
+      "description": "Miniature-looking characters and environments with a small-world feel.",
+      "prompt": "Miniature diorama look: tiny handcrafted world with tilt-shift shallow focus, model-scale props and figures, soft practical lighting.",
+      "avoid": "full-scale photorealism, flat 2D",
+      "family": "craft"
+    },
+    {
+      "id": "paint-on-glass",
+      "name": "Paint-on-glass",
+      "group": "Stop motion & handmade",
+      "description": "Paint changed directly between frames, creating flowing, dreamlike transformations.",
+      "prompt": "Paint-on-glass animation: oil paint smeared and reworked frame by frame, fluid dreamlike transformations between images, glowing backlit colour, visible paint trails.",
+      "avoid": "clean outlines, 3D render, photorealism",
+      "family": "craft"
+    },
+    {
+      "id": "sand",
+      "name": "Sand animation",
+      "group": "Stop motion & handmade",
+      "description": "Sand reshaped frame by frame: fluid silhouettes and a transient, textured look.",
+      "prompt": "Sand animation on a backlit glass table: images drawn in sand, granular silhouettes and textures, fluid morphing transitions, warm monochrome light.",
+      "avoid": "colour-rich rendering, 3D render, photorealism",
+      "family": "craft"
+    },
+    {
+      "id": "silhouette",
+      "name": "Silhouette animation",
+      "group": "Stop motion & handmade",
+      "description": "Dark figures against contrasting backgrounds, emphasizing shape, gesture and atmosphere.",
+      "prompt": "Silhouette animation: characters as solid black cut-paper silhouettes against luminous coloured or gradient backgrounds, expressive gesture and profile, shadow-puppet elegance.",
+      "avoid": "visible facial detail, 3D render, photorealism",
+      "family": "craft"
+    },
+    {
+      "id": "felt-wool",
+      "name": "Felt and wool stop-motion",
+      "group": "Stop motion & handmade",
+      "description": "Soft textile characters, visible fibres and cosy miniature worlds.",
+      "prompt": "Felt and wool stop-motion: characters and sets made of felt, wool and knitted fabric with visible fibres and stitches, soft tactile lighting, small handmade imperfections, stepped frame-by-frame movement.",
+      "avoid": "smooth CGI, hard plastic, photorealism, 2D drawing",
+      "family": "craft"
+    },
+    {
+      "id": "pixilation",
+      "name": "Pixilation",
+      "group": "Stop motion & handmade",
+      "description": "Real people photographed frame by frame for strange, staccato motion.",
+      "prompt": "Pixilation: real human actors photographed frame by frame, gliding without walking, jerky staccato poses, sudden jumps and impossible slides, plain everyday locations lit practically.",
+      "avoid": "smooth natural motion, animation drawing, CGI",
+      "family": "craft"
+    },
+    {
+      "id": "object-animation",
+      "name": "Object animation",
+      "group": "Stop motion & handmade",
+      "description": "Everyday objects brought to life through tiny repositioning.",
+      "prompt": "Object animation: everyday household objects brought to life frame by frame, macro lenses and practical desk lighting, scratches, dust and fingerprints, tiny stepped shifts that give each object a personality.",
+      "avoid": "smooth CGI, cartoon drawing, photorealistic humans",
+      "family": "craft"
+    },
+    {
+      "id": "pixel-art",
+      "name": "Pixel art",
+      "group": "Experimental & graphic",
+      "description": "Retro video-game pixels with limited palettes.",
+      "prompt": "Pixel-art animation: low-resolution sprite characters and tiled backgrounds, crisp square pixels, limited retro colour palette, stepped sprite animation.",
+      "avoid": "smooth gradients, anti-aliased lines, 3D render, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "motion-graphics",
+      "name": "Motion graphics",
+      "group": "Experimental & graphic",
+      "fit": "Best for lyric or graphic videos",
+      "description": "Animated typography, icons, shapes and graphic layouts driven by the music.",
+      "prompt": "Motion-graphics style: bold flat shapes, icons and graphic layouts animated in rhythm, clean vector design, strong colour blocking.",
+      "avoid": "photorealism, detailed character animation",
+      "family": "art"
+    },
+    {
+      "id": "whiteboard",
+      "name": "Whiteboard animation",
+      "group": "Experimental & graphic",
+      "fit": "Best for lyric or explainer videos",
+      "description": "Drawings appear as they're being made; common in educational videos.",
+      "prompt": "Whiteboard animation: black marker line drawings appearing stroke by stroke on a clean white board, occasional single accent colour.",
+      "avoid": "full colour rendering, 3D, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "surrealist",
+      "name": "Surrealist animation",
+      "group": "Experimental & graphic",
+      "description": "Dream logic, impossible transformations and symbolic images.",
+      "prompt": "Surrealist animation: dream logic and impossible juxtapositions, objects that melt and transform, floating symbolic figures, vast empty horizons, hyper-clear light that feels like a lucid dream.",
+      "avoid": "plain literal realism, mundane everyday scenes",
+      "family": "art"
+    },
+    {
+      "id": "abstract-expr",
+      "name": "Abstract expressionist animation",
+      "group": "Experimental & graphic",
+      "description": "Moving expressive paint, shape and colour.",
+      "prompt": "Abstract expressionist animation: sweeping gestural paint, thrown colour and violent brush energy that evolves and collides, shapes that suggest figures without depicting them.",
+      "avoid": "literal figurative detail, photorealism, clean geometry",
+      "family": "art"
+    },
+    {
+      "id": "minimalist",
+      "name": "Minimalist animation",
+      "group": "Experimental & graphic",
+      "description": "Simple forms, restricted palettes and deliberate movement.",
+      "prompt": "Minimalist animation: a few simple shapes on a near-empty ground, a restricted two-to-three colour palette, generous negative space and slow deliberate movement.",
+      "avoid": "busy detail, textures, photorealism, clutter",
+      "family": "art"
+    },
+    {
+      "id": "glitch",
+      "name": "Glitch art",
+      "group": "Experimental & graphic",
+      "description": "Digital distortion, corrupted pixels and signal interference.",
+      "prompt": "Glitch art: RGB channel splitting, corrupted pixel blocks, scanline tearing, data-moshed smears and signal interference breaking up the image, cold digital colour.",
+      "avoid": "clean undamaged image, natural film look, painterly",
+      "family": "art"
+    },
+    {
+      "id": "vaporwave",
+      "name": "Vaporwave",
+      "group": "Experimental & graphic",
+      "description": "Pastel neon, retro computers and classical sculpture.",
+      "prompt": "Vaporwave: pastel pink and cyan neon, marble classical busts, retro computer windows, palm trees and sunset grids, nostalgic early-digital haze and glossy 90s chrome.",
+      "avoid": "natural muted palette, gritty realism, rustic textures",
+      "family": "art"
+    },
+    {
+      "id": "neon-cyberpunk",
+      "name": "Neon cyberpunk",
+      "group": "Experimental & graphic",
+      "description": "Glowing saturated colour, rainy cities and high-contrast futures.",
+      "prompt": "Neon cyberpunk: rain-slick night streets lit by saturated magenta and cyan neon, holographic signs, dense vertical city, high contrast, lens flares and steam.",
+      "avoid": "daylight, natural muted palette, rustic setting",
+      "family": "art"
+    },
+    {
+      "id": "retro-futurism",
+      "name": "Retro futurism",
+      "group": "Experimental & graphic",
+      "description": "Mid-century visions of the future.",
+      "prompt": "Retro futurism: mid-century optimism, atomic-age curves and chrome, pastel and primary colour, streamlined rockets and domed cities as imagined in the 1950s, printed poster texture.",
+      "avoid": "gritty dystopia, modern minimal design, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "holographic",
+      "name": "Holographic sci-fi",
+      "group": "Experimental & graphic",
+      "description": "Translucent light interfaces and volumetric imagery.",
+      "prompt": "Holographic sci-fi: translucent glowing light-built interfaces and figures, volumetric beams, thin grid and scan-line patterns, cool blue and cyan emission against dark space.",
+      "avoid": "solid matte materials, warm rustic light, painterly",
+      "family": "art"
+    },
+    {
+      "id": "art-nouveau",
+      "name": "Art Nouveau",
+      "group": "Art movements & culture",
+      "description": "Flowing botanical lines and elegant ornament.",
+      "prompt": "Art Nouveau: flowing whiplash botanical lines, ornamental floral frames, elongated elegant figures, muted gold-green-rose palette and decorative poster composition.",
+      "avoid": "harsh geometry, photorealism, minimal bare design",
+      "family": "art"
+    },
+    {
+      "id": "art-deco",
+      "name": "Art Deco",
+      "group": "Art movements & culture",
+      "description": "Symmetry, luxury, metallic accents and grand geometry.",
+      "prompt": "Art Deco: strict symmetry, stepped geometric ornament, gold and black with jewel accents, polished metal and marble, sweeping grand architecture and glamour lighting.",
+      "avoid": "organic clutter, rustic roughness, minimal modern",
+      "family": "art"
+    },
+    {
+      "id": "ukiyo-e",
+      "name": "Ukiyo-e woodblock",
+      "group": "Art movements & culture",
+      "description": "Japanese woodblock aesthetics: flat colour, bold contours.",
+      "prompt": "Ukiyo-e woodblock print: flat areas of colour with bold black contour lines, patterned kimono and waves, subtle paper grain, asymmetrical compositions and soft gradient skies.",
+      "avoid": "photorealism, 3D rendering, soft airbrushed shading",
+      "family": "art"
+    },
+    {
+      "id": "renaissance",
+      "name": "Renaissance painting",
+      "group": "Art movements & culture",
+      "description": "Classical realism, perspective and sculptural light.",
+      "prompt": "Renaissance painting: balanced harmonious composition, linear perspective, sculptural soft chiaroscuro, earthy rich pigments, calm idealised figures and atmospheric landscape depth.",
+      "avoid": "modern clothing, neon colour, flat cartoon shapes",
+      "family": "art"
+    },
+    {
+      "id": "baroque",
+      "name": "Baroque painting",
+      "group": "Art movements & culture",
+      "description": "Dramatic chiaroscuro and emotionally charged movement.",
+      "prompt": "Baroque painting: dramatic chiaroscuro with a single shaft of light in deep darkness, swirling diagonal movement, rich velvet reds and golds, heightened emotion and theatrical gesture.",
+      "avoid": "flat even lighting, minimalism, cartoon shapes",
+      "family": "art"
+    },
+    {
+      "id": "romanticism",
+      "name": "Romanticism",
+      "group": "Art movements & culture",
+      "description": "Sublime landscapes and emotional intensity.",
+      "prompt": "Romanticism: sublime sweeping landscapes under stormy skies, tiny figures facing vast nature, luminous mist, intense emotional atmosphere and dramatic painterly light.",
+      "avoid": "urban modern setting, flat graphic shapes, photographic sharpness",
+      "family": "art"
+    },
+    {
+      "id": "impressionism",
+      "name": "Impressionism",
+      "group": "Art movements & culture",
+      "description": "Visible brushwork, shifting light and atmospheric colour.",
+      "prompt": "Impressionism: broken dabs of colour, visible quick brushwork, shimmering light on water and leaves, soft undefined edges and colourful shadows capturing a fleeting moment.",
+      "avoid": "sharp detail, hard outlines, photographic precision",
+      "family": "art"
+    },
+    {
+      "id": "expressionism",
+      "name": "Expressionism",
+      "group": "Art movements & culture",
+      "description": "Distorted shapes and colour that carry raw emotion.",
+      "prompt": "Expressionism: deliberately distorted angular forms, bold jarring colour, tilted architecture and exaggerated faces that externalise inner emotion, thick agitated brushwork.",
+      "avoid": "naturalistic calm proportion, photographic realism",
+      "family": "art"
+    },
+    {
+      "id": "cubism",
+      "name": "Cubism",
+      "group": "Art movements & culture",
+      "description": "Fragmented forms and multiple simultaneous viewpoints.",
+      "prompt": "Cubism: figures and objects broken into overlapping geometric planes seen from several angles at once, muted earthy palette and collage-like angular fragments.",
+      "avoid": "single-viewpoint realism, soft smooth blending, photographic",
+      "family": "art"
+    },
+    {
+      "id": "pop-art",
+      "name": "Pop art",
+      "group": "Art movements & culture",
+      "description": "Bold commercial colour and mass-media imagery.",
+      "prompt": "Pop art: flat saturated primary colours, thick black outlines, Ben-Day halftone dots, repeated mass-media imagery, high graphic contrast and glossy advertising energy.",
+      "avoid": "muted subtle palette, photographic depth, painterly softness",
+      "family": "art"
+    },
+    {
+      "id": "bauhaus",
+      "name": "Bauhaus",
+      "group": "Art movements & culture",
+      "description": "Functional geometry, primary colour and structured composition.",
+      "prompt": "Bauhaus design: circles, squares and triangles in red, yellow, blue and black, strict grid composition, sans-serif typography and functional geometric simplicity.",
+      "avoid": "ornamental clutter, organic textures, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "african-folk",
+      "name": "African folk-art-inspired",
+      "group": "Art movements & culture",
+      "description": "Visuals drawing on specific African artistic traditions.",
+      "prompt": "African folk-art-inspired animation: bold patterned textiles, carved wood and woven textures, strong graphic shapes and earth-and-indigo palettes drawn from the specific regional tradition the film names, never a generic 'tribal' look.",
+      "avoid": "generic stereotyped imagery, pseudo-tribal clichés, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "mosaic",
+      "name": "Mosaic animation",
+      "group": "Art movements & culture",
+      "description": "Imagery assembled from coloured tiles, stone or glass.",
+      "prompt": "Mosaic animation: everything built from small coloured tesserae of stone and glass with visible grout lines, glittering gold tiles and shifting patterns of tiny pieces.",
+      "avoid": "smooth continuous gradients, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "stained-glass",
+      "name": "Stained-glass animation",
+      "group": "Art movements & culture",
+      "description": "Luminous jewel-toned imagery inside dark dividing lines.",
+      "prompt": "Stained-glass animation: jewel-toned translucent panes divided by thick dark leading lines, backlit glow with light spilling across surfaces, flat segmented shapes and sacred luminous colour.",
+      "avoid": "opaque matte surfaces, soft gradients, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "illuminated-ms",
+      "name": "Illuminated manuscript",
+      "group": "Art movements & culture",
+      "description": "Ornate lettering, decorative borders and miniature paintings.",
+      "prompt": "Illuminated manuscript: miniature paintings on parchment, burnished gold leaf, ornate borders of vines and beasts, flat medieval perspective and rich lapis, vermilion and green pigments.",
+      "avoid": "photographic depth, modern minimal design, 3D rendering",
+      "family": "art"
+    },
+    {
+      "id": "linocut",
+      "name": "Linocut illustration",
+      "group": "Art movements & culture",
+      "description": "Bold carved marks and expressive printed texture.",
+      "prompt": "Linocut illustration: bold carved lines and solid blocks of ink in two or three flat colours, slightly misregistered print layers, rough paper texture and expressive graphic shapes.",
+      "avoid": "soft gradients, photorealism, thin delicate lines",
+      "family": "art"
+    },
+    {
+      "id": "chalk-pastel",
+      "name": "Chalk pastel animation",
+      "group": "Art movements & culture",
+      "description": "Soft dusty colour and blended hand-drawn transitions.",
+      "prompt": "Chalk pastel animation: soft dusty blended pastel colour on toothy dark paper, visible chalk strokes and smudged fingerprints, glowing hand-drawn transitions between frames.",
+      "avoid": "hard vector edges, glossy surfaces, photorealism",
+      "family": "art"
+    },
+    {
+      "id": "g-epic-fantasy",
+      "name": "Epic fantasy",
+      "group": "Genre feel",
+      "description": "Monumental landscapes, magical light and mythic scale.",
+      "prompt": "Epic fantasy feel: monumental landscapes and ancient citadels, magical shafts of light, ornate costume and armour, tiny figures against huge mythic scale and sweeping heroic atmosphere.",
+      "avoid": "modern everyday setting, mundane scale",
+      "family": "genre"
+    },
+    {
+      "id": "g-dark-fantasy",
+      "name": "Dark fantasy",
+      "group": "Genre feel",
+      "description": "Gothic architecture, strange creatures and an uneasy atmosphere.",
+      "prompt": "Dark fantasy feel: crumbling gothic architecture, fog and ash, strange half-seen creatures, desaturated cold palette with ember highlights and an uneasy ominous atmosphere.",
+      "avoid": "cheerful bright mood, clean modern setting",
+      "family": "genre"
+    },
+    {
+      "id": "g-whimsical-fantasy",
+      "name": "Whimsical fantasy",
+      "group": "Genre feel",
+      "description": "Charming exaggeration and playful magical details.",
+      "prompt": "Whimsical fantasy feel: crooked cosy houses, floating lanterns, tiny magical creatures, playful exaggerated scale, warm glowing colour and delight in every corner.",
+      "avoid": "grim gritty mood, cold desaturated palette",
+      "family": "genre"
+    },
+    {
+      "id": "g-scifi-real",
+      "name": "Science-fiction realism",
+      "group": "Genre feel",
+      "description": "Plausible technology and grounded futuristic worldbuilding.",
+      "prompt": "Science-fiction realism feel: plausible near-future technology, lived-in functional interfaces, realistic materials and wear, cool restrained light and grounded believable worldbuilding.",
+      "avoid": "magic, fantasy ornament, cartoon gadgets",
+      "family": "genre"
+    },
+    {
+      "id": "g-space-opera",
+      "name": "Space opera",
+      "group": "Genre feel",
+      "description": "Monumental spacecraft, cosmic scenery and heroic spectacle.",
+      "prompt": "Space opera feel: colossal spacecraft and nebula skies, dramatic coloured starlight, vast alien horizons, heroic costume and sweeping cosmic spectacle.",
+      "avoid": "everyday earthbound setting, small intimate scale",
+      "family": "genre"
+    },
+    {
+      "id": "g-steampunk",
+      "name": "Steampunk",
+      "group": "Genre feel",
+      "description": "Victorian engineering, brass machinery, gears and steam.",
+      "prompt": "Steampunk feel: polished brass and copper machinery, exposed gears and riveted iron, steam plumes, Victorian-style clothing and goggles, warm amber gaslight.",
+      "avoid": "sleek minimal technology, neon, modern clothing",
+      "family": "genre"
+    },
+    {
+      "id": "g-dieselpunk",
+      "name": "Dieselpunk",
+      "group": "Genre feel",
+      "description": "Heavy industry, retro military design and interwar futurism.",
+      "prompt": "Dieselpunk feel: oil-stained heavy machinery, riveted steel and airships, interwar propaganda-poster styling, smoky sodium light and a grimy industrial palette.",
+      "avoid": "clean sleek technology, pastel colour",
+      "family": "genre"
+    },
+    {
+      "id": "g-solarpunk",
+      "name": "Solarpunk",
+      "group": "Genre feel",
+      "description": "Green cities, clean technology and optimistic futures.",
+      "prompt": "Solarpunk feel: sunlit cities overgrown with gardens and living walls, solar glass and wind turbines, airy white architecture, warm hopeful light and community life.",
+      "avoid": "grim dystopia, smog, ruins",
+      "family": "genre"
+    },
+    {
+      "id": "g-post-apoc",
+      "name": "Post-apocalyptic",
+      "group": "Genre feel",
+      "description": "Abandoned infrastructure and reclaimed nature.",
+      "prompt": "Post-apocalyptic feel: collapsed infrastructure reclaimed by plants, rusted vehicles, patched clothing and makeshift shelters, hazy dusty light and a weathered faded palette.",
+      "avoid": "clean new buildings, bright cheerful colour",
+      "family": "genre"
+    },
+    {
+      "id": "g-gothic-horror",
+      "name": "Gothic horror",
+      "group": "Genre feel",
+      "description": "Deep shadows, eerie architecture and unsettling beauty.",
+      "prompt": "Gothic horror feel: candlelit crypts and long corridors, deep shadows with pale moonlight, cobwebs and carved stone, slow creeping dread and eerie beauty.",
+      "avoid": "bright flat daylight, cheerful mood",
+      "family": "genre"
+    },
+    {
+      "id": "g-magical-realism",
+      "name": "Magical realism",
+      "group": "Genre feel",
+      "description": "Believable everyday places with quiet impossible things.",
+      "prompt": "Magical realism feel: ordinary believable places in which quiet impossible things simply happen, treated as normal, warm natural light with a faint dreamlike glow and gentle poetic detail.",
+      "avoid": "overt fantasy spectacle, cartoon exaggeration",
+      "family": "genre"
+    },
+    {
+      "id": "g-biblical-epic",
+      "name": "Biblical epic",
+      "group": "Genre feel",
+      "description": "Ancient settings, vast landscapes and reverent scale.",
+      "prompt": "Biblical epic feel: ancient desert and village settings, hand-woven linen and wool, oil lamps and golden-hour light, vast reverent landscapes and dignified unhurried staging.",
+      "avoid": "modern objects, irreverent comedy, sci-fi elements",
+      "family": "genre"
+    }
   ]
 }

@@ -15,6 +15,8 @@ const TABS: { id: MakeTab; label: string; blurb: string }[] = [
 const NOUN = { storyboard: "storyboard panel", keyframe: "keyframe", video: "video" } as const;
 const PRESETS: [string, string][] = [["youtube", "YouTube 16:9"], ["cinema", "Cinema 2.39:1"], ["vertical", "Vertical 9:16"], ["square", "Square 1:1"], ["preview", "Quick preview"]];
 
+type HandCheck = { flagged: { shot: string; state: "fail" | "look"; detail: string }[]; shots: string[]; usd_est: number; can_check: boolean; unavailable: string };
+type CheckRun = { checked: number; passed: number; failed: { shot: string; detail: string }[]; look: { shot: string; detail: string }[]; errors: { shot: string; error: string }[] };
 type Pick = { provider?: string; model?: string; label?: string; price_usd?: number | null; reason?: string };
 
 /**
@@ -53,6 +55,27 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   useEffect(() => { const un = api.onRenderIdle(() => void load()); return () => { un.then((f) => f()); }; }, [load]);
 
   const rd = st?.render_dir ?? "";
+  const [hc, setHc] = useState<HandCheck | null>(null);                      // what the hands, bodies and faces check found, and what is still unchecked
+  const loadChecks = useCallback(() => { if (rd) api.keyframeSet<HandCheck>(rd, "check_plan").then(setHc).catch(() => setHc(null)); }, [rd]);
+  const chosenN = st?.counts.keyframe ?? 0;
+  useEffect(() => { if (tab === "keyframe" || tab === "video") loadChecks(); }, [tab, loadChecks, chosenN]);
+  const flagFor = (id: string) => hc?.flagged.find((f) => f.shot === id);
+  const checkHands = async () => {
+    if (!hc) return;
+    if (!hc.can_check) { setErr(hc.unavailable); return; }
+    if (!hc.shots.length) { setNote("Every chosen picture has been checked already."); return; }
+    if (!await ask(`Look at the hands, bodies and faces in ${hc.shots.length} chosen picture${hc.shots.length === 1 ? "" : "s"}?\n\nAbout $${hc.usd_est.toFixed(2)} (one AI look each). It only looks; nothing is changed or re-made.`, { ok: "Check" })) return;
+    setBusy("check"); setErr(""); setNote("");
+    try {
+      const res = await api.keyframeSet<CheckRun>(rd, "check_run", { shots: hc.shots });
+      const bits = [`${res.passed} fine`];
+      if (res.failed.length) bits.push(`${res.failed.length} need a new picture (${res.failed.map((f) => f.shot).join(", ")})`);
+      if (res.look.length) bits.push(`${res.look.length} worth a closer look (${res.look.map((f) => f.shot).join(", ")})`);
+      setNote(`Checked ${res.checked}: ${bits.join("; ")}.`);
+      if (res.errors.length) setErr(res.errors.map((e) => `${e.shot}: ${e.error}`).join(" "));
+      loadChecks();
+    } catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
+  };
   const call = async (what: string, fn: () => Promise<MakeStatus>) => { setBusy(what); setErr(""); try { setSt(await fn()); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); } };
 
   /** Ask which model, show the price, and queue only after a yes. */
@@ -68,7 +91,9 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
       const each = est?.usd != null ? est.usd : null;
       const price = each != null ? `about $${(each * n).toFixed(2)}` : "a price isn't published for this model, so it can't be shown";
       const what = `${ids.length} ${NOUN[stage]}${ids.length === 1 ? "" : "s"}${stage === "video" ? "" : `, ${n} to choose from each`}`;
-      if (!await ask(`Make ${what} with ${pick.label || pick.model}?\n\nPrice: ${price}.\nThis is billed by the provider and can't be undone. Nothing is made until you press Make.`, { ok: "Make" })) return;
+      const bad = stage === "video" ? ids.filter((id) => flagFor(id)?.state === "fail") : [];
+      const warn = bad.length ? `\n\nHeads up: the picture for ${bad.join(", ")} was flagged for hands, body or face. The video will inherit it. Consider a new picture first.` : "";
+      if (!await ask(`Make ${what} with ${pick.label || pick.model}?${warn}\n\nPrice: ${price}.\nThis is billed by the provider and can't be undone. Nothing is made until you press Make.`, { ok: "Make" })) return;
       setBusy("make");
       const made = await api.queueRender(rd, ids, pick.provider, pick.model, stage === "video" ? {} : { _variants: n }, [], kind);
       if (stage !== "video") {
@@ -121,12 +146,15 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
         <div className="mk-bar">
           <button className="btn primary" disabled={!!busy} onClick={() => generate(stage, st.shots.filter((s) => ready(s, stage) && (stage === "video" || !s[stage].locked) && !done(s, stage)).map((s) => s.id))}>
             Make all that are missing</button>
+          {stage === "keyframe" && <button className="btn" disabled={!!busy || !hc || st.counts.keyframe === 0} onClick={checkHands}
+            title="One AI look at each chosen picture for wrong hands, bodies and faces, before any video is made from it. About two cents each.">{busy === "check" ? "Checking…" : `Check hands & faces${hc?.shots.length ? ` (${hc.shots.length})` : ""}`}</button>}
           <span className="mk-sum num">{st.counts[stage]} of {st.counts.shots} done</span><span className="dim">Each one shows its price first. Locked and chosen work is never replaced.</span>
         </div>
         <div className="mk-grid">{st.shots.map((s) => <Card key={s.id} dir={dir} rd={rd} stage={stage} s={s} busy={!!busy}
           onMake={(n) => generate(stage, [s.id], n)} onBring={() => bring(s.id, stage)}
           onChoose={(job) => call("choose", () => api.make("choose", dir, { shot: s.id, stage, job }))}
-          onLock={(on) => call("lock", () => api.make("lock", dir, { shot: s.id, stage, on }))} />)}</div></>}
+          flag={flagFor(s.id)}
+          onLock={async (on) => { const f = flagFor(s.id); if (on && stage === "keyframe" && f?.state === "fail" && !await ask(`The check found a problem in this picture: ${f.detail || "hands, body or face look wrong"}.\n\nLock it anyway?`, { ok: "Lock anyway" })) return; await call("lock", () => api.make("lock", dir, { shot: s.id, stage, on })); }} />)}</div></>}
 
       {tab === "deliver" && <div className="mk-deliver">
         <div className="mk-ready" role="status">
@@ -163,7 +191,7 @@ const done = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage 
 /** A stage is open for a shot once the one before it has a choice. */
 const ready = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage === "video" ? !!s.keyframe.chosen : true;      // a video needs its picture; a picture needs nothing (panels are optional)
 
-function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { dir: string; rd: string; stage: "storyboard" | "keyframe" | "video"; s: MakeShot; busy: boolean;
+function Card({ dir, rd, stage, s, busy, flag, onMake, onBring, onChoose, onLock }: { dir: string; rd: string; stage: "storyboard" | "keyframe" | "video"; s: MakeShot; busy: boolean; flag?: { state: "fail" | "look"; detail: string };
   onMake: (variants: number) => void; onBring: () => void; onChoose: (job: string) => void; onLock: (on: boolean) => void }) {
   void dir;
   const url = (rel: string | null) => (rel ? api.mediaUrl(`${rd}/${rel}`) : "");
@@ -177,7 +205,7 @@ function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { 
     <article id={`mk-${s.id}`} className={`mk-card ${locked ? "locked" : ""}`}>
       <div className="mk-pic">
         {preview ? (stage === "video" ? <video src={url(preview)} controls preload="metadata" /> : <img src={url(preview)} alt={`${s.id}`} />) : <span className="dim">{open_ ? "Making…" : "Nothing yet"}</span>}
-        <span className="mk-id num">{s.id}</span>{open_ && <span className="mk-busy">making</span>}{locked && <span className="mk-lock">locked</span>}
+        <span className="mk-id num">{s.id}</span>{flag && stage !== "storyboard" && <span className={`mk-check ${flag.state}`} title={flag.detail}>{flag.state === "fail" ? "hands or face?" : "look closely"}</span>}{open_ && <span className="mk-busy">making</span>}{locked && <span className="mk-lock">locked</span>}
       </div>
       <div className="mk-meta"><b>{s.title || s.id}</b><span className="dim">{s.framing || "—"} · {s.duration}s</span></div>
       {stage === "video" && s.video.takes.length > 1 && <div className="mk-opts">{s.video.takes.filter((t) => t.ok).map((t, i) => (
@@ -186,6 +214,7 @@ function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { 
         <button key={o.job} className={s[stage as "storyboard" | "keyframe"].chosen === o.image ? "on" : ""} disabled={locked} onClick={() => onChoose(o.job)} title={o.model}>
           <img src={url(o.image)} alt="option" /></button>))}</div>}
       {s[stage === "video" ? "keyframe" : stage].options.some((o) => o.state === "failed") && <p className="error-text mk-fail">One failed: {s[stage === "video" ? "keyframe" : stage].options.find((o) => o.state === "failed")?.error ?? "try again"}</p>}
+      {flag && stage === "keyframe" && flag.detail && <p className={`mk-flagtext ${flag.state}`}>{flag.detail} <span className="dim">Make more, or fix the hand in the Timeline view.</span></p>}
       {gate && <p className="dim mk-gate">{gate}</p>}
       <div className="mk-actions">
         <button className="btn primary sm" disabled={busy || !!gate || locked || open_} onClick={() => onMake(2)}>{preview ? "Make more" : "Make"}</button>

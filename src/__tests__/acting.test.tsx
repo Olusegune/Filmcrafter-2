@@ -65,8 +65,8 @@ const arcView = (data = arc, over: Partial<Parameters<typeof ArcView>[0]> = {}) 
   renderToStaticMarkup(<ArcView data={data} drafts={{}} dirty={{}} busy="" err="" onEdit={noop} onSave={noop} onWrite={noop} {...over} />);
 
 describe("the emotional arc", () => {
-  it("says there is nothing to put a feeling on before the song has been listened to", () => {
-    expect(arcView({ sections: [], characters: ["Beatrice"], arcs: {} })).toContain("has not been listened to yet");
+  it("says there is nothing to put a feeling on before the film has scenes", () => {
+    expect(arcView({ sections: [], characters: ["Beatrice"], arcs: {} })).toContain("has no scenes to put a feeling on yet");
   });
 
   it("shows each character with a strip across the song, their points, and who wrote them", () => {

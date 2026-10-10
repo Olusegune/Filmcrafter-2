@@ -311,7 +311,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
     a.preload = "auto";
     audio.current = a;
     a.onended = () => setPlaying(false);
-    a.onerror = () => setSongError("The song file can't be played. It may have been moved or deleted from the project folder.");
+    a.onerror = () => setSongError((isFilm ? "The soundtrack can't be played. It may have been moved or deleted from the film's folder." : "The song file can't be played. It may have been moved or deleted from the project folder."));
     a.oncanplay = () => setSongError("");
     return () => { a.pause(); audio.current = null; };
   }, [project.song_path]);
@@ -334,7 +334,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
     if (a.paused) {
       a.play().then(() => setPlaying(true)).catch((e) => {
         setPlaying(false);
-        setSongError(a.error ? "The song file can't be played. It may have been moved or deleted from the project folder." : `Couldn't start playback: ${e?.message ?? e}`);
+        setSongError(a.error ? (isFilm ? "The soundtrack can't be played. It may have been moved or deleted from the film's folder." : "The song file can't be played. It may have been moved or deleted from the project folder.") : `Couldn't start playback: ${e?.message ?? e}`);
       });
     } else { a.pause(); setPlaying(false); }
   }, []);
@@ -471,10 +471,10 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
           </div>
           {filmSwitch}
           <div className="grow" />
-          <div className="mode-toggle" role="group" aria-label="Mode">
+          {!(isFilm && narrowBar) && <div className="mode-toggle" role="group" aria-label="Mode">
             <button className={!director ? "on" : ""} onClick={() => setDirector(false)}>Simple</button>
             <button className={director ? "on" : ""} onClick={() => setDirector(true)}>Director Mode</button>
-          </div>
+          </div>}
           {night?.active && <button className="spend-chip route-chip" title="Stop the overnight render" onClick={async () => setNight(await api.overnight(project.dir, "stop"))}>
             <span className="spin sm" /> Overnight · {night.with_video}/{night.shots}</button>}
           <QueueChip q={queue} onOpen={() => setQueueOpen(true)} />
@@ -511,6 +511,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
           {plan && <button className="btn ghost cmd-btn" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
           {narrowBar ? <div className="menu-wrap"><button className="btn ghost" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-haspopup="menu">More ▾</button>
             {moreOpen && <div className="menu glass tb-more" role="menu" onClick={() => setMoreOpen(false)} onMouseLeave={() => setMoreOpen(false)}>
+          {isFilm && <button className="btn" role="menuitem" aria-pressed={director} onClick={() => setDirector(!director)} title="Show the set, wardrobe, continuity and every scene note in the inspector">{director ? "Director Mode: on" : "Director Mode: off"}</button>}
           {!isFilm && <button className="btn" role="menuitem" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
@@ -529,7 +530,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </>}
           {plan && !isFilm && <button className={`btn ${project.directed && (keys.fal || keys.kie) && toRender.length > 0 ? "ghost" : "hero"}`} onClick={directVideo} disabled={!!job}
-                           title={project.directed ? "Plan the shots again from the song (your edits to the plan are asked about first)" : "Plan every shot on the beat of the song (free)"}>
+                           title={project.directed ? "Plan the shots again (your edits to the plan are asked about first)" : "Plan every shot (free)"}>
             {project.directed ? "Direct Again" : "Direct My Video"}</button>}
           <button className="icon-btn" onClick={() => setFocusMode(true)} title="Full screen: just the video (F)" aria-label="Full screen">⛶</button>
           <button className="icon-btn" onClick={() => setTimelineOpen((v) => !v)} title={timelineOpen ? "Hide the timeline (Ctrl+J)" : "Show the timeline (Ctrl+J)"} aria-label={timelineOpen ? "Hide the timeline" : "Show the timeline"} aria-pressed={timelineOpen}><I.PanelBottom /></button>
@@ -1145,7 +1146,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
     onSeek((e.clientX - r.left) / pps);
   };
 
-  if (!map) return <section className="timeline"><div className="tl-head">No song map yet.</div></section>;
+  if (!map) return <section className="timeline"><div className="tl-head">No timeline yet.</div></section>;
   const reserve = 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
   const shown = Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
   const cardH = Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
@@ -1177,7 +1178,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
           <button className="icon-btn" onClick={() => zoom(1 / 1.5)} aria-label="Zoom out" title="Zoom out (Ctrl + scroll)">−</button>
           <button className="btn ghost small" onClick={() => { const s = scroll.current; if (s && dur) setPps(Math.floor(s.clientWidth / dur)); }}>Fit</button>
           <button className="icon-btn" onClick={() => zoom(1.5)} aria-label="Zoom in" title="Zoom in (Ctrl + scroll)">+</button>
-          <button className={`btn ghost small ${compact ? "on" : ""}`} onClick={onCompact} aria-pressed={compact} title="Compact timeline: just the song map and the shots (Ctrl+Shift+J)">Compact</button>
+          <button className={`btn ghost small ${compact ? "on" : ""}`} onClick={onCompact} aria-pressed={compact} title="Compact timeline: just the shots (Ctrl+Shift+J)">Compact</button>
         </div>
       </div>
       <div className="tl-scroll" ref={scroll} onScroll={(e) => setLeft((e.currentTarget as HTMLElement).scrollLeft)}>

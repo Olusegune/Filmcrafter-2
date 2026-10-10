@@ -160,7 +160,8 @@ def apply(d: str, did: str, parts: list[str] | None = None, overwrite: bool = Fa
         ob["concept_notes"] = (brief(x) + ("\n\n" + notes if notes else ""))[:2000]
         ob["direction_id"] = x["id"]
         p["onboarding"] = ob
-        changed.append("brief for the directions and treatment")
+        p["direction_brief"] = {"id": x["id"], "name": x["name"], **{k: x[k] for k in ("camera", "light", "editing", "movement", "design") if x.get(k)}}   # reaches every shot's prompt, whatever the look
+        changed.append("brief for the directions and treatment (and the approach in every shot's prompt)")
     if "bible" in parts:
         b = dict(p.get("bible") or {})
         new = {"world": f"{x['summary']} {x['design']}", "palette": ", ".join(x["palette"]), "avoid": x.get("avoid", "")}
@@ -191,7 +192,7 @@ def apply(d: str, did: str, parts: list[str] | None = None, overwrite: bool = Fa
             changed.append(f"acting: {x['acting']}")
     p["direction"] = {"id": x["id"], "name": x["name"], "applied": int(time.time()), "filled": {**filled, **new_filled}}
     cur = _read(path, {})   # keep anything written meanwhile
-    cur.update({k: p[k] for k in ("onboarding", "bible", "look", "performance", "direction") if k in p})
+    cur.update({k: p[k] for k in ("onboarding", "bible", "look", "performance", "direction", "direction_brief") if k in p})
     _write(path, cur)
     return {"applied": x["id"], "name": x["name"], "changed": changed}
 

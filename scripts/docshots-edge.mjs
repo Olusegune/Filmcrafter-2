@@ -80,12 +80,20 @@ const ws = new WebSocket(wsUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let id = 0;
 const pending = new Map();
-ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); } };
+const problems = [];                                                       // PF_QA=1: console errors and uncaught exceptions, per scene
+ws.onmessage = (m) => {
+  const d = JSON.parse(m.data);
+  if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); return; }
+  if (d.method === "Runtime.exceptionThrown") problems.push("exception: " + String(d.params.exceptionDetails?.exception?.description ?? d.params.exceptionDetails?.text).split("\n")[0]);
+  else if (d.method === "Runtime.consoleAPICalled" && d.params.type === "error") problems.push("console.error: " + d.params.args.map((a) => a.value ?? a.description ?? "").join(" ").slice(0, 200));
+};
 const send = (method, params = {}) => new Promise((res) => { const n = ++id; pending.set(n, res); ws.send(JSON.stringify({ id: n, method, params })); });
 const evalJs = async (expression) => (await send("Runtime.evaluate", { expression, returnByValue: true })).result?.result?.value;
 
 const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(SCENES);
 await send("Page.enable");
+if (process.env.PF_QA) await send("Runtime.enable");
+let bad = 0;
 for (const name of names) {
   const spec = SCENES[name];
   if (!spec) { console.error(`unknown scene: ${name} (try: ${Object.keys(SCENES).join(", ")})`); continue; }
@@ -102,7 +110,9 @@ for (const name of names) {
     const shot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
     writeFileSync(join(OUT, file), Buffer.from(shot.result.data, "base64"));
     console.log(`${name.padEnd(11)} ${w}x${h}  ${file}`);
+    if (process.env.PF_QA) { const mine = [...new Set(problems.splice(0))].filter((p) => !/createRoot\(\)/.test(p)); bad += mine.length; for (const p of mine) console.log("   !! " + p); }
   } catch (e) { console.error(`${name}: ${String(e.message ?? e).split("\n")[0]}`); }
 }
 ws.close();
 cleanup();
+if (process.env.PF_QA) { console.log(bad ? `\n${bad} problem(s) found.` : "\nNo console errors or exceptions in any scene."); process.exitCode = bad ? 1 : 0; }

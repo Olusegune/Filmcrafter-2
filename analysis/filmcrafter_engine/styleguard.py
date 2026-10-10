@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 
-REAL_LOOKS = {"photoreal-cgi", "live-action"}      # these ask for real-looking pictures: nothing is rewritten
+REAL_LOOKS = {"photoreal-cgi", "live-action"}      # these ask for real-looking pictures: nothing is rewritten (every look of the photoreal family counts: see real_looks())
 UNSURE_LOOKS = {"auto", "custom", ""}               # "match the references": the references decide, so nothing is rewritten
 
 # words that ask for a photograph, and what to say instead ("" drops the word)
@@ -29,10 +29,19 @@ _RX = [(re.compile(r"\b" + p + r"\b", re.I), r) for p, r in REALIST]
 LOCK_PRIORITY = 11            # above every other block (the highest of those is 10), so a prompt that has to be cut loses anything else first
 
 
+def real_looks() -> set[str]:
+    """The looks whose family is photoreal in styles.json, plus the two built-in ones."""
+    try:
+        from .animation_principles import styles
+        return REAL_LOOKS | {k for k, v in styles().items() if v.get("family") == "photoreal"}
+    except Exception:
+        return set(REAL_LOOKS)
+
+
 def family(look_id: str | None) -> str:
     """'real' (asks for real-looking pictures), 'unsure' (match the references) or 'stylised' (a drawn, modelled or crafted look)."""
     lid = (look_id or "").lower()
-    if lid in REAL_LOOKS:
+    if lid in real_looks():
         return "real"
     if lid in UNSURE_LOOKS:
         return "unsure"

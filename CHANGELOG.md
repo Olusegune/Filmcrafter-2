@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 (2026-10-10)
+
+- **Looks: about 100 of them, in six kinds of film.** Photorealistic, 3D animation, 2D animation, Hybrid 2D/3D, Hands-on crafts, and Art movements & experimental, each with looks from the style library (Hyperrealism, Film noir, Painterly 3D, Clay-look 3D, Watercolour storybook, Shonen action anime, Felt and wool stop-motion, Ukiyo-e, Art Deco and many more). Pick the kind, then the look; every look explains itself.
+- **Genre feel, layered on any look.** Epic fantasy, dark fantasy, solarpunk, gothic horror, magical realism, biblical epic and more are added on top of the look, never in place of it.
+- **A chosen look is injected strongly.** It leads every picture and every video prompt by name, is kept in the full wording, closes with a style lock that is the last thing dropped from a long prompt, and carries its own "never look like" list. Photorealistic looks are exempt from the rewording that stops drawn looks drifting to photographs.
+- **The twelve principles of animation.** In Rules & style; for each shot the few that fit what happens (anticipation before a jump, follow-through on a coat) are added to the prompt, never all twelve. Different sets for drawn, 3D, crafts and photorealistic (screen craft). A quiet acting profile leaves out exaggeration.
+- **A filmmaker's approach works in any look.** Applying a direction (for example Ryan Coogler) to a stop-motion film keeps stop motion and adds the filmmaker's camera, light, movement and pace to every shot's prompt as traits, never a name.
+- **Hands, bodies and faces are checked in the film's Pictures step.** *Check hands & faces* (price first), a flag on the card, and a question before locking a flagged picture or making a video from one.
+- **Home drop card:** taller and sleeker, with four rolling film strips with sprocket holes, a vignette, crop marks, a slow scan line and a breathing call to action; still with reduced motion.
+- **Film language in the Studio:** Acting arcs say film and scenes, the playback error says soundtrack, lip-sync says speaking shots. The Studio top bar no longer runs under the inspector.
+- **Sturdier:** a progress reply with a part missing no longer blanks the film screen. New `PF_QA=1 node scripts/docshots-edge.mjs` opens every harness screen in headless Edge and reports any console error or exception.
+- The Shots screen uses the same premium panel language as Cast & World.
+
 ## 0.7.0 (2026-10-10)
 
 - **Direction library: great filmmakers.** The music-video traditions are replaced by 48 filmmakers from North America, Latin America, Europe, Asia, Africa, the Middle East and Oceania (Brad Bird, Hayao Miyazaki, Ryan Coogler, Agnes Varda, Bong Joon-ho, Ousmane Sembene, Asghar Farhadi, Taika Waititi and more). Each is a visual brief (camera, light, palette, editing, movement, design, a suggested look and acting profile) with what they are known for and a respect note: an approach to learn from, never a copy.
