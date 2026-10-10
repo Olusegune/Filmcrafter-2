@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 (2026-10-10)
+
+- **Fixed: PULSEFRAME's splash screen sometimes showed on launch.** FilmCrafter had inherited its two opening designs (one of them the music app's "steps" picture, on every other launch). There is now one opening: FilmCrafter's own artwork, with a film strip rolling past and a slow sweep of light. A test keeps the music app's pictures out.
+- **Fixed: an imported screenplay showed one word per line.** The script column shrank to the width of a word (an auto margin on a flex child). It is centred by padding now, and a test guards it.
+- **New: a living film strip on the Home screen.** Two rows of frames roll past behind the drop card; drag a screenplay over it and they speed up and glow. Still with reduced motion.
+
 ## 0.4.0 (2026-10-10)
 
 - **Cards | Timeline** on the same film: the story-first cards, or the full studio timeline, one click apart.

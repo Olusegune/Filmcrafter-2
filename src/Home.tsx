@@ -8,6 +8,7 @@ import { Cta } from "./Dock";
 import { ask } from "./ask";
 import { UpdatePill } from "./Updates";
 import { isStoryFile, STORY_EXT } from "./storyView";
+import { FilmReel } from "./FilmReel";
 
 /**
  * Home: a film begins with a story. Drop a screenplay, or start from an idea. Projects made in earlier versions (music videos, shows) still open from Recent.
@@ -59,7 +60,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
       <div className="home-hero">
         <h1>CRAFT STORIES<br />INTO CINEMA</h1>
         <div className={`dropcard story ${over ? "over" : ""}`}>
-          <div className="filmstrip" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} />)}</div>
+          <FilmReel active={over} />
           <div className="big">Drop a screenplay here</div>
           <div className="home-cta-row">
             <Cta icon={<Sparkle size={18} />} onClick={() => onNewFilm()} title="Start a film from a screenplay, a logline, a synopsis, a treatment or a scene outline">New film</Cta>

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -82,5 +83,33 @@ describe("the New film sheet", () => {
     expect(html).toContain("Create film");
     expect(html).toContain("never rewrites your story");
     expect(html).toContain("an idea or logline");
+  });
+});
+
+describe("the Home film strip", () => {
+  it("rolls two rows of frames and speeds up when a story is dragged over", async () => {
+    const { FilmReel } = await import("../FilmReel");
+    const calm = renderToStaticMarkup(<FilmReel active={false} />);
+    const fast = renderToStaticMarkup(<FilmReel active />);
+    expect(calm).toContain("reel-row top");
+    expect(calm).toContain("reel-row bottom");
+    expect(calm).toContain("reel-sweep");
+    expect(calm).not.toContain("reel fast");
+    expect(fast).toContain("reel fast");
+    expect(calm).toContain('aria-hidden="true"');
+    expect((calm.match(/<i /g) ?? []).length).toBe(88);
+  });
+  it("is still with reduced motion", () => {
+    expect(readFileSync("src/film.css", "utf8")).toMatch(/prefers-reduced-motion: reduce\) \{ \.reel-track, \.reel-sweep \{ animation: none/);
+  });
+});
+
+describe("the script reader keeps its width", () => {
+  it("is centred by padding, not by auto margins (an auto margin on a flex child shrank a long script to one word per line)", () => {
+    const css = readFileSync("src/film.css", "utf8");
+    const rules = css.split("}").filter((r) => /\.film-script/.test(r));
+    expect(rules.length).toBeGreaterThan(0);
+    for (const r of rules) expect(r).not.toMatch(/margin:\s*0 auto/);
+    expect(css).toMatch(/\.film-script \{ width: 100%/);
   });
 });

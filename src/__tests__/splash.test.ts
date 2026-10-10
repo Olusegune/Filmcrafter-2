@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const html = readFileSync("public/splash.html", "utf8");
 const rust = readFileSync("src-tauri/src/lib.rs", "utf8");
@@ -51,5 +51,16 @@ describe("the splash screen", () => {
 
   it("respects reduced motion: the hairline does not run", () => {
     expect(html).toMatch(/prefers-reduced-motion: reduce\) \{ \.bar \{ animation: none/);
+  });
+
+  it("is FilmCrafter's alone: its own artwork, and nothing from the music app (its steps picture, its tagline, its images)", () => {
+    expect(html).toContain('url("splash.jpg")');
+    expect(html).not.toMatch(/onboarding\/|splash_steps|splash_scene|splash_dark|music into motion|v-steps/i);
+    expect(existsSync("public/splash.jpg")).toBe(true);
+    for (const f of ["splash_steps.jpg", "splash_scene.jpg", "splash_dark.jpg"]) expect(existsSync("public/onboarding/" + f)).toBe(false);
+  });
+
+  it("keeps the film strip still with reduced motion", () => {
+    expect(html).toContain(".track, .reel { animation: none !important; }");
   });
 });
