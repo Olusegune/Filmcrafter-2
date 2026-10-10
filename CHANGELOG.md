@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.0 (2026-10-10)
+
+- **Blocking diagrams.** A new **Blocking** tab on each shot: a top-down floor plan with people (and the way they face), the camera and its cone of view, props, the line between the first two people, and ghost markers for the other shots' cameras. Drag anything; **Suggest a layout** places people and camera from who is in the shot, its framing and the shot before; **Same floor as the shot before** carries the people over.
+- **The 180-degree line.** If a shot's camera is on the other side of the line from the shot before, the line turns red with a note, and the Continuity check lists it (advice only).
+- **The plan reaches the prompts.** It is turned into words as the camera sees it ("John screen-right, facing screen-left. Camera over Sarah's shoulder.") and added to the shot's continuity notes in the render project, so pictures and video are made with people where you put them. A locked storyboard fixes the plan.
+- Tests: the plan's cleaning, suggestions for each framing, the words, the line, saving and clearing, locking, the render project, the check, the screen's arithmetic and its markup.
+
 ## 0.9.0 (2026-10-10)
 
 - **The in-app guide (F1) is now the FilmCrafter guide.** It was still PULSEFRAME's 1,000-line music-video guide, and it could not show the film screenshots. The new guide covers before you start, the steps, the look and the animation principles, the Studio, the Supervisor, every keyboard shortcut and what to do when something goes wrong. The old guide is kept in `docs/legacy`.

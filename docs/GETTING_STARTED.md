@@ -120,6 +120,17 @@ In the **Timeline**, the inspector keeps the everyday tabs (Shot, Keyframe, Vide
 
 Under the hood the film builds a render project (in the film's `render` folder) from the Shot Contracts and the Bible, so the pictures and clips are made with the characters, places, style, camera, light and acting you set.
 
+### Blocking: a top-down plan of each shot
+
+![The Blocking tab: where people stand and face, where the camera is and what it sees, and the line between the first two people](img/film/shots-blocking.png)
+
+Open a shot in **Shots** and choose **Blocking**. It is a floor plan seen from the ceiling: each person is a dot with an arrow for the way they face, the camera is gold with a cone for what its lens takes in, and the dashed line runs between the first two people. Small grey circles are the cameras of the other shots in the scene.
+
+- **Suggest a layout** places the people and the camera from who is in the shot, its framing (a wide from the near wall, an over-the-shoulder behind one person looking at the other, a close-up on whoever speaks) and the shot before it. It is a free first draft; drag anything to change it. **Same floor as the shot before** keeps the people where they were.
+- **Drag** a person, the camera, a prop or the small round handles to turn a person or aim the camera. The slider sets how wide the lens sees. Double-click a person's handle to turn them around.
+- **The 180-degree line.** Keep the camera on one side of the dashed line between two people, or they appear to swap sides on screen between shots. If a shot's camera is on the other side from the shot before, the line turns red, a note appears, and the Continuity check lists it too. It is advice: crossing the line is sometimes right.
+- **What it does for the film.** The plan is turned into words as the camera sees it ("John screen-right, facing screen-left. Camera over Sarah's shoulder") and added to that shot's prompts, so pictures and video are made with the people where you put them. If the storyboard is locked the plan is fixed too.
+
 ## Continuity check
 
 In **Shots**, press **Continuity check**. FilmCrafter reads the shots in order and says where something **may** have changed: a person's outfit or state, the place or time of day inside one scene, a prop that appears and then vanishes, how a shot begins compared with how the last one ended, which shoulder the camera looks over, and people who have no pictures (so their face could drift).

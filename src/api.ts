@@ -269,7 +269,7 @@ export const api = {
                         data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
   isShow: (path: string) => invoke<boolean>("is_show", { path }),
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
-  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles", target: string, data: Record<string, unknown> = {}) =>
+  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles" | "blocking", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
@@ -463,7 +463,10 @@ export type ShotContract = { id: string; scene: number; index: number; story_ver
   performance: { emotional_intention: string; beats: ShotBeat[]; micro_animation: string };
   camera: { framing: string; angle: string; position: string; lens: string; movement: string; focus: string; why: string }; lighting: { description: string; time: string; why: string };
   opening_state: string; closing_state: string; continuity: string; reference_assets: string[]; sound: string; generation: { duration: number; aspect: string; notes: string };
-  locks: { storyboard: boolean; keyframe: boolean } };
+  locks: { storyboard: boolean; keyframe: boolean }; plan?: BlockingPlanData | null };
+export type BlockingPlanData = { people: { name: string; x: number; y: number; facing: number }[]; props: { name: string; x: number; y: number }[]; camera: { x: number; y: number; aim: number; fov: number } | null };
+export type BlockingView = { id: string; scene: number; framing: string; plan: BlockingPlanData | null; suggested: BlockingPlanData | null; has_previous: boolean; text: string; people: string[];
+  scene_shots: { id: string; framing: string; plan: BlockingPlanData | null }[]; crossings: { shot: string; previous: string; message: string; fix: string }[]; room: { w: number; h: number } };
 export type ShotSuggestion = { camera: ShotContract["camera"]; lighting: { description: string; why: string }; from: string };
 
 // ---------------------------------------------------------------- making the film

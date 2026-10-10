@@ -2,12 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
 import { ask } from "./ask";
 import { FilmContinuity } from "./FilmContinuity";
+import { BlockingPlan } from "./BlockingPlan";
 import { askForHelp } from "./AssistSheet";
 import { ShotSuggestionSheet } from "./ShotSuggestionSheet";
 import * as I from "./icons";
 
-type Tab = "story" | "acting" | "camera" | "light" | "continuity";
-const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "light", label: "Light" }, { id: "continuity", label: "Continuity" }];
+type Tab = "story" | "acting" | "camera" | "blocking" | "light" | "continuity";
+const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "blocking", label: "Blocking" }, { id: "light", label: "Light" }, { id: "continuity", label: "Continuity" }];
 const BEAT: [keyof ShotBeat, string][] = [["character", "Who"], ["what", "What we see"], ["want", "Wants"], ["need", "Needs"], ["fear", "Fears"], ["hiding", "Hiding"], ["subtext", "Subtext"], ["start", "Starts feeling"], ["turn", "Turns to"], ["end", "Ends feeling"]];
 const EMPTY_BEAT: ShotBeat = { character: "", what: "", want: "", need: "", fear: "", hiding: "", subtext: "", start: "", turn: "", end: "" };
 
@@ -192,6 +193,7 @@ export function ShotLab({ dir }: { dir: string }) {
             {text("camera.why", "Why", 2, "What this choice does for the story")}
           </>}
 
+          {tab === "blocking" && c && <BlockingPlan dir={dir} shot={c.id} locked={locked} plan={c.plan ?? null} onSaved={save} />}
           {tab === "light" && <>
             {text("lighting.description", "The light", 3, "Where it comes from, how hard or soft, what colour")}
             {text("lighting.time", "Time of day")}

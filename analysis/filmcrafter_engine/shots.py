@@ -293,6 +293,9 @@ def set_fields(d: str, sid: str, patch: dict) -> dict:
     for k in ("title", "story_purpose", "action", "blocking", "opening_state", "closing_state", "continuity", "sound"):
         if k in patch:
             c[k] = _text(patch[k], 120 if k == "title" else LIMIT)
+    if "plan" in patch:                                  # the top-down blocking plan (blocking.py); None clears it
+        from . import blocking
+        c["plan"] = blocking.clean(patch["plan"])
     if "dialogue" in patch:
         c["dialogue"] = [{"speaker": _text(x.get("speaker"), 60), "line": _text(x.get("line")), "paren": _text(x.get("paren"), 100)} for x in (patch["dialogue"] or []) if isinstance(x, dict)][:60]
     if "characters" in patch:
@@ -340,7 +343,7 @@ def set_fields(d: str, sid: str, patch: dict) -> dict:
         for k in ("aspect", "notes"):
             if k in gen:
                 c["generation"][k] = _text(gen[k], 200 if k == "aspect" else LIMIT)
-    if c.get("locks", {}).get("storyboard") and any(k in patch for k in ("camera", "blocking", "characters", "environment")) and not patch.get("_unlock"):
+    if c.get("locks", {}).get("storyboard") and any(k in patch for k in ("camera", "blocking", "characters", "environment", "plan")) and not patch.get("_unlock"):
         raise SystemExit("This shot's storyboard is locked, so its framing can't change. Unlock the storyboard first.")
     c["edited"] = True
     _write(_cpath(d, sid), c)
@@ -531,6 +534,30 @@ def suggest(d: str, sid: str) -> dict:
     return suggest_for(_contract(d, sid))
 
 
+def blocking_view(d: str, sid: str, mode: str = "get") -> dict:
+    """The blocking plan of a shot (or a suggested one), the words it adds to the prompts, every shot of the scene on the same floor, and where the camera crosses the line. Nothing is sent."""
+    from . import blocking
+    idx = _index(d)
+    cons = [c for c in (_read(_cpath(d, s)) for s in idx["order"]) if isinstance(c, dict)]
+    c = next((x for x in cons if x["id"] == sid), None)
+    if c is None:
+        raise SystemExit("That shot doesn't exist.")
+    scene = [x for x in cons if x["scene"] == c["scene"]]
+    pos = next(i for i, x in enumerate(scene) if x["id"] == sid)
+    prev = next((x["plan"] for x in reversed(scene[:pos]) if x.get("plan")), None)
+    plan = c.get("plan")
+    suggested = None
+    if mode in ("suggest", "carry"):
+        suggested = blocking.suggest(c, prev, blocking.scene_side(cons, c["scene"], before=sid))
+        if mode == "carry" and prev:                               # the same floor as the shot before, the camera left where it is in this shot (or suggested)
+            suggested = blocking.clean({**prev, "people": suggested["people"], "camera": (plan or {}).get("camera") or suggested["camera"]})
+    shown = suggested if suggested is not None else plan
+    return {"id": sid, "scene": c["scene"], "framing": c["camera"]["framing"], "plan": plan, "suggested": suggested, "has_previous": bool(prev),
+            "text": blocking.describe(shown), "people": [x["name"] for x in c["characters"]],
+            "scene_shots": [{"id": x["id"], "framing": x["camera"]["framing"], "plan": x.get("plan")} for x in scene], "crossings": [x for x in blocking.crossings(cons) if x["shot"] in {y["id"] for y in scene}],
+            "room": {"w": blocking.W, "h": blocking.H}}
+
+
 def principles(d: str, sid: str) -> dict:
     """The animation principles (or, for a photorealistic film, the screen craft) that will be added to this shot's prompts, from its words and the film's look. Free; nothing is sent."""
     from . import animation_principles as AP
@@ -552,7 +579,7 @@ def principles(d: str, sid: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-shots")
-    ap.add_argument("action", choices=["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command", "principles"])
+    ap.add_argument("action", choices=["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command", "principles", "blocking"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -585,6 +612,8 @@ def main(argv: list[str]) -> int:
             res = directcmd.command(d, x["id"], x.get("text", ""))
         elif a.action == "principles":
             res = principles(d, x["id"])
+        elif a.action == "blocking":
+            res = blocking_view(d, x["id"], x.get("mode", "get") if x.get("mode") in ("get", "suggest", "carry") else "get")
         else:
             res = suggest(d, x["id"])
         emit(event="result", data=res)

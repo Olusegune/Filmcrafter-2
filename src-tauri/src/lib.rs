@@ -1245,7 +1245,7 @@ async fn film_bible(app: AppHandle, action: String, target: String, data: Value)
 /// Scenes and shots of a film (filmcrafter_engine.shots): the breakdown, each Shot Contract, and editing them. Free and local; nothing is sent anywhere.
 #[tauri::command]
 async fn film_shots(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 13] = ["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command", "principles"];
+    const ACTIONS: [&str; 14] = ["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command", "principles", "blocking"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

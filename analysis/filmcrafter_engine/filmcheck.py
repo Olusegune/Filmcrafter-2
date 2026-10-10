@@ -104,6 +104,9 @@ def check_all(contracts: list[dict], bible: dict) -> list[dict]:
                 and a["characters"][0]["name"].lower() == b["characters"][0]["name"].lower() and a["dialogue"] and b["dialogue"] and a["dialogue"][-1]["speaker"].lower() != b["dialogue"][0]["speaker"].lower():
             add("direction", b["id"], "look", f"{a['id']} and {b['id']} both look over {a['characters'][0]['name'].title()}'s shoulder, but the other person speaks in the second. The reverse shot usually looks the other way.",
                 "Put the camera behind the other person.", pair + "ots")
+    from . import blocking                                   # the top-down plans: the camera should stay on one side of the line between two people
+    for x in blocking.crossings(contracts):
+        add("direction", x["shot"], "look", x["message"], x["fix"], x["previous"] + ">" + x["shot"] + "line")
     return found
 
 

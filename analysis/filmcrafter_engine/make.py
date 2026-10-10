@@ -136,11 +136,17 @@ def _plan(d: str, bible: dict, cons: list[dict]) -> dict:
                 "lens": cam["lens"], "camera_movement": cam["movement"] if cam["movement"] != "locked off" else "locked off, no camera movement", "focus": (cam["focus"] + " focus") if cam["focus"] else "",
                 "environment": ". ".join(x for x in (env, (bible_env or {}).get("description", "")) if x),
                 "lighting": c["lighting"]["description"], "acting_beats": _beats_text(c), "source_shots": [c["id"]],
-                "continuity_notes": [x for x in (c["continuity"], ("Starts: " + c["opening_state"]) if c["opening_state"] else "", ("Ends: " + c["closing_state"]) if c["closing_state"] else "", c["blocking"]) if x]}
+                "continuity_notes": [x for x in (c["continuity"], ("Starts: " + c["opening_state"]) if c["opening_state"] else "", ("Ends: " + c["closing_state"]) if c["closing_state"] else "", c["blocking"], _plan_words(c)) if x]}
         sc["shots"].append(shot)
         t += dur
         sc["end"] = round(t, 2)
     return {"meta": meta, "characters": chars, "scenes": [scenes[k] for k in sorted(scenes)]}
+
+
+def _plan_words(c: dict) -> str:
+    """What the shot's top-down blocking plan says, as the camera sees it ('' when there is none)."""
+    from . import blocking
+    return blocking.describe(c.get("plan"))
 
 
 def sync(d: str) -> dict:

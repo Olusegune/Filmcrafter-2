@@ -1,6 +1,6 @@
 # Status: what is done, what is partly done, what is not
 
-Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.9.0).
+Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.10.0).
 "Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run against a real provider, a Mac or a professional editor.
 
 ## What was verified in this release
@@ -45,7 +45,8 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritt
 | Item | Status |
 |---|---|
 | Continuity Director | Done for film: rule-based, advisory. |
-| Performance Director | Partly: you (or the suggestions) fill acting beats; the writing helper can propose them. Blocking diagrams are not built. |
+| Performance Director | Partly: you (or the suggestions) fill acting beats; the writing helper can propose them. |
+| Blocking diagrams | **Done (0.10.0):** a top-down plan per shot (people, facing, camera, cone, props), a free rule-based suggestion from framing and the shot before, the 180-degree line checked across a scene, and the plan turned into words in the shot's prompts. Tested at the engine and in the screen; drag tested in a browser. Not tested with a real model: whether a video model keeps people where the words say is unknown. |
 | Visual QA of pictures (hands, faces, drift) | Done for the film's Pictures step (above) and in the Production Supervisor. |
 | Production Supervisor | Done: findings shot by shot with pictures, a strip of the shots that need you, batch fixes, Director changes. |
 | Direction library | 48 filmmakers from every region; traits (never names) reach every shot's prompt in any look; matching follows the story. |
@@ -63,4 +64,4 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritt
 2. Open the hand-off files in DaVinci Resolve and Premiere Pro.
 3. Prove the macOS build and set up signing and notarization (needs a Mac, an Apple Developer account and a Windows certificate).
 4. Finish untangling the music-era code the renderer still imports (onboarding, dance, choreography, voices), then drop the song-first parts of the Studio.
-5. Blocking diagrams, the engine daemon, After Effects and AAF interchange (Phases 2 to 5).
+5. The engine daemon, After Effects and AAF interchange (Phases 3 to 5).
