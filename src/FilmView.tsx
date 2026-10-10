@@ -1,26 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { api, errorText, type FilmAdvice, type FilmScene, type FilmStatus, type StoryKind } from "./api";
+import { api, errorText, type FilmAdvice, type FilmProgress, type FilmScene, type FilmStatus, type StoryKind } from "./api";
 import * as I from "./icons";
 import { ask } from "./ask";
 import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
-import { LADDER, ladderAt, minutes, openAdvice, sceneLine, STAGES, STORY_KINDS, storyState } from "./storyView";
+import { LADDER, ladderAt, minutes, neighbours, openAdvice, sceneLine, stageBadge, stageDone, stageLabel, STAGES, STORY_KINDS, storyState } from "./storyView";
 
 /**
  * A film's story: the script as written, the scenes found in it, and what was noticed. The script is never edited here; a change is a new version,
  * and a version can be locked so the rest of the film is made from one fixed story.
  */
-export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; onHome: () => void; onSettings: () => void; onStudio?: (renderDir: string) => void }) {
+export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { dir: string; onHome: () => void; onSettings: () => void; onStudio?: (renderDir: string) => void; initialStage?: string }) {
   const [f, setF] = useState<FilmStatus | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState("");
   const [writing, setWriting] = useState(false);
   const [scene, setScene] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const coming = (() => { try { const k = `fc-film-stage:${dir}`; const v = localStorage.getItem(k); localStorage.removeItem(k); return v; } catch { return null; } })();   // the studio asked to come back to a step
-  const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">(coming === "storyboard" ? "make" : "story");
+  const [stage, setStage] = useState<"story" | "cast" | "shots" | "make">(initialStage === "storyboard" ? "make" : "story");        // the studio can bring you back to a step
   const [makeTab, setMakeTab] = useState<MakeTab>("storyboard");
+  const [progress, setProgress] = useState<FilmProgress | null>(null);
   const MAKE_STAGE: Record<string, MakeTab> = { storyboard: "storyboard", make: "keyframe", review: "video", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
   const activeId = stage === "make" ? Object.keys(MAKE_STAGE).find((k) => MAKE_STAGE[k] === makeTab || (k === "make" && makeTab === "keyframe")) ?? "make" : stage;
@@ -29,6 +29,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
   const load = useCallback((version?: number) =>
     api.film<FilmStatus>("status", dir, version ? { version } : {}).then(setF).catch((e) => setErr(errorText(e))), [dir]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { api.make<FilmProgress>("progress", dir).then(setProgress).catch(() => {}); }, [dir, stage, makeTab, f?.story.locked, f?.story.current]);          // the small words under each step
 
   const run = async (what: string, fn: () => Promise<FilmStatus>) => {
     setBusy(what); setErr("");
@@ -44,6 +45,8 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
 
   if (!f) return <div className="film"><div className="film-load dim">{err || "Opening the film…"}</div></div>;
   const st = f.story;
+  const goStage = (id: string) => { setStage(stageOf(id) as "story" | "cast" | "shots" | "make"); if (id in MAKE_STAGE) setMakeTab(MAKE_STAGE[id]); };
+  const nb = neighbours(activeId, f.mode === "studio");
   const isScreenplay = f.kind === "screenplay";
   const studio = f.mode === "studio";
   const advice = openAdvice(f.advice);
@@ -62,8 +65,9 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
         <button className="btn ghost sm" onClick={onHome}>‹ Home</button>
         <h1 className="film-title" title={f.title}>{f.title}</h1>
         <ol className="film-stages" aria-label="The stages of making a film">
-          {STAGES.filter((s) => studio || s.id !== "shots").map((s) => <li key={s.id} className={s.id === activeId ? "on" : s.ready ? "ready" : ""} title={s.ready ? undefined : "Coming in a later update"} aria-current={s.id === activeId ? "step" : undefined}>
-            {s.ready ? <button onClick={() => { setStage(stageOf(s.id) as "story" | "cast" | "shots" | "make"); if (s.id in MAKE_STAGE) setMakeTab(MAKE_STAGE[s.id]); }}>{s.label}</button> : s.label}</li>)}
+          {STAGES.filter((s) => studio || s.id !== "shots").map((s) => { const badge = stageBadge(s.id, progress), done = stageDone(s.id, progress); return (
+            <li key={s.id} className={`${s.id === activeId ? "on" : s.ready ? "ready" : ""} ${done ? "done" : ""}`} title={s.ready ? undefined : "Coming in a later update"} aria-current={s.id === activeId ? "step" : undefined}>
+              {s.ready ? <button onClick={() => goStage(s.id)}>{s.label}{badge && <small>{badge}</small>}</button> : s.label}</li>); })}
         </ol>
         {onStudio && <div className="mode-toggle film-view" role="group" aria-label="How to see the film" title="The same film two ways. Cards: the story-first workspace. Timeline: the full editing studio with layers, lighting, colour match, supervisor and more.">
           <button className="on" aria-pressed="true">Cards</button>
@@ -167,6 +171,11 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
           {err && <p className="error-text" role="alert">{err}</p>}
         </aside>
       </div>}
+      <footer className="film-foot">
+        {nb.prev ? <button className="btn ghost sm" onClick={() => goStage(nb.prev!)}>‹ {stageLabel(nb.prev)}</button> : <span />}
+        <span className="film-hint dim">{nb.hint}</span>
+        {nb.next ? <button className="btn primary sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
+      </footer>
       {writing && <NewVersion from={f} onClose={() => setWriting(false)} onSaved={(s) => { setF(s); setWriting(false); setScene(null); }} dir={dir} />}
     </div>
   );

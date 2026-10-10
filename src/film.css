@@ -253,3 +253,35 @@
 .dropcard.story { padding-top: 60px; padding-bottom: 56px; }
 
 .film-broken { margin: var(--sp-3, 12px) var(--sp-5, 20px) 0; }
+
+/* ---- one frame for every page: centred, with room (Cast & World, Rules and style, Make film) ---- */
+.cw { align-items: center; }
+.cw-frame { width: min(1180px, 100%); display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.cw-rules { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6, 28px) var(--sp-8, 40px); align-items: start; }
+.cw-rules > .cw-helprow, .cw-rules > .cw-save, .cw-rules > section:nth-of-type(3) { grid-column: 1 / -1; }
+@media (max-width: 1000px) { .cw-rules { grid-template-columns: 1fr; } }
+.cw-helprow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); padding: var(--sp-3, 12px) var(--sp-4, 16px); border-radius: 12px; background: var(--surface, rgba(244, 247, 250, 0.04)); border: 1px solid var(--hairline, rgba(244, 247, 250, 0.09)); font-size: 13px; }
+.cw-helprow .btn { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.cw-title .btn { display: inline-flex; align-items: center; gap: 6px; }
+.mk { align-items: center; }
+.mk > * { width: min(1400px, 100%); }
+
+/* ---- the step along the top shows how far it is; Back and Next along the bottom ---- */
+.film-stages li button small { margin-left: 7px; padding: 1px 8px; border-radius: 999px; background: rgba(244, 247, 250, 0.10); font-size: 10.5px; letter-spacing: 0; text-transform: none; color: var(--text-quiet, #8b97a7); }
+.film-stages li.done button small { background: rgba(95, 212, 154, 0.20); color: #7fe0b0; }
+.film-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); padding: 10px var(--sp-5, 20px); border-top: 1px solid var(--hairline, rgba(244, 247, 250, 0.08)); background: rgba(9, 11, 15, 0.92); }
+.film-hint { flex: 1; text-align: center; font-size: 12.5px; }
+
+/* ---- the writing helper's suggestion ---- */
+.as-sheet { width: min(760px, calc(100vw - 48px)); max-height: 88vh; overflow-y: auto; }
+.as-sheet h2 { display: flex; align-items: center; gap: 8px; }
+.as-rows { display: flex; flex-direction: column; gap: var(--sp-3, 12px); margin: var(--sp-3, 12px) 0; }
+.as-row { display: grid; grid-template-columns: 20px 1fr; gap: 4px var(--sp-3, 12px); padding: var(--sp-3, 12px); border-radius: 12px; background: var(--surface, rgba(244, 247, 250, 0.04)); border: 1px solid var(--hairline, rgba(244, 247, 250, 0.08)); cursor: pointer; }
+.as-row.on { border-color: rgba(100, 183, 255, 0.4); }
+.as-row textarea, .as-row .as-lane { grid-column: 2; }
+.as-label { font-size: 12.5px; font-weight: 600; }
+.as-label em { font-weight: 400; font-style: normal; color: var(--text-quiet, #8b97a7); }
+.as-group h3 { margin: var(--sp-2, 8px) 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
+.as-group .as-row { margin-bottom: 6px; }
+
+.cw-rules textarea.text-input, .cw-fields textarea.text-input, .cw-edit textarea.text-input { min-height: 64px; height: 84px; }

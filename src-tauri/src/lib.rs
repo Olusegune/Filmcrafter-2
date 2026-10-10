@@ -1401,7 +1401,7 @@ async fn film_shots(app: AppHandle, action: String, target: String, data: Value)
 /// pictures and video are queued with the render commands, after the app has shown the price and the person has confirmed it.
 #[tauri::command]
 async fn film_make(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 8] = ["sync", "status", "tag", "choose", "lock", "reference", "import", "soundtrack"];
+    const ACTIONS: [&str; 9] = ["sync", "status", "tag", "choose", "lock", "reference", "import", "soundtrack", "progress"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }
@@ -1428,6 +1428,19 @@ async fn film_interchange(app: AppHandle, target: String) -> Result<Value, Strin
     let dir = film_dir(&target)?;
     let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.interchange".into(), "write".into(), dir.to_string_lossy().into()];
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "interchange", &args, &[])).await.map_err(err)?
+}
+
+/// Optional writing help for Cast & World (filmcrafter_engine.assist): `estimate` shows the price and sends nothing; `suggest` asks the configured writing brain (OpenAI, OpenRouter, Ollama or LM Studio)
+/// for a suggestion and returns it. It never changes the Bible: the person chooses what to use.
+#[tauri::command]
+async fn film_assist(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 2] = ["estimate", "suggest"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let dir = film_dir(&target)?;
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.assist".into(), action, dir.to_string_lossy().into(), "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "assist", &args, &provider_env())).await.map_err(err)?
 }
 
 #[tauri::command]
@@ -2266,7 +2279,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, read_text, list_projects, create_project, load_project,
             analyze_project, direct_project, ensure_renderer, render_catalog, model_manifest, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_check, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
+            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_check, film_assist, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
             creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             onboarding, replace_song, write_project_text, attach_script, set_onboarding, adopt_script, choreography, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, producer, refgen, overlays, captions, director_audit, fonts, editor_export, camera, producer_plan, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])

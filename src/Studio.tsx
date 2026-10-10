@@ -55,8 +55,8 @@ import { ask } from "./ask";
 
 type Selection = { kind: "shot"; id: string } | { kind: "section"; index: number } | null;
 
-export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
-  project: LoadedProject; onHome: () => void; onSettings: () => void; onReload: () => void; onProduce?: () => void;
+export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduce }: {
+  project: LoadedProject; onHome: () => void; onFilm?: (stage: string) => void; onSettings: () => void; onReload: () => void; onProduce?: () => void;
 }) {
   const map = project.song_map;
   const plan: Plan | null = project.directed ?? project.production;
@@ -221,15 +221,12 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
   const planName = project.directed ? "directed" : "production";
   const isFilm = !!(project.project as { film?: boolean }).film;                       // a film's render project: no song to plan from, so the song-first guides and the Director are not offered
   const [tourOpen, setTourOpen] = useState(() => !isFilm && !tourSeen());
-  const goCards = (to?: string) => {                                                // back to the film workspace (optionally straight to a step of it)
-    try { if (to) localStorage.setItem(`fc-film-stage:${project.dir.replace(/[\/]render$/i, "")}`, to); } catch { /* a convenience only */ }
-    onHome();
-  };
+  const goCards = (to?: string) => { if (to && onFilm) onFilm(to); else onHome(); };                  // back to the film workspace (optionally straight to a step of it)
   const filmSwitch = isFilm ? (
     <>
       <div className="mode-toggle film-view" role="group" aria-label="How to see the film" title="The same film two ways. Cards: the story-first workspace. Timeline: this editing studio.">
         <button aria-pressed="false" onClick={() => goCards()}>Cards</button><button className="on" aria-pressed="true">Timeline</button></div>
-      <button className="btn" onClick={() => goCards("storyboard")} title="Back to the film: the storyboard wall">Storyboard</button>
+      <button className="btn hero" onClick={() => goCards("storyboard")} title="Back to the film: the storyboard wall"><I.Film size={14} /> Storyboard</button>
     </>) : null;
   const latest = useMemo(() => latestJobs(jobs, planName), [jobs, planName]);
   // Review judges the newest finished take of each shot (a newer failed attempt doesn't hide it).

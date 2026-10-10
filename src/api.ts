@@ -292,8 +292,9 @@ export const api = {
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
   shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
-  make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack", target: string, data: Record<string, unknown> = {}) =>
+  make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
+  assist: <T = AssistResult>(action: "estimate" | "suggest", target: string, data: Record<string, unknown>) => invoke<T>("film_assist", { action, target, data }),
   interchange: (target: string) => invoke<InterchangeResult>("film_interchange", { target }),
   filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
@@ -500,3 +501,11 @@ export type ContinuityFinding = { id: string; kind: string; shot: string; other:
 export type ContinuityView = { findings: ContinuityFinding[]; open: number; shots: number };
 
 export type InterchangeResult = { dir: string; files: Record<string, string>; shots: number; placed: number; missing: string[]; audio: string | null; seconds: number };
+
+// ---------------------------------------------------------------- optional writing help
+export type AssistKind = "character" | "environment" | "prop" | "world";
+export type AssistPrice = { calls: number; usd: number; local: boolean; note: string; kind: AssistKind; id?: string | null; sends: string };
+export type AssistResult = AssistPrice & { proposal: Record<string, unknown>; model: string; estimate?: AssistPrice };
+
+export type FilmProgress = { story: { kind: StoryKind; locked: boolean; as_is: boolean }; cast: { characters: number; places: number; pictures: number; style: boolean };
+  shots: { count: number; edited: number }; make: { shots: number; storyboard: number; keyframe: number; video: number } };

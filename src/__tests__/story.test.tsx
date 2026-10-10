@@ -113,3 +113,30 @@ describe("the script reader keeps its width", () => {
     expect(css).toMatch(/\.film-script \{ width: 100%/);
   });
 });
+
+import { neighbours, stageBadge, stageDone, stageLabel } from "../storyView";
+import type { FilmProgress } from "../api";
+
+describe("progress along the top", () => {
+  const p = (over: Partial<FilmProgress> = {}): FilmProgress => ({ story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 11, places: 7, pictures: 0, style: true }, shots: { count: 48, edited: 0 },
+    make: { shots: 48, storyboard: 12, keyframe: 0, video: 0 }, ...over });
+  it("says how far each step is, and nothing before there is something to say", () => {
+    expect(stageBadge("story", p())).toBe("locked"); expect(stageBadge("cast", p())).toBe("11 · 7"); expect(stageBadge("storyboard", p())).toBe("12/48");
+    expect(stageBadge("make", p())).toBe("0/48"); expect(stageBadge("export", p())).toBe(""); expect(stageBadge("export", p({ make: { shots: 48, storyboard: 48, keyframe: 48, video: 3 } }))).toBe("ready");
+    expect(stageBadge("story", null)).toBe(""); expect(stageBadge("cast", p({ cast: { characters: 0, places: 0, pictures: 0, style: false } }))).toBe("");
+  });
+  it("marks a step done only when it really is", () => {
+    expect(stageDone("story", p())).toBe(true); expect(stageDone("storyboard", p())).toBe(false);
+    expect(stageDone("storyboard", p({ make: { shots: 48, storyboard: 48, keyframe: 0, video: 0 } }))).toBe(true);
+    expect(stageDone("cast", p({ cast: { characters: 3, places: 1, pictures: 0, style: false } }))).toBe(false);
+    expect(stageDone("export", p())).toBe(false);
+  });
+  it("knows the step before and after, skipping Shots in Simple mode, and what to do here", () => {
+    expect(neighbours("story", false)).toMatchObject({ prev: null, next: "cast" });
+    expect(neighbours("cast", false).next).toBe("storyboard"); expect(neighbours("cast", true).next).toBe("shots");
+    expect(neighbours("export", true)).toMatchObject({ next: null, prev: "review" });
+    expect(neighbours("story", true).hint).toMatch(/Lock the story/);
+    expect(neighbours("nope", true)).toEqual({ prev: null, next: null, hint: "" });
+    expect(stageLabel("make")).toBe("Make film");
+  });
+});

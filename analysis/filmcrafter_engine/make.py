@@ -333,6 +333,24 @@ def status(d: str) -> dict:
                        "video": sum(1 for s in out if any(t["ok"] for t in s["video"]["takes"]))}}
 
 
+def progress(d: str) -> dict:
+    """How far along each step of the film is, for the badges along the top. Cheap: it only reads files."""
+    from . import bible as B
+    from . import shots as S
+    m = _film(d)
+    st = m["story"]
+    b = B.load(d)
+    cons = _contracts(d)
+    done = {"storyboard": 0, "keyframe": 0, "video": 0}
+    if cons and os.path.isfile(os.path.join(render_dir(d), "production.json")):
+        s = status(d)
+        done = s["counts"]
+    return {"story": {"kind": st["kind"], "locked": st.get("locked") is not None, "as_is": st.get("as_is") is not None},
+            "cast": {"characters": len(b["characters"]), "places": len(b["environments"]), "pictures": sum(1 for c in b["characters"] if c["media"]), "style": bool(b["style"]["lane"])},
+            "shots": {"count": len(cons), "edited": sum(1 for c in cons if c.get("edited"))},
+            "make": {"shots": len(cons), "storyboard": done["storyboard"], "keyframe": done["keyframe"], "video": done["video"]}}
+
+
 def tag(d: str, jobs: list[str], purpose: str) -> dict:
     """Mark newly queued picture jobs as storyboard panels or keyframes (the render engine only knows 'image')."""
     if purpose not in ("storyboard", "keyframe"):
@@ -458,7 +476,7 @@ def import_media(d: str, shot: str, stage: str, file: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-make")
-    ap.add_argument("action", choices=["sync", "status", "tag", "choose", "lock", "reference", "import", "soundtrack"])
+    ap.add_argument("action", choices=["sync", "status", "tag", "choose", "lock", "reference", "import", "soundtrack", "progress"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -477,6 +495,8 @@ def main(argv: list[str]) -> int:
             res = lock(d, x["shot"], x["stage"], x.get("on", True) is not False)
         elif a.action == "reference":
             res = use_storyboard_as_reference(d, x["shot"])
+        elif a.action == "progress":
+            res = progress(d)
         elif a.action == "soundtrack":
             res = set_soundtrack(d, x.get("file"))
         else:

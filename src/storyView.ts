@@ -84,3 +84,50 @@ export function storyState(s: { kind: StoryKind; locked: number | null; as_is: n
   if (s.as_is === s.current && s.kind === "screenplay") return "Using the story as it is";
   return s.kind === "screenplay" ? "Screenplay, not locked yet" : `Still a ${s.kind === "idea" ? "logline or idea" : s.kind}`;
 }
+
+/** A small word under a step along the top: how far along it is. Empty when there is nothing to say yet. */
+export function stageBadge(id: string, p: import("./api").FilmProgress | null): string {
+  if (!p) return "";
+  switch (id) {
+    case "story": return p.story.locked ? "locked" : "";
+    case "cast": return p.cast.characters + p.cast.places > 0 ? `${p.cast.characters} · ${p.cast.places}` : "";
+    case "shots": return p.shots.count ? String(p.shots.count) : "";
+    case "storyboard": return p.make.shots ? `${p.make.storyboard}/${p.make.shots}` : "";
+    case "make": return p.make.shots ? `${p.make.keyframe}/${p.make.shots}` : "";
+    case "review": return p.make.shots ? `${p.make.video}/${p.make.shots}` : "";
+    case "export": return p.make.video > 0 ? "ready" : "";
+    default: return "";
+  }
+}
+
+/** Whether a step is finished: the badge turns green. */
+export function stageDone(id: string, p: import("./api").FilmProgress | null): boolean {
+  if (!p) return false;
+  switch (id) {
+    case "story": return p.story.locked;
+    case "cast": return p.cast.characters > 0 && p.cast.style;
+    case "shots": return p.shots.count > 0;
+    case "storyboard": return p.make.shots > 0 && p.make.storyboard === p.make.shots;
+    case "make": return p.make.shots > 0 && p.make.keyframe === p.make.shots;
+    case "review": return p.make.shots > 0 && p.make.video === p.make.shots;
+    default: return false;
+  }
+}
+
+const FLOW = ["story", "cast", "shots", "storyboard", "make", "review", "export"];
+const HINT: Record<string, string> = {
+  story: "Lock the story when it is final. Everything else is made from it.",
+  cast: "Add the people and places, and choose a visual style. Optional: the writing helper can suggest details.",
+  shots: "The story is broken into shots you can change.",
+  storyboard: "Make a picture of each shot, choose one and lock it.",
+  make: "Make each shot's hero frame from its storyboard, choose one and lock it.",
+  review: "Bring each shot to life, compare takes and approve one.",
+  export: "Choose a soundtrack, then export the film or hand it to an editor.",
+};
+/** The step before and after this one (Simple mode skips Shots), with what to do here. */
+export function neighbours(id: string, studio: boolean): { prev: string | null; next: string | null; hint: string } {
+  const flow = FLOW.filter((s) => studio || s !== "shots");
+  const i = flow.indexOf(id);
+  return { prev: i > 0 ? flow[i - 1] : null, next: i >= 0 && i < flow.length - 1 ? flow[i + 1] : null, hint: HINT[id] ?? "" };
+}
+export const stageLabel = (id: string) => STAGES.find((s) => s.id === id)?.label ?? id;

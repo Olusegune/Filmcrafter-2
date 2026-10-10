@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { api, errorText, type BibleCharacter, type BibleEnvironment, type BibleProp, type BibleView } from "./api";
+import { api, errorText, type AssistKind, type BibleCharacter, type BibleEnvironment, type BibleProp, type BibleView } from "./api";
+import { AssistSheet, askForHelp } from "./AssistSheet";
 import { ask } from "./ask";
 import { askText } from "./askText";
 import * as I from "./icons";
@@ -29,6 +30,13 @@ export function CastWorld({ dir }: { dir: string }) {
   const [sel, setSel] = useState<string | null>(null);
   const [err, setErr] = useState("");
   const [note, setNote] = useState("");
+  const [helping, setHelping] = useState("");
+  const [assist, setAssist] = useState<{ kind: AssistKind; id: string | null; name: string; proposal: Record<string, unknown> } | null>(null);
+  /** Optional writing help: shows the price first, asks for a yes, then shows a suggestion to pick from. Never changes anything by itself. */
+  const help = async (kind: AssistKind, id: string | null, name: string) => {
+    setErr(""); setHelping(`${kind}:${id}`);
+    try { const proposal = await askForHelp(dir, kind, id, name); if (proposal) setAssist({ kind, id, name, proposal }); } catch (e) { setErr(errorText(e)); } finally { setHelping(""); }
+  };
 
   const apply = (v: BibleView) => setB(v);
   const run = useCallback(async (fn: () => Promise<BibleView>) => { setErr(""); try { const v = await fn(); setB(v); return v; } catch (e) { setErr(errorText(e)); return null; } }, []);
@@ -62,6 +70,7 @@ export function CastWorld({ dir }: { dir: string }) {
 
   return (
     <div className="cw">
+      <div className="cw-frame">
       <div className="cw-head">
         <div className="cw-tabs" role="tablist">
           {TABS.map((t) => <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => { setTab(t.id); setSel(null); }}>
@@ -74,7 +83,7 @@ export function CastWorld({ dir }: { dir: string }) {
       {b.need.length > 0 && tab === "bible" && <ul className="cw-need">{b.need.map((n) => <li key={n}>{n}</li>)}</ul>}
       {err && <p className="error-text" role="alert">{err}</p>}
 
-      {tab === "bible" ? <RulesStyle b={b} onSave={(d) => run(() => api.bible("update_rules", dir, d))} /> : (
+      {tab === "bible" ? <RulesStyle b={b} onSave={(d) => run(() => api.bible("update_rules", dir, d))} helping={helping === "world:null"} onHelp={() => help("world", null, "your world and style")} /> : (
         <div className="cw-body">
           <ul className="cw-list" aria-label={label(tab)}>
             {list.map((x) => {
@@ -85,21 +94,25 @@ export function CastWorld({ dir }: { dir: string }) {
             })}
             <li><button className="add" onClick={add}>+ Add {tab === "environment" ? "a place" : tab === "prop" ? "a prop" : "a character"}</button></li>
           </ul>
-          {cur ? <Editor key={cur.id} dir={dir} kind={tab as Kind} item={cur} media={b.media_kinds} run={run} apply={apply} />
+          {cur ? <Editor key={cur.id} dir={dir} kind={tab as Kind} item={cur} media={b.media_kinds} run={run} apply={apply} helping={helping === `${tab}:${cur.id}`} onHelp={() => help(tab as AssistKind, cur.id, cur.name)} />
             : <p className="dim cw-empty">{tab === "character" ? "No characters yet. They appear from the story, or add one." : tab === "environment" ? "No places yet." : "No props yet. Add anything that must look the same every time it appears."}</p>}
         </div>)}
+      </div>
+      {assist && <AssistSheet dir={dir} kind={assist.kind} id={assist.id} name={assist.name} proposal={assist.proposal} bible={b} onClose={() => setAssist(null)} onApplied={(v) => { setB(v); setAssist(null); setNote("Added what you chose. Everything else is as you had it."); }} />}
     </div>
   );
 }
 
 /** The world's rules, the philosophy that guides every shot, and the visual style. */
-function RulesStyle({ b, onSave }: { b: BibleView; onSave: (d: Record<string, unknown>) => void }) {
+function RulesStyle({ b, onSave, onHelp, helping }: { b: BibleView; onSave: (d: Record<string, unknown>) => void; onHelp: () => void; helping: boolean }) {
   const [rules, setRules] = useState(b.rules);
   const [phil, setPhil] = useState(b.philosophy);
   const [style, setStyle] = useState(b.style);
   const dirty = JSON.stringify([rules, phil, style]) !== JSON.stringify([b.rules, b.philosophy, b.style]);
   return (
     <div className="cw-rules">
+      <div className="cw-helprow"><span className="dim">Stuck? Optional: let the writing helper suggest a visual style, the rules of the world and how the film is made, from your story. You choose what to use.</span>
+        <button className="btn ghost sm" onClick={onHelp} disabled={helping}><I.Sparkle size={13} /> {helping ? "Writing…" : "Help me write this"}</button></div>
       <section>
         <h2>Visual style</h2>
         <p className="dim">The look affects characters, places, materials, light, camera and movement together, not just a phrase added to a prompt.</p>
@@ -125,7 +138,7 @@ function RulesStyle({ b, onSave }: { b: BibleView; onSave: (d: Record<string, un
 }
 
 /** One character, place or prop: its words, its related states, and its pictures. */
-function Editor({ dir, kind, item, run }: { dir: string; kind: Kind; item: Entry; media: string[]; run: (fn: () => Promise<BibleView>) => Promise<BibleView | null>; apply: (v: BibleView) => void }) {
+function Editor({ dir, kind, item, run, onHelp, helping }: { dir: string; kind: Kind; item: Entry; media: string[]; run: (fn: () => Promise<BibleView>) => Promise<BibleView | null>; apply: (v: BibleView) => void; onHelp: () => void; helping: boolean }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const val = (k: string) => draft[k] ?? ((item as unknown as Record<string, string>)[k] ?? "");
   const spatial = (k: string) => draft[`sp:${k}`] ?? ((item as BibleEnvironment).spatial?.[k] ?? "");
@@ -158,7 +171,8 @@ function Editor({ dir, kind, item, run }: { dir: string; kind: Kind; item: Entry
     <div className="cw-edit">
       <div className="cw-title"><input className="cw-name" value={val("name")} aria-label="Name" onChange={(e) => setDraft({ ...draft, name: e.target.value })} onBlur={() => commit("name")} />
         <span className="dim">{item.scenes.length ? `In scene${item.scenes.length === 1 ? "" : "s"} ${item.scenes.join(", ")}` : item.source === "story" ? "From the story" : "Added by you"}</span>
-        <div style={{ flex: 1 }} /><button className="link" onClick={remove}>Take out</button></div>
+        <div style={{ flex: 1 }} /><button className="btn ghost sm" onClick={onHelp} disabled={helping} title="Optional: the writing helper suggests details from your story. You choose what to use."><I.Sparkle size={13} /> {helping ? "Writing…" : "Help me write"}</button>
+        <button className="link" onClick={remove}>Take out</button></div>
 
       <section className="cw-pics">
         <h3>Pictures</h3>

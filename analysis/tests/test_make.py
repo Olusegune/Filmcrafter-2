@@ -208,3 +208,19 @@ def test_the_studio_timeline_reads_scenes_cuts_dialogue_and_the_soundtrack(film)
     assert len(sm["peaks"]) == 2000 and set(sm["peaks"]) == {0.0}                                                            # silence is a flat line
     for k in ("beats", "energy_curve", "accents"):
         assert sm[k] == []
+
+
+def test_progress_for_the_badges_reads_the_film_without_starting_anything(film):
+    p = make.progress(film)
+    assert p["story"]["kind"] == "screenplay" and p["cast"]["characters"] == 2 and p["cast"]["pictures"] == 1 and p["cast"]["style"] is True
+    assert p["shots"]["count"] == p["make"]["shots"] > 0 and p["make"] == {**p["make"], "storyboard": 0, "keyframe": 0, "video": 0}
+    make.sync(film)
+    _image_job(film, "S01-01", "sb1", "storyboard")
+    make.choose(film, "S01-01", "storyboard", "sb1")
+    assert make.progress(film)["make"]["storyboard"] == 1
+
+
+def test_progress_on_a_fresh_film_with_no_shots_is_all_zero(tmp_path):
+    d = story.create(str(tmp_path), "T", "screenplay", SCRIPT)["dir"]
+    p = make.progress(d)
+    assert p["shots"]["count"] == 0 and p["make"]["video"] == 0 and p["cast"]["characters"] == 0 and p["story"]["locked"] is False

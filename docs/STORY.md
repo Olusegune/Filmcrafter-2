@@ -86,6 +86,14 @@ In **Shots**, press **Continuity check**. FilmCrafter reads the shots in order a
 
 Every finding says why. **It's meant** sets one aside; **I'll fix it** keeps track; **Use that** applies a plain suggestion (such as how a shot begins). It never blocks anything and never changes the film on its own.
 
+## Writing help in Cast & World (optional)
+
+On a character, place or prop press **Help me write**; on **Rules & style** press **Help me write this**. FilmCrafter shows what it will send (your story and what the Bible already says) and the price (free if you use a local model), and waits for your yes. The suggestion appears next to what you have: tick what you want, change any words, and press **Use**. Whatever you already wrote is marked **yours** and is kept unless you tick the suggestion. It never changes anything on its own, and you can ignore it completely.
+
+## Finding your way
+
+Each step along the top shows how far it is and turns green when done (the story is locked, there are people and a style, every shot has a storyboard panel…). **Back** and **Next** along the bottom take you through the steps in order, with one line on what to do here.
+
 ## Cards or timeline: the same film two ways
 
 Along the top of a film, **Cards | Timeline** switches how you see the same shots:

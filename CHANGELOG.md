@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 (2026-10-10)
+
+- **One world, one layout.** Cast & World, Rules & style and Make film share one centred frame; Rules & style is two columns that use the width; textareas are a sensible height.
+- **You always know where you are and what is next.** Each step along the top shows how far it is (locked, 11 · 7, 12/48 …) and turns green when done; **Back / Next** and a one-line hint run along the bottom of every step.
+- **Optional writing help in Cast & World.** **Help me write** on a character, place or prop, and **Help me write this** for the world and visual style. It shows what it will send and the price (free on a local model), asks for a yes, then shows a suggestion next to what you have: tick what you want, edit the words, and what you already wrote is marked yours and kept unless you choose the suggestion. It never changes anything by itself.
+- **Studio:** the **Storyboard** button is amber with an icon and takes you straight to the storyboard wall (it opened Cast & World before).
+- Tests: the writing helper (9), progress for the badges (3), and Back/Next/badge logic.
+
 ## 0.4.2 (2026-10-10)
 
 - **Fixed: a PDF screenplay was read one word to a line.** The real cause was the PDF reader, not the screen. PDFs are now read by printed line (the layout reader), the dash that came out as a replacement mark is repaired, and a title page is no longer taken for a scene or a speaking character. A film that was read badly shows a notice with **Read the file again**, which makes a new version and leaves the old one untouched.

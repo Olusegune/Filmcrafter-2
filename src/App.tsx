@@ -30,7 +30,7 @@ type View =
   | { name: "produce"; project: LoadedProject }
   | { name: "studio"; project: LoadedProject }
   | { name: "show"; dir: string }
-  | { name: "film"; dir: string };
+  | { name: "film"; dir: string; stage?: string };
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
@@ -77,9 +77,9 @@ export default function App() {
   }, [openProject]);
 
   // An item of a show goes back to its show; anything else goes Home.
-  const backFrom = useCallback(async (dir: string) => {
+  const backFrom = useCallback(async (dir: string, stage?: string) => {
     const film = dir.replace(/[\/]render$/i, "");                          // the studio was opened on a film's render project: back goes to the film
-    if (film !== dir && await api.isFilm(film).catch(() => false)) { setView({ name: "film", dir: film }); return; }
+    if (film !== dir && await api.isFilm(film).catch(() => false)) { setView({ name: "film", dir: film, stage }); return; }
     const show = showDirOf(dir);
     setView(show && (await api.isShow(show).catch(() => false)) ? { name: "show", dir: show } : { name: "home" });
   }, []);
@@ -140,9 +140,9 @@ export default function App() {
       {toast && <div className="toast glass mini" role="status">{toast}</div>}
       {view.name === "analysis" && <Analysis dir={view.dir} title={view.title}
                                              onDone={() => openProject(view.dir)} onBack={() => backFrom(view.dir)} />}
-      {view.name === "film" && <FilmView key={view.dir} dir={view.dir} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} onStudio={(rd) => openProject(rd)} />}
+      {view.name === "film" && <FilmView key={`${view.dir}|${view.stage ?? ""}`} dir={view.dir} initialStage={view.stage} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} onStudio={(rd) => openProject(rd)} />}
       {view.name === "show" && <ShowView key={view.dir} dir={view.dir} onOpenItem={openProject} onHome={() => setView({ name: "home" })} />}
-      {view.name === "studio" && <Studio project={view.project} onHome={() => backFrom(view.project.dir)}
+      {view.name === "studio" && <Studio project={view.project} onHome={() => backFrom(view.project.dir)} onFilm={(st) => backFrom(view.project.dir, st)}
                                          onSettings={() => setSettings(true)} onReload={() => openProject(view.project.dir)}
                                          onProduce={() => { setProduce(view.project.dir, true); setView({ name: "produce", project: view.project }); }} />}
       {view.name === "produce" && <Produce key={view.project.dir} project={view.project} onHome={() => { setProduce(view.project.dir, false); backFrom(view.project.dir); }}
