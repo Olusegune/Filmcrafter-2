@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
 import { ask } from "./ask";
+import { FilmContinuity } from "./FilmContinuity";
 
 type Tab = "story" | "acting" | "camera" | "light" | "continuity";
 const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "light", label: "Light" }, { id: "continuity", label: "Continuity" }];
@@ -26,6 +27,7 @@ export function ShotLab({ dir }: { dir: string }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
+  const [review, setReview] = useState(false);              // the continuity findings instead of one shot
 
   const load = useCallback(async (keep?: string | null) => {
     try {
@@ -74,6 +76,7 @@ export function ShotLab({ dir }: { dir: string }) {
   return (
     <div className="sl">
       <aside className="sl-list" aria-label="Shots">
+        <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => setReview((x) => !x)} title="Where something may have changed between shots">Continuity check</button>
         <div className="sl-listhead"><h2>Shots <span className="dim">{v.shots.length}{v.seconds ? ` · ${clock(v.seconds)}` : ""}</span></h2>
           <button className="btn ghost sm" onClick={() => act("break", () => api.shots("breakdown", dir), (r) => r.made?.[0] ?? sel)} disabled={!!busy}
                   title="Draft shots for any scene that has none. Shots you have edited are never changed.">{v.shots.length ? "Break down new scenes" : "Break down the story"}</button></div>
@@ -89,7 +92,8 @@ export function ShotLab({ dir }: { dir: string }) {
             <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
       </aside>
 
-      {c ? <main className="sl-main">
+      {review ? <main className="sl-main"><FilmContinuity dir={dir} onGo={(id) => { setSel(id); setReview(false); }} onChanged={() => { void load(sel); if (sel) api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch(() => {}); }} /></main>
+        : c ? <main className="sl-main">
         <div className="sl-head"><h2>{c.id} <input className="sl-title" aria-label="Shot title" value={draft.title ?? c.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onBlur={() => commit("title")} placeholder="Name this shot" /></h2>
           <div className="sl-tools">
             <button className="link" onClick={() => act("up", () => api.shots("move", dir, { id: c.id, delta: -1 }), () => c.id)}>Move up</button>

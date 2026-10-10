@@ -194,3 +194,16 @@
 .mk-result { margin-top: var(--sp-3, 12px); padding: var(--sp-3, 12px) var(--sp-4, 16px); border-radius: 12px; background: rgba(95, 212, 154, 0.08); border: 1px solid rgba(95, 212, 154, 0.25); font-size: 13px; word-break: break-all; }
 
 .mk-actions .btn, .mk-actions .link { white-space: nowrap; }
+
+/* ---- continuity ---- */
+.sl-ck { margin-bottom: var(--sp-3, 12px); }
+.sl-ck.on { border-color: var(--signal, #64b7ff); }
+.ck { max-width: 760px; display: flex; flex-direction: column; gap: var(--sp-3, 12px); }
+.ck h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.ck ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3, 12px); }
+.ck li { padding: var(--sp-3, 12px) var(--sp-4, 16px); border-radius: 12px; background: var(--surface, rgba(244, 247, 250, 0.04)); border-left: 3px solid var(--hairline, rgba(244, 247, 250, 0.2)); }
+.ck li.ck-likely { border-left-color: var(--warning, #e8b45c); }
+.ck li.ck-look { border-left-color: var(--signal, #64b7ff); }
+.ck .topic { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
+.ck p { margin: 4px 0 6px; font-size: 13px; line-height: 1.5; }
+.ck .row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; }

@@ -294,6 +294,7 @@ export const api = {
     invoke<T>("film_shots", { action, target, data }),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
+  filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set", target: string | null, data: Record<string, unknown> = {}) =>
@@ -492,3 +493,7 @@ export type MakeShot = { id: string; scene: number; title: string; duration: num
 export type MakeStatus = { shots: MakeShot[]; active: number; render_dir: string; synced: boolean; soundtrack: { kind: string; file?: string; name?: string };
   counts: { shots: number; storyboard: number; keyframe: number; video: number } };
 export type MakeSynced = { render_dir: string; shots: number; seconds: number; references: number; look: string; soundtrack: { kind: string } };
+
+// ---------------------------------------------------------------- continuity
+export type ContinuityFinding = { id: string; kind: string; shot: string; other: string; severity: "note" | "look" | "likely"; text: string; suggestion: string; status: "open" | "noted" | "dismissed"; apply?: Record<string, string> };
+export type ContinuityView = { findings: ContinuityFinding[]; open: number; shots: number };
