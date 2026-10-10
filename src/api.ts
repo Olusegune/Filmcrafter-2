@@ -290,6 +290,8 @@ export const api = {
                         data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
   isShow: (path: string) => invoke<boolean>("is_show", { path }),
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
+  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest", target: string, data: Record<string, unknown> = {}) =>
+    invoke<T>("film_shots", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set", target: string | null, data: Record<string, unknown> = {}) =>
@@ -464,3 +466,18 @@ export type BibleProp = { id: string; name: string; notes: string; states: Bible
 export type BibleView = { rev: number; updated: number; rules: Record<string, string>; philosophy: Record<string, string>; style: { lane: string; notes: string; traits: string; references: string[] };
   characters: BibleCharacter[]; environments: BibleEnvironment[]; props: BibleProp[]; lanes: string[]; media_kinds: string[]; need: string[];
   counts: { characters: number; environments: number; props: number; characters_with_pictures: number }; added?: { characters: number; environments: number }; id?: string; state?: string };
+
+// ---------------------------------------------------------------- scenes and shots
+export type ShotCard = { id: string; scene: number; index: number; title: string; status: string; edited: boolean; story_purpose: string; camera: ShotContract["camera"]; locks: { storyboard: boolean; keyframe: boolean };
+  duration: number; characters: string[]; has_dialogue: boolean; environment: string };
+export type ShotsView = { title: string; story_version: number | null; shots: ShotCard[]; scenes: { number: number; shots: number; seconds: number }[]; seconds: number;
+  enums: { framing: string[]; angle: string[]; lens: string[]; movement: string[]; focus: string[] }; made?: string[]; id?: string; shot?: ShotContract };
+export type ShotBeat = { character: string; what: string; want: string; need: string; fear: string; hiding: string; subtext: string; start: string; turn: string; end: string };
+export type ShotContract = { id: string; scene: number; index: number; story_version: number | null; title: string; status: string; edited: boolean; story_purpose: string; action: string;
+  dialogue: { speaker: string; line: string; paren: string }[]; characters: { name: string; character_id: string | null; state_id: string | null; wardrobe_id: string | null }[];
+  environment: { id: string | null; name: string; state_id: string | null }; props: { name: string; prop_id: string | null; state: string }[]; blocking: string;
+  performance: { emotional_intention: string; beats: ShotBeat[]; micro_animation: string };
+  camera: { framing: string; angle: string; position: string; lens: string; movement: string; focus: string; why: string }; lighting: { description: string; time: string; why: string };
+  opening_state: string; closing_state: string; continuity: string; reference_assets: string[]; sound: string; generation: { duration: number; aspect: string; notes: string };
+  locks: { storyboard: boolean; keyframe: boolean } };
+export type ShotSuggestion = { camera: ShotContract["camera"]; lighting: { description: string; why: string }; from: string };

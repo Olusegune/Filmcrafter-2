@@ -47,3 +47,20 @@ Open **Cast & World** along the top. The first time, FilmCrafter fills it from y
 ![Rules and style](img/film/bible.png)
 
 Taking an entry out never destroys it: the Bible before each change is kept (the newest 30).
+
+## Shots
+
+Open **Shots** along the top and press **Break down the story**. FilmCrafter drafts the shots for every scene, like a director's first pass: a wide to open the scene, coverage for each exchange of dialogue, an insert for a detail that matters. It is a starting point: change anything.
+
+![The shots of each scene, and one shot's contract](img/film/shots.png)
+
+Each shot is a **Shot Contract** that doesn't depend on any AI model:
+
+- **Story**: what the shot is for, what happens, the dialogue, who is in it (linked to the Cast), where, how long.
+- **Acting**: what the audience should feel, then beats: what each person wants, needs, fears and hides, and how it shows; small living motion that comes from the feeling, never random idling.
+- **Camera**: framing, angle, lens, movement, focus, where the camera is, and why. **Suggest from the feeling** proposes camera and light with a reason, and applies nothing until you press **Use this**.
+- **Light** and **Continuity**: the light and why, blocking, how the shot begins and ends, what must stay the same, sound.
+
+![Camera: choices come with a reason](img/film/shots-camera.png)
+
+Move, duplicate, split, join and take out shots freely (a shot you take out is moved aside, not deleted). Running the breakdown again only drafts scenes that have no shots; shots you have edited are never changed. A shot whose storyboard is locked can't have its framing, people or place changed until you unlock it.

@@ -16,6 +16,7 @@ export const isStoryFile = (path: string) => STORY_EXT.includes(String(path).spl
 export const STAGES: { id: string; label: string; ready: boolean }[] = [
   { id: "story", label: "Story", ready: true },
   { id: "cast", label: "Cast & World", ready: true },
+  { id: "shots", label: "Shots", ready: true },
   { id: "storyboard", label: "Storyboard", ready: false },
   { id: "make", label: "Make film", ready: false },
   { id: "review", label: "Review", ready: false },

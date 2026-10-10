@@ -44,6 +44,8 @@ const SCENES = {
   newfilmwrite: ["newfilm-story.png", "scene=newfilmwrite"],
   film: ["film.png", "scene=film"],
   cast: ["cast.png", "scene=cast"],
+  shots: ["shots.png", "scene=shots"],
+  shotcamera: ["shots-camera.png", "scene=shots&click=Camera"],
   bible: ["bible.png", "scene=cast&click=Rules %26 style"],
   library: ["library.png", "scene=library"],
   supervisor: ["supervisor.png", "scene=supervisor"],

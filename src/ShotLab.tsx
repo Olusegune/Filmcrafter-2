@@ -1,0 +1,168 @@
+import { useCallback, useEffect, useState } from "react";
+import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
+import { ask } from "./ask";
+
+type Tab = "story" | "acting" | "camera" | "light" | "continuity";
+const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "light", label: "Light" }, { id: "continuity", label: "Continuity" }];
+const BEAT: [keyof ShotBeat, string][] = [["character", "Who"], ["what", "What we see"], ["want", "Wants"], ["need", "Needs"], ["fear", "Fears"], ["hiding", "Hiding"], ["subtext", "Subtext"], ["start", "Starts feeling"], ["turn", "Turns to"], ["end", "Ends feeling"]];
+const EMPTY_BEAT: ShotBeat = { character: "", what: "", want: "", need: "", fear: "", hiding: "", subtext: "", start: "", turn: "", end: "" };
+
+/** A nested change for the engine from a path like "camera.framing". */
+const nest = (path: string, value: unknown): Record<string, unknown> => path.split(".").reduceRight<unknown>((v, k) => ({ [k]: v }), value) as Record<string, unknown>;
+const get = (c: ShotContract, path: string): string => String(path.split(".").reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], c) ?? "");
+export const clock = (s: number) => `${s.toFixed(1).replace(/\.0$/, "")}s`;
+
+/**
+ * The shots: the story broken down into scenes and shots, each one a Shot Contract that says what the shot is for, who is in it and how they act, where the camera is, how it is lit and what must stay
+ * the same. The first pass is a draft to change. Nothing is made from a shot until you decide.
+ */
+export function ShotLab({ dir }: { dir: string }) {
+  const [v, setV] = useState<ShotsView | null>(null);
+  const [sel, setSel] = useState<string | null>(null);
+  const [c, setC] = useState<ShotContract | null>(null);
+  const [tab, setTab] = useState<Tab>("story");
+  const [bible, setBible] = useState<BibleView | null>(null);
+  const [sug, setSug] = useState<ShotSuggestion | null>(null);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState("");
+  const [err, setErr] = useState("");
+
+  const load = useCallback(async (keep?: string | null) => {
+    try {
+      const s = await api.shots("get", dir);
+      setV(s);
+      const id = keep ?? s.shots[0]?.id ?? null;
+      setSel(id && s.shots.some((x) => x.id === id) ? id : s.shots[0]?.id ?? null);
+    } catch (e) { setErr(errorText(e)); }
+  }, [dir]);
+  useEffect(() => { void load(); api.bible("get", dir).then(setBible).catch(() => {}); }, [load, dir]);
+  useEffect(() => {
+    setSug(null); setDraft({});
+    if (!sel) { setC(null); return; }
+    api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch((e) => setErr(errorText(e)));
+  }, [sel, dir]);
+
+  const act = async (what: string, fn: () => Promise<ShotsView>, keep?: (r: ShotsView) => string | null) => {
+    setBusy(what); setErr("");
+    try { const r = await fn(); setV(r); const id = keep ? keep(r) : sel; setSel(id && r.shots.some((x) => x.id === id) ? id : r.shots[0]?.id ?? null); }
+    catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
+  };
+  const save = async (patch: Record<string, unknown>) => {
+    if (!sel) return;
+    setErr("");
+    try { const r = await api.shots("set", dir, { id: sel, patch }); if (r.shot) setC(r.shot); setV(r); } catch (e) { setErr(errorText(e)); }
+  };
+  const commit = (path: string) => { if (draft[path] === undefined) return; const value = path === "generation.duration" ? Number(draft[path]) : draft[path]; void save(nest(path, value)).then(() => setDraft(({ [path]: _x, ...rest }) => rest)); };
+  const text = (path: string, label: string, rows = 0, hint = "") => c && (
+    <label className="field" key={path}><span>{label}</span>
+      {rows ? <textarea className="text-input" rows={rows} value={draft[path] ?? get(c, path)} placeholder={hint} onChange={(e) => setDraft({ ...draft, [path]: e.target.value })} onBlur={() => commit(path)} />
+        : <input className="text-input" value={draft[path] ?? get(c, path)} placeholder={hint} onChange={(e) => setDraft({ ...draft, [path]: e.target.value })} onBlur={() => commit(path)} />}</label>);
+  const pick = (path: string, label: string, options: string[]) => c && (
+    <label className="field" key={path}><span>{label}</span>
+      <select className="text-input" value={get(c, path)} onChange={(e) => void save(nest(path, e.target.value))}><option value="">—</option>{options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>);
+
+  const locked = !!c?.locks.storyboard;
+  const suggest = async () => { if (sel) { try { setSug(await api.shots<ShotSuggestion>("suggest", dir, { id: sel })); } catch (e) { setErr(errorText(e)); } } };
+  const apply = async () => { if (sug) { await save({ camera: sug.camera, lighting: { description: sug.lighting.description, why: sug.lighting.why } }); setSug(null); } };
+  const del = async () => { if (sel && await ask(`Take shot ${sel} out?\n\nIt is moved aside, not deleted.`, { ok: "Take out" })) await act("del", () => api.shots("delete", dir, { id: sel })); };
+  const setBeats = (beats: ShotBeat[]) => save({ performance: { beats } });
+
+  if (!v) return <div className="sl"><div className="film-load dim">{err || "Opening the shots…"}</div></div>;
+  const scenes = [...new Set(v.shots.map((s) => s.scene))];
+  const charNames = (bible?.characters ?? []).map((x) => x.name);
+
+  return (
+    <div className="sl">
+      <aside className="sl-list" aria-label="Shots">
+        <div className="sl-listhead"><h2>Shots <span className="dim">{v.shots.length}{v.seconds ? ` · ${clock(v.seconds)}` : ""}</span></h2>
+          <button className="btn ghost sm" onClick={() => act("break", () => api.shots("breakdown", dir), (r) => r.made?.[0] ?? sel)} disabled={!!busy}
+                  title="Draft shots for any scene that has none. Shots you have edited are never changed.">{v.shots.length ? "Break down new scenes" : "Break down the story"}</button></div>
+        {v.shots.length === 0 && <p className="dim sl-empty">No shots yet. <b>Break down the story</b> drafts the shots for every scene, like a director's first pass. You change anything you like.</p>}
+        {scenes.map((n) => (
+          <section key={n} className="sl-scene"><h3>Scene {n} <span className="dim">{clock(v.scenes.find((x) => x.number === n)?.seconds ?? 0)}</span></h3>
+            <ol>{v.shots.filter((s) => s.scene === n).map((s) => (
+              <li key={s.id}><button className={sel === s.id ? "on" : ""} onClick={() => setSel(s.id)}>
+                <span className="id num">{s.id.split("-")[1]}</span>
+                <span className="t">{s.title || s.story_purpose || "Shot"}</span>
+                <span className="fr">{s.camera.framing || "—"}</span>
+                <span className="dim d">{clock(s.duration)}</span>{s.locks.storyboard && <span className="lk" title="Storyboard locked">locked</span>}</button></li>))}</ol>
+            <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
+      </aside>
+
+      {c ? <main className="sl-main">
+        <div className="sl-head"><h2>{c.id} <input className="sl-title" aria-label="Shot title" value={draft.title ?? c.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onBlur={() => commit("title")} placeholder="Name this shot" /></h2>
+          <div className="sl-tools">
+            <button className="link" onClick={() => act("up", () => api.shots("move", dir, { id: c.id, delta: -1 }), () => c.id)}>Move up</button>
+            <button className="link" onClick={() => act("down", () => api.shots("move", dir, { id: c.id, delta: 1 }), () => c.id)}>Move down</button>
+            <button className="link" onClick={() => act("dup", () => api.shots("duplicate", dir, { id: c.id }), (r) => r.id ?? sel)}>Duplicate</button>
+            <button className="link" onClick={() => act("split", () => api.shots("split", dir, { id: c.id }), () => c.id)}>Split</button>
+            <button className="link" onClick={() => act("merge", () => api.shots("merge", dir, { id: c.id }), () => c.id)}>Join with next</button>
+            <button className="link" onClick={del}>Take out</button></div></div>
+        <div className="cw-tabs sl-tabs" role="tablist">{TABS.map((t) => <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}</div>
+        {err && <p className="error-text" role="alert">{err}</p>}
+        {locked && <p className="cw-note">This shot's storyboard is locked, so its framing, people and place are fixed. Unlock it to change them.</p>}
+
+        <div className="sl-fields">
+          {tab === "story" && <>
+            {text("story_purpose", "What this shot is for", 2, "The one thing it must do for the story")}
+            {text("action", "What happens", 3)}
+            <div className="field"><span>Dialogue</span>
+              <ul className="sl-dlg">{c.dialogue.map((d, i) => (
+                <li key={i}><b>{d.speaker}</b>{d.paren && <i> ({d.paren})</i>} {d.line}
+                  <button className="link" onClick={() => save({ dialogue: c.dialogue.filter((_, k) => k !== i) })}>remove</button></li>))}</ul>
+              {c.dialogue.length === 0 && <p className="dim">No dialogue in this shot.</p>}</div>
+            <div className="field"><span>In the shot</span>
+              <div className="chips">{c.characters.map((p) => <span key={p.name} className="chip">{p.name}{p.character_id ? "" : " (not in the Bible)"}
+                <button className="link" onClick={() => save({ characters: c.characters.filter((x) => x.name !== p.name) })} aria-label={`Remove ${p.name}`}>×</button></span>)}
+                {charNames.filter((n) => !c.characters.some((x) => x.name.toLowerCase() === n.toLowerCase())).length > 0 &&
+                  <select className="text-input sl-add" value="" aria-label="Add a character" onChange={(e) => { const n = e.target.value; if (!n) return; const b = bible?.characters.find((x) => x.name === n);
+                    void save({ characters: [...c.characters, { name: n, character_id: b?.id ?? null, state_id: b?.states[0]?.id ?? null, wardrobe_id: null }] }); }}>
+                    <option value="">+ Add someone…</option>{charNames.filter((n) => !c.characters.some((x) => x.name.toLowerCase() === n.toLowerCase())).map((n) => <option key={n} value={n}>{n}</option>)}</select>}</div></div>
+            <div className="sl-two">
+              {text("environment.name", "Where")}
+              {text("generation.duration", "Length (seconds)")}</div>
+          </>}
+
+          {tab === "acting" && <>
+            {text("performance.emotional_intention", "What the audience should feel", 2, "e.g. Held-back dread")}
+            <div className="field"><span>Acting beats <span className="dim">what each person wants, needs, fears and hides, and how it shows</span></span>
+              {c.performance.beats.map((b, i) => (
+                <fieldset key={i} className="sl-beat"><legend>Beat {i + 1}</legend>
+                  <div className="cw-grid2">{BEAT.map(([k, n]) => <label key={k} className="field"><span>{n}</span>
+                    <input className="text-input" defaultValue={b[k]} onBlur={(e) => { if (e.target.value !== b[k]) void setBeats(c.performance.beats.map((x, j) => j === i ? { ...x, [k]: e.target.value } : x)); }} /></label>)}</div>
+                  <button className="link" onClick={() => setBeats(c.performance.beats.filter((_, j) => j !== i))}>Remove this beat</button></fieldset>))}
+              <button className="btn ghost sm" onClick={() => setBeats([...c.performance.beats, { ...EMPTY_BEAT, character: c.characters[0]?.name ?? "" }])}>+ Add a beat</button></div>
+            {text("performance.micro_animation", "Small living motion", 2, "Breath, a blink, a swallow before she speaks. Only what comes from the feeling.")}
+          </>}
+
+          {tab === "camera" && <>
+            <div className="sl-sug"><button className="btn ghost sm" onClick={suggest}>Suggest from the feeling</button>
+              {sug && <div className="sl-sugcard"><p><b>Suggested</b> <span className="dim">from {sug.from}</span></p>
+                <p className="dim">{sug.camera.framing}, {sug.camera.angle}, {sug.camera.movement}, {sug.camera.lens}, {sug.camera.focus} focus.</p><p>{sug.camera.why}</p>
+                <p className="dim">Light: {sug.lighting.description}</p><p>{sug.lighting.why}</p>
+                <div className="film-actions"><button className="btn primary sm" onClick={apply}>Use this</button><button className="btn ghost sm" onClick={() => setSug(null)}>No thanks</button></div></div>}</div>
+            <div className="cw-grid2">{pick("camera.framing", "Framing", v.enums.framing)}{pick("camera.angle", "Angle", v.enums.angle)}{pick("camera.lens", "Lens", v.enums.lens)}{pick("camera.movement", "Movement", v.enums.movement)}{pick("camera.focus", "Focus", v.enums.focus)}</div>
+            {text("camera.position", "Where the camera is", 2, "e.g. Behind Sarah's left shoulder, at the sink")}
+            {text("camera.why", "Why", 2, "What this choice does for the story")}
+          </>}
+
+          {tab === "light" && <>
+            {text("lighting.description", "The light", 3, "Where it comes from, how hard or soft, what colour")}
+            {text("lighting.time", "Time of day")}
+            {text("lighting.why", "Why", 2, "What the audience should feel")}
+            <div className="sl-sug"><button className="btn ghost sm" onClick={suggest}>Suggest from the feeling</button>
+              {sug && <p className="dim">See the suggestion on the Camera tab.</p>}</div>
+          </>}
+
+          {tab === "continuity" && <>
+            {text("blocking", "Blocking", 2, "Where people stand and move; where they look")}
+            {text("opening_state", "How the shot begins", 2, "The state it must start in (what is held, where everyone is)")}
+            {text("closing_state", "How the shot ends", 2)}
+            {text("continuity", "Must stay the same", 2, "Costume, injuries, props, light, screen direction")}
+            {text("sound", "Sound", 2, "Dialogue, ambience, effects, music")}
+          </>}
+        </div>
+      </main> : <main className="sl-main"><p className="dim cw-empty">{v.shots.length ? "Choose a shot." : ""}</p></main>}
+    </div>
+  );
+}

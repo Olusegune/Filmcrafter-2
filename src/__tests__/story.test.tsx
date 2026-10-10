@@ -64,8 +64,8 @@ describe("the way from a spark to a film", () => {
   it("has the ladder and the stages in order, and the story and Cast & World are built so far", () => {
     expect(LADDER[0]).toBe("Logline"); expect(LADDER[LADDER.length - 1]).toBe("Screenplay");
     expect(ladderAt("logline")).toBe(0); expect(ladderAt("Screenplay")).toBe(5); expect(ladderAt("nonsense")).toBe(0);
-    expect(STAGES.map((s) => s.label)).toEqual(["Story", "Cast & World", "Storyboard", "Make film", "Review", "Export"]);
-    expect(STAGES.filter((s) => s.ready).map((s) => s.id)).toEqual(["story", "cast"]);
+    expect(STAGES.map((s) => s.label)).toEqual(["Story", "Cast & World", "Shots", "Storyboard", "Make film", "Review", "Export"]);
+    expect(STAGES.filter((s) => s.ready).map((s) => s.id)).toEqual(["story", "cast", "shots"]);
   });
 });
 

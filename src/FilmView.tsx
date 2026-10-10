@@ -3,6 +3,7 @@ import { api, errorText, type FilmAdvice, type FilmScene, type FilmStatus, type 
 import * as I from "./icons";
 import { ask } from "./ask";
 import { CastWorld } from "./CastWorld";
+import { ShotLab } from "./ShotLab";
 import { LADDER, ladderAt, minutes, openAdvice, sceneLine, STAGES, STORY_KINDS, storyState } from "./storyView";
 
 /**
@@ -16,7 +17,7 @@ export function FilmView({ dir, onHome, onSettings }: { dir: string; onHome: () 
   const [writing, setWriting] = useState(false);
   const [scene, setScene] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
-  const [stage, setStage] = useState<"story" | "cast">("story");
+  const [stage, setStage] = useState<"story" | "cast" | "shots">("story");
   const reader = useRef<HTMLDivElement>(null);
 
   const load = useCallback((version?: number) =>
@@ -55,12 +56,12 @@ export function FilmView({ dir, onHome, onSettings }: { dir: string; onHome: () 
         <h1 className="film-title" title={f.title}>{f.title}</h1>
         <ol className="film-stages" aria-label="The stages of making a film">
           {STAGES.map((s) => <li key={s.id} className={s.id === stage ? "on" : s.ready ? "ready" : ""} title={s.ready ? undefined : "Coming in a later update"} aria-current={s.id === stage ? "step" : undefined}>
-            {s.ready ? <button onClick={() => setStage(s.id as "story" | "cast")}>{s.label}</button> : s.label}</li>)}
+            {s.ready ? <button onClick={() => setStage(s.id as "story" | "cast" | "shots")}>{s.label}</button> : s.label}</li>)}
         </ol>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
 
-      {stage === "cast" ? <CastWorld key={dir} dir={dir} /> : <div className="film-body">
+      {stage === "cast" ? <CastWorld key={dir} dir={dir} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : <div className="film-body">
         <nav className="film-scenes" aria-label="Scenes">
           <h2>Scenes <span className="dim">{f.found.scenes.filter((s) => !s.implied).length || ""}</span></h2>
           {f.found.scenes.length === 0 && <p className="dim">{isScreenplay ? "No scenes found yet." : "Scenes appear once the story is a screenplay or an outline."}</p>}
@@ -145,7 +146,7 @@ export function FilmView({ dir, onHome, onSettings }: { dir: string; onHome: () 
           </section>
 
           <section className="film-next"><h3>Next</h3>
-            <p className="dim">Next: Cast &amp; World (above). The storyboard and making the film arrive in later updates. Lock the story when it is final.</p></section>
+            <p className="dim">Next: Cast &amp; World, then Shots (above). The storyboard and making the film arrive in later updates. Lock the story when it is final.</p></section>
           {err && <p className="error-text" role="alert">{err}</p>}
         </aside>
       </div>}

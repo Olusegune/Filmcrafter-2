@@ -35,6 +35,7 @@ import { Home } from "../Home";
 import { NewFilm } from "../NewFilm";
 import { FilmView } from "../FilmView";
 import { CastWorld } from "../CastWorld";
+import { ShotLab } from "../ShotLab";
 import type { Job, LoadedProject, Shot } from "../api";
 import directions from "./directions.json";
 import styles from "../../analysis/filmcrafter_engine/styles.json";
@@ -124,6 +125,22 @@ const bibleView = { rev: 4, updated: now, rules: { world: "A coastal town where 
   lanes: ["photoreal cinematic", "stylized 3D", "graphic 3D", "2D animation", "painterly animation", "anime-inspired", "graphic comic-inspired animation", "stop motion", "clay", "miniature", "mixed media", "experimental animation"],
   media_kinds: ["master", "front", "reference"], need: [], counts: { characters: 2, environments: 2, props: 1, characters_with_pictures: 2 } };
 
+const shotCard = (id: string, scene: number, index: number, title: string, framing: string, duration: number, chars: string[], over: Record<string, unknown> = {}) => ({ id, scene, index, title, status: "draft", edited: false, story_purpose: title,
+  camera: { framing, angle: "eye level", position: "", lens: "", movement: "locked off", focus: "", why: "" }, locks: { storyboard: false, keyframe: false }, duration, characters: chars, has_dialogue: chars.length > 0, environment: "Kitchen", ...over });
+const shotsView = { title: "Last Train", story_version: 2, seconds: 21.5, scenes: [{ number: 1, shots: 4, seconds: 14.5 }, { number: 2, shots: 2, seconds: 7 }],
+  shots: [shotCard("S01-01", 1, 1, "Show where we are: Kitchen (INT, Morning).", "wide", 4, []), shotCard("S01-02", 1, 2, "Sarah speaks to John.", "over the shoulder", 4.5, ["SARAH", "JOHN"], { locks: { storyboard: true, keyframe: false } }),
+    shotCard("S01-03", 1, 3, "John speaks to Sarah.", "over the shoulder", 3, ["JOHN", "SARAH"]), shotCard("S01-04", 1, 4, "A detail that matters: letter.", "insert", 3, []),
+    shotCard("S02-01", 2, 1, "Show where we are: Platform (EXT, Night).", "establishing", 4, []), shotCard("S02-02", 2, 2, "Sarah speaks.", "close-up", 3, ["SARAH"])],
+  enums: { framing: ["establishing", "wide", "medium", "close-up", "extreme close-up", "over the shoulder", "point of view", "insert"], angle: ["eye level", "low", "high", "dutch", "overhead"], lens: ["wide (24mm)", "normal (35mm)", "portrait (50mm)", "telephoto (85mm+)", "macro"],
+    movement: ["locked off", "push in", "pull out", "pan", "tilt", "dolly", "tracking", "orbit", "crane", "handheld", "rack focus", "subject tracking"], focus: ["deep", "shallow", "rack", "follow"] } };
+const shotContract = { id: "S01-02", scene: 1, index: 2, story_version: 2, title: "Sarah speaks to John", status: "draft", edited: true, story_purpose: "Sarah lets slip that she is waiting for a call, and John does not notice.", action: "",
+  dialogue: [{ speaker: "SARAH", line: "He said he would call.", paren: "quietly" }], characters: [{ name: "SARAH", character_id: "c_sarah", state_id: "s1", wardrobe_id: null }, { name: "JOHN", character_id: "c_john", state_id: "s1", wardrobe_id: null }],
+  environment: { id: "e_kitchen", name: "Kitchen", state_id: "s1" }, props: [], blocking: "Sarah at the sink, John at the table behind her, looking at his phone.",
+  performance: { emotional_intention: "Held-back dread", beats: [{ character: "Sarah", what: "Holds the cup too tightly", want: "He calls", need: "To accept he will not", fear: "Being alone", hiding: "That she has packed", subtext: "Stay", start: "Hopeful", turn: "Doubt", end: "Resolve" }], micro_animation: "A slow breath, a swallow before she speaks." },
+  camera: { framing: "over the shoulder", angle: "eye level", position: "Behind John's left shoulder, on Sarah", lens: "portrait (50mm)", movement: "locked off", focus: "shallow", why: "Her face is where the story is." }, lighting: { description: "Low morning light through the window over the sink", time: "Morning", why: "Soft light makes the dread quieter." },
+  opening_state: "Sarah holds the cup with both hands.", closing_state: "She puts the cup down.", continuity: "Ring on her left hand. Letter by the sink.", reference_assets: [], sound: "Kettle ticking as it cools.", generation: { duration: 4.5, aspect: "", notes: "" }, locks: { storyboard: true, keyframe: false } };
+const shotSuggestion = { camera: { framing: "over the shoulder", angle: "low", position: "", lens: "portrait (50mm)", movement: "handheld", focus: "shallow", why: "Tension is felt up close: a tight frame, a slightly low angle and a small unsteadiness keep the audience uneasy." }, lighting: { description: "Hard, low-key light from one side; deep shadow on the rest of the face.", why: "Contrast and shadow say something is being held back." }, from: "the feeling of the shot" };
+
 // ---------------------------------------------------------------- the made-up backend
 mockWindows("main");
 mockIPC((cmd, a) => {
@@ -161,6 +178,7 @@ mockIPC((cmd, a) => {
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
     case "film_bible": return bibleView;
+    case "film_shots": return x.action === "shot" ? { shot: shotContract } : x.action === "suggest" ? shotSuggestion : shotsView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
       if (x.action === "preview") return { kind: "screenplay", words: 61, scenes: 3, characters: 2, locations: 3, seconds: 144, has_headings: true };
@@ -217,6 +235,7 @@ const scenes: Record<string, () => ReactNode> = {
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
+  shots: () => <div style={{ width: 1240, height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: 1200, height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
