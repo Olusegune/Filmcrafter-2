@@ -86,6 +86,13 @@ In **Shots**, press **Continuity check**. FilmCrafter reads the shots in order a
 
 Every finding says why. **It's meant** sets one aside; **I'll fix it** keeps track; **Use that** applies a plain suggestion (such as how a shot begins). It never blocks anything and never changes the film on its own.
 
+## Cards or timeline: the same film two ways
+
+Along the top of a film, **Cards | Timeline** switches how you see the same shots:
+
+- **Cards** is the story-first workspace: story, cast, shots, storyboard, keyframes, video. A **film strip** runs across the top of Make film: drag a block's right edge to make a shot shorter or longer, drag a block to move it. The cards, the shot list and the studio all follow.
+- **Timeline** is the full editing studio (below). Pick whichever fits the moment; nothing is lost by switching.
+
 ## Studio tools: the full editing studio on your film
 
 The film workspace is the story-first front door. For everything PULSEFRAME's studio does well, press **Studio tools** at the top of the film. It opens the full studio on your film:

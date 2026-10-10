@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       # the film workflow needs only these (checked in a clean environment on Windows): story, Bible, shots, making, continuity, hand-off, and a real FFmpeg export
-      - run: pip install pytest requests pillow numpy soundfile imageio-ffmpeg pyyaml keyring pypdf fal-client openai
+      - run: pip install pytest requests pillow numpy soundfile imageio-ffmpeg pyyaml keyring pypdf fal-client openai opentimelineio otio-cmx3600-adapter
       - run: python -m pytest analysis/tests/test_story.py analysis/tests/test_bible.py analysis/tests/test_shots.py analysis/tests/test_make.py analysis/tests/test_golden_film.py analysis/tests/test_filmcheck.py analysis/tests/test_interchange.py analysis/tests/test_directcmd.py -q
 
   macos-compile:

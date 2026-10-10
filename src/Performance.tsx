@@ -75,11 +75,11 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
 }
 
 /** In the shot panel: this shot's acting profile. */
-export function ShotPerformance({ dir, shotId, onChanged }: { dir: string; shotId: string; onChanged: () => void }) {
+export function ShotPerformance({ dir, shotId, onChanged, film }: { dir: string; shotId: string; onChanged: () => void; film?: boolean }) {
   const { perf, setPerf } = usePerformance(dir);
   if (!perf) return null;
   return <>
-    <ShotPerformanceView perf={perf} shotId={shotId}
+    <ShotPerformanceView perf={perf} shotId={shotId} noDance={film}
                          onProfile={async (v) => { await setPerf({ shots: { [shotId]: v } }); onChanged(); }}
                          onDance={async (v) => { await setPerf({ dance: { [shotId]: v } }); onChanged(); }}
                          onUseNatural={async () => { await setPerf({ default: "natural" }); onChanged(); }} />
@@ -88,7 +88,7 @@ export function ShotPerformance({ dir, shotId, onChanged }: { dir: string; shotI
 }
 
 /** What is drawn: the acting profile for this shot, and whether it gets the project's dance direction. */
-export function ShotPerformanceView({ perf, shotId, onProfile, onDance, onUseNatural }: { perf: PerfData; shotId: string; onProfile: (v: string) => void; onDance: (v: string) => void; onUseNatural?: () => void }) {
+export function ShotPerformanceView({ perf, shotId, onProfile, onDance, onUseNatural, noDance }: { perf: PerfData; shotId: string; noDance?: boolean; onProfile: (v: string) => void; onDance: (v: string) => void; onUseNatural?: () => void }) {
   return (
     <section className="panel">
       <PanelHead icon={<I.Mask size={18} />} title="Acting" tag="Free" tone="free" hint="How the performers play this shot." />
@@ -98,12 +98,12 @@ export function ShotPerformanceView({ perf, shotId, onProfile, onDance, onUseNat
         <option value="inherit">Inherit (scene, character or video)</option>
         {perf.profiles.map((p) => <option key={p.id} value={p.id}>{p.label}: {p.blurb.split(".")[0]}</option>)}
       </select>
-      <label className="dim perf-dance-label" htmlFor={`dance-${shotId}`}>Dance direction in this shot</label>
-      <select id={`dance-${shotId}`} className="perf-shot" value={perf.dance?.[shotId] ?? "auto"} onChange={(e) => onDance(e.target.value)}>
+      {!noDance && <label className="dim perf-dance-label" htmlFor={`dance-${shotId}`}>Dance direction in this shot</label>}
+      {!noDance && <select id={`dance-${shotId}`} className="perf-shot" value={perf.dance?.[shotId] ?? "auto"} onChange={(e) => onDance(e.target.value)}>
         <option value="auto">Automatic: only if this shot's action is dancing</option>
         <option value="on">Always: use the dance direction</option>
         <option value="off">Never: leave the dance direction out</option>
-      </select>
+      </select>}
     </section>
   );
 }

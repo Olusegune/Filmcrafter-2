@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-10-10)
+
+- **Cards | Timeline** on the same film: the story-first cards, or the full studio timeline, one click apart.
+- **Film strip** in Make film: shots as blocks along time; drag an edge to change a shot's length, drag a block to reorder.
+- The studio on a film no longer shows "Who sings" or the dance direction; lip-sync reads "speaking shots follow the voice".
+- Hand-off checked with the real OpenTimelineIO library (OTIO and CMX 3600 EDL parse, same cut).
+
 ## 0.3.0 (2026-10-10)
 
 - **Studio tools.** The full PULSEFRAME studio opens on a film from the film workspace: the timeline (scenes as sections, cuts as the grid, dialogue as a lane of words, the soundtrack as the waveform, shots as cards, layers on their own lanes), Supervisor, Review, Acting, Continuity, Lighting, Colour match, Clean up, Layers, Library and Export. Home returns to the film.

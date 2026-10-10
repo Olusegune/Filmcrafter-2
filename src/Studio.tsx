@@ -503,6 +503,7 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
           {plan && <button className="btn ghost cmd-btn" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
           {narrowBar ? <div className="menu-wrap"><button className="btn ghost" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-haspopup="menu">More ▾</button>
             {moreOpen && <div className="menu glass tb-more" role="menu" onClick={() => setMoreOpen(false)} onMouseLeave={() => setMoreOpen(false)}>
+          {isFilm && <div className="mode-toggle film-view" role="group" aria-label="How to see the film" title="The same film two ways."><button aria-pressed="false" onClick={onHome}>Cards</button><button className="on" aria-pressed="true">Timeline</button></div>}
           {!isFilm && <button className="btn" role="menuitem" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
@@ -606,7 +607,7 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
                        shot: <>
                          {board && <ShotRefs dir={project.dir} shot={boardShot.get(s.id)} library={board.library} thumbs={thumbs} want={want} onChanged={reloadBoard} />}
                          <ShotCamera dir={project.dir} shotId={s.id} sceneShotIds={shots.filter((x) => x.scene === s.scene).map((x) => x.id)} onChanged={mediaChanged} />
-                         <ShotPerformance dir={project.dir} shotId={s.id} onChanged={reloadBoard} />
+                         <ShotPerformance dir={project.dir} shotId={s.id} onChanged={reloadBoard} film={!!(project.project as { film?: boolean }).film} />
                          <ShotContinuity dir={project.dir} shotId={s.id} onChanged={mediaChanged} />
                        </>,
                        keyframe: (go) => <KeyframePanel dir={project.dir} shot={s} plan={planName} aspect={aspectCss(frame.aspect_ratio)} frame={frame.aspect_ratio} quality={frame.quality}
@@ -1224,15 +1225,15 @@ function ProjectSettingsRow({ project }: { project: LoadedProject }) {
         </select>
         <span className="k">Lip-sync</span>
         <select className="text-input" value={s.lip_sync} onChange={(e) => change("lip_sync", e.target.value)}>
-          <option value="auto">Auto · singing shots follow the vocal</option>
+          <option value="auto">{(project.project as { film?: boolean }).film ? "Auto · speaking shots follow the voice" : "Auto · singing shots follow the vocal"}</option>
           <option value="closeups">Close-ups get a dedicated lip-sync pass</option>
           <option value="off">Off</option>
         </select>
-        <span className="k">Who sings</span>
+        {!(project.project as { film?: boolean }).film && <><span className="k">Who sings</span>
         <select className="text-input" value={s.vocalist} onChange={(e) => change("vocalist", e.target.value)} aria-label="Who sings the vocal">
           <option value="onscreen">The people on screen (the lead, in medium shots and closer)</option>
           <option value="offscreen">A narrator or voice-over: nobody on screen sings</option>
-        </select>
+        </select></>}
       </div>
       <p className="dim" style={{ marginTop: 6 }}>Applies to new takes. Each model uses its closest supported option.</p>
       {err && <div className="error-text">{err}</div>}

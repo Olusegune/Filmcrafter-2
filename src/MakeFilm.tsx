@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { api, errorText, type ExportResult, type InterchangeResult, type MakeShot, type MakeStatus } from "./api";
 import { ask } from "./ask";
+import { FilmStrip } from "./FilmStrip";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
 const TABS: { id: MakeTab; label: string; blurb: string }[] = [
@@ -28,6 +29,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
   const [handoff, setHandoff] = useState<InterchangeResult | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);                 // the shot chosen on the strip: its card is brought into view
 
   const load = useCallback(() => api.make("status", dir).then(setSt).catch((e) => setErr(errorText(e))), [dir]);
   useEffect(() => {
@@ -109,6 +111,8 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
         <div style={{ flex: 1 }} />
         {st.active > 0 && <span className="mk-active" role="status">Making {st.active}…</span>}
       </div>
+      <FilmStrip dir={dir} rd={rd} shots={st.shots} selected={picked} onChanged={() => void load()}
+                 onSelect={(id) => { setPicked(id); document.getElementById(`mk-${id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} />
       <p className="dim mk-blurb">{t.blurb}</p>
       {note && <p className="cw-note" role="status">{note} <button className="link" onClick={() => setNote("")}>OK</button></p>}
       {err && <p className="error-text" role="alert">{err}</p>}
@@ -160,7 +164,7 @@ function Card({ dir, rd, stage, s, busy, onMake, onBring, onChoose, onLock }: { 
   const preview = stage === "video" ? chosenVideo?.video ?? null : s[stage].chosen;
   const options = stage === "video" ? [] : s[stage].options.filter((o) => o.ok);
   return (
-    <article className={`mk-card ${locked ? "locked" : ""}`}>
+    <article id={`mk-${s.id}`} className={`mk-card ${locked ? "locked" : ""}`}>
       <div className="mk-pic">
         {preview ? (stage === "video" ? <video src={url(preview)} controls preload="metadata" /> : <img src={url(preview)} alt={`${s.id}`} />) : <span className="dim">{open_ ? "Making…" : "Nothing yet"}</span>}
         <span className="mk-id num">{s.id}</span>{locked && <span className="mk-lock">locked</span>}

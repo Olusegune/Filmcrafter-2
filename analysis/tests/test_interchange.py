@@ -120,3 +120,17 @@ def test_the_command_line(film, capsys):
     assert X.main(["write", film]) == 0
     assert json.loads(capsys.readouterr().out.strip().splitlines()[-1])["event"] == "result"
     assert X.main(["write", film + "-nope"]) == 1
+
+
+def test_the_real_opentimelineio_library_reads_the_otio_and_the_edl(film):
+    otio = pytest.importorskip("opentimelineio")
+    out = X.write(film)["dir"]
+    tl = otio.adapters.read_from_file(os.path.join(out, "Last_Train.otio"))
+    placed = len(os.listdir(os.path.join(out, "media")))
+    assert tl.name == "Last Train" and len(tl.video_tracks()[0].find_clips()) == placed
+    try:
+        edl = otio.adapters.read_from_file(os.path.join(out, "Last_Train.edl"), adapter_name="cmx_3600", rate=24)
+    except otio.exceptions.NoKnownAdapterError:
+        pytest.skip("the CMX 3600 adapter is not installed")
+    assert len(edl.video_tracks()[0].find_clips()) == placed
+    assert edl.duration().to_frames() == sum(c.duration().to_frames() for c in tl.video_tracks()[0].find_clips())     # the same cut (the OTIO also keeps a gap where a shot has no take yet)

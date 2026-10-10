@@ -64,8 +64,10 @@ export function FilmView({ dir, onHome, onSettings, onStudio }: { dir: string; o
           {STAGES.filter((s) => studio || s.id !== "shots").map((s) => <li key={s.id} className={s.id === activeId ? "on" : s.ready ? "ready" : ""} title={s.ready ? undefined : "Coming in a later update"} aria-current={s.id === activeId ? "step" : undefined}>
             {s.ready ? <button onClick={() => { setStage(stageOf(s.id) as "story" | "cast" | "shots" | "make"); if (s.id in MAKE_STAGE) setMakeTab(MAKE_STAGE[s.id]); }}>{s.label}</button> : s.label}</li>)}
         </ol>
-        {onStudio && <button className="btn sm film-studio" disabled={f.kind !== "screenplay" || !!busy} title={f.kind !== "screenplay" ? "Write the screenplay first" : "The full editing studio on this film: timeline, layers, lighting, colour match, clean up, supervisor and more"}
-          onClick={async () => { try { await api.shots("get", dir).then(async (v) => { if (!v.shots.length) await api.shots("breakdown", dir); }); const r = await api.make<{ render_dir: string }>("sync", dir); onStudio(r.render_dir); } catch (e) { setErr(errorText(e)); } }}>Studio tools</button>}
+        {onStudio && <div className="mode-toggle film-view" role="group" aria-label="How to see the film" title="The same film two ways. Cards: the story-first workspace. Timeline: the full editing studio with layers, lighting, colour match, supervisor and more.">
+          <button className="on" aria-pressed="true">Cards</button>
+          <button aria-pressed="false" disabled={f.kind !== "screenplay" || !!busy}
+            onClick={async () => { try { await api.shots("get", dir).then(async (v) => { if (!v.shots.length) await api.shots("breakdown", dir); }); const r = await api.make<{ render_dir: string }>("sync", dir); onStudio(r.render_dir); } catch (e) { setErr(errorText(e)); } }}>Timeline</button></div>}
         <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
           {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
             onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Studio"}</button>)}</div>

@@ -216,4 +216,18 @@
 .dc-result p { margin: 0 0 6px; }
 .sl-ck { margin-right: 6px; }
 
-.film-studio { margin-left: auto; }
+.film-view { margin-left: auto; }
+
+/* ---- the film strip (the timeline view of the same shots) ---- */
+.fs { position: relative; margin: 0 0 var(--sp-3, 12px); padding-bottom: 6px; overflow-x: auto; }
+.fs-ruler { position: relative; height: 16px; font-size: 10.5px; color: var(--text-quiet, #8b97a7); }
+.fs-ruler span { position: absolute; top: 0; }
+.fs-ruler .fs-total { right: 0; left: auto; }
+.fs-track { position: relative; height: 64px; margin-top: 2px; }
+.fs-block { position: absolute; top: 0; bottom: 0; border-radius: 8px; background: rgba(244, 247, 250, 0.07) center / cover; border: 2px solid transparent; cursor: grab; overflow: hidden; touch-action: none; user-select: none; }
+.fs-block.on { border-color: var(--signal, #64b7ff); }
+.fs-block.moving { opacity: 0.6; cursor: grabbing; }
+.fs-id { position: absolute; left: 4px; top: 3px; padding: 0 6px; border-radius: 5px; background: rgba(10, 12, 16, 0.78); font-size: 10.5px; }
+.fs-len { position: absolute; left: 4px; bottom: 3px; padding: 0 6px; border-radius: 5px; background: rgba(10, 12, 16, 0.78); font-size: 10.5px; color: var(--ignite, #e8b45c); }
+.fs-edge { position: absolute; right: 0; top: 0; bottom: 0; width: 9px; cursor: ew-resize; background: linear-gradient(90deg, transparent, rgba(232, 180, 92, 0.65)); }
+.fs-drop { position: absolute; top: -2px; bottom: -2px; width: 3px; border-radius: 2px; background: var(--signal, #64b7ff); }

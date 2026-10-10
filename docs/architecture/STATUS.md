@@ -30,7 +30,7 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, updated
 | Review versions, choose, lock | Done and tested. |
 | Assemble, basic sound, export | Done and tested with a real FFmpeg export. Sound is one soundtrack file you bring (or silence); per-shot sound and lip sync from PULSEFRAME's engine are not exposed in the film screens. |
 | Save, close, reopen, continue | Done at the engine level and tested (a film's whole state is files). |
-| Hand-off | EDL, OpenTimelineIO, Final Cut Pro XML, manifest, subtitles, copied media. Tested for structure. **Not opened in Premiere, Resolve or Final Cut.** Image sequences and stems are not written. |
+| Hand-off | EDL, OpenTimelineIO, Final Cut Pro XML, manifest, subtitles, copied media. **The real OpenTimelineIO library reads the `.otio` and the real CMX 3600 adapter reads the `.edl`, with matching cuts (tested).** The FCPXML is checked for structure only. **Not opened in Premiere, Resolve or Final Cut.** Image sequences and stems are not written. |
 
 ## Phases 2 to 5
 
@@ -45,6 +45,13 @@ Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, updated
 | Simple and Studio modes | Done (same film; Studio shows the Shots workspace). |
 | Interchange for After Effects, AAF, stems | Not done. |
 | FrameCore shared package | Not started. |
+
+## Added after the first status (0.3.0 and 0.4.0)
+
+- **Studio tools / Timeline view.** The full PULSEFRAME studio opens on a film (timeline with scenes, cuts, dialogue lane and soundtrack waveform; Supervisor, Review, Acting, Continuity, Lighting, Colour match, Clean up, Layers, Library, Export). Verified by loading a real film into the studio in the screenshot harness; not clicked through in the installed app.
+- **Cards | Timeline** toggle on the same film (the two views of the same shots; the picks are shared through the render project).
+- **Film strip** in the film workspace: drag a block's edge to change a shot's length, drag a block to reorder; changes are written to the shots (arithmetic tested; the drag was not tried by hand).
+- Song-first parts hidden on a film (Autopilot, Direct My Video, song guide and tour, tempo, Who sings, dance direction).
 
 ## Known gaps worth fixing next
 
