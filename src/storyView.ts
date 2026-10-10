@@ -15,7 +15,7 @@ export const isStoryFile = (path: string) => STORY_EXT.includes(String(path).spl
 /** The film's stages in the order a film is made. Only the first is built so far; the others are shown so the road ahead is visible. */
 export const STAGES: { id: string; label: string; ready: boolean }[] = [
   { id: "story", label: "Story", ready: true },
-  { id: "cast", label: "Cast & World", ready: false },
+  { id: "cast", label: "Cast & World", ready: true },
   { id: "storyboard", label: "Storyboard", ready: false },
   { id: "make", label: "Make film", ready: false },
   { id: "review", label: "Review", ready: false },

@@ -290,6 +290,8 @@ export const api = {
                         data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
   isShow: (path: string) => invoke<boolean>("is_show", { path }),
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
+  bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
+    invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
@@ -451,3 +453,14 @@ export type FilmStatus = { dir?: string; title: string; aspect_ratio: string; mo
   story: { kind: StoryKind; current: number; locked: number | null; lock_history: { version: number; at: number }[]; as_is: number | null; original: string };
   version: number; text: string; kind: StoryKind; note: string; locked_here: boolean; found: FilmFound; advice: FilmAdvice[]; versions: FilmVersion[] };
 export type StoryPreview = { kind: StoryKind; words: number; scenes: number; characters: number; locations: number; seconds: number; has_headings: boolean };
+
+// ---------------------------------------------------------------- the Production Bible, Cast and World
+export type BibleMedia = { path: string; kind: string; label: string };
+export type BibleState = { id: string; label: string; notes: string; wardrobe?: string; age?: string };
+export type BibleCharacter = { id: string; name: string; role: string; age: string; physical: string; relationships: string; arc: string; voice: string; notes: string;
+  wardrobe: { id: string; name: string; notes: string }[]; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
+export type BibleEnvironment = { id: string; name: string; description: string; notes: string; spatial: Record<string, string>; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
+export type BibleProp = { id: string; name: string; notes: string; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
+export type BibleView = { rev: number; updated: number; rules: Record<string, string>; philosophy: Record<string, string>; style: { lane: string; notes: string; traits: string; references: string[] };
+  characters: BibleCharacter[]; environments: BibleEnvironment[]; props: BibleProp[]; lanes: string[]; media_kinds: string[]; need: string[];
+  counts: { characters: number; environments: number; props: number; characters_with_pictures: number }; added?: { characters: number; environments: number }; id?: string; state?: string };

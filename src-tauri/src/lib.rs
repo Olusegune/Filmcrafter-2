@@ -1384,6 +1384,18 @@ async fn film(app: AppHandle, action: String, target: Option<String>, data: Valu
     Ok(res)
 }
 
+/// The Production Bible, Cast and World of a film (filmcrafter_engine.bible). Free and local: nothing is sent anywhere. Pictures are copied into the film from files the person chose.
+#[tauri::command]
+async fn film_bible(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 10] = ["get", "seed", "update_rules", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let dir = film_dir(&target)?;
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.bible".into(), action, dir.to_string_lossy().into(), "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "bible", &args, &[])).await.map_err(err)?
+}
+
 #[tauri::command]
 fn is_film(path: String) -> bool {
     let p = PathBuf::from(&path);
@@ -2220,7 +2232,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, read_text, list_projects, create_project, load_project,
             analyze_project, direct_project, ensure_renderer, render_catalog, model_manifest, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, show, film, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
+            save_project, save_project_as, backups, frames, show, film, film_bible, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
             creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             onboarding, replace_song, write_project_text, attach_script, set_onboarding, adopt_script, choreography, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, producer, refgen, overlays, captions, director_audit, fonts, editor_export, camera, producer_plan, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])

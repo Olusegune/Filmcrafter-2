@@ -34,3 +34,16 @@ If your story is not a screenplay yet (an idea, a synopsis, a treatment or an ou
 ## What is built so far
 
 Story, scenes, characters and places read from a screenplay, versions, Story Lock. Cast &amp; World, the storyboard, making the film, review and export come in later updates; they are shown along the top so the road ahead is visible.
+
+## Cast & World: the Production Bible
+
+Open **Cast & World** along the top. The first time, FilmCrafter fills it from your story (the speaking characters and the places); **Add from the story** brings in anything new later and never changes what you wrote.
+
+![Characters: pictures, traits, wardrobe, and related states](img/film/cast.png)
+
+- **Characters, Places, Props**: each is one entry with **states** (Sarah at 8, at 28, at 70; the kitchen by day and by night). Bring your own artwork (the first picture is the master); it is copied into the film and the original is left alone. Places have a layout (doors, windows, landmarks, where actors can stand and the camera can go) so a set doesn't change between shots.
+- **Rules & style**: the visual style (photoreal cinematic, stylized 3D, 2D, painterly, anime-inspired, stop motion, clay and more), the rules of the world, and how the film is made (cinematography, lighting, acting, colour, continuity).
+
+![Rules and style](img/film/bible.png)
+
+Taking an entry out never destroys it: the Bible before each change is kept (the newest 30).

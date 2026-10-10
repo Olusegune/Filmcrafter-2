@@ -34,6 +34,7 @@ import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
 import { NewFilm } from "../NewFilm";
 import { FilmView } from "../FilmView";
+import { CastWorld } from "../CastWorld";
 import type { Job, LoadedProject, Shot } from "../api";
 import directions from "./directions.json";
 import styles from "../../analysis/filmcrafter_engine/styles.json";
@@ -109,6 +110,20 @@ const filmStatus = { title: "Last Train", aspect_ratio: "16:9", mode: "simple", 
     { id: "length", topic: "production", text: "About 2.4 minutes of script. The first pass works best on one scene or a short of 1 to 3 minutes; you can start with one scene.", scene: null, status: "dismissed" }],
   versions: [{ version: 1, kind: "screenplay", note: "As supplied", parent: null, origin: "imported", created: now - 3600, fingerprint: "a1", locked: false, words: 58 }, { version: 2, kind: "screenplay", note: "Sharper ending", parent: 1, origin: "written", created: now, fingerprint: "b2", locked: false, words: 61 }] };
 
+const spatialEmpty = { entrances: "", exits: "", doors: "One door, left of the stove", windows: "Large window over the sink, morning light", landmarks: "A radio on the shelf", furniture: "Round table, four chairs", blocking: "", camera_zones: "", lighting: "", day_night: "" };
+const bibleView = { rev: 4, updated: now, rules: { world: "A coastal town where it rains most evenings.", tone: "Quiet, restrained, a little sad.", rules: "Sarah never takes off her ring.", avoid: "Slapstick, bright neon." },
+  philosophy: { visual: "Muted, lived-in.", cinematography: "Mostly locked-off, slow pushes.", lighting: "Motivated, low key, practical lamps.", acting: "Restraint: the feeling shows in the eyes.", colour: "Teal shadows, amber practicals.", continuity: "Sarah's coat is torn after scene 2." },
+  style: { lane: "painterly animation", notes: "", traits: "Oil paint texture, soft edges, visible brush marks.", references: ["Quiet domestic painting", "Overcast seaside light"] },
+  characters: [
+    { id: "c_sarah", name: "Sarah", role: "Lead", age: "28", physical: "Tall, grey eyes, dark hair tied back", relationships: "John's partner", arc: "From waiting to leaving", voice: "Low, careful", notes: "", wardrobe: [{ id: "w1", name: "Red coat", notes: "Wool, torn pocket" }],
+      states: [{ id: "s1", label: "Default", notes: "" }, { id: "s2", label: "Age 8", notes: "Hair in plaits", age: "8", wardrobe: "" }], media: [{ path: "s1.png", kind: "master", label: "Master" }, { path: "s2.png", kind: "front", label: "Front view" }], scenes: [1, 2], source: "story" },
+    { id: "c_john", name: "John", role: "", age: "", physical: "", relationships: "", arc: "", voice: "", notes: "", wardrobe: [], states: [{ id: "s1", label: "Default", notes: "" }], media: [{ path: "s3.png", kind: "master", label: "Master" }], scenes: [1, 2], source: "story" }],
+  environments: [{ id: "e_kitchen", name: "Kitchen", description: "A narrow family kitchen", notes: "", spatial: spatialEmpty, states: [{ id: "s1", label: "Morning", notes: "" }, { id: "s2", label: "Night", notes: "" }], media: [{ path: "s4.png", kind: "master", label: "Master" }], scenes: [1], source: "story" },
+    { id: "e_platform", name: "Platform", description: "", notes: "", spatial: { ...spatialEmpty, doors: "", windows: "", landmarks: "", furniture: "" }, states: [{ id: "s1", label: "Night", notes: "" }], media: [], scenes: [2], source: "story" }],
+  props: [{ id: "p_the-letter", name: "The letter", notes: "Cream envelope", states: [{ id: "s1", label: "Default", notes: "" }], media: [], scenes: [], source: "manual" }],
+  lanes: ["photoreal cinematic", "stylized 3D", "graphic 3D", "2D animation", "painterly animation", "anime-inspired", "graphic comic-inspired animation", "stop motion", "clay", "miniature", "mixed media", "experimental animation"],
+  media_kinds: ["master", "front", "reference"], need: [], counts: { characters: 2, environments: 2, props: 1, characters_with_pictures: 2 } };
+
 // ---------------------------------------------------------------- the made-up backend
 mockWindows("main");
 mockIPC((cmd, a) => {
@@ -145,6 +160,7 @@ mockIPC((cmd, a) => {
       { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", modified: now - 86400 * 2 },
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
+    case "film_bible": return bibleView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
       if (x.action === "preview") return { kind: "screenplay", words: 61, scenes: 3, characters: 2, locations: 3, seconds: 144, has_headings: true };
@@ -201,6 +217,7 @@ const scenes: Record<string, () => ReactNode> = {
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
+  cast: () => <div style={{ width: 1200, height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,
