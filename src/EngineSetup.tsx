@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { api, errorText } from "./api";
 import { Mark } from "./icons";
 
-/** First launch of the installed app: set up the private audio/AI engine once, with honest progress. */
+/** First launch of the installed app: set up the private film engine once, with honest progress. */
 export function EngineSetup({ gpu, onReady }: { gpu: boolean; onReady: () => void }) {
   const [step, setStep] = useState<{ step: number; total: number; label: string } | null>(null);
   const [error, setError] = useState("");
@@ -37,9 +37,8 @@ export function EngineSetup({ gpu, onReady }: { gpu: boolean; onReady: () => voi
       <div className="wordmark"><Mark size={28} /> FilmCrafter</div>
       <div className="reveal-title">Getting FilmCrafter ready</div>
       <p className="sub" style={{ maxWidth: 560, textAlign: "center", color: "var(--mist)" }}>
-        One-time setup of the engine that listens to songs, times lyrics and talks to the AI renderers.
-        {gpu ? " Your NVIDIA graphics card will be used to make it fast." : ""} This needs an internet connection and
-        can take several minutes. You won't need to do it again.
+        One-time setup of the engine that reads your story, builds the shots and talks to the AI renderers.
+        {gpu ? "" : ""} This needs an internet connection and takes a few minutes. You won't need to do it again.
       </p>
       <div style={{ width: "min(520px, 100%)" }}>
         <div className="dim" style={{ marginBottom: 6 }}>{step ? `Step ${step.step} of ${step.total}: ${step.label}` : "Starting…"}</div>

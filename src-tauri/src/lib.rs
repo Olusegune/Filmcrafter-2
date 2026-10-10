@@ -315,7 +315,7 @@ async fn setup_engine(app: AppHandle) -> Result<Value, String> {
     let env = installed_env(&app).ok_or("No app-data folder.")?;
     let reqs = engine_dir().join("requirements-engine.txt");
     tauri::async_runtime::spawn_blocking(move || {
-        let total = 5;
+        let total = 4;
         fs::create_dir_all(&env).map_err(err)?;
         let py = env_python(&env);
         let s = |p: &Path| p.to_string_lossy().to_string();
@@ -347,23 +347,12 @@ async fn setup_engine(app: AppHandle) -> Result<Value, String> {
             run_quiet(&s(&py), &[&s(&gp), "--no-warn-script-location"], Some(&env))?;
             let _ = fs::remove_file(&gp);
         }
-        let gpu = cfg!(windows) && has_nvidia_gpu();
-        setup_step(&app, 3, total, if gpu { "Installing the audio engine for your NVIDIA GPU (about 3 GB)" } else { "Installing the audio engine (about 1 GB)" });
-        let mut torch = vec!["-m", "pip", "install", "--no-warn-script-location", "torch==2.6.0", "torchaudio==2.6.0"];
-        if gpu {
-            torch.extend(["--index-url", "https://download.pytorch.org/whl/cu124"]);
-        } else if cfg!(windows) {
-            torch.extend(["--index-url", "https://download.pytorch.org/whl/cpu"]);
-        } // macOS: the default PyPI wheels already include Apple GPU (MPS) support
-        run_quiet(&s(&py), &torch, Some(&env))?;
-        setup_step(&app, 4, total, "Installing song analysis, lyrics and rendering components");
+        setup_step(&app, 3, total, "Installing the film engine (about 150 MB)");
         run_quiet(&s(&py), &["-m", "pip", "install", "--no-warn-script-location", "-r", &s(&reqs)], Some(&env))?;
-        if gpu {
-            run_quiet(&s(&py), &["-m", "pip", "install", "--no-warn-script-location", "nvidia-cublas-cu12", "nvidia-cudnn-cu12==9.*"], Some(&env))?;
-        }
+        let gpu = false;
         link_engine_code(&env, &engine_dir());
-        setup_step(&app, 5, total, "Checking everything works");
-        run_quiet(&s(&py), &["-c", "import librosa, demucs, faster_whisper, openai, fal_client, pypdf, imageio_ffmpeg, PIL, yaml, keyring, filmcrafter_engine.render"], Some(&env))?;
+        setup_step(&app, 4, total, "Checking everything works");
+        run_quiet(&s(&py), &["-c", "import openai, fal_client, pypdf, imageio_ffmpeg, PIL, yaml, keyring, numpy, soundfile, requests, filmcrafter_engine.render, filmcrafter_engine.story, filmcrafter_engine.make"], Some(&env))?;
         fs::write(env.join(".ready"), "ok").map_err(err)?;
         Ok(json!({"ready": true, "gpu": gpu}))
     }).await.map_err(err)?
