@@ -46,6 +46,7 @@ const SCENES = {
   cast: ["cast.png", "scene=cast"],
   shots: ["shots.png", "scene=shots"],
   make: ["make.png", "scene=make"],
+  studio: ["studio.png", "scene=studio"],
   shotcamera: ["shots-camera.png", "scene=shots&click=Camera"],
   bible: ["bible.png", "scene=cast&click=Rules %26 style"],
   library: ["library.png", "scene=library"],

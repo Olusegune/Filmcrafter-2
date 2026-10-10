@@ -215,3 +215,5 @@
 .dc-result ul { margin: 0 0 var(--sp-3, 12px); padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .dc-result p { margin: 0 0 6px; }
 .sl-ck { margin-right: 6px; }
+
+.film-studio { margin-left: auto; }

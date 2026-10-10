@@ -195,3 +195,16 @@ def test_the_command_line(film, capsys):
     assert make.main(["status", film]) == 0
     capsys.readouterr()
     assert make.main(["status", film + "-nope"]) == 1
+
+
+def test_the_studio_timeline_reads_scenes_cuts_dialogue_and_the_soundtrack(film):
+    make.sync(film)
+    sm = json.load(open(os.path.join(make.render_dir(film), "songmap.json")))
+    cons = make._contracts(film)
+    assert sm["analyzer"] == "film" and abs(sm["duration"] - sum(c["generation"]["duration"] for c in cons)) < 0.05
+    assert [s["label"] for s in sm["sections"]] == ["Scene 1", "Scene 2"] and sm["sections"][0]["start"] == 0 and abs(sm["sections"][-1]["end"] - sm["duration"]) < 0.05
+    assert sm["downbeats"][0] == 0 and sm["downbeats"] == sorted(sm["downbeats"]) and len(sm["downbeats"]) == len(cons)      # the cuts are the grid
+    assert any(l["text"].startswith("Sarah:") for l in sm["lyrics"]) and all(l["start"] < l["end"] for l in sm["lyrics"])    # the dialogue is the lane of words
+    assert len(sm["peaks"]) == 2000 and set(sm["peaks"]) == {0.0}                                                            # silence is a flat line
+    for k in ("beats", "energy_curve", "accents"):
+        assert sm[k] == []

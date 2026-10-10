@@ -37,6 +37,8 @@ import { FilmView } from "../FilmView";
 import { CastWorld } from "../CastWorld";
 import { ShotLab } from "../ShotLab";
 import { MakeFilm } from "../MakeFilm";
+import { Studio } from "../Studio";
+import renderFixture from "./render-fixture.json";
 import type { Job, LoadedProject, Shot } from "../api";
 import directions from "./directions.json";
 import styles from "../../analysis/filmcrafter_engine/styles.json";
@@ -186,6 +188,8 @@ mockIPC((cmd, a) => {
       { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", modified: now - 86400 * 2 },
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
+    case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
+    case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
     case "film_make": return makeStatus;
     case "film_shots": return x.action === "shot" ? { shot: shotContract } : x.action === "suggest" ? shotSuggestion : shotsView;
@@ -245,6 +249,7 @@ const scenes: Record<string, () => ReactNode> = {
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
+  studio: () => <Studio project={{ dir: DIR, ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,
   make: () => <div style={{ width: 1240, height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="storyboard" onTab={noop} /></div>,
   shots: () => <div style={{ width: 1240, height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: 1200, height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
@@ -304,6 +309,6 @@ setTimeout(() => {
   const w = Math.ceil((first?.getBoundingClientRect().width ?? 1000) + 48);
   const outer = (document.querySelector(".overlay") ?? first) as HTMLElement | null;
   const h = Math.ceil(outer?.getBoundingClientRect().height ?? rootEl.getBoundingClientRect().height);
-  const full = scene === "home" || scene === "film";                               // whole-window screens are photographed at a desktop window size
+  const full = scene === "home" || scene === "film" || scene === "studio";                               // whole-window screens are photographed at a desktop window size
   document.title = full ? "1440,900" : `${w},${h}`;
 }, 2600);

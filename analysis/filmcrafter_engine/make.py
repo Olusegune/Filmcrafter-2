@@ -160,7 +160,6 @@ def sync(d: str) -> dict:
                "look": {"style": LOOK_FOR_LANE.get(bible["style"].get("lane", ""), "auto"), **({"notes": bible["style"]["notes"]} if bible["style"].get("notes") else {})}, "film": True})
     _write(os.path.join(rd, "project.json"), pj)
     _write(os.path.join(rd, "production.json"), plan)
-    _write(os.path.join(rd, "songmap.json"), {"duration": total, "lyrics": [], "sections": [], "beats": [], "bpm": 0})
     # the pictures people brought become the render project's references: characters in the shots they are in, places in their scenes, props everywhere
     refs = os.path.join(rd, "assets", "refs")
     os.makedirs(refs, exist_ok=True)
@@ -185,6 +184,7 @@ def sync(d: str) -> dict:
                 for n in it.get("scenes") or []:
                     library.assign(rd, "scene", str(n), "fc-" + it["id"], True)
     sound = _soundtrack(d, total)
+    _write(os.path.join(rd, "songmap.json"), _timeline_map(d, cons, plan, total))
     return {"render_dir": rd, "shots": len(cons), "seconds": total, "references": made, "look": pj["look"]["style"], "soundtrack": sound}
 
 
@@ -248,7 +248,45 @@ def set_soundtrack(d: str, file: str | None) -> dict:
     else:
         _write(meta_path, {"kind": "silence"})
     _soundtrack(d, total)
+    sync(d)
     return {**status(d), "soundtrack": _read(meta_path, {})}
+
+
+def _peaks(path: str, points: int = 2000) -> list[float]:
+    """A waveform envelope of the soundtrack for the timeline (all zeros for silence)."""
+    try:
+        import numpy as np
+        from . import shotsound
+        y = shotsound.decode(path, 1)[:, 0] if os.path.isfile(path) else np.zeros(0, dtype="float32")
+        if len(y) < points * 2:
+            return [0.0] * points
+        n = len(y) // points * points
+        return [round(float(v), 3) for v in np.abs(y[:n]).reshape(points, -1).max(axis=1)]
+    except Exception:
+        return [0.0] * points
+
+
+def _timeline_map(d: str, cons: list[dict], plan: dict, total: float) -> dict:
+    """What the studio timeline reads as its 'song map': the scenes are its sections, the cuts are its beat grid, the dialogue is its lyric lane, the soundtrack is its waveform."""
+    rd = render_dir(d)
+    sections = [{"start": sc["start"], "end": sc["end"], "label": f"Scene {sc['number']}", "group": sc.get("heading") or f"Scene {sc['number']}", "energy": 0.5, "mood": ""} for sc in plan["scenes"]]
+    starts = {c["id"]: s["start"] for sc in plan["scenes"] for c, s in zip([x for x in cons if x["scene"] == sc["number"]], sc["shots"])}
+    ends = {c["id"]: s["end"] for sc in plan["scenes"] for c, s in zip([x for x in cons if x["scene"] == sc["number"]], sc["shots"])}
+    lines = []
+    for c in cons:
+        dl = [x for x in c["dialogue"] if x.get("line")]
+        words = sum(max(1, len(x["line"].split())) for x in dl)
+        t = starts.get(c["id"], 0.0)
+        span = max(0.1, ends.get(c["id"], t) - t)
+        for x in dl:
+            share = span * max(1, len(x["line"].split())) / max(1, words)
+            lines.append({"section": f"Scene {c['scene']}", "text": f"{x['speaker'].title()}: {x['line']}", "start": round(t, 2), "end": round(t + share, 2)})
+            t += share
+    meta = _read(os.path.join(rd, "soundtrack.json"), {}) or {}
+    wav = os.path.join(rd, meta.get("file") or "soundtrack.wav")
+    cuts = sorted({round(x, 2) for x in starts.values()})
+    return {"duration": total, "bpm": 0, "beats": [], "downbeats": cuts, "energy_curve": [], "accents": [], "sections": sections, "lyrics": lines, "lyric_match": None,
+            "peaks": _peaks(wav), "analyzer": "film"}
 
 
 # ---------------------------------------------------------------- what has been made

@@ -219,7 +219,8 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
     try { await api.setLook(project.dir, l); setLook(l); } catch (e) { setError(errorText(e)); }
   };
   const planName = project.directed ? "directed" : "production";
-  const [tourOpen, setTourOpen] = useState(() => !tourSeen());
+  const isFilm = !!(project.project as { film?: boolean }).film;                       // a film's render project: no song to plan from, so the song-first guides and the Director are not offered
+  const [tourOpen, setTourOpen] = useState(() => !isFilm && !tourSeen());
   const latest = useMemo(() => latestJobs(jobs, planName), [jobs, planName]);
   // Review judges the newest finished take of each shot (a newer failed attempt doesn't hide it).
   const takes = useMemo(() => latestJobs(jobs.filter((j) => j.state === "ready"), planName), [jobs, planName]);
@@ -458,8 +459,8 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
         <header className="topbar" ref={barRef}>
           <div>
             <div className="title">{project.project.title}</div>
-            {map && <div className="meta num">{Math.round(map.bpm)} BPM · {fmtTime(map.duration)} · {shots.length} shots
-              {project.directed ? " · Directed" : plan ? " · Planned from script" : ""}</div>}
+            {map && <div className="meta num">{isFilm ? "" : `${Math.round(map.bpm)} BPM · `}{fmtTime(map.duration)} · {shots.length} shots
+              {isFilm ? " · Film" : project.directed ? " · Directed" : plan ? " · Planned from script" : ""}</div>}
           </div>
           <div className="grow" />
           <div className="mode-toggle" role="group" aria-label="Mode">
@@ -502,7 +503,7 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
           {plan && <button className="btn ghost cmd-btn" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
           {narrowBar ? <div className="menu-wrap"><button className="btn ghost" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-haspopup="menu">More ▾</button>
             {moreOpen && <div className="menu glass tb-more" role="menu" onClick={() => setMoreOpen(false)} onMouseLeave={() => setMoreOpen(false)}>
-          <button className="btn" role="menuitem" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>
+          {!isFilm && <button className="btn" role="menuitem" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
           {plan && board && <button className="btn" onClick={() => setSelecting(true)}
@@ -511,7 +512,7 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </div>}</div>
             : <>
-          <button className="btn" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>
+          {!isFilm && <button className="btn" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
           {plan && board && <button className="btn" onClick={() => setSelecting(true)}
@@ -519,14 +520,14 @@ export function Studio({ project, onHome, onSettings, onReload, onProduce }: {
           {plan && (keys.fal || keys.kie) && toRender.length > 0 && <button className={`btn ${project.directed ? "hero" : ""}`} onClick={() => setConfirmAll(true)}
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </>}
-          {plan && <button className={`btn ${project.directed && (keys.fal || keys.kie) && toRender.length > 0 ? "ghost" : "hero"}`} onClick={directVideo} disabled={!!job}
+          {plan && !isFilm && <button className={`btn ${project.directed && (keys.fal || keys.kie) && toRender.length > 0 ? "ghost" : "hero"}`} onClick={directVideo} disabled={!!job}
                            title={project.directed ? "Plan the shots again from the song (your edits to the plan are asked about first)" : "Plan every shot on the beat of the song (free)"}>
             {project.directed ? "Direct Again" : "Direct My Video"}</button>}
           <button className="icon-btn" onClick={() => setFocusMode(true)} title="Full screen: just the video (F)" aria-label="Full screen">⛶</button>
           <button className="icon-btn" onClick={() => setTimelineOpen((v) => !v)} title={timelineOpen ? "Hide the timeline (Ctrl+J)" : "Show the timeline (Ctrl+J)"} aria-label={timelineOpen ? "Hide the timeline" : "Show the timeline"} aria-pressed={timelineOpen}><I.PanelBottom /></button>
           <button className="icon-btn" onClick={() => setInspector((v) => !v)} title="Inspector" aria-label="Toggle inspector"><I.Panel /></button>
         </header>
-        {plan && <GoldenStrip onTour={() => setTourOpen(true)}
+        {plan && !isFilm && <GoldenStrip onTour={() => setTourOpen(true)}
           test={pickTestShot(shots.map((x) => ({ id: x.id, start: x.start, end: x.end, framing: x.framing, performers: x.performers, emotion: x.emotion, text: [x.description, x.performance, x.movement].filter(Boolean).join(" ") })),
                              keyframes[planName] ?? {}, new Set([...takes.entries()].filter(([, j]) => j.state === "ready").map(([id]) => id)), map?.lyrics ?? [])} spent={route?.spent_usd ?? null} budget={route?.budget_usd ?? null}
           input={{ hasSong: !!map, shots, keyframes: keyframes[planName] ?? {}, videoReady: new Set([...takes.entries()].filter(([, j]) => j.state === "ready").map(([id]) => id)),
@@ -861,14 +862,14 @@ function Inspector({ sel, shots, scenes, map, plan, director, project, onClose, 
       <div className="inspector-body">
         <div className="insp-section"><div className="kv">
           <span className="k">Title</span><span className="v">{project.project.title}</span>
-          {map && <><span className="k">Tempo</span><span className="v num">{map.bpm.toFixed(1)} BPM</span>
+          {map && <>{!(project.project as { film?: boolean }).film && <><span className="k">Tempo</span><span className="v num">{map.bpm.toFixed(1)} BPM</span></>}
             <span className="k">Length</span><span className="v num">{fmtTime(map.duration)}</span>
-            <span className="k">Sections</span><span className="v num">{map.sections.length}</span>
+            <span className="k">{(project.project as { film?: boolean }).film ? "Scenes" : "Sections"}</span><span className="v num">{map.sections.length}</span>
             {map.lyric_match != null && <><span className="k">Lyrics heard</span><span className="v num">{Math.round(map.lyric_match * 100)}%</span></>}</>}
           <span className="k">Shots</span><span className="v num">{shots.length}</span>
           <span className="k">Renderer</span><span className="v">Auto</span>
         </div></div>
-        <MaterialsPanel project={project} hasPlan={!!plan} onChanged={onLibraryChanged} onOpenLibrary={onOpenLibrary} />
+        {!(project.project as { film?: boolean }).film && <MaterialsPanel project={project} hasPlan={!!plan} onChanged={onLibraryChanged} onOpenLibrary={onOpenLibrary} />}
         <ProjectSettingsRow project={project} />
         <div className="insp-section look-row">
           <h4>Look</h4>
@@ -1142,9 +1143,9 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
     <section className="timeline" aria-label="Timeline" style={{ height: shown, ["--card-h" as string]: `${cardH}px` }}>
       <div className="tl-resize" onPointerDown={drag} title="Drag to resize" />
       <div className="tl-head">
-        <span>Song Map</span>
+        <span>{map.analyzer === "film" ? "Timeline" : "Song Map"}</span>
         <div className="legend">
-          <span><i className="dot" style={{ background: "var(--gold)" }} /> Music</span>
+          <span><i className="dot" style={{ background: "var(--gold)" }} /> {map.analyzer === "film" ? "Soundtrack" : "Music"}</span>
           <span><i className="dot" style={{ background: "var(--signal)" }} /> Playhead</span>
         </div>
         <div style={{ flex: 1 }} />

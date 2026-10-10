@@ -85,3 +85,15 @@ Under the hood the film builds a render project (in the film's `render` folder) 
 In **Shots**, press **Continuity check**. FilmCrafter reads the shots in order and says where something **may** have changed: a person's outfit or state, the place or time of day inside one scene, a prop that appears and then vanishes, how a shot begins compared with how the last one ended, which shoulder the camera looks over, and people who have no pictures (so their face could drift).
 
 Every finding says why. **It's meant** sets one aside; **I'll fix it** keeps track; **Use that** applies a plain suggestion (such as how a shot begins). It never blocks anything and never changes the film on its own.
+
+## Studio tools: the full editing studio on your film
+
+The film workspace is the story-first front door. For everything PULSEFRAME's studio does well, press **Studio tools** at the top of the film. It opens the full studio on your film:
+
+![The studio on a film: scenes along the top of the timeline, the dialogue as a lane of words, the shots as cards, layers on their own lanes](img/film/studio.png)
+
+- **Timeline**: the scenes are the sections, the cuts are the grid, the dialogue is the lane of words, the soundtrack is the waveform, and the shots are cards. Add text, pictures, icons and shapes as **layers** on their own lanes, and drag them up and down to put them in front or behind.
+- **Supervisor, Review, Acting, Continuity, Lighting, Colour match, Clean up, Layers, Library, Export**, with the same tools you know. Pictures and takes you choose in the film workspace show up here, and the other way round.
+- **Home** takes you back to the film.
+
+Because the studio was built for music videos, a few song-first parts are hidden on a film (the song-to-video Autopilot, "Direct My Video", the song-first guide, tempo). Some labels and a few tools still speak in song terms; they are being turned into film terms one by one.
