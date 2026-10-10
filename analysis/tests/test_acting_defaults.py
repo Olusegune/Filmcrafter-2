@@ -7,15 +7,20 @@ import pytest
 
 from filmcrafter_engine import performance as PF, render as R
 
-LIB_RS = os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs")
+SCRIPT = "\n".join(["INT. KITCHEN - MORNING", "", "Sarah pours tea.", "", "SARAH", "Hello.", ""])
 
 
-@pytest.mark.skipif(not os.path.exists(LIB_RS), reason="the app shell is not in this checkout")
-def test_a_new_project_is_created_with_the_natural_acting_style():
-    src = open(LIB_RS, encoding="utf-8").read().replace("\r\n", "\n")
-    body = src[src.index("fn create_project("):]
-    body = body[:body.index("write_json(&dir.join(\"project.json\")")]
-    assert re.search(r'"performance":\s*\{\s*"default":\s*"natural"', body), "create_project no longer starts a project with the Natural acting style"
+def test_a_new_film_is_created_with_the_natural_acting_style(tmp_path):
+    import json
+    from filmcrafter_engine import bible, make, shots, story
+    d = story.create(str(tmp_path), "T", "screenplay", SCRIPT)["dir"]
+    bible.seed(d)
+    shots.breakdown(d)
+    pj = json.load(open(os.path.join(make.sync(d)["render_dir"], "project.json")))
+    assert pj["performance"]["default"] == "natural" and pj["lip_sync_mode"] == "auto"
+    pj["performance"]["default"] = "dramatic"                                  # a choice the person made is never reset by the next sync
+    json.dump(pj, open(os.path.join(make.render_dir(d), "project.json"), "w"))
+    assert json.load(open(os.path.join(make.sync(d)["render_dir"], "project.json")))["performance"]["default"] == "dramatic"
 
 
 def test_a_project_with_that_default_gets_the_micro_motion_in_its_video_prompts():

@@ -451,15 +451,6 @@ fn remember(app: &AppHandle, dir: &Path) {
     }
 }
 
-/// Read a user-chosen text file (lyrics). Only reachable via the native file picker in the UI.
-#[tauri::command]
-fn read_text(path: String) -> Result<String, String> {
-    let meta = fs::metadata(&path).map_err(err)?;
-    if meta.len() > 2_000_000 {
-        return Err("That file is too large to be lyrics.".into());
-    }
-    fs::read_to_string(&path).map_err(|_| "Could not read that file as text.".into())
-}
 
 /// Projects taken off the Recent list (never deleted: the folders stay where they are).
 fn hidden_path(app: &AppHandle) -> Option<PathBuf> {
@@ -545,49 +536,6 @@ fn list_projects(app: AppHandle) -> Result<Vec<Value>, String> {
     Ok(out)
 }
 
-#[tauri::command]
-fn create_project(app: AppHandle, song_path: String, title: String, lyrics: Option<String>,
-                  script_path: Option<String>, look: Option<Value>) -> Result<String, String> {
-    let root = projects_root(&app)?;
-    let base = slug(&title);
-    let mut dir = root.join(&base);
-    let mut n = 2;
-    while dir.exists() {
-        dir = root.join(format!("{base} {n}"));
-        n += 1;
-    }
-    for sub in ["assets", "generations", "thumbnails", "cache", "exports"] {
-        fs::create_dir_all(dir.join(sub)).map_err(err)?;
-    }
-    let src = Path::new(&song_path);
-    let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("wav").to_lowercase();
-    let song = format!("song.{ext}");
-    fs::copy(src, dir.join(&song)).map_err(|e| format!("Could not copy the song: {e}"))?;
-    let mut project = json!({
-        "schema_version": 1, "title": title, "song": song, "source_song": song_path,
-        "created": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0),
-        "state": "new",
-        "look": look.unwrap_or_else(|| json!({"style": "auto"})),
-        // the Natural acting style from the start: blinks, breathing and weight shifts are asked for in every prompt (change it under Acting)
-        "performance": {"default": "natural", "scenes": {}, "characters": {}, "shots": {}},
-        "lip_sync_mode": "auto",
-    });
-    if let Some(l) = lyrics.filter(|l| !l.trim().is_empty()) {
-        fs::write(dir.join("lyrics.txt"), l).map_err(err)?;
-        project["lyrics"] = json!("lyrics.txt");
-    }
-    if let Some(sp) = script_path.filter(|s| !s.is_empty()) {
-        let sp = Path::new(&sp);
-        let sext = sp.extension().and_then(|e| e.to_str()).unwrap_or("txt").to_lowercase();
-        let name = format!("script.{sext}");
-        fs::copy(sp, dir.join(&name)).map_err(|e| format!("Could not copy the script: {e}"))?;
-        project["script"] = json!(name);
-    }
-    write_json(&dir.join("project.json"), &project)?;
-    ensure_doc(&dir);
-    remember(&app, &dir);
-    Ok(dir.to_string_lossy().into())
-}
 
 #[tauri::command]
 fn load_project(app: AppHandle, dir: String) -> Result<Value, String> {
@@ -733,12 +681,6 @@ async fn render_catalog(app: AppHandle, provider: String, kind: Option<String>, 
     }).await.map_err(err)?
 }
 
-#[tauri::command]
-async fn model_manifest(app: AppHandle, provider: String, model: String) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        run_engine_result(&app, "manifest", &render_args("manifest", &["--provider".into(), provider, "--model".into(), model]), &[])
-    }).await.map_err(err)?
-}
 
 fn shot_args(dir: String, shots: Vec<String>, provider: String, model: Option<String>, overrides: Value) -> Vec<String> {
     let mut a = vec![dir, "--shots".into(), shots.join(","), "--provider".into(), provider,
@@ -860,84 +802,9 @@ async fn providers(app: AppHandle, action: String, data: Option<Value>) -> Resul
 
 // ---------- setup wizard ----------
 
-/// Engine helpers for the setup wizard: probe | extract | transcribe | choreo_get | choreo_set | styles.
-#[tauri::command]
-async fn onboarding(app: AppHandle, action: String, target: Option<String>, data: Option<Value>) -> Result<Value, String> {
-    if !["probe", "extract", "transcribe", "choreo_get", "choreo_set", "styles", "doc_text"].contains(&action.as_str()) {
-        return Err("Unknown setup action.".into());
-    }
-    tauri::async_runtime::spawn_blocking(move || {
-        let mut a = vec!["-m".to_string(), "filmcrafter_engine.onboarding".into(), action.clone()];
-        if let Some(t) = target.clone() {
-            // project actions take a project folder; probe/extract take a file the user chose
-            if action.starts_with("choreo") || action == "transcribe" { project_dir(&t)?; }
-            a.push(t);
-        }
-        if action == "extract" {
-            let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
-            let out = std::env::temp_dir().join(format!("filmcrafter-soundtrack-{stamp}.wav"));
-            a.extend(["--out".into(), out.to_string_lossy().to_string()]);
-        }
-        if let Some(d) = data { a.extend(["--data".into(), d.to_string()]); }
-        run_engine_result(&app, "onboarding", &a, &[])
-    }).await.map_err(err)?
-}
 
-/// Replace a project's master audio (Upload Music step: the user picked a different song).
-#[tauri::command]
-fn replace_song(dir: String, path: String) -> Result<Value, String> {
-    let d = project_dir(&dir)?;
-    let src = Path::new(&path);
-    let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("wav").to_lowercase();
-    let p = read_json(&d.join("project.json")).ok_or("Missing project file")?;
-    if let Some(old) = p["song"].as_str() {
-        let _ = fs::remove_file(d.join(old));
-    }
-    let song = format!("song.{ext}");
-    fs::copy(src, d.join(&song)).map_err(|e| format!("Could not copy the song: {e}"))?;
-    let _ = fs::remove_file(d.join("songmap.json")); // the old song's map no longer applies
-    update_project(&d, json!({"song": song, "source_song": path, "state": "new"}))?;
-    Ok(json!({"song": song}))
-}
 
-/// Lyrics or a pasted script as text in the project ("" removes it). The song itself is never touched.
-#[tauri::command]
-fn write_project_text(dir: String, kind: String, text: String) -> Result<Value, String> {
-    let d = project_dir(&dir)?;
-    let (file, key) = match kind.as_str() { "lyrics" => ("lyrics.txt", "lyrics"), "script" => ("script.txt", "script"),
-                                           _ => return Err("Unknown text.".into()) };
-    let mut p = read_json(&d.join("project.json")).ok_or("Missing project file")?;
-    if text.trim().is_empty() {
-        if let Some(o) = p.as_object_mut() { o.remove(key); }
-        write_json(&d.join("project.json"), &p)?;
-        return Ok(json!({key: null}));
-    }
-    if kind == "script" {
-        // a pasted script replaces an uploaded one only because the user chose to (the UI confirms); keep the file
-        if let Some(old) = p["script"].as_str().filter(|o| *o != "script.txt") {
-            let _ = fs::rename(d.join(old), d.join(format!("replaced {old}")));
-        }
-    }
-    fs::write(d.join(file), text).map_err(err)?;
-    p[key] = json!(file);
-    write_json(&d.join("project.json"), &p)?;
-    Ok(json!({key: file}))
-}
 
-/// Attach a screenplay file (PDF, TXT, MD) as the project's script.
-#[tauri::command]
-fn attach_script(dir: String, path: String) -> Result<Value, String> {
-    let d = project_dir(&dir)?;
-    let src = Path::new(&path);
-    let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
-    if !["pdf", "txt", "md", "fountain"].contains(&ext.as_str()) {
-        return Err("Use a PDF, TXT or MD script.".into());
-    }
-    let name = format!("script.{ext}");
-    fs::copy(src, d.join(&name)).map_err(|e| format!("Could not copy the script: {e}"))?;
-    update_project(&d, json!({"script": name, "script_source": path}))?;
-    Ok(json!({"script": name}))
-}
 
 /// Where a project is in the setup wizard: {stage, done: [..], skipped: [..], concept, source_video, ...}.
 #[tauri::command]
@@ -992,16 +859,6 @@ async fn adopt_script(app: AppHandle, dir: String, path: Option<String>, text: O
     }).await.map_err(err)?
 }
 
-/// Choreography Engine: design (OpenAI) or clear the per-shot movement plan.
-#[tauri::command]
-async fn choreography(app: AppHandle, dir: String, action: String, notes: Option<String>) -> Result<Value, String> {
-    let d = project_dir(&dir)?.to_string_lossy().to_string();
-    let env = if action == "design" { openai_env()? } else if action == "clear" { vec![] } else { return Err("Unknown action.".into()) };
-    tauri::async_runtime::spawn_blocking(move || {
-        run_engine_result(&app, "choreo", &["-m".into(), "filmcrafter_engine.choreo".into(), action, d,
-                                            "--notes".into(), notes.unwrap_or_default()], &env)
-    }).await.map_err(err)?
-}
 
 /// Budget guard: balances, project spend and whether a batch fits (status), or move unsent jobs (reroute).
 #[tauri::command]
@@ -1388,7 +1245,7 @@ async fn film_bible(app: AppHandle, action: String, target: String, data: Value)
 /// Scenes and shots of a film (filmcrafter_engine.shots): the breakdown, each Shot Contract, and editing them. Free and local; nothing is sent anywhere.
 #[tauri::command]
 async fn film_shots(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 12] = ["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command"];
+    const ACTIONS: [&str; 13] = ["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command", "principles"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }
@@ -1510,21 +1367,6 @@ async fn overnight(app: AppHandle, dir: String, action: String, confirmed: Optio
     Ok(res)
 }
 
-/// FilmCrafter Producer packages (filmcrafter_engine.producer_import): inspect a package (free, read-only) or apply it
-/// to a project. Shots are placed on the song by apply when it has been analysed, otherwise right after analysis.
-#[tauri::command]
-async fn producer(app: AppHandle, action: String, path: String, dir: Option<String>) -> Result<Value, String> {
-    let mut args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.producer_import".into()];
-    match action.as_str() {
-        "inspect" => { args.extend(["inspect".into(), path]); }
-        "apply" => {
-            let d = project_dir(&dir.ok_or("Which project?")?)?.to_string_lossy().to_string();
-            args.extend(["apply".into(), d, path]);
-        }
-        _ => return Err("Unknown action.".into()),
-    }
-    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "producer", &args, &[])).await.map_err(err)?
-}
 
 /// What the Director changed from the plan (filmcrafter_engine.director_audit): audit | split. Free and local; nothing is rendered.
 #[tauri::command]
@@ -1562,20 +1404,6 @@ async fn overlays(app: AppHandle, dir: String, action: String, data: Value) -> R
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "overlays", &args, &[])).await.map_err(err)?
 }
 
-/// The Producer inside the app (filmcrafter_engine.producer_plan): get | assets | revise | edit | remove | shots | build | reset.
-/// `assets`, `revise` and `shots` are the only calls that use the AI brain (a few cents on OpenAI, free on a local model); `build`
-/// writes a Producer package and imports it with the same importer as a package from the plugin. Nothing here makes a picture or a video.
-#[tauri::command]
-async fn producer_plan(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 11] = ["get", "assets", "revise", "edit", "remove", "shots", "build", "reset", "export", "edit_shot", "approve"];
-    if !ACTIONS.contains(&action.as_str()) {
-        return Err("Unknown action.".into());
-    }
-    let env = if matches!(action.as_str(), "assets" | "revise" | "shots") { openai_env()? } else { Vec::new() };
-    let d = project_dir(&dir)?.to_string_lossy().to_string();
-    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.producer_plan".into(), action, d, "--data".into(), data.to_string()];
-    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "producer_plan", &args, &env)).await.map_err(err)?
-}
 
 /// The intro title card (filmcrafter_engine.titlecard): state | preview | make | remove | intro_shot. Free and local: it only writes on-screen text
 /// settings (drawn at export) or adds an ordinary shot; a picture the user chose is copied into the project.
@@ -1981,58 +1809,7 @@ fn set_keyframe(dir: String, plan: String, shot: String, image: Option<String>) 
     write_json(&path, &kf)
 }
 
-/// Add a reference image to the project's materials.
-/// role: "cast" (one clean image per character; needs `name`), "characters" (a combined character sheet),
-/// "sets" (locations / props / palette sheet). Renders use them automatically.
-#[tauri::command]
-fn add_reference(dir: String, path: String, role: String, name: Option<String>) -> Result<Value, String> {
-    let d = project_dir(&dir)?;
-    let src = PathBuf::from(&path);
-    let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
-    if !["png", "jpg", "jpeg", "webp"].contains(&ext.as_str()) {
-        return Err("Use a PNG, JPG or WebP image.".into());
-    }
-    let refs = d.join("assets").join("refs");
-    fs::create_dir_all(&refs).map_err(err)?;
-    let base = match role.as_str() {
-        "cast" => format!("character_{}", slug(name.as_deref().unwrap_or("character")).to_lowercase().replace(' ', "_")),
-        "characters" => "character_sheet".into(),
-        "sets" => "sets_and_props".into(),
-        _ => return Err("Unknown material type.".into()),
-    };
-    let rel = format!("assets/refs/{base}.{ext}");
-    fs::copy(&src, d.join(&rel)).map_err(|e| format!("Couldn't copy the image: {e}"))?;
-    let mut p = read_json(&d.join("project.json")).ok_or("Missing project file")?;
-    if !p["references"].is_object() {
-        p["references"] = json!({});
-    }
-    if role == "cast" {
-        let n = name.filter(|n| !n.trim().is_empty()).ok_or("Give the character a name.")?;
-        if !p["references"]["cast"].is_object() {
-            p["references"]["cast"] = json!({});
-        }
-        p["references"]["cast"][n.trim()] = json!(rel);
-    } else {
-        p["references"][&role] = json!(rel);
-    }
-    write_json(&d.join("project.json"), &p)?;
-    Ok(p["references"].clone())
-}
 
-#[tauri::command]
-fn remove_reference(dir: String, role: String, name: Option<String>) -> Result<Value, String> {
-    let d = project_dir(&dir)?;
-    let mut p = read_json(&d.join("project.json")).ok_or("Missing project file")?;
-    if role == "cast" {
-        if let (Some(n), Some(c)) = (name, p["references"]["cast"].as_object_mut()) {
-            c.remove(&n);
-        }
-    } else if let Some(r) = p["references"].as_object_mut() {
-        r.remove(&role);
-    }
-    write_json(&d.join("project.json"), &p)?;
-    Ok(p["references"].clone())
-}
 
 // ---------- looks ----------
 
@@ -2276,12 +2053,11 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            key_status, set_key, delete_key, splash_close, read_text, list_projects, create_project, load_project,
-            analyze_project, direct_project, ensure_renderer, render_catalog, model_manifest, render_preview,
+            key_status, set_key, delete_key, splash_close, list_projects, load_project,
+            analyze_project, direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_check, film_assist, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, add_reference, remove_reference,
-            creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
-            onboarding, replace_song, write_project_text, attach_script, set_onboarding, adopt_script, choreography, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, producer, refgen, overlays, captions, director_audit, fonts, editor_export, camera, producer_plan, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
+            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_check, film_assist, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -146,7 +146,7 @@ def pick(project: dict, shot: dict, look_id: str, video: bool, limit: int | None
     selected = list(defaults(look_id) if chosen is None else chosen)
     fam = family(look_id)
     text = _shot_text(shot)
-    quiet = (project.get("performance") or {}).get("default") in ("restrained", "natural")      # a quiet acting profile and "push the poses" would pull against each other
+    quiet = (project.get("performance") or {}).get("default") == "restrained"      # the most restrained acting profile and "push the poses" would pull against each other
     scored = []
     for n, p in enumerate(PRINCIPLES):
         if p["id"] not in selected:

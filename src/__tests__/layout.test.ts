@@ -3,17 +3,17 @@ import { readFileSync } from "node:fs";
 import studio from "../Studio.tsx?raw";
 
 const unix = (s: string) => s.split("\r\n").join("\n");
-const wizardCss = unix(readFileSync("src/wizard.css", "utf8"));
+const sharedCss = unix(readFileSync("src/studio-shared.css", "utf8"));
 const stylesCss = unix(readFileSync("src/styles.css", "utf8"));
 
 /** Layout bugs found by looking at the real screens, kept from coming back. These read the style rules, since no test renders real pixels (scripts/ui-audit.js does that, by hand). */
 describe("layout regressions", () => {
   it("the full-screen exit hint sits below the progress bar, not on top of Export and the price", () => {
-    const rule = wizardCss.match(/\.focus-exit \{[^}]*\}/)![0];
+    const rule = sharedCss.match(/\.focus-exit \{[^}]*\}/)![0];
     const top = Number(rule.match(/top:\s*(\d+)px/)![1]);
     expect(top).toBeGreaterThanOrEqual(56);                                       // the progress bar is about 50 px tall
     expect(rule).toContain("background");                                         // and it is readable over any frame
-    expect(wizardCss).toMatch(/\.focus-exit:focus-visible \{ opacity: 1; \}/);    // reachable from the keyboard
+    expect(sharedCss).toMatch(/\.focus-exit:focus-visible \{ opacity: 1; \}/);    // reachable from the keyboard
   });
 
   it("on a narrow window the inspector slims down, the title leaves the top bar and the secondary buttons fold into More", () => {
@@ -37,6 +37,6 @@ describe("layout regressions", () => {
   });
 
   it("the full-screen view hides the test-shot note along with the rest of the chrome", () => {
-    expect(wizardCss).toContain(".studio.focus .g-test { display: none; }");
+    expect(sharedCss).toContain(".studio.focus .g-test { display: none; }");
   });
 });

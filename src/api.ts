@@ -194,14 +194,11 @@ export const api = {
     invoke<T>("overlays", { dir, action, data }),
   refgen: <T = RefGenStatus>(dir: string, action: "candidates" | "estimate" | "queue" | "use" | "discard" | "status" | "cards" | "own", data: Record<string, unknown> = {}) =>
     invoke<T>("refgen", { dir, action, data }),
-  producerPlan: <T = ProducerPlanView>(dir: string, action: "get" | "assets" | "revise" | "edit" | "remove" | "shots" | "build" | "reset" | "export" | "edit_shot" | "approve", data: Record<string, unknown> = {}) =>
-    invoke<T>("producer_plan", { dir, action, data }),
   lighting: <T = LightingPlan>(dir: string, action: "plan" | "apply" | "undo" | "moods", data: Record<string, unknown> = {}) => invoke<T>("lighting", { dir, action, data }),
   camera: <T = ShotCamera>(dir: string, action: "vocab" | "get" | "set" | "reset" | "suggest" | "suggest_apply", data: Record<string, unknown> = {}) => invoke<T>("camera", { dir, action, data }),
   editorExport: <T = EditorPackage>(dir: string, target: "premiere" | "resolve", film?: string) =>
     invoke<T>("editor_export", { dir, action: "package", data: { target, film } }),
   fonts: <T = FontList>(dir: string, action: "list" | "add", data: Record<string, unknown> = {}) => invoke<T>("fonts", { dir, action, data }),
-  producer: <T = unknown>(action: "inspect" | "apply", path: string, dir: string | null = null) => invoke<T>("producer", { action, path, dir }),
   golden: <T = unknown>(dir: string, action: "status" | "preview" | "split" | "changes", data: Record<string, unknown> = {}) => invoke<T>("golden", { dir, action, data }),
   upscale: <T = unknown>(dir: string, action: "tools" | "status" | "resume" | "revert" | "run", data: Record<string, unknown> = {}) => invoke<T>("upscale", { dir, action, data }),
   track: (dir: string) => invoke<TrackStats>("track", { dir, action: "stats" }),
@@ -222,13 +219,6 @@ export const api = {
     if (b.provider === "openrouter") return !!k.openrouter && !!b.model;                     // OpenRouter: its key and a model chosen
     return !!b.model;                                                                         // Ollama / LM Studio: a model chosen
   },
-  probeMedia: (path: string) => invoke<Probe>("onboarding", { action: "probe", target: path }),
-  extractSoundtrack: (path: string) => invoke<{ path: string; duration: number }>("onboarding", { action: "extract", target: path }),
-  transcribeLyrics: (dir: string) => invoke<{ text: string; lines: { text: string; start: number; end: number }[] }>("onboarding", { action: "transcribe", target: dir }),
-  getChoreography: (dir: string) => invoke<Choreography>("onboarding", { action: "choreo_get", target: dir }),
-  setChoreography: (dir: string, data: Partial<Choreography>) => invoke<Choreography>("onboarding", { action: "choreo_set", target: dir, data }),
-  designChoreography: (dir: string, notes = "") => invoke<ChoreoPlan>("choreography", { dir, action: "design", notes }),
-  clearChoreography: (dir: string) => invoke<Choreography>("choreography", { dir, action: "clear", notes: null }),
   titleCard: <T = TitleCardState>(dir: string, action: "state" | "preview" | "make" | "remove" | "intro_shot", data: Record<string, unknown> = {}) => invoke<T>("title_card", { dir, action, data }),
   cleanup: <T = CleanupScan>(dir: string, action: "scan" | "discard" | "restore" | "empty", data: Record<string, unknown> = {}) => invoke<T>("cleanup", { dir, action, data }),
   customFrame: <T = CustomFrameState>(dir: string, action: "state" | "insert" | "remove", data: Record<string, unknown> = {}) => invoke<T>("custom_frame", { dir, action, data }),
@@ -237,14 +227,8 @@ export const api = {
   acting: <T = unknown>(dir: string, action: "get" | "beats_get" | "beats_set" | "beats_clear" | "beats_estimate" | "beats_write" | "arc_set" | "arc_clear" | "arc_estimate" | "arc_write" | "business_set",
                         data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
-  shotSoundOverview: (dir: string) => invoke<Record<string, true>>("shot_sound", { dir, action: "overview", data: {} }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
   checkUpdate: () => invoke<UpdateInfo>("check_update"),
-  docText: (path: string) => invoke<{ name: string; text: string; truncated: boolean }>("onboarding", { action: "doc_text", target: path }),
-  choreographyStyles: () => invoke<{ styles: string[] }>("onboarding", { action: "styles" }),
-  replaceSong: (dir: string, path: string) => invoke<{ song: string }>("replace_song", { dir, path }),
-  writeProjectText: (dir: string, kind: "lyrics" | "script", text: string) => invoke<Record<string, string | null>>("write_project_text", { dir, kind, text }),
-  attachScript: (dir: string, path: string) => invoke<{ script: string }>("attach_script", { dir, path }),
   setOnboarding: (dir: string, value: Onboarding) => invoke<void>("set_onboarding", { dir, value }),
   adoptScript: (dir: string, source: { path?: string; text?: string }) =>
     invoke<{ scenes: number; shots: number; archived: string[] }>("adopt_script", { dir, path: source.path ?? null, text: source.text ?? null }),
@@ -268,17 +252,12 @@ export const api = {
   directorCommand: (dir: string, note: string, selected: string | null, playhead: number | null) =>
     invoke<{ id: string | null; summary: string; not_done: string; changed: string[] }>("director_command", { dir, note, selected, playhead }),
   undoCommand: (dir: string, id: string) => invoke<{ id: string; restored: string[] }>("undo_command", { dir, id }),
-  addReference: (dir: string, path: string, role: "cast" | "characters" | "sets", name: string | null) =>
-    invoke<{ characters?: string; sets?: string; cast?: Record<string, string> }>("add_reference", { dir, path, role, name }),
-  removeReference: (dir: string, role: string, name: string | null) =>
-    invoke<{ characters?: string; sets?: string; cast?: Record<string, string> }>("remove_reference", { dir, role, name }),
   saveProject: (dir: string) => invoke<{ saved: number }>("save_project", { dir }),
   saveProjectAs: (dir: string, dest: string) => invoke<string>("save_project_as", { dir, dest }),
   launchPath: () => invoke<string | null>("launch_path"),
   onMenu: (fn: (id: string) => void): Promise<UnlistenFn> => listen<string>("menu", (e) => fn(e.payload)),
   onOpenPath: (fn: (path: string) => void): Promise<UnlistenFn> => listen<string>("open-path", (e) => fn(e.payload)),
   keyStatus: () => invoke<KeyStatus>("key_status"),
-  readText: (path: string) => invoke<string>("read_text", { path }),
   setKey: (provider: string, key: string) => invoke<void>("set_key", { provider, key }),
   deleteKey: (provider: string) => invoke<void>("delete_key", { provider }),
   frames: <T = unknown>(dir: string, action: "get" | "set" | "start" | "chain" | "support" | "options" | "choose" | "use_image" | "use_start" | "extend_info",
@@ -290,7 +269,7 @@ export const api = {
                         data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
   isShow: (path: string) => invoke<boolean>("is_show", { path }),
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
-  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command", target: string, data: Record<string, unknown> = {}) =>
+  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
@@ -307,8 +286,6 @@ export const api = {
   listProjects: () => invoke<ProjectSummary[]>("list_projects"),
   recents: (action: "remove" | "clear" | "restore", dir: string | null = null) => invoke<{ hidden: number }>("recents", { action, dir }),
   hiddenCount: () => invoke<number>("hidden_count"),
-  createProject: (songPath: string, title: string, lyrics: string | null, scriptPath: string | null, look: Look | null) =>
-    invoke<string>("create_project", { songPath, title, lyrics, scriptPath, look }),
   listStyles: () => invoke<Style[]>("list_styles"),
   setLook: (dir: string, look: Look) => invoke<void>("set_look", { dir, look }),
   loadProject: (dir: string) => invoke<LoadedProject>("load_project", { dir }),
@@ -317,7 +294,6 @@ export const api = {
   ensureRenderer: (dir: string) => invoke<void>("ensure_renderer", { dir }),
   renderCatalog: (provider: string, kind: "video" | "image" | "lipsync" | "upscale" = "video", refresh = false) => invoke<CatalogItem[]>("render_catalog", { provider, kind, refresh }),
   setKeyframe: (dir: string, plan: string, shot: string, image: string | null) => invoke<void>("set_keyframe", { dir, plan, shot, image }),
-  modelManifest: (provider: string, model: string) => invoke<Manifest>("model_manifest", { provider, model }),
   renderPreview: (dir: string, shot: string, provider: string, model: string | null, overrides: Record<string, unknown>,
                   kind: "video" | "image" = "video") =>
     invoke<{ manifest: Manifest; payload: Record<string, unknown>; problems?: string[]; references?: { label: string; media: string; path?: string }[]; dropped_references?: string[]; audio_first?: boolean; lip_sync_mode?: string; sing_setting?: "auto" | "on" | "off"; vocal_heard?: number; inputs?: ModelInput[]; keyframe_blocks_audio?: boolean; prompt_blocks?: { priority: number; text: string; kept: boolean }[]; lip_sync?: boolean; singing?: { performer: string; lyrics: string[] } | null }>("render_preview", { dir, shot, provider, model, overrides, kind }),

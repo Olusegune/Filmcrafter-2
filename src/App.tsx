@@ -2,36 +2,27 @@ import { useCallback, useEffect, useState } from "react";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { api, errorText, type LoadedProject } from "./api";
+import "./studio-shared.css";                // the Studio's focus mode and shared rules (loaded first, as when it came with the old wizard)
 import { Home } from "./Home";
-import { Wizard } from "./Wizard";
-import { Analysis } from "./Analysis";
 import { Studio } from "./Studio";
 import { Settings } from "./Settings";
 import { HelpSheet } from "./Help";
-import { ShowView, showDirOf } from "./ShowView";
 import { BackupsSheet } from "./Backups";
-import { ProducerImport, isProducerPackage } from "./ProducerImport";
 import { EngineSetup } from "./EngineSetup";
-import { Produce } from "./Produce";
 import { FilmView } from "./FilmView";
-import { filmDirOfDoc, filmDirOfRender } from "./filmPaths";
+import { filmDirOfDoc, filmDirOfRender, isProducerPackage } from "./filmPaths";
 import { NewFilm } from "./NewFilm";
 import type { StoryKind } from "./api";
 import "./styles.css";
 import "./motion.css";
 
-const PRODUCE_KEY = (dir: string) => `pf-produce:${dir}`;
-const wantsProduce = (dir: string) => { try { return localStorage.getItem(PRODUCE_KEY(dir)) === "1"; } catch { return false; } };
-const setProduce = (dir: string, on: boolean) => { try { if (on) localStorage.setItem(PRODUCE_KEY(dir), "1"); else localStorage.removeItem(PRODUCE_KEY(dir)); } catch { /* a convenience only */ } };
-
 type View =
   | { name: "home" }
-  | { name: "analysis"; dir: string; title: string }
-  | { name: "wizard"; dir: string | null; file?: string | null; produce?: boolean }
-  | { name: "produce"; project: LoadedProject }
   | { name: "studio"; project: LoadedProject }
-  | { name: "show"; dir: string }
   | { name: "film"; dir: string; stage?: string };
+
+/** FilmCrafter makes films. A music video that was never finished, a show, or a Producer package belongs in PULSEFRAME, which still has the song-first screens. */
+const LEGACY = "This is a PULSEFRAME music-video project that FilmCrafter does not set up or continue from the start. Open it in PULSEFRAME to finish it. Finished projects open in the Studio here.";
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
@@ -41,7 +32,6 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [help, setHelp] = useState(false);
   const [restoring, setRestoring] = useState(false);
-  const [importPath, setImportPath] = useState<string | null>(null);
   const [engine, setEngine] = useState<{ ready: boolean; gpu: boolean } | null>(null);
   useEffect(() => { api.engineStatus().then(setEngine).catch(() => setEngine({ ready: true, gpu: false })); }, []);
   const say = useCallback((t: string) => { setToast(t); setTimeout(() => setToast(""), 1800); }, []);
@@ -51,22 +41,19 @@ export default function App() {
 
   const openProject = useCallback(async (dir: string) => {
     setError("");
-    if (isProducerPackage(dir)) { setImportPath(dir); setView({ name: "home" }); return; }   // Producer package: review, then a project
+    if (isProducerPackage(dir)) { setError(LEGACY); return; }
     try {
       if (await api.isFilm(dir)) { setView({ name: "film", dir: filmDirOfDoc(dir) }); return; }
-      if (await api.isShow(dir)) { setView({ name: "show", dir: dir.replace(/[\\/]show\.json$/i, "") }); return; }
+      if (await api.isShow(dir)) { setError(LEGACY); return; }
       if (dir.toLowerCase().endsWith(".pulse")) {   // one-file project: unpack it into the projects folder first
         setToast("Unpacking the project…");
         dir = await api.openPulse(dir);
         setToast("");
       }
       const p = await api.loadProject(dir);
-      // Setup not finished: resume the wizard where it was left (never forced on finished projects).
-      if (p.project.onboarding && p.project.onboarding.stage !== "done") { setView({ name: "wizard", dir: p.dir }); return; }
-      // A project that was never analysed (or was interrupted) resumes at the listening step.
-      if (!p.song_map || p.project.state === "new" || p.project.state === "analyzing") setView({ name: "analysis", dir, title: p.project.title });
-      else if (wantsProduce(p.dir)) setView({ name: "produce", project: p });   // chosen in the wizard (or from the Studio): plan the production first
-      else setView({ name: "studio", project: p });
+      // A music project whose setup or listening was never finished is not continued here; a finished one opens in the Studio.
+      if ((p.project.onboarding && p.project.onboarding.stage !== "done") || !p.song_map || p.project.state === "new" || p.project.state === "analyzing") { setError(LEGACY); return; }
+      setView({ name: "studio", project: p });
     } catch (e) { setError(errorText(e)); }
   }, []);
 
@@ -77,12 +64,11 @@ export default function App() {
     return () => { un.then((f) => f()); };
   }, [openProject]);
 
-  // An item of a show goes back to its show; anything else goes Home.
+  // A studio opened from a film goes back to the film; anything else goes Home.
   const backFrom = useCallback(async (dir: string, stage?: string) => {
     const film = filmDirOfRender(dir);                                      // the studio was opened on a film's render project: back goes to the film
     if (film !== dir && await api.isFilm(film).catch(() => false)) { setView({ name: "film", dir: film, stage }); return; }
-    const show = showDirOf(dir);
-    setView(show && (await api.isShow(show).catch(() => false)) ? { name: "show", dir: show } : { name: "home" });
+    setView({ name: "home" });
   }, []);
 
   const chooseProject = useCallback(async () => {
@@ -139,34 +125,11 @@ export default function App() {
                                                                      onSettings={() => setSettings(true)} onHelp={() => setHelp(true)} />}
       {creating && <NewFilm file={creating.file} kind={creating.kind} onClose={() => setCreating(null)} onCreated={(d) => { setCreating(null); openProject(d); }} />}
       {toast && <div className="toast glass mini" role="status">{toast}</div>}
-      {view.name === "analysis" && <Analysis dir={view.dir} title={view.title}
-                                             onDone={() => openProject(view.dir)} onBack={() => backFrom(view.dir)} />}
       {view.name === "film" && <FilmView key={`${view.dir}|${view.stage ?? ""}`} dir={view.dir} initialStage={view.stage} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} onStudio={(rd) => openProject(rd)} />}
-      {view.name === "show" && <ShowView key={view.dir} dir={view.dir} onOpenItem={openProject} onHome={() => setView({ name: "home" })} />}
       {view.name === "studio" && <Studio project={view.project} onHome={() => backFrom(view.project.dir)} onFilm={(st) => backFrom(view.project.dir, st)}
-                                         onSettings={() => setSettings(true)} onReload={() => openProject(view.project.dir)}
-                                         onProduce={() => { setProduce(view.project.dir, true); setView({ name: "produce", project: view.project }); }} />}
-      {view.name === "produce" && <Produce key={view.project.dir} project={view.project} onHome={() => { setProduce(view.project.dir, false); backFrom(view.project.dir); }}
-                                           onSettings={() => setSettings(true)}
-                                           onStudio={(makePictures) => {
-                                             const dir = view.project.dir;
-                                             setProduce(dir, false);
-                                             try { if (makePictures) localStorage.setItem(`pf-open-refgen:${dir}`, "1"); } catch { /* optional */ }
-                                             openProject(dir);
-                                           }} />}
-      {view.name === "wizard" && <Wizard key={view.dir ?? "new"} initialDir={view.dir} initialFile={view.file} produce={view.produce}
-                                         onExit={() => setView({ name: "home" })}
-                                         onProduce={(dir) => { setProduce(dir, true); openProject(dir); }}
-                                         onFinish={(dir, director) => {
-                                           try {
-                                             localStorage.setItem(`pf-open-director:${dir}`, director ? "1" : "0");
-                                             if (!director) localStorage.setItem(`pf-autopilot:${dir}`, "1");   // "Direct my video" = autopilot
-                                           } catch { /* optional */ }
-                                           openProject(dir);
-                                         }} />}
+                                         onSettings={() => setSettings(true)} onReload={() => openProject(view.project.dir)} />}
       {settings && <Settings onClose={() => setSettings(false)} onHelp={() => { setSettings(false); setHelp(true); }} />}
       {help && <HelpSheet onClose={() => setHelp(false)} />}
-      {importPath && <ProducerImport initial={importPath} onClose={() => setImportPath(null)} onOpen={(d) => { setImportPath(null); openProject(d); }} />}
       {restoring && current && <BackupsSheet dir={current.dir} onClose={() => setRestoring(false)}
                                              onRestored={() => { setRestoring(false); openProject(current.dir); say("Restored. The state before is kept as a backup."); }} />}
       {error && <div className="toast glass" role="alert"><div className="t" style={{ color: "var(--error)" }}>Could not open</div>

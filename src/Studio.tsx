@@ -49,14 +49,14 @@ import { ApproveKeyframes, LibrarySheet, ShotViewer, StoryCards, useBoard } from
 import { SelectReview } from "./SelectReview";
 import { ScriptSheet } from "./ScriptSheet";
 import { Autopilot } from "./Autopilot";
-import { Cta, DockCtx } from "./Dock";
+import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { ask } from "./ask";
 
 type Selection = { kind: "shot"; id: string } | { kind: "section"; index: number } | null;
 
-export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduce }: {
-  project: LoadedProject; onHome: () => void; onFilm?: (stage: string) => void; onSettings: () => void; onReload: () => void; onProduce?: () => void;
+export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
+  project: LoadedProject; onHome: () => void; onFilm?: (stage: string) => void; onSettings: () => void; onReload: () => void;
 }) {
   const map = project.song_map;
   const plan: Plan | null = project.directed ?? project.production;
@@ -551,11 +551,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, onProduc
             else if (step === "video") open((shots.find((x) => (keyframes[planName] ?? {})[x.id] && takes.get(x.id)?.state !== "ready") ?? shots[0])?.id, "video");
           }} />}
 
-        {!plan && onProduce && <div className="pr-callout">
-          <span className="pr-callout-ic"><I.Sparkle size={20} /></span>
-          <div><b>Want the whole production planned for you?</b>
-            <span>The Producer designs the cast, outfits, props, places, movement and every shot from your song. You approve each step, and it makes no pictures or videos until you say so.</span></div>
-          <Cta icon={<I.Rocket size={16} />} onClick={onProduce}>Create the production</Cta></div>}
+
         {!plan && <CreativeDirections project={project} onPlanned={onReload} onSettings={onSettings} />}
         <div className="viewer-wrap" style={plan ? undefined : { display: "none" }}>
           <div className="stage">

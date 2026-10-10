@@ -531,11 +531,28 @@ def suggest(d: str, sid: str) -> dict:
     return suggest_for(_contract(d, sid))
 
 
+def principles(d: str, sid: str) -> dict:
+    """The animation principles (or, for a photorealistic film, the screen craft) that will be added to this shot's prompts, from its words and the film's look. Free; nothing is sent."""
+    from . import animation_principles as AP
+    from . import bible as B
+    c = _contract(d, sid)
+    b = B.load(d)
+    look = B.effective_look(b)
+    perf = c.get("performance") or {}
+    cam = c.get("camera") or {}
+    beats = [str(x.get("what", "")) for x in (perf.get("beats") or []) if isinstance(x, dict)]
+    shot = {"description": " ".join(str(x) for x in (c.get("action"), c.get("story_purpose")) if x), "performance": " ".join(beats), "emotion": perf.get("emotional_intention", ""),
+            "movement": " ".join(str(x) for x in (cam.get("movement"), perf.get("micro_animation")) if x), "beats": beats}
+    project = {"animation": {"principles": b["style"]["principles"]}} if "principles" in b["style"] else {}
+    names = lambda ids: [{"id": i, "name": AP.BY_ID[i]["name"], "plain": AP.BY_ID[i]["plain"]} for i in ids]   # noqa: E731
+    return {"look": look, "family": AP.family(look), "screen_craft": AP.family(look) == "photoreal", "video": names(AP.pick(project, shot, look, True)), "picture": names(AP.pick(project, shot, look, False))}
+
+
 # ---------------------------------------------------------------- command line
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-shots")
-    ap.add_argument("action", choices=["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command"])
+    ap.add_argument("action", choices=["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command", "principles"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -566,6 +583,8 @@ def main(argv: list[str]) -> int:
         elif a.action == "command":
             from . import directcmd
             res = directcmd.command(d, x["id"], x.get("text", ""))
+        elif a.action == "principles":
+            res = principles(d, x["id"])
         else:
             res = suggest(d, x["id"])
         emit(event="result", data=res)

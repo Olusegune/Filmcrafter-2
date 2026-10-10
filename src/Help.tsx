@@ -4,7 +4,7 @@ import guide from "../docs/GETTING_STARTED.md?raw";
 import * as I from "./icons";
 
 // Screenshots live in docs/img and are written in the guide as ![what it shows](img/name.png), which GitHub shows too. The app bundles them (so they work offline).
-const IMAGES = import.meta.glob("../docs/img/*.png", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const IMAGES = import.meta.glob("../docs/img/**/*.png", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 export const docImage = (path: string): string | undefined => IMAGES[`../docs/${path}`];
 
 /** Inline markdown: **bold**, *italic*, `code`. */
@@ -60,7 +60,7 @@ export function renderGuide(md: string): ReactNode[] {
 }
 
 const slug = (t: string) => "doc-" + t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const ONLINE = "https://github.com/Olusegune/FilmCrafter-Music-Video-Maker/blob/main/docs/GETTING_STARTED.md";
+const ONLINE = "https://github.com/Olusegune/FilmCrafter/blob/main/docs/GETTING_STARTED.md";
 
 /** The user guide, bundled with the app (works offline): contents, search, and a link to the online copy. */
 export function HelpSheet({ onClose }: { onClose: () => void }) {

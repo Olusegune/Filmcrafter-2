@@ -10,7 +10,7 @@ import type { ReactElement } from "react";
 const refs = [...guide.matchAll(/^!\[([^\]]*)\]\((img\/[^)]+)\)\s*$/gm)].map((m) => ({ alt: m[1], path: m[2] }));
 
 describe("the documentation's screenshots", () => {
-  it("has some, each with a caption, and every one exists in docs/img", () => {
+  it("has some, each with a caption, and every one exists in docs/img (including the film folder)", () => {
     expect(refs.length).toBeGreaterThanOrEqual(6);
     for (const r of refs) {
       expect(r.alt.length, `${r.path} needs a caption`).toBeGreaterThan(10);
@@ -35,8 +35,9 @@ describe("the documentation's screenshots", () => {
     expect(new Set(all).size).toBe(all.length);
   });
 
-  it("the guide has a section on the sound of each shot, and the shortcuts include it", () => {
-    expect(guide).toContain("## 24. The sound of each shot");
-    expect(guide).toContain("`Shift+M`");
+  it("is the film guide: the steps, the money rules, the look and the shortcuts", () => {
+    for (const h of ["## Before you start", "## The steps of a film", "## Cast & World: the Production Bible", "### Choosing the look", "### Animation principles", "### Production Supervisor", "## Keyboard shortcuts", "## When something goes wrong"]) expect(guide).toContain(h);
+    expect(guide).toContain("shows its price first");
+    expect(guide).not.toMatch(/music video from a song|Autopilot|BPM/i);        // this is not the PULSEFRAME guide
   });
 });

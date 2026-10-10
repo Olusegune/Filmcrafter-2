@@ -197,7 +197,6 @@ def test_the_explicit_modes_are_unchanged_by_auto(tmp_path):
 
 def test_new_projects_start_in_auto_and_the_setting_accepts_it():
     lib = open(os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs"), encoding="utf-8").read()
-    assert '"lip_sync_mode": "auto"' in lib                                                    # a new project's default
     assert '"auto" => "auto"' in lib                                                           # and the settings command keeps it
 
 

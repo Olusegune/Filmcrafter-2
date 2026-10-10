@@ -31,6 +31,7 @@ export function ShotLab({ dir }: { dir: string }) {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [review, setReview] = useState(false);
+  const [princ, setPrinc] = useState<{ screen_craft: boolean; video: { id: string; name: string; plain: string }[] } | null>(null);          // the animation principles this shot will carry
   const [helpShot, setHelpShot] = useState<Record<string, unknown> | null>(null);          // the writing helper suggestion for this shot
   const [helping, setHelping] = useState(false);
   const [cmd, setCmd] = useState<{ text: string; busy: boolean; result: { understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string } | null } | null>(null);   // the Director Command              // the continuity findings instead of one shot
@@ -48,6 +49,7 @@ export function ShotLab({ dir }: { dir: string }) {
     setSug(null); setDraft({});
     if (!sel) { setC(null); return; }
     api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch((e) => setErr(errorText(e)));
+    api.shots<{ screen_craft: boolean; video: { id: string; name: string; plain: string }[] }>("principles", dir, { id: sel }).then(setPrinc).catch(() => setPrinc(null));
   }, [sel, dir]);
 
   const act = async (what: string, fn: () => Promise<ShotsView>, keep?: (r: ShotsView) => string | null) => {
@@ -164,6 +166,9 @@ export function ShotLab({ dir }: { dir: string }) {
 
           {(tab === "acting" || tab === "camera") && <div className="sl-help"><span className="dim">Optional: a writing helper can suggest the acting, camera and light for this shot from your story.</span>
             <button className="btn ghost sm" onClick={helpMe} disabled={helping}><I.Sparkle size={13} /> {helping ? "Writing…" : "Help me write this shot"}</button></div>}
+          {tab === "acting" && princ && princ.video.length > 0 && <div className="sl-princ"><span className="dim">{princ.screen_craft ? "Screen craft in this shot" : "Animation principles in this shot"}</span>
+            {princ.video.map((p) => <span key={p.id} className="sl-pchip" title={p.plain}>{p.name}</span>)}
+            <span className="dim">chosen from what happens here and the film's look; change them in Cast &amp; World, Rules &amp; style</span></div>}
           {tab === "acting" && <>
             {text("performance.emotional_intention", "What the audience should feel", 2, "e.g. Held-back dread")}
             <div className="field"><span>Acting beats <span className="dim">what each person wants, needs, fears and hides, and how it shows</span></span>

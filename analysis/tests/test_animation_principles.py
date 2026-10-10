@@ -229,3 +229,19 @@ def test_a_quiet_acting_profile_drops_exaggeration_unless_the_person_chose_it():
     assert "exaggeration" in AP.pick({}, shot, "feature-3d", True)
     assert "exaggeration" not in AP.pick({"performance": {"default": "restrained"}}, shot, "feature-3d", True)
     assert "exaggeration" in AP.pick({"performance": {"default": "restrained"}, "animation": {"principles": ["exaggeration"]}}, shot, "feature-3d", True)
+
+
+def test_a_shot_shows_the_principles_it_will_carry(film):
+    bible.update_rules(film, {"style": {"look": "feature-3d"}})
+    shots.breakdown(film)
+    sid = next(c["id"] for c in make._contracts(film))
+    shots.set_fields(film, sid, {"performance": {"emotional_intention": "Joy", "beats": [{"character": "Sarah", "what": "Jumps off the step and lands laughing"}]}})
+    r = shots.principles(film, sid)
+    assert r["family"] == "3d" and not r["screen_craft"] and r["look"] == "feature-3d"
+    ids = [p["id"] for p in r["video"]]
+    assert "anticipation" in ids and len(ids) <= 4 and all(p["name"] and p["plain"] for p in r["video"])
+    bible.update_rules(film, {"style": {"look": "hyperreal", "principles": []}})
+    assert shots.principles(film, sid)["video"] == []                  # switched off: nothing is promised
+    bible.update_rules(film, {"style": {"principles": None}})
+    r = shots.principles(film, sid)
+    assert r["screen_craft"] and r["family"] == "photoreal" and "squash-stretch" not in [p["id"] for p in r["video"]]

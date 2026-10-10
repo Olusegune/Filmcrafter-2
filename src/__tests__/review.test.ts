@@ -4,8 +4,7 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(), convertFileSrc: (p: st
 vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn() }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 
-import { isProducerPackage } from "../ProducerImport";
-import { showDirOf } from "../ShowView";
+import { isProducerPackage } from "../filmPaths";
 import { endNote, money, sectionGroups } from "../SelectReview";
 import type { Estimate, Section } from "../api";
 
@@ -52,13 +51,5 @@ describe("endNote", () => {
     const e = { ...est({}), end_frame_models: [{ shot: "S01-02", title: "Kling 3 Pro" }], end_frame_unsupported: ["S01-05"] } as Estimate;
     expect(endNote(e)).toContain("S01-02 → Kling 3 Pro");
     expect(endNote(e)).toContain("won't be sent for: S01-05");
-  });
-});
-
-describe("showDirOf", () => {
-  it("finds the show of an item on Windows and macOS paths, and nothing for ordinary projects", () => {
-    expect(showDirOf(String.raw`C:\Users\a\Documents\FilmCrafter\QA Musical\items\02 Campfire Talk`)).toBe(String.raw`C:\Users\a\Documents\FilmCrafter\QA Musical`);
-    expect(showDirOf("/Users/a/Documents/FilmCrafter/My Show/items/01 Opening/")).toBe("/Users/a/Documents/FilmCrafter/My Show");
-    expect(showDirOf(String.raw`C:\Users\a\Documents\FilmCrafter\Type 7`)).toBeNull();
   });
 });

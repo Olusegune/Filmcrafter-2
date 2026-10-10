@@ -12,3 +12,6 @@ export function filmDirOfDoc(path: string): string {
 
 /** Is this the folder of a film's render project? */
 export const isRenderDir = (dir: string): boolean => /[\\/]render[\\/]*$/i.test(String(dir));
+
+/** A Producer package (a PULSEFRAME music-video planning package): FilmCrafter does not import these. */
+export const isProducerPackage = (p: string) => /\.(pfproducer|zip)$|[\\/]manifest\.json$/i.test(p);

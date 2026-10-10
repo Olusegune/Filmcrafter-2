@@ -159,6 +159,8 @@ def sync(d: str) -> dict:
     pj = _read(os.path.join(rd, "project.json"), {}) or {}
     pj.update({"schema_version": 2, "title": m["title"], "song": "", "state": "directed", "aspect_ratio": m.get("aspect_ratio", "16:9"),
                "look": {"style": B.effective_look(bible), **({"genre": bible["style"]["genre"]} if bible["style"].get("genre") else {}), **({"notes": bible["style"]["notes"]} if bible["style"].get("notes") else {})}, "film": True})
+    pj.setdefault("performance", {"default": "natural", "scenes": {}, "characters": {}, "shots": {}})      # a film starts with natural acting, so small real motion is in the prompt from the first render
+    pj.setdefault("lip_sync_mode", "auto")
     if "principles" in bible["style"]:               # the twelve principles of animation the film switched on (none saved: the style's own defaults)
         pj["animation"] = {"principles": bible["style"]["principles"]}
     else:

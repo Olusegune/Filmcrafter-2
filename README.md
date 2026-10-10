@@ -9,7 +9,7 @@ FilmCrafter is a sibling of PULSEFRAME (music-first AI directing). It started fr
 Screenplay or idea -> Production Bible, Cast and World -> shots with Shot Contracts -> storyboard -> hero keyframes -> video -> continuity check -> soundtrack -> export or hand-off to an editor.
 Your story is kept exactly as given; suggestions never edit it. Every generation shows its price and waits for a yes. Chosen and locked work is never replaced.
 
-See `docs/STORY.md` for a walk through with pictures.
+See `docs/GETTING_STARTED.md` (also the in-app guide, F1) for a walk through with pictures.
 
 ## Develop
 

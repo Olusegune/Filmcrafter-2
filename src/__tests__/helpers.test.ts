@@ -30,15 +30,6 @@ describe("shot status labels", () => {
   });
 });
 
-import { niceName } from "../Wizard";
-describe("reference names from file names", () => {
-  it("drops filler words and title-cases", () => {
-    expect(niceName("C:/x/character_amara.png")).toBe("Amara");
-    expect(niceName("young-sege_ref_v2.jpg")).toBe("Young Sege");
-    expect(niceName("sets_and_props.png")).toBe("Sets And Props");
-    expect(niceName("character.png")).toBe("character");
-  });
-});
 
 import { planningDefault } from "../Settings";
 describe("local planning model default", () => {

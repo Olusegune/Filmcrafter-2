@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0 (2026-10-10)
+
+- **The in-app guide (F1) is now the FilmCrafter guide.** It was still PULSEFRAME's 1,000-line music-video guide, and it could not show the film screenshots. The new guide covers before you start, the steps, the look and the animation principles, the Studio, the Supervisor, every keyboard shortcut and what to do when something goes wrong. The old guide is kept in `docs/legacy`.
+- **Music-first screens removed.** The setup wizard, the listening screen, the production planner, shows and Producer-package import are gone, with the shell commands only they used (12 of 106) and the Producer planner engine module. A music project that was never finished now says it belongs in PULSEFRAME; a finished one still opens in the Studio.
+- **Each shot shows the animation principles it will carry** (or, for a photorealistic film, its screen craft), on the Acting tab, from what happens in the shot and the film's look.
+- **A new film starts with natural acting and automatic lip-sync**, so small real motion is in the prompt from the first render (these were only set for old music projects).
+- **Hand-off check.** `scripts/make_handoff_sample.py` makes a small hand-off folder with real clips to try in Resolve, Premiere or Final Cut; `scripts/resolve_check.py` imports one into a running DaVinci Resolve Studio and compares it with the manifest.
+- `STATUS.md` rewritten to say what is verified and what is not.
+- Quieter: only the most restrained acting profile leaves out exaggeration (Natural no longer does).
+
 ## 0.8.0 (2026-10-10)
 
 - **Looks: about 100 of them, in six kinds of film.** Photorealistic, 3D animation, 2D animation, Hybrid 2D/3D, Hands-on crafts, and Art movements & experimental, each with looks from the style library (Hyperrealism, Film noir, Painterly 3D, Clay-look 3D, Watercolour storybook, Shonen action anime, Felt and wool stop-motion, Ukiyo-e, Art Deco and many more). Pick the kind, then the look; every look explains itself.

@@ -13,7 +13,7 @@ Status key: KEPT (works as is), GENERALIZE (kept, still has music-era assumption
 
 ## Added
 
-`story.py` (+ `test_story.py`): films, script versions, story analysis, Story Lock. `NewFilm.tsx`, `FilmView.tsx`, `storyView.ts`, `film.css`. See `docs/STORY.md`.
+`story.py` (+ `test_story.py`): films, script versions, story analysis, Story Lock. `NewFilm.tsx`, `FilmView.tsx`, `storyView.ts`, `film.css`. See `docs/GETTING_STARTED.md`.
 
 ## Corrections to the Phase 0 plan (found by reading the call sites)
 
