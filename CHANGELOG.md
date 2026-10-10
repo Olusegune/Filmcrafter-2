@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2026-10-10)
+
+- **Studio tools.** The full PULSEFRAME studio opens on a film from the film workspace: the timeline (scenes as sections, cuts as the grid, dialogue as a lane of words, the soundtrack as the waveform, shots as cards, layers on their own lanes), Supervisor, Review, Acting, Continuity, Lighting, Colour match, Clean up, Layers, Library and Export. Home returns to the film.
+- Song-first parts are hidden on a film (Autopilot, Direct My Video, the song guide, tempo); labels say Timeline, Soundtrack and Scenes.
+- `scripts/live_test.py`: one real picture through a real provider, price first, nothing without `--yes`.
+
 ## 0.2.0 (2026-10-10)
 
 The first version that takes a film from a screenplay to an exported file.
