@@ -18,7 +18,7 @@ export function ShotRefs({ dir, shot, library, thumbs, want, onChanged }: {
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const items = useMemo(() => library.items.filter((i) => i.kind in KINDS && !i.sheet && i.files.length > 0), [library]);
+  const items = useMemo(() => (library?.items ?? []).filter((i) => i.kind in KINDS && !i.sheet && i.files.length > 0), [library]);
   useEffect(() => { want(items.map((i) => i.files[0])); }, [items]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!shot || !items.length) return null;
   const on = new Map(shot.references.map((r) => [r.id, r.from]));

@@ -65,7 +65,7 @@ export function BeatsPanel({ dir, shotId, onChanged }: { dir: string; shotId: st
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
-  const load = useCallback(() => api.acting<BeatsData>(dir, "beats_get", { shot: shotId }).then((r) => { setData(r); setDraft(r.beats); setDirty(false); }).catch((e) => setErr(errorText(e))), [dir, shotId]);
+  const load = useCallback(() => api.acting<BeatsData>(dir, "beats_get", { shot: shotId }).then((r) => { setData(r); setDraft(r.beats ?? []); setDirty(false); }).catch((e) => setErr(errorText(e))), [dir, shotId]);
   useEffect(() => { setData(null); setErr(""); load(); }, [load]);
   const run = async (what: string, fn: () => Promise<unknown>) => { setBusy(what); setErr(""); try { await fn(); await load(); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); } };
   const write = async () => {

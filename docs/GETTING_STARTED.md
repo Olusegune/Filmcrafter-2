@@ -16,7 +16,7 @@ Along the top: **Story, Cast & World, Shots, Studio, Export**. Each shows how fa
 
 ## Home
 
-![Home: drop a screenplay, start a new film, or start from an idea. Recent films and older projects below](img/film/home.png)
+![Home: drop a screenplay, start a new film, or start from an idea. Behind the card a gold car is chased around a night road while camera rigs follow it](img/film/home.png)
 
 - **Drop a screenplay** on the window (Fountain, text, Markdown, PDF or Word), press **New film**, or press **Start from an idea**.
 - **Open project** opens a film or an older project. Older music-video projects and shows still open from **Recent**.
@@ -89,6 +89,8 @@ Each shot is a **Shot Contract** that doesn't depend on any AI model:
 
 ![Camera: choices come with a reason](img/film/shots-camera.png)
 
+![The Acting tab: the feeling and acting beats, and the animation principles this shot will carry](img/film/shots-acting.png)
+
 Move, duplicate, split, join and take out shots freely (a shot you take out is moved aside, not deleted). Running the breakdown again only drafts scenes that have no shots; shots you have edited are never changed. A shot whose storyboard is locked can't have its framing, people or place changed until you unlock it.
 
 ## The Studio: one place to make the film
@@ -98,7 +100,7 @@ Along the top of a film there are five steps: **Story, Cast & World, Shots, Stud
 - **Cards**: a wall of cards, one per shot, with the film strip along the top.
 - **Timeline**: the full editing studio (scenes, cuts, dialogue lane, soundtrack waveform, layers, Supervisor, Review, Lighting, Colour match, Clean up).
 
-![The cards: pictures to choose from and lock, with the film strip across the top](img/film/make.png)
+![The cards: pictures to choose from and lock, the film strip across the top, the yellow Make buttons, Check hands & faces in the bar and a flag on a card whose picture has wrong hands or a face](img/film/make.png)
 
 On the cards, three tabs follow the work:
 
@@ -114,7 +116,13 @@ Every quality finding in one place, **shot by shot**, each with its picture. The
 
 In the **Timeline**, the inspector keeps the everyday tabs (Shot, Keyframe, Video) in view; **Compose** (prompt, references, start and end frames) and **Media** (your own files) sit behind **Advanced**.
 
+![The Studio's shot inspector: Shot, Keyframe and Video are in view; Compose and Media wait behind Advanced](img/film/studio-shot.png)
+
+![With Advanced open: Compose (prompt, references, start and end frames) and Media appear, and the button now says Fewer](img/film/studio-advanced.png)
+
 **Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film or write a hand-off folder for an editor.
+
+![Export: a readiness line, then three numbered panels: soundtrack, export the film, hand off to an editor](img/film/export.png)
 
 **Money.** Every generation shows the provider's price first and waits for your yes. Nothing is made until you press **Make**. Chosen and locked work is never replaced by a new generation. Pictures and video go through the same render engine PULSEFRAME uses: your provider keys, budgets, queues and retries all apply, and a render that was running when you closed the app picks up where it left off.
 
@@ -135,11 +143,17 @@ Open a shot in **Shots** and choose **Blocking**. It is a floor plan seen from t
 
 In **Shots**, press **Continuity check**. FilmCrafter reads the shots in order and says where something **may** have changed: a person's outfit or state, the place or time of day inside one scene, a prop that appears and then vanishes, how a shot begins compared with how the last one ended, which shoulder the camera looks over, and people who have no pictures (so their face could drift).
 
+![The Continuity check: findings in order of how likely they are, each with a reason and what to do, including the camera crossing the line](img/film/continuity.png)
+
 Every finding says why. **It's meant** sets one aside; **I'll fix it** keeps track; **Use that** applies a plain suggestion (such as how a shot begins). It never blocks anything and never changes the film on its own.
 
 ## Writing help in Cast & World (optional)
 
 On a character, place or prop press **Help me write**; on **Rules & style** press **Help me write this**. FilmCrafter shows what it will send (your story and what the Bible already says) and the price (free if you use a local model), and waits for your yes. The suggestion appears next to what you have: tick what you want, change any words, and press **Use**. Whatever you already wrote is marked **yours** and is kept unless you tick the suggestion. It never changes anything on its own, and you can ignore it completely.
+
+![A suggestion for a character: each part is shown beside what you have now, and you tick what to use](img/film/assist.png)
+
+![A suggestion for a shot: the feeling and acting, the camera and the light, each with its reason, and you choose which parts to use](img/film/shot-suggestions.png)
 
 On the story ladder (when your story is not yet a screenplay), **Write it for me** drafts the next step: it opens for you to read and edit, and is saved as a new version only when you press Save. In **Shots**, the Acting and Camera tabs have **Help me write this shot**: it suggests the feeling, acting beats, small motion, camera and light, each with a reason; tick the parts you want.
 

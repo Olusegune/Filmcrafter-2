@@ -1,12 +1,12 @@
 # Status: what is done, what is partly done, what is not
 
-Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.10.0).
+Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.11.0).
 "Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run against a real provider, a Mac or a professional editor.
 
 ## What was verified in this release
 
 - Engine: the whole Python suite (about 1,800 tests, including the end-to-end journeys) passes on Windows.
-- Screens: 423 component and logic tests pass; every one of the 33 screen scenes in the screenshot harness opens with no console error or uncaught exception of our own (`PF_QA=1 node scripts/docshots-edge.mjs`).
+- Screens: 423 component and logic tests pass; every one of the 40 screen scenes in the screenshot harness opens with no console error or uncaught exception of our own (`PF_QA=1 node scripts/docshots-edge.mjs`).
 - Shell: Rust tests pass; the secrets scan is clean; the command allow-lists in the shell match the engine's choices (a test).
 - Not verified: anything that spends money at a provider, the macOS build, signing, any hand-off file in Resolve or Premiere.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 (2026-10-10)
+
+- **A new Home animation: a car chase.** The film strip is gone. Behind the drop card a gold car is chased around a night road by two pursuers while camera rigs follow it: two tripod cameras that pan with it and a drone that flies alongside, each with a viewfinder cone, a line held to the car and a REC light. Drag a screenplay over the card and it speeds up and locks on. With reduced motion it draws one still frame. The road runs around the edge of the card so the words stay clear.
+- **Shots is centred** like the other screens (the whole workspace in a centred frame, the editor centred in its half).
+- **Documentation with pictures.** The guide now has 20 screenshots, including Export, Check hands & faces, the Continuity check, the writing-help sheets, the Acting tab's principles, and the Studio inspector with and without Advanced. Every screenshot comes from this build.
+- **Sturdier.** The shot references panel and the acting beats panel no longer fail on a reply with a part missing (found while taking the screenshots; the sample data they were drawn from was also corrected).
+- `PF_QA=1 node scripts/docshots-edge.mjs` now covers 40 screens, all clean.
+
 ## 0.10.0 (2026-10-10)
 
 - **Blocking diagrams.** A new **Blocking** tab on each shot: a top-down floor plan with people (and the way they face), the camera and its cone of view, props, the line between the first two people, and ghost markers for the other shots' cameras. Drag anything; **Suggest a layout** places people and camera from who is in the shot, its framing and the shot before; **Same floor as the shot before** carries the people over.

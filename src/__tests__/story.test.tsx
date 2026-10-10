@@ -86,26 +86,66 @@ describe("the New film sheet", () => {
   });
 });
 
-describe("the Home film strip", () => {
-  it("rolls four strips of frames and speeds up when a story is dragged over", async () => {
+describe("the Home chase", () => {
+  it("is a canvas behind the card, hidden from screen readers, that speeds up when a story is dragged over", async () => {
     const { FilmReel } = await import("../FilmReel");
     const calm = renderToStaticMarkup(<FilmReel active={false} />);
     const fast = renderToStaticMarkup(<FilmReel active />);
-    expect(calm).toContain("reel-row top");
-    expect(calm).toContain("reel-row bottom");
-    expect(calm).toContain("reel-row top2");
-    expect(calm).toContain("reel-row bottom2");
-    expect(calm).toContain("reel-sweep");
+    expect(calm).toContain("<canvas");
+    expect(calm).toContain("reel-vignette");
+    expect(calm).toContain('aria-hidden="true"');
     expect(calm).not.toContain("reel fast");
     expect(fast).toContain("reel fast");
-    expect(calm).toContain('aria-hidden="true"');
-    expect((calm.match(/<i /g) ?? []).length).toBe(128);
   });
-  it("is still with reduced motion", () => {
-    expect(readFileSync("src/film.css", "utf8")).toMatch(/prefers-reduced-motion: reduce\) \{ \.reel-track, \.reel-sweep \{ animation: none/);
+  it("is still with reduced motion: the chase draws one frame and never starts the loop", () => {
+    const src = readFileSync("src/FilmReel.tsx", "utf8");
+    expect(src).toContain("prefers-reduced-motion: reduce");
+    expect(src).toMatch(/if \(!reduce\) raf = requestAnimationFrame\(frame\)/);
+    expect(readFileSync("src/film.css", "utf8")).toMatch(/prefers-reduced-motion: reduce\) \{ \.reel-scan, \.dropcard\.story \.btn\.hero/);
   });
 });
 
+describe("the chase arithmetic", () => {
+  it("makes a closed road around the edge of the box and leaves the middle clear", async () => {
+    const { makeTrack } = await import("../chase");
+    const t = makeTrack(600, 400);
+    expect(t.pts.length).toBe(480);
+    expect(t.total).toBeGreaterThan(1400);
+    for (const p of t.pts) { expect(p.x).toBeGreaterThanOrEqual(0); expect(p.x).toBeLessThanOrEqual(600); expect(p.y).toBeGreaterThanOrEqual(0); expect(p.y).toBeLessThanOrEqual(400); }
+    for (const p of t.pts) expect(Math.hypot((p.x - 300) / 600, (p.y - 200) / 400)).toBeGreaterThan(0.3);        // nothing runs through the words in the middle
+  });
+
+  it("finds a point and heading anywhere along a looping road, behind the start too", async () => {
+    const { makeTrack, at } = await import("../chase");
+    const t = makeTrack(600, 400);
+    const a = at(t, 0), b = at(t, t.total), c = at(t, -10);
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(0.01);
+    expect(Math.hypot(c.x - at(t, t.total - 10).x, c.y - at(t, t.total - 10).y)).toBeLessThan(0.01);
+    const p = at(t, 100), q = at(t, 101);
+    expect(Math.hypot(q.x - p.x, q.y - p.y)).toBeGreaterThan(0.5);
+    expect(Math.hypot(q.x - p.x, q.y - p.y)).toBeLessThan(1.6);
+    expect(Number.isFinite(at(t, 1e9).x)).toBe(true);
+  });
+
+  it("puts a camera beside a car and lets it follow with a lag", async () => {
+    const { beside, follow, turnBetween, turnToward } = await import("../chase");
+    const up = { x: 10, y: 10, angle: 0 };                                          // heading right
+    const left = beside(up, 5);
+    expect(left.x).toBeCloseTo(10);
+    expect(left.y).toBeCloseTo(15);                                                  // a positive side is to the left of the heading: down the page when heading right (y runs down)
+    expect(beside(up, 0, 4)).toEqual({ x: 14, y: 10 });
+    expect(follow({ x: 0, y: 0 }, { x: 10, y: 20 }, 0.5)).toEqual({ x: 5, y: 10 });
+    expect(turnBetween(0.1, 2 * Math.PI - 0.1)).toBeCloseTo(-0.2);                   // the short way round
+    expect(turnToward(0, Math.PI / 2, 0.5)).toBeCloseTo(Math.PI / 4);
+  });
+
+  it("makes the same city every time", async () => {
+    const { seeded } = await import("../chase");
+    const a = seeded(7), b = seeded(7);
+    expect([a(), a(), a()]).toEqual([b(), b(), b()]);
+    expect(seeded(8)()).not.toBe(seeded(7)());
+  });
+});
 
 import { neighbours, stageBadge, stageDone, stageLabel } from "../storyView";
 import type { FilmProgress } from "../api";

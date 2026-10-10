@@ -37,6 +37,9 @@ import { FilmView } from "../FilmView";
 import { CastWorld } from "../CastWorld";
 import { ShotLab } from "../ShotLab";
 import { MakeFilm } from "../MakeFilm";
+import { FilmContinuity } from "../FilmContinuity";
+import { AssistSheet } from "../AssistSheet";
+import { ShotSuggestionSheet } from "../ShotSuggestionSheet";
 import { Studio } from "../Studio";
 import renderFixture from "./render-fixture.json";
 import type { Job, LoadedProject, Shot } from "../api";
@@ -148,6 +151,11 @@ const blockingMock = { id: "S01-02", scene: 1, framing: "over the shoulder", pla
   text: "Blocking as the camera sees it: John screen-right, facing screen-left. Camera over Sarah's shoulder.",
   scene_shots: [{ id: "S01-01", framing: "wide", plan: { ...blockingPlanMock, camera: { x: 50, y: 66, aim: 270, fov: 65 } } }, { id: "S01-02", framing: "over the shoulder", plan: blockingPlanMock }, { id: "S01-03", framing: "over the shoulder", plan: { ...blockingPlanMock, camera: { x: 90, y: 20, aim: 190, fov: 40 } } }],
   crossings: [] as { shot: string; previous: string; message: string; fix: string }[] };
+const continuityMock = { open: 3, shots: 6, findings: [
+  { id: "f1", kind: "character", shot: "S02-03", other: "", severity: "likely", status: "open", text: "Sarah may have changed outfit: red coat in S02-02, grey cardigan in S02-03.", suggestion: "If the change is meant, ignore this. If not, set them to the same outfit." },
+  { id: "f2", kind: "direction", shot: "S01-03", other: "", severity: "look", status: "open", text: "The camera is on the other side of the line between Sarah and John than in S01-02, so they may swap sides on screen.", suggestion: "Move the camera back to the other side of the dashed line, or cut away to an insert or a wide shot first." },
+  { id: "f3", kind: "state", shot: "S01-04", other: "", severity: "note", status: "open", text: "S01-04 doesn't say how it begins. S01-03 ends: \"She puts the cup down.\".", suggestion: "Use that as how this shot begins.", apply: { opening_state: "She puts the cup down." } },
+  { id: "f4", kind: "prop", shot: "S01-04", other: "", severity: "note", status: "noted", text: "The letter is in S01-03 but not listed in S01-04.", suggestion: "Add it to the next shot's props." }] } as never;
 const shotCard = (id: string, scene: number, index: number, title: string, framing: string, duration: number, chars: string[], over: Record<string, unknown> = {}) => ({ id, scene, index, title, status: "draft", edited: false, story_purpose: title,
   camera: { framing, angle: "eye level", position: "", lens: "", movement: "locked off", focus: "", why: "" }, locks: { storyboard: false, keyframe: false }, duration, characters: chars, has_dialogue: chars.length > 0, environment: "Kitchen", ...over });
 const shotsView = { title: "Last Train", story_version: 2, seconds: 21.5, scenes: [{ number: 1, shots: 4, seconds: 14.5 }, { number: 2, shots: 2, seconds: 7 }],
@@ -183,7 +191,7 @@ mockIPC((cmd, a) => {
         { id: "p1", kind: "prop", name: "Red toy car", files: ["s6.png"] }, { id: "st1", kind: "style", name: "Painterly warm", files: ["s2.png"] }],
         assign: { project: ["c1", "st1"], scenes: { "2": { add: ["s1"] } }, shots: {} } };
       if (x.action === "bible") return { world: "", tone: "", rules: "", avoid: "" };
-      if (x.action === "storyboard") return { plan: "p", shots: ids.map((id, i) => ({ id, scene: 1, start: i * 6, end: i * 6 + 5, beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: `t${i}.png`, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })), library: { characters: [], places: [], props: [], styles: [] } }; if (x.action === "thumbs") return Object.fromEntries(((x.data?.srcs as string[]) ?? []).map((s, i) => [s, still(i + s.length)])); return null;
+      if (x.action === "storyboard") return { plan: "p", shots: ids.map((id, i) => ({ id, scene: 1, start: i * 6, end: i * 6 + 5, beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: `t${i}.png`, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })), library: { items: [], assign: { project: [], scenes: {}, shots: {} } } }; if (x.action === "thumbs") return Object.fromEntries(((x.data?.srcs as string[]) ?? []).map((s, i) => [s, still(i + s.length)])); return null;
     case "list_styles": return styles.styles;
     case "direction_library":
       if (x.action === "list") return { directions, current: "hayao-miyazaki" };
@@ -203,7 +211,7 @@ mockIPC((cmd, a) => {
       { shot: "S02-01", scene: 2, start: 31, end: 33, duration: 2, check: false, risks: [], note: "", sources: [{ id: "S02-01", cue: [], people: ["Sege"], description: "Intimate profile of their kiss." }, { id: "S02-02", cue: [], people: ["Amara"], description: "Close-up of Amara laughing gently." }] }] } : null;
     case "review_backlog": return { unchecked: 0 };
     case "lipsync_check": return { shots: 0 };
-    case "acting": return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
+    case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
     case "list_projects": return [
       { dir: "f1", title: "Last Train", kind: "film", state: "Story locked", modified: now },
@@ -214,6 +222,7 @@ mockIPC((cmd, a) => {
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
     case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : makeStatus;
+    case "film_check": return continuityMock;
     case "film_shots": return x.action === "shot" ? { shot: { ...shotContract, plan: blockingPlanMock, ...(/click=Blocking/.test(location.search) ? { locks: { storyboard: false, keyframe: false } } : {}) } } : x.action === "suggest" ? shotSuggestion : x.action === "blocking" ? blockingMock : x.action === "principles" ? { look: "stop-motion", family: "craft", screen_craft: false, picture: [], video: [{ id: "anticipation", name: "Anticipation", plain: "A small opposite move prepares the big one." }, { id: "follow-through", name: "Follow-through and overlapping action", plain: "Loose parts keep going a beat longer." }, { id: "staging", name: "Staging", plain: "One idea reads at once." }, { id: "slow-in-out", name: "Slow in and slow out", plain: "Movements ease in and out." }] } : shotsView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
@@ -273,6 +282,13 @@ const scenes: Record<string, () => ReactNode> = {
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
   studio: () => <Studio project={{ dir: DIR, ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,
   make: () => <div style={{ width: 1240, height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="keyframe" onTab={noop} /></div>,
+  export: () => <div style={{ width: 1240, height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="deliver" onTab={noop} /></div>,
+  continuity: () => <div style={{ width: 1100, height: 640, display: "flex", background: "#090b0f" }}><FilmContinuity dir="f1" onGo={noop} onChanged={noop} /></div>,
+  assist: () => <AssistSheet dir="f1" kind="character" id="c_sarah" name="Sarah" bible={bibleView as never} onClose={noop} onApplied={noop}
+    proposal={{ role: "Lead: the one who waits", age: "28", physical: "Tall, grey eyes, dark hair tied back, a ring she never takes off", relationships: "John's partner; her mother's only daughter", arc: "From waiting for a call to deciding to leave", voice: "Low, careful, says less than she means", notes: "Keeps her hands busy when she is hiding something" }} />,
+  shotsuggest: () => <ShotSuggestionSheet shot="S01-02" current={shotContract as never} onClose={noop} onUse={noop}
+    proposal={{ emotional_intention: "A held-back dread that neither of them names", beats: [{ character: "Sarah", what: "Holds the cup with both hands", want: "To be asked", hiding: "That she has packed", start: "calm", turn: "he does not look up", end: "still" }], micro_animation: "Steam rises; she blinks slowly",
+      camera: { framing: "over the shoulder", angle: "low", lens: "portrait (50mm)", movement: "locked off", focus: "shallow", why: "Low and close keeps us with Sarah's silence." }, lighting: { description: "Low window light from the left", why: "Morning light is soft and slow." } }} />,
   shots: () => <div style={{ width: 1240, height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: 1200, height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
