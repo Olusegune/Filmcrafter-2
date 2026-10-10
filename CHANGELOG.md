@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0 (2026-10-10)
+
+The first version that takes a film from a screenplay to an exported file.
+
+- **Story:** a screenplay (or an idea, synopsis, treatment or outline) is kept exactly as given; scenes, speaking characters and places are read from it; versions; Story Lock; suggestions that never edit the script.
+- **Production Bible, Cast and World:** characters, places and props with related states, wardrobe, your own pictures, place layouts, rules and a visual style; filled from the story, then yours; every change is kept in a history.
+- **Shots:** the story broken down into a draft of shots, each a Shot Contract (purpose, people and states, place, action, dialogue, acting beats, camera, light, continuity); suggestions with reasons; split, join, duplicate, move, take out.
+- **Making the film:** storyboard panels, hero keyframes and video through the proven render engine, with choose and lock at each stage, your own pictures and video, a soundtrack, and export. Every generation shows its price and waits for a yes.
+- **Continuity Director:** advisory findings ("may have changed") with reasons; your decisions are kept.
+- **Hand-off:** EDL, OpenTimelineIO, Final Cut Pro XML, shot manifest, subtitles, copied takes and soundtrack.
+- **Simple and Studio** modes on the same film; **Director Command** (Ctrl+K) for plain phrases about a shot.
+- New app icon from the FilmCrafter mark.
+- Tests: 90 new engine tests including a whole film from screenplay to export with no provider and no spend.
+
 ## 0.1.0 (unreleased)
 
 - **Story-first Home and creation flow.** Home is about stories: drop a screenplay, press New film, or start from an idea. New film asks how your story begins (screenplay, idea or logline, synopsis, treatment, scene outline), takes pasted text or a file (Fountain, text, Markdown, PDF, Word), shows what was found, and keeps the story exactly as given (the chosen file is copied untouched into the film). A film opens in the story workspace: scenes, the script as written, versions, Story Lock, suggestions that never edit the script, characters and places. New engine module `story.py` (film.json, script versions, analysis, lock history), a `film` shell command, a film kind in Recent.

@@ -44,6 +44,7 @@ export function FilmView({ dir, onHome, onSettings }: { dir: string; onHome: () 
   if (!f) return <div className="film"><div className="film-load dim">{err || "Opening the film…"}</div></div>;
   const st = f.story;
   const isScreenplay = f.kind === "screenplay";
+  const studio = f.mode === "studio";
   const advice = openAdvice(f.advice);
   const setAside = f.advice.filter((a) => a.status !== "open");
   const shownAdvice = showAll ? advice : advice.slice(0, 3);
@@ -60,13 +61,16 @@ export function FilmView({ dir, onHome, onSettings }: { dir: string; onHome: () 
         <button className="btn ghost sm" onClick={onHome}>‹ Home</button>
         <h1 className="film-title" title={f.title}>{f.title}</h1>
         <ol className="film-stages" aria-label="The stages of making a film">
-          {STAGES.map((s) => <li key={s.id} className={s.id === activeId ? "on" : s.ready ? "ready" : ""} title={s.ready ? undefined : "Coming in a later update"} aria-current={s.id === activeId ? "step" : undefined}>
+          {STAGES.filter((s) => studio || s.id !== "shots").map((s) => <li key={s.id} className={s.id === activeId ? "on" : s.ready ? "ready" : ""} title={s.ready ? undefined : "Coming in a later update"} aria-current={s.id === activeId ? "step" : undefined}>
             {s.ready ? <button onClick={() => { setStage(stageOf(s.id) as "story" | "cast" | "shots" | "make"); if (s.id in MAKE_STAGE) setMakeTab(MAKE_STAGE[s.id]); }}>{s.label}</button> : s.label}</li>)}
         </ol>
+        <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
+          {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
+            onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Studio"}</button>)}</div>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
 
-      {stage === "cast" ? <CastWorld key={dir} dir={dir} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={dir} dir={dir} tab={makeTab} onTab={setMakeTab} /> : <div className="film-body">
+      {stage === "cast" ? <CastWorld key={dir} dir={dir} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={dir} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} /> : <div className="film-body">
         <nav className="film-scenes" aria-label="Scenes">
           <h2>Scenes <span className="dim">{f.found.scenes.filter((s) => !s.implied).length || ""}</span></h2>
           {f.found.scenes.length === 0 && <p className="dim">{isScreenplay ? "No scenes found yet." : "Scenes appear once the story is a screenplay or an outline."}</p>}

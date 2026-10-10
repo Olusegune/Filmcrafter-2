@@ -500,9 +500,8 @@ BY_TIME = [(r"night|midnight", "Moonlight or street light through windows, with 
            (r"day|noon|afternoon", "Even daylight from the windows, soft fill.", "Daylight is the motivation here.")]
 
 
-def suggest(d: str, sid: str) -> dict:
-    """What the camera and light could do for what this shot is meant to feel like, each with its reason. Nothing is applied."""
-    c = _contract(d, sid)
+def suggest_for(c: dict) -> dict:
+    """The suggestion for a contract (pure): camera and light for what the shot is meant to feel like, each with its reason."""
     feel = " ".join([c["performance"]["emotional_intention"], c["story_purpose"], c["action"]]).lower()
     cam: dict = {}
     light = {"description": "", "why": ""}
@@ -523,11 +522,16 @@ def suggest(d: str, sid: str) -> dict:
     return {"camera": cam, "lighting": light, "from": "the feeling of the shot" if c["performance"]["emotional_intention"] else "what the shot shows"}
 
 
+def suggest(d: str, sid: str) -> dict:
+    """What the camera and light could do for what this shot is meant to feel like, each with its reason. Nothing is applied."""
+    return suggest_for(_contract(d, sid))
+
+
 # ---------------------------------------------------------------- command line
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-shots")
-    ap.add_argument("action", choices=["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest"])
+    ap.add_argument("action", choices=["get", "breakdown", "shot", "set", "add", "duplicate", "delete", "move", "merge", "split", "suggest", "command"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -555,6 +559,9 @@ def main(argv: list[str]) -> int:
             res = merge(d, x["id"])
         elif a.action == "split":
             res = split(d, x["id"])
+        elif a.action == "command":
+            from . import directcmd
+            res = directcmd.command(d, x["id"], x.get("text", ""))
         else:
             res = suggest(d, x["id"])
         emit(event="result", data=res)

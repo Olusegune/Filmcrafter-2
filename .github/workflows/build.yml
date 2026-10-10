@@ -39,6 +39,21 @@ jobs:
         with: { python-version: "3.11" }
       - run: python -m compileall -q analysis/filmcrafter_engine
 
+  film-engine:
+    name: Film engine tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      # the film workflow needs only these (checked in a clean environment on Windows): story, Bible, shots, making, continuity, hand-off, and a real FFmpeg export
+      - run: pip install pytest requests pillow numpy soundfile imageio-ffmpeg pyyaml keyring pypdf fal-client openai
+      - run: python -m pytest analysis/tests/test_story.py analysis/tests/test_bible.py analysis/tests/test_shots.py analysis/tests/test_make.py analysis/tests/test_golden_film.py analysis/tests/test_filmcheck.py analysis/tests/test_interchange.py analysis/tests/test_directcmd.py -q
+
   macos-compile:
     name: macOS compile check
     runs-on: macos-latest

@@ -27,7 +27,8 @@ export function ShotLab({ dir }: { dir: string }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
-  const [review, setReview] = useState(false);              // the continuity findings instead of one shot
+  const [review, setReview] = useState(false);
+  const [cmd, setCmd] = useState<{ text: string; busy: boolean; result: { understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string } | null } | null>(null);   // the Director Command              // the continuity findings instead of one shot
 
   const load = useCallback(async (keep?: string | null) => {
     try {
@@ -63,6 +64,18 @@ export function ShotLab({ dir }: { dir: string }) {
     <label className="field" key={path}><span>{label}</span>
       <select className="text-input" value={get(c, path)} onChange={(e) => void save(nest(path, e.target.value))}><option value="">—</option>{options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>);
 
+  useEffect(() => {                                                       // Ctrl/Cmd+K: say what you want changed in this shot
+    const k = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setCmd((x) => (x ? null : { text: "", busy: false, result: null })); } if (e.key === "Escape") setCmd(null); };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, []);
+  const runCmd = async () => {
+    if (!cmd || !sel || !cmd.text.trim()) return;
+    setCmd({ ...cmd, busy: true });
+    try { const r = await api.shots<{ understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string }>("command", dir, { id: sel, text: cmd.text }); setCmd({ ...cmd, busy: false, result: r }); }
+    catch (e) { setErr(errorText(e)); setCmd({ ...cmd, busy: false }); }
+  };
+  const applyCmd = async () => { if (cmd?.result?.understood) { await save(cmd.result.patch); setCmd(null); } };
   const locked = !!c?.locks.storyboard;
   const suggest = async () => { if (sel) { try { setSug(await api.shots<ShotSuggestion>("suggest", dir, { id: sel })); } catch (e) { setErr(errorText(e)); } } };
   const apply = async () => { if (sug) { await save({ camera: sug.camera, lighting: { description: sug.lighting.description, why: sug.lighting.why } }); setSug(null); } };
@@ -76,6 +89,7 @@ export function ShotLab({ dir }: { dir: string }) {
   return (
     <div className="sl">
       <aside className="sl-list" aria-label="Shots">
+        <button className="btn ghost sm sl-ck" onClick={() => setCmd({ text: "", busy: false, result: null })} title="Say what you want changed in this shot (Ctrl+K)">Director Command  Ctrl+K</button>
         <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => setReview((x) => !x)} title="Where something may have changed between shots">Continuity check</button>
         <div className="sl-listhead"><h2>Shots <span className="dim">{v.shots.length}{v.seconds ? ` · ${clock(v.seconds)}` : ""}</span></h2>
           <button className="btn ghost sm" onClick={() => act("break", () => api.shots("breakdown", dir), (r) => r.made?.[0] ?? sel)} disabled={!!busy}
@@ -92,6 +106,16 @@ export function ShotLab({ dir }: { dir: string }) {
             <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
       </aside>
 
+      {cmd && <div className="overlay" onClick={() => setCmd(null)}>
+        <form className="sheet glass dc" role="dialog" aria-label="Director Command" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); void runCmd(); }}>
+          <label className="field"><span>Director Command <span className="dim">for {sel ?? "no shot"}</span></span>
+            <input className="text-input" autoFocus value={cmd.text} onChange={(e) => setCmd({ ...cmd, text: e.target.value, result: null })} placeholder="e.g. make this shot more claustrophobic" /></label>
+          {cmd.result && <div className="dc-result">
+            {cmd.result.understood ? <><ul>{cmd.result.summary.map((l, i) => <li key={i}>{l}</li>)}</ul>
+              <div className="film-actions"><button type="button" className="btn primary" onClick={applyCmd}>Apply</button><button type="button" className="btn ghost" onClick={() => setCmd({ ...cmd, result: null })}>Change my words</button></div></>
+              : <><p>I didn't understand that.</p><p className="dim">{cmd.result.help}</p></>}</div>}
+          {!cmd.result && <div className="film-actions"><button className="btn primary" disabled={cmd.busy || !cmd.text.trim() || !sel}>Show me the change</button><span className="dim">Nothing changes until you press Apply.</span></div>}
+        </form></div>}
       {review ? <main className="sl-main"><FilmContinuity dir={dir} onGo={(id) => { setSel(id); setReview(false); }} onChanged={() => { void load(sel); if (sel) api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch(() => {}); }} /></main>
         : c ? <main className="sl-main">
         <div className="sl-head"><h2>{c.id} <input className="sl-title" aria-label="Shot title" value={draft.title ?? c.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onBlur={() => commit("title")} placeholder="Name this shot" /></h2>

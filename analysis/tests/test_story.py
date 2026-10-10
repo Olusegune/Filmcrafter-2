@@ -173,3 +173,14 @@ def test_the_command_line_speaks_json(tmp_path, capsys):
     assert rc == 0 and out["event"] == "result" and out["data"]["title"] == "CLI"
     rc = story.main(["status", str(tmp_path / "nope")])
     assert rc == 1 and json.loads(capsys.readouterr().out.strip().splitlines()[-1])["event"] == "error"
+
+
+def test_simple_and_studio_are_the_same_film(tmp_path):
+    d = story.create(str(tmp_path), "T", "screenplay", SCRIPT)["dir"]
+    assert story.status(d)["mode"] == "simple"
+    before = story.status(d)["text"]
+    r = story.set_mode(d, "studio")
+    assert r["mode"] == "studio" and r["text"] == before and r["story"] == story.status(d)["story"]
+    assert story.set_mode(d, "simple")["mode"] == "simple"
+    with pytest.raises(SystemExit, match="simple or studio"):
+        story.set_mode(d, "expert")

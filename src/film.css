@@ -207,3 +207,11 @@
 .ck .topic { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
 .ck p { margin: 4px 0 6px; font-size: 13px; line-height: 1.5; }
 .ck .row { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; }
+.film-mode { margin-left: var(--sp-2, 8px); }
+
+/* ---- Director Command ---- */
+.dc { width: min(560px, calc(100vw - 48px)); }
+.dc-result { margin: var(--sp-3, 12px) 0; padding: var(--sp-3, 12px) var(--sp-4, 16px); border-radius: 12px; background: rgba(100, 183, 255, 0.08); border: 1px solid rgba(100, 183, 255, 0.25); font-size: 13px; }
+.dc-result ul { margin: 0 0 var(--sp-3, 12px); padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.dc-result p { margin: 0 0 6px; }
+.sl-ck { margin-right: 6px; }

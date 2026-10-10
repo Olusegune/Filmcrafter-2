@@ -290,14 +290,15 @@ export const api = {
                         data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
   isShow: (path: string) => invoke<boolean>("is_show", { path }),
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
-  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest", target: string, data: Record<string, unknown> = {}) =>
+  shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
+  interchange: (target: string) => invoke<InterchangeResult>("film_interchange", { target }),
   filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
-  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set", target: string | null, data: Record<string, unknown> = {}) =>
+  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
   packProject: (dir: string, dest: string) => invoke<{ path: string; files: number; bytes: number }>("pack_project", { dir, dest }),
@@ -497,3 +498,5 @@ export type MakeSynced = { render_dir: string; shots: number; seconds: number; r
 // ---------------------------------------------------------------- continuity
 export type ContinuityFinding = { id: string; kind: string; shot: string; other: string; severity: "note" | "look" | "likely"; text: string; suggestion: string; status: "open" | "noted" | "dismissed"; apply?: Record<string, string> };
 export type ContinuityView = { findings: ContinuityFinding[]; open: number; shots: number };
+
+export type InterchangeResult = { dir: string; files: Record<string, string>; shots: number; placed: number; missing: string[]; audio: string | null; seconds: number };

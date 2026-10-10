@@ -393,6 +393,16 @@ def as_is(d: str, version: int | None = None) -> dict:
     return status(d)
 
 
+def set_mode(d: str, mode: str) -> dict:
+    """Simple mode hides the detailed workspaces; Studio mode shows them. Same film either way: nothing is lost by switching."""
+    if mode not in ("simple", "studio"):
+        raise SystemExit("Choose simple or studio.")
+    m = _manifest(d)
+    m["mode"] = mode
+    _write(os.path.join(d, "film.json"), m)
+    return status(d)
+
+
 def rec_set(d: str, version: int, rec_id: str, state: str) -> dict:
     """Mark a piece of advice: noted (I'll deal with it in a new version), or dismissed. The script is not changed."""
     if state not in ("open", "noted", "dismissed"):
@@ -416,7 +426,7 @@ def rec_set(d: str, version: int, rec_id: str, state: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-story")
-    ap.add_argument("action", choices=["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set"])
+    ap.add_argument("action", choices=["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -438,6 +448,8 @@ def main(argv: list[str]) -> int:
             res = lock(a.target, x.get("version"))
         elif a.action == "as_is":
             res = as_is(a.target, x.get("version"))
+        elif a.action == "set_mode":
+            res = set_mode(a.target, str(x.get("mode", "")))
         else:
             res = rec_set(a.target, int(x["version"]), x["id"], x["state"])
         emit(event="result", data=res)

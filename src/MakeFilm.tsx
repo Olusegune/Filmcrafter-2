@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { api, errorText, type ExportResult, type MakeShot, type MakeStatus } from "./api";
+import { api, errorText, type ExportResult, type InterchangeResult, type MakeShot, type MakeStatus } from "./api";
 import { ask } from "./ask";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
@@ -20,20 +20,29 @@ type Pick = { provider?: string; model?: string; label?: string; price_usd?: num
  * Making the film: storyboard, hero keyframes, video, then sound and export. Every step that costs money shows the price first and waits for a yes.
  * Chosen and locked work is never replaced by a new generation.
  */
-export function MakeFilm({ dir, tab, onTab }: { dir: string; tab: MakeTab; onTab: (t: MakeTab) => void }) {
+export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab: MakeTab; onTab: (t: MakeTab) => void; autoBreakdown?: boolean }) {
   const [st, setSt] = useState<MakeStatus | null>(null);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [note, setNote] = useState("");
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
+  const [handoff, setHandoff] = useState<InterchangeResult | null>(null);
 
   const load = useCallback(() => api.make("status", dir).then(setSt).catch((e) => setErr(errorText(e))), [dir]);
   useEffect(() => {
     let live = true;
-    api.make("sync", dir).then(() => { if (live) void load(); }).catch((e) => live && setErr(errorText(e)));
+    (async () => {
+      try {
+        try { await api.make("sync", dir); }
+        catch (e) {                                          // Simple mode: no shots yet means the director's first pass is made now, then the film is ready
+          if (autoBreakdown && /no shots yet/i.test(errorText(e))) { await api.shots("breakdown", dir); await api.make("sync", dir); } else throw e;
+        }
+        if (live) void load();
+      } catch (e) { if (live) setErr(errorText(e) + (/no shots yet/i.test(errorText(e)) ? " Open Shots (Studio mode) and break the story down." : "")); }
+    })();
     return () => { live = false; };
-  }, [dir, load]);
+  }, [dir, load, autoBreakdown]);
   useEffect(() => {                                                       // while pictures or video are being made, look again
     if (!st || st.active === 0) return;
     const t = setInterval(load, 4000);
@@ -83,6 +92,11 @@ export function MakeFilm({ dir, tab, onTab }: { dir: string; tab: MakeTab; onTab
     try { setResult(await api.exportProject(rd, preset)); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
   };
 
+  const doHandoff = async () => {
+    setBusy("handoff"); setErr(""); setHandoff(null);
+    try { const r = await api.interchange(dir); setHandoff(r); await revealItemInDir(r.dir).catch(() => {}); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
+  };
+
   if (!st) return <div className="mk"><div className="film-load dim">{err || "Getting the film ready…"}</div></div>;
   const t = TABS.find((x) => x.id === tab)!;
   const stage = tab === "deliver" ? null : tab;
@@ -122,6 +136,10 @@ export function MakeFilm({ dir, tab, onTab }: { dir: string; tab: MakeTab; onTab
             <button className="btn primary" disabled={!!busy || st.counts.video === 0} onClick={doExport}>{busy === "export" ? "Exporting…" : "Export the film"}</button></div>
           {result && <div className="mk-result"><b>{result.draft ? "Draft exported" : "Exported"}</b> · {result.width}×{result.height} · {result.duration.toFixed(1)}s<br />
             <span className="dim">{result.path}</span><br /><button className="link" onClick={() => revealItemInDir(result.path)}>Show in folder</button></div>}</section>
+        <section><h3>Hand off to an editor</h3>
+          <p className="dim">Writes one folder: the cut as an EDL (Premiere Pro, Resolve, Avid), OpenTimelineIO and Final Cut Pro XML (Resolve, Final Cut), a shot manifest, subtitles, and copies of the takes and soundtrack. Your film is never trapped here.</p>
+          <div className="film-actions"><button className="btn" disabled={!!busy || st.counts.video === 0} onClick={doHandoff}>{busy === "handoff" ? "Writing…" : "Write the hand-off folder"}</button></div>
+          {handoff && <div className="mk-result"><b>Written</b> · {handoff.placed} of {handoff.shots} shots placed{handoff.missing.length ? `; no take yet: ${handoff.missing.join(", ")}` : ""}<br /><span className="dim">{handoff.dir}</span></div>}</section>
       </div>}
     </div>
   );
