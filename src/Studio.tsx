@@ -51,6 +51,7 @@ import { ScriptSheet } from "./ScriptSheet";
 import { Autopilot } from "./Autopilot";
 import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
+import { filmDirOfRender } from "./filmPaths";
 import { ask } from "./ask";
 
 type Selection = { kind: "shot"; id: string } | { kind: "section"; index: number } | null;
@@ -1217,7 +1218,8 @@ function ProjectSettingsRow({ project }: { project: LoadedProject }) {
   const change = async (k: keyof typeof s, v: string) => {
     const next = { ...s, [k]: v };
     setS(next); setErr("");
-    try { if (k === "aspect_ratio" || k === "quality") await saveFrame(project.dir, k, v); else if (k === "vocalist") await api.setProjectSettings(project.dir, { vocalist: v as "onscreen" | "offscreen" }); else await api.setProjectSettings(project.dir, { lip_sync: v as "auto" | "closeups" | "off" }); } catch (e) { setErr(errorText(e)); }
+    try { if (k === "aspect_ratio" || k === "quality") { await saveFrame(project.dir, k, v); if (k === "aspect_ratio" && (project.project as { film?: boolean }).film) await api.film("set_aspect", filmDirOfRender(project.dir), { aspect_ratio: v }); }       // a film keeps its shape in the film too, or the next sync would put the old one back
+       else if (k === "vocalist") await api.setProjectSettings(project.dir, { vocalist: v as "onscreen" | "offscreen" }); else await api.setProjectSettings(project.dir, { lip_sync: v as "auto" | "closeups" | "off" }); } catch (e) { setErr(errorText(e)); }
   };
   return (
     <div className="insp-section">

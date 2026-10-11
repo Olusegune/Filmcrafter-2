@@ -1213,7 +1213,7 @@ fn film_dir(path: &str) -> Result<PathBuf, String> {
 /// at all; every other action works on an existing film folder. Reading and advice are free and local; nothing here is sent anywhere.
 #[tauri::command]
 async fn film(app: AppHandle, action: String, target: Option<String>, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 11] = ["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode", "reread"];
+    const ACTIONS: [&str; 12] = ["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode", "set_aspect", "reread"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown film action.".into());
     }

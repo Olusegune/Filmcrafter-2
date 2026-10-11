@@ -3,6 +3,7 @@ import { api, errorText, type FilmAdvice, type FilmProgress, type FilmScene, typ
 import * as I from "./icons";
 import { ask } from "./ask";
 import { askForHelp } from "./AssistSheet";
+import { FrameShapes } from "./FrameShapes";
 import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
@@ -131,6 +132,12 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
               {!f.locked_here && <button className="btn primary" disabled={!!busy} onClick={lock}>Lock this version</button>}
             </div> : <Ladder kind={f.kind} onWrite={() => { setSuggested(null); setWriting(true); }} helping={helping}
               onHelp={async () => { setErr(""); setHelping(true); try { const p = await askForHelp(dir, "story", null, "the next step of your story"); if (p && typeof p.text === "string") { setSuggested({ text: p.text, kind: p.kind as StoryKind }); setWriting(true); } } catch (e) { setErr(errorText(e)); } finally { setHelping(false); } }} />}
+          </section>
+
+          <section className="film-frame">
+            <h2>Frame shape</h2>
+            <FrameShapes value={f.aspect_ratio} disabled={!!busy} onChange={(v) => run("aspect", () => api.film<FilmStatus>("set_aspect", dir, { aspect_ratio: v }))} />
+            <p className="dim">Pictures and video are asked for in this shape from now on. What is already made stays as it was.</p>
           </section>
 
           {advice.length > 0 && <section className="film-advice">

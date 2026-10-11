@@ -278,7 +278,7 @@ export const api = {
   filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
   bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
-  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
+  film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "set_aspect" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
   packProject: (dir: string, dest: string) => invoke<{ path: string; files: number; bytes: number }>("pack_project", { dir, dest }),

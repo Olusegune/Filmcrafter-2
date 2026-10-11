@@ -337,8 +337,20 @@ def _save_version(d: str, n: int, kind: str, text: str, note: str, parent: int |
     return rec
 
 
+# The shapes a film's frame can take (the same list as the shell's project settings): from ultra-wide cinema to vertical phone video.
+ASPECTS = ("16:9", "21:9", "2.39:1", "4:3", "1:1", "4:5", "3:4", "9:16", "9:21")
+
+
+def _aspect(value) -> str:
+    v = str(value if value is not None else "16:9").strip()
+    if v not in ASPECTS:
+        raise SystemExit("Choose one of the listed frame shapes: " + ", ".join(ASPECTS) + ".")
+    return v
+
+
 def create(root: str, title: str, kind: str, text: str, source_file: str | None = None, aspect_ratio: str = "16:9") -> dict:
     kind = kind if kind in KINDS else "idea"
+    aspect_ratio = _aspect(aspect_ratio)
     text = _norm(text)
     if not text.strip():
         raise SystemExit("Add some story first: paste it, or choose a file.")
@@ -469,6 +481,14 @@ def as_is(d: str, version: int | None = None) -> dict:
     return status(d)
 
 
+def set_aspect(d: str, aspect_ratio: str) -> dict:
+    """The shape of the film's frame. Every picture and video made from here on is asked for in this shape (the render project follows on the next sync); what was made stays as it was."""
+    m = _manifest(d)
+    m["aspect_ratio"] = _aspect(aspect_ratio)
+    _write(os.path.join(d, "film.json"), m)
+    return status(d)
+
+
 def set_mode(d: str, mode: str) -> dict:
     """Simple mode hides the detailed workspaces; Studio mode shows them. Same film either way: nothing is lost by switching."""
     if mode not in ("simple", "studio"):
@@ -502,7 +522,7 @@ def rec_set(d: str, version: int, rec_id: str, state: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-story")
-    ap.add_argument("action", choices=["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode", "reread"])
+    ap.add_argument("action", choices=["create", "status", "preview", "read_file", "add_version", "set_current", "lock", "as_is", "rec_set", "set_mode", "set_aspect", "reread"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -528,6 +548,8 @@ def main(argv: list[str]) -> int:
             res = reread_original(a.target)
         elif a.action == "set_mode":
             res = set_mode(a.target, str(x.get("mode", "")))
+        elif a.action == "set_aspect":
+            res = set_aspect(a.target, x.get("aspect_ratio"))
         else:
             res = rec_set(a.target, int(x["version"]), x["id"], x["state"])
         emit(event="result", data=res)

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import guide from "../../docs/GETTING_STARTED.md?raw";
+import styles from "../../analysis/filmcrafter_engine/styles.json";
 
 vi.mock("@tauri-apps/plugin-opener", () => ({ openUrl: vi.fn() }));
 
@@ -33,6 +34,15 @@ describe("the documentation's screenshots", () => {
     }
     const all = renderGuide(guide).map((e) => String((e as ReactElement).key));
     expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("lists every look the app offers, so the guide and the app cannot disagree (run scripts/make_look_docs.py after adding one)", () => {
+    for (const st of styles.styles) {
+      if (st.family === "auto") continue;
+      expect(guide, `${st.name} is in the app but not in the guide`).toContain(`**${st.name}**`);
+    }
+    expect(guide).toContain("Cast & World");
+    expect(guide).toContain("## The look library");
   });
 
   it("is the film guide: the steps, the money rules, the look and the shortcuts", () => {

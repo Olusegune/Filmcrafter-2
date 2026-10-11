@@ -119,16 +119,19 @@ describe("the board's arithmetic", () => {
     expect(Math.atan2(b.y - a.y, b.x - a.x)).toBeCloseTo(a.heading, 1);
   });
 
-  it("keeps the frames inside the box and away from the middle column where the words are", async () => {
+  it("keeps four frames in four different shapes inside the box and away from the middle column where the words are", async () => {
     const { framesFor } = await import("../blueprint");
-    for (const [w, h] of [[1240, 600], [900, 520], [1600, 700]]) {
+    for (const [w, h] of [[880, 600], [700, 520], [1100, 640]]) {
       const fs = framesFor(w, h);
       expect(fs).toHaveLength(4);
       expect(new Set(fs.map((f) => f.label)).size).toBe(4);
+      expect(new Set(fs.map((f) => f.ratio))).toEqual(new Set(["1:1", "21:9", "9:16", "16:9"]));
       for (const f of fs) {
         expect(f.x).toBeGreaterThanOrEqual(0); expect(f.y).toBeGreaterThanOrEqual(0);
         expect(f.x + f.w).toBeLessThanOrEqual(w); expect(f.y + f.h).toBeLessThanOrEqual(h);
-        expect(f.x + f.w <= w * 0.5 - w * 0.1 || f.x >= w * 0.5 + w * 0.1).toBe(true);        // not in the middle fifth
+        expect(f.x + f.w <= w * 0.4 || f.x >= w * 0.6).toBe(true);                         // not in the middle fifth
+        const [a, b] = f.ratio.split(":").map(Number);
+        expect(f.w / f.h).toBeCloseTo(a / b, 1);                                           // each really has the shape it is labelled with
       }
     }
   });
@@ -149,6 +152,16 @@ describe("the board's arithmetic", () => {
     expect(sees(cam, 0, 0.5, { x: 10, y: 10 })).toBe(false);
     expect(sees(cam, Math.PI, 0.5, { x: -10, y: 0 })).toBe(true);                    // across the wrap at 180 degrees
     expect(aimAt(cam, { x: 0, y: 5 })).toBeCloseTo(Math.PI / 2);
+  });
+
+  it("swings a camera the short way round and has it glance at the nearest frame in reach", async () => {
+    const { turnBetween, turnToward, lookTarget } = await import("../blueprint");
+    expect(turnBetween(0.1, 2 * Math.PI - 0.1)).toBeCloseTo(-0.2);
+    expect(turnToward(0, Math.PI / 2, 0.5)).toBeCloseTo(Math.PI / 4);
+    expect(turnToward(0, 1, 5)).toBeCloseTo(1);                                       // never past where it is going
+    const frames = [{ x: 0, y: 0, w: 10, h: 10 }, { x: 100, y: 0, w: 10, h: 10 }];
+    expect(lookTarget({ x: 12, y: 5 }, frames, 40, { x: 50, y: 50 })).toEqual({ x: 5, y: 5 });
+    expect(lookTarget({ x: 60, y: 60 }, frames, 40, { x: 50, y: 50 })).toEqual({ x: 50, y: 50 });      // nothing in reach: the middle
   });
 
   it("makes the same board every time", async () => {

@@ -573,3 +573,39 @@
 .reel .reel-vignette { background: radial-gradient(ellipse 34% 32% at 50% 50%, rgba(9, 11, 15, 0.78) 0%, rgba(9, 11, 15, 0.42) 60%, transparent 100%); }
 @media (max-width: 760px) { .dropcard.story { min-height: 520px; padding: 100px 18px; } .dropcard.story .big { font-size: 38px; } }
 @media (prefers-reduced-motion: reduce) { .home-steps-line b { animation: none; left: 50%; } }
+
+/* choosing the shape of the frame, drawn to scale */
+.fs-shapes { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.fs-shape { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-width: 66px; padding: 10px 10px 8px; border: 1px solid var(--hair); border-radius: 3px !important; background: var(--panel); color: var(--frost); cursor: pointer; transition: border-color .15s, background .15s; }
+.fs-shape:hover:not(:disabled) { border-color: rgba(244, 247, 250, 0.28); }
+.fs-shape.on { border-color: var(--gold); background: rgba(232, 180, 92, 0.08); box-shadow: inset 0 -2px 0 var(--gold); }
+.fs-shape b { font-size: 12.5px; font-weight: 600; }
+.fs-shape i { font-style: normal; font-size: 10.5px; color: var(--text-quiet, #8b97a7); }
+.fs-box { display: block; height: 30px; border: 1.5px solid currentColor; border-radius: 2px; opacity: 0.8; }
+.fs-shape.on .fs-box { border-color: var(--gold); opacity: 1; }
+.nf-frame { margin: var(--sp-3, 12px) 0; }
+.nf-frame > span { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); font-weight: 500; }
+.nf-frame em { text-transform: none; letter-spacing: 0; font-style: normal; margin-left: 8px; }
+.film-frame { margin: var(--sp-5, 20px) 0; }
+.film-frame .dim { margin: 8px 0 0; font-size: 12px; }
+
+
+/* the Home card: narrower and finer (the height stays) */
+.dropcard.story { width: min(880px, 100%); min-height: 600px; padding: 120px 28px; }
+.dropcard.story .big { font-size: 46px; }
+.dropcard.story .home-cta-row .btn { height: 42px; padding: 0 20px; }
+.reel::before, .reel::after { width: 20px; height: 20px; opacity: 0.6; }
+.reel::before { right: 12px; top: 12px; border-right-width: 1.5px; border-top-width: 1.5px; }
+.reel::after { left: 12px; bottom: 12px; border-left-width: 1.5px; border-bottom-width: 1.5px; }
+.dropcard.story::before, .dropcard.story::after { width: 20px; height: 20px; opacity: 0.6; }
+.dropcard.story::before { left: 12px; top: 12px; border-left-width: 1.5px; border-top-width: 1.5px; }
+.dropcard.story::after { right: 12px; bottom: 12px; border-right-width: 1.5px; border-bottom-width: 1.5px; }
+.home-steps { font-size: 10px; letter-spacing: 0.3em; }
+@media (max-width: 760px) { .dropcard.story .big { font-size: 34px; } }
+
+.fs-shapes { flex-wrap: nowrap; gap: 6px; }
+.fs-shape { flex: 1 1 0; min-width: 0; padding: 9px 4px 7px; }
+.fs-shape i { white-space: nowrap; }
+.fs-box { height: 26px; max-width: 100%; }
+.film-side .fs-shapes { flex-wrap: wrap; }
+.film-side .fs-shape { flex: 0 0 calc(25% - 6px); }

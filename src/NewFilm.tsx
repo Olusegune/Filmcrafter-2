@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type StoryKind, type StoryPreview } from "./api";
 import * as I from "./icons";
+import { FrameShapes } from "./FrameShapes";
 import { guessKind, previewLine, STORY_EXT, STORY_KINDS, titleFromFile } from "./storyView";
 
 /**
@@ -12,6 +13,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
   const [kind, setKind] = useState<StoryKind | null>(startKind ?? null);
   const [stage, setStage] = useState<"pick" | "write">(startKind || file ? "write" : "pick");
   const [title, setTitle] = useState("");
+  const [aspect, setAspect] = useState("16:9");                          // the shape of the frame: widescreen unless the film is vertical, cinema scope, square...
   const [text, setText] = useState("");
   const [source, setSource] = useState<string | null>(null);          // the file the story came from, kept as the original
   const [fileName, setFileName] = useState("");
@@ -46,7 +48,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
     if (!kind) return;
     setBusy("create"); setErr("");
     try {
-      const r = await api.film<{ dir: string }>("create", null, { title: title.trim() || "Untitled film", kind, text, file: source });
+      const r = await api.film<{ dir: string }>("create", null, { title: title.trim() || "Untitled film", kind, text, file: source, aspect_ratio: aspect });
       onCreated(r.dir);
     } catch (e) { setErr(errorText(e)); setBusy(""); }
   };
@@ -69,6 +71,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
         </> : <>
           <label className="field"><span>Title</span>
             <input className="text-input" autoFocus value={title} placeholder="Untitled film" onChange={(e) => { titled.current = true; setTitle(e.target.value); }} /></label>
+          <div className="field nf-frame"><span>Frame shape <em className="dim">you can change it later</em></span><FrameShapes value={aspect} onChange={setAspect} disabled={!!busy} /></div>
           <div className="nf-kind-row">
             <span className="dim">This is</span>
             <select className="text-input" value={kind ?? "idea"} onChange={(e) => setKind(e.target.value as StoryKind)} aria-label="What kind of story this is">

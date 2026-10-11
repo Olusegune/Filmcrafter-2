@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.0 (2026-10-11)
+
+- **Choose the shape of the frame.** New film now asks for it: Scope 2.39:1, 21:9, 16:9, 4:3, 1:1, 4:5 or 9:16, each drawn to scale. Until now every film was silently 16:9. It can be changed later from a **Frame shape** panel in the story workspace, and from the Studio's Aspect setting (which now also changes the film, so the next sync no longer puts the old shape back). A shape outside the list is refused before anything is made. Tested across the engine, the shell and the screens.
+- **The Home board is narrower and finer.** The card is about 880 wide (the height is as before). The four storyboard frames are now four different shapes (1:1, 21:9, 9:16, 16:9) with their ratios, drawn as corner ticks; the cameras glance at the nearest frame as they pass and light it up in gold; thinner lines, smaller cameras, a quieter grid.
+
 ## 0.12.0 (2026-10-10)
 
 - **A real provider test, and what it fixed.** The same shot was made on Kie.ai in photoreal, 3D, 2D hand-drawn and two stop-motion versions (one with Ryan Coogler's approach applied), plus a 4-second video: 7 pictures and 1 video, about $0.96. The looks came out clearly distinct, the over-the-shoulder blocking held in every picture, and the video stayed on-model (same people, same set, same positions). It also found two real problems, both fixed:

@@ -27,7 +27,9 @@ Along the top: **Story, Cast & World, Shots, Studio, Export**. Each shows how fa
 
 Say how your story begins: a screenplay, an idea or logline, a synopsis, a treatment, or a scene outline. Then bring it: paste it, or choose a file.
 
-![New film: the story, with what was found in it](img/film/newfilm-story.png)
+![New film: the title, the shape of the frame, the story, and what was found in it](img/film/newfilm-story.png)
+
+**Frame shape.** Choose the shape of the picture before you start: Scope (2.39:1) and 21:9 for cinema, 16:9 widescreen, 4:3 classic, 1:1 square, 4:5 portrait, or 9:16 vertical for phones. It is drawn to scale so you can see it, and you can change it any time from the story workspace (the **Frame shape** panel on the right) or the Studio's inspector; pictures and video made from then on are asked for in the new shape, and what is already made stays as it was.
 
 Under the story you see what was found (scenes, speaking characters, places, rough length). **The story is saved exactly as given**, and the file you chose is kept untouched in the film's folder.
 
@@ -55,6 +57,8 @@ Open **Cast & World** along the top. The first time, FilmCrafter fills it from y
 ![Rules and style: six kinds of film, a look within one, an optional genre feel, and the twelve principles of animation](img/film/bible.png)
 
 ### Choosing the look
+
+**Where to find them:** open **Cast & World**, then **Rules & style**; **Visual style** is the first thing on the page. (The Studio's **Looks** button on the left rail opens the same library for the whole film.) The full list, with what each look is, is in *The look library* below.
 
 1. **Pick the kind of film**: *Photorealistic*, *3D animation*, *2D animation*, *Hybrid 2D/3D*, *Hands-on crafts* (stop motion, clay, felt, paper), or *Art movements & experimental*.
 2. **Pick the look** inside it, about 100 in all (Hyperrealism, Documentary realism, Film noir, Painterly 3D, Clay-look 3D, Watercolour storybook, Shonen action anime, Felt and wool stop-motion, Ukiyo-e, Art Deco and more). Hover for what each one is.
@@ -179,6 +183,161 @@ The film workspace is the story-first front door. For everything PULSEFRAME's st
 - **Home** takes you back to the film.
 
 Because the studio began as a music-video tool, a few music-first parts are hidden on a film, and the odd label may still read that way. A few tools still speak in song terms; they are being turned into film terms one by one.
+
+## The look library
+
+Every look the app offers, by kind of film. Pick the kind, then the look, in **Cast & World > Rules & style > Visual style**; the genre feels are added on top of any look. The same looks are in the Studio's **Looks** button (left rail). This list is written from the app's own data.
+
+### Photorealistic
+
+| Look | What it is |
+|---|---|
+| **Photorealistic CGI** | Digital characters and environments designed to resemble live-action footage. |
+| **Cinematic live action** | Looks filmed with real actors and a cinema camera. |
+| **Hyperrealism** | Extreme surface detail: every pore, thread and reflection, almost microscopic. |
+| **Documentary realism** | Unpolished, observational, natural light; it feels lived in and true. |
+| **Stylised photorealism** | Real forms and materials pushed by bold colour grading and expressive light. |
+| **Editorial fashion photography** | Polished, controlled light, elegant poses, luxury-magazine composition. |
+| **Fine-art photography** | Mood, symbolism and artistic composition in photographic form. |
+| **Analog film realism** | Film grain, halation and the warm, imperfect colour of real film stock. |
+| **Film noir** | Deep shadows, dramatic highlights, rain-slick streets and mystery. |
+| **HDR realism** | Rich detail kept in both deep shadows and bright highlights. |
+
+### 3D animation
+
+| Look | What it is |
+|---|---|
+| **Feature animation 3D** | Polished, expressive characters, rich lighting and detailed worlds, the look of big-screen animated features. |
+| **Stylized 3D** | 3D characters with deliberately simplified or exaggerated shapes, from cute to dramatic. |
+| **Cel-shaded 3D** | 3D animation rendered to look hand-drawn, with flat colour and ink outlines. |
+| **Low-poly 3D** | Faceted, geometric 3D with a clean modern-game feel. |
+| **Painterly 3D** | 3D models rendered with visible brushwork and the warmth of oil paint. |
+| **Clay-look 3D** | Digital modelling clay with fingerprints and handmade stop-motion charm. |
+| **Cozy diorama 3D** | Miniature storybook worlds with intimate lighting and tiny details. |
+| **Semi-realistic 3D** | Realistic proportions with gently exaggerated, expressive features. |
+| **Caricature 3D** | Oversized heads and bold facial exaggeration for comic personality. |
+| **Anime-inspired 3D** | 3D models with anime proportions, expressive faces and graphic shading. |
+| **Vinyl toy 3D** | Collectible-figure look: smooth surfaces and simple, charming features. |
+| **Papercraft 3D** | Folded-paper objects, crisp edges and handcrafted geometric worlds. |
+| **Voxel art** | Worlds and characters built from small coloured cubes. |
+| **Plasticine 3D** | Soft sculpted characters with visible kneading and pliable surfaces. |
+| **Photoreal creature animation** | Highly detailed animated creatures: fur, muscle and believable motion. |
+| **Puppet-style 3D** | Digital characters that move with the charm of physical puppets. |
+| **Gothic stylized 3D** | Angular figures, dark-fantasy architecture and theatrical lighting. |
+| **Stop-motion-look CGI** | Digital animation with stepped poses and simulated handmade materials. |
+
+### 2D animation
+
+| Look | What it is |
+|---|---|
+| **Traditional hand-drawn 2D** | Characters redrawn frame by frame, with fluid lines and expressive changes in shape. |
+| **Digital 2D** | Drawn characters and backgrounds made digitally: can mimic traditional or look crisp and modern. |
+| **Anime-inspired** | Distinctive character design, cinematic framing and expressive key poses, from quiet holds to intense action. |
+| **Western TV cartoon** | Bold shapes, clear expressions and efficient, often exaggerated movement. |
+| **Rubber-hose cartoon** | Bouncy vintage cartoon motion with flexible limbs, rounded forms and musical timing. |
+| **Limited animation** | Carefully chosen poses and selective movement: the body holds while the face, hands or camera move. |
+| **Painterly / watercolour** | Moving paintings: visible brushwork, soft washes and textured paper. |
+| **Afrofuturist illustration** | Bold graphic illustration mixing African pattern, colour and futurism. |
+| **Rotoscope** | Animation traced from filmed movement: realistic motion with an illustrated surface. |
+| **Watercolour storybook** | Soft pigment washes, textured paper and a dreamy illustrated feel. |
+| **Flat vector animation** | Crisp silhouettes, minimal shading and simple colour. |
+| **Saturday-morning cartoon** | Bold colour, simple designs and energetic comic action. |
+| **Chibi anime** | Tiny bodies, oversized heads and playful exaggerated reactions. |
+| **Shonen action anime** | Dynamic motion, dramatic battles and high-energy effects. |
+| **Shojo anime** | Delicate character styling, romantic visuals and decorative effects. |
+| **Seinen anime** | Grounded character designs and mature cinematic composition. |
+| **Western adult animation** | Bold simplified graphics for comedy, satire and drama. |
+| **Ink-and-wash animation** | Expressive ink lines, fluid shading and painterly washes. |
+| **Charcoal animation** | Smudged marks, rough texture and atmospheric monochrome. |
+| **Pencil sketch animation** | Visible construction lines and sketchbook energy. |
+| **Gouache illustration** | Opaque matte painted surfaces and sophisticated handmade textures. |
+| **Comic-book animation** | Graphic outlines, panel framing, halftones and dynamic action. |
+| **Woodcut animation** | Strong carved marks, folk-art texture and dramatic graphic shapes. |
+
+### Hybrid 2D/3D
+
+| Look | What it is |
+|---|---|
+| **2.5D animation** | Flat artwork arranged in layers in 3D space: depth with an illustrated look. |
+| **Motion comics** | Comic panels brought to life with camera moves, layered depth and limited character movement. |
+| **Mixed media** | Combines methods, such as 3D characters in painted 2D backgrounds, or collage. |
+| **Comic-book hybrid 3D** | 3D characters with comic outlines, halftone textures and illustrated effects. |
+| **2D/3D anime hybrid** | 3D models with anime shading, hand-drawn accents and dynamic effects. |
+| **Living painting** | 3D animation with moving brushstrokes and a fine-art surface. |
+| **Mixed-media collage** | Photographs, illustration, type and paper textures layered together. |
+| **Paper-theatre animation** | Illustrated scenery arranged like dimensional theatre sets. |
+| **Photographic cutout animation** | Real photographs animated as articulated pieces. |
+| **Texture-animated CGI** | 3D surfaces where hand-drawn marks and paint textures keep moving. |
+| **Mixed frame-rate animation** | Different subjects animated at different frame rates for rhythm. |
+| **Graphic-novel cinematic** | Illustrated cinematic sequences with dramatic shadows. |
+
+### Hands-on crafts
+
+| Look | What it is |
+|---|---|
+| **Cutout animation** | Flat characters built from movable pieces, paper or digital. |
+| **Stop motion** | Physical objects photographed frame by frame, with a tactile, handmade quality. |
+| **Claymation** | Sculpted clay characters with soft forms and visible material texture. |
+| **Puppet animation** | Articulated physical puppets with fabricated costumes, faces and sets. |
+| **Paper cutout stop motion** | Physical paper shapes animated on a flat surface or layered miniature set. |
+| **Brick-toy stop motion** | Building-brick figures and sets: playful, modular and visibly physical. |
+| **Diorama / miniature** | Miniature-looking characters and environments with a small-world feel. |
+| **Paint-on-glass** | Paint changed directly between frames, creating flowing, dreamlike transformations. |
+| **Sand animation** | Sand reshaped frame by frame: fluid silhouettes and a transient, textured look. |
+| **Silhouette animation** | Dark figures against contrasting backgrounds, emphasizing shape, gesture and atmosphere. |
+| **Felt and wool stop-motion** | Soft textile characters, visible fibres and cosy miniature worlds. |
+| **Pixilation** | Real people photographed frame by frame for strange, staccato motion. |
+| **Object animation** | Everyday objects brought to life through tiny repositioning. |
+
+### Art movements & experimental
+
+| Look | What it is |
+|---|---|
+| **Pixel art** | Retro video-game pixels with limited palettes. |
+| **Motion graphics** | Animated typography, icons, shapes and graphic layouts driven by the music. |
+| **Whiteboard animation** | Drawings appear as they're being made; common in educational videos. |
+| **Surrealist animation** | Dream logic, impossible transformations and symbolic images. |
+| **Abstract expressionist animation** | Moving expressive paint, shape and colour. |
+| **Minimalist animation** | Simple forms, restricted palettes and deliberate movement. |
+| **Glitch art** | Digital distortion, corrupted pixels and signal interference. |
+| **Vaporwave** | Pastel neon, retro computers and classical sculpture. |
+| **Neon cyberpunk** | Glowing saturated colour, rainy cities and high-contrast futures. |
+| **Retro futurism** | Mid-century visions of the future. |
+| **Holographic sci-fi** | Translucent light interfaces and volumetric imagery. |
+| **Art Nouveau** | Flowing botanical lines and elegant ornament. |
+| **Art Deco** | Symmetry, luxury, metallic accents and grand geometry. |
+| **Ukiyo-e woodblock** | Japanese woodblock aesthetics: flat colour, bold contours. |
+| **Renaissance painting** | Classical realism, perspective and sculptural light. |
+| **Baroque painting** | Dramatic chiaroscuro and emotionally charged movement. |
+| **Romanticism** | Sublime landscapes and emotional intensity. |
+| **Impressionism** | Visible brushwork, shifting light and atmospheric colour. |
+| **Expressionism** | Distorted shapes and colour that carry raw emotion. |
+| **Cubism** | Fragmented forms and multiple simultaneous viewpoints. |
+| **Pop art** | Bold commercial colour and mass-media imagery. |
+| **Bauhaus** | Functional geometry, primary colour and structured composition. |
+| **African folk-art-inspired** | Visuals drawing on specific African artistic traditions. |
+| **Mosaic animation** | Imagery assembled from coloured tiles, stone or glass. |
+| **Stained-glass animation** | Luminous jewel-toned imagery inside dark dividing lines. |
+| **Illuminated manuscript** | Ornate lettering, decorative borders and miniature paintings. |
+| **Linocut illustration** | Bold carved marks and expressive printed texture. |
+| **Chalk pastel animation** | Soft dusty colour and blended hand-drawn transitions. |
+
+### Genre feels (layered on a look)
+
+| Look | What it is |
+|---|---|
+| **Epic fantasy** | Monumental landscapes, magical light and mythic scale. |
+| **Dark fantasy** | Gothic architecture, strange creatures and an uneasy atmosphere. |
+| **Whimsical fantasy** | Charming exaggeration and playful magical details. |
+| **Science-fiction realism** | Plausible technology and grounded futuristic worldbuilding. |
+| **Space opera** | Monumental spacecraft, cosmic scenery and heroic spectacle. |
+| **Steampunk** | Victorian engineering, brass machinery, gears and steam. |
+| **Dieselpunk** | Heavy industry, retro military design and interwar futurism. |
+| **Solarpunk** | Green cities, clean technology and optimistic futures. |
+| **Post-apocalyptic** | Abandoned infrastructure and reclaimed nature. |
+| **Gothic horror** | Deep shadows, eerie architecture and unsettling beauty. |
+| **Magical realism** | Believable everyday places with quiet impossible things. |
+| **Biblical epic** | Ancient settings, vast landscapes and reverent scale. |
 
 ## Keyboard shortcuts
 

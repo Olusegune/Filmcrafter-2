@@ -1,6 +1,6 @@
 # Status: what is done, what is partly done, what is not
 
-Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-10 at version 0.12.0).
+Honest status against the goals in `PHASE0_PLAN.md` (written 2026-10-09, rewritten 2026-10-11 at version 0.13.0).
 "Verified" means a test ran, or the thing was built and run here. Anything not marked verified was not run. Nothing here has been run on a Mac; the hand-off has been run in DaVinci Resolve only; one real provider run (Kie.ai) has been made, described below.
 
 ## What was verified in this release
