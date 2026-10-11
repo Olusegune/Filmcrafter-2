@@ -685,6 +685,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                  rendered={shots.filter((s) => latest.get(s.id)?.state === "ready").length}
                                  onClose={() => setExporting(false)} />}
       {selecting && board && <SelectReview dir={project.dir} shots={board.shots} sections={map?.sections ?? []}
+                                           aspect={frame.aspect_ratio}
                                            initial={sel?.kind === "shot" ? [sel.id] : []} onClose={() => { setSelecting(false); reloadBoard(); refreshPendingKf(); }}
                                            onQueued={(js) => { mergeJobs(js); reloadBoard(); }} />}
       {confirmAll && <ConfirmRender count={toRender.length} seconds={0} provider={route?.video.provider ?? defaultProvider(keys)}
@@ -930,6 +931,7 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
     <DockCtx.Provider value={{ el: dockEl, tab }}>
       <div className="inspector-head"><span className="t num">Shot {s.id}</span>
         <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
+      <div className="insp-tabrow">
       <div className="insp-tabs" role="tablist" aria-label="Shot sections">
         {TABS.filter((t) => adv || !ADVANCED.includes(t.id) || t.id === tab).map((t) => {
           const b = t.id === "shot" ? "" : tabs.badges[t.id as "keyframe" | "frames" | "video" | "media"];
@@ -938,7 +940,8 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
               {t.icon}<span>{t.label}</span>{b ? <i className={`tab-dot ${b}`} title={b === "ok" ? "Done" : b === "busy" ? "Working" : "Needs a look"} /> : null}
             </button>);
         })}
-        <button className="insp-adv" aria-expanded={adv} onClick={toggleAdv} title="Prompt, references, start and end frames, and your own media. Most shots never need them.">{adv ? "Fewer" : "Advanced"}</button>
+      </div>
+      <button className="insp-adv" aria-expanded={adv} onClick={toggleAdv} title="Prompt, references, start and end frames, and your own media. Most shots never need them.">{adv ? "Fewer" : "Advanced"}</button>
       </div>
       <div className="inspector-body">
         <div hidden={tab !== "shot"}>
@@ -1226,15 +1229,15 @@ function ProjectSettingsRow({ project }: { project: LoadedProject }) {
       <h4>Frame & quality</h4>
       <div className="kv settings-kv">
         <span className="k">Aspect</span>
-        <select className="text-input" value={s.aspect_ratio} onChange={(e) => change("aspect_ratio", e.target.value)}>
+        <select className="text-input" value={s.aspect_ratio} onChange={(e) => change("aspect_ratio", e.target.value)} aria-label="Aspect ratio">
           {ASPECTS.map(([v, l]) => <option key={v} value={v}>{v} · {l}</option>)}
         </select>
         <span className="k">Quality</span>
-        <select className="text-input" value={s.quality} onChange={(e) => change("quality", e.target.value)}>
+        <select className="text-input" value={s.quality} onChange={(e) => change("quality", e.target.value)} aria-label="Quality">
           {QUALITY.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         <span className="k">Lip-sync</span>
-        <select className="text-input" value={s.lip_sync} onChange={(e) => change("lip_sync", e.target.value)}>
+        <select className="text-input" value={s.lip_sync} onChange={(e) => change("lip_sync", e.target.value)} aria-label="Lip-sync">
           <option value="auto">{(project.project as { film?: boolean }).film ? "Auto · speaking shots follow the voice" : "Auto · singing shots follow the vocal"}</option>
           <option value="closeups">Close-ups get a dedicated lip-sync pass</option>
           <option value="off">Off</option>

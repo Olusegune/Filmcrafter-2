@@ -58,12 +58,16 @@ import "../corners.css";
 const DIR = "/src/docshots/img";
 (window as unknown as { __PF_MOCK__: boolean }).__PF_MOCK__ = true;
 const q = new URLSearchParams(location.search);
+// ?n=300 makes the sample film that long, to see how the screens hold up (the engine's own numbers for a 300-shot film are in docs/QA.md)
+const N = Math.max(0, Number(q.get("n")) || 0);
+const bigId = (i: number) => `S${String(Math.floor(i / 8) + 1).padStart(2, "0")}-${String((i % 8) + 1).padStart(2, "0")}`;
+const grow = <T extends { id: string; scene?: number }>(list: T[]): T[] => (N > list.length ? Array.from({ length: N }, (_, i) => ({ ...list[i % list.length], id: bigId(i), scene: Math.floor(i / 8) + 1 })) : list);
 const scene = q.get("scene") ?? "review";
 const now = Math.floor(Date.now() / 1000);
 
 // ---------------------------------------------------------------- made-up data
-const ids = ["S01-01", "S01-02", "S01-03", "S01-04", "S01-05", "S01-06", "S02-01", "S02-02"];
-const shots: Shot[] = ids.map((id, i) => ({ id, scene: id.startsWith("S01") ? 1 : 2, number: i + 1, start: i * 6.5, end: i * 6.5 + 6, beats: ["Sege looks at the sea."], source_shots: [], performers: ["Sege"], framing: ["Close-up", "Wide", "Medium", "Over the shoulder"][i % 4], state: "ready", renderer: "x" }));
+const ids = N > 8 ? Array.from({ length: N }, (_, i) => bigId(i)) : ["S01-01", "S01-02", "S01-03", "S01-04", "S01-05", "S01-06", "S02-01", "S02-02"];
+const shots: Shot[] = ids.map((id, i) => ({ id, scene: Number(id.slice(1, 3)), number: i + 1, start: i * 6.5, end: i * 6.5 + 6, beats: ["Sege looks at the sea."], source_shots: [], performers: ["Sege"], framing: ["Close-up", "Wide", "Medium", "Over the shoulder"][i % 4], state: "ready", renderer: "x" }));
 const still = (n: number) => `s${(n % 6) + 1}.png`;
 const issue = (kind: string, severity: "minor" | "major", detail: string) => ({ kind, severity, detail, fix: "" });
 const mk = (id: string, shot: string, created: number, over: Record<string, unknown> = {}): Job => ({ id, shot_id: shot, plan: "production", provider: "kie", model: "bytedance/seedance-2", state: "ready", kind: "video", output: `v${(created % 3) + 1}.mp4`, created, updated: created, overrides: {}, cost: 50, cost_unit: "credits", ...over } as unknown as Job);
@@ -84,8 +88,8 @@ const queueJobs: Job[] = [
 ];
 const lightShots = ids.flatMap((id, i) => {
   const rows = [["Calm", "Golden hour", 5600, 1], ["Calm", "Golden hour", 5600, 1], ["Tension", "Single hard key", 5600, 2], ["Tension", "Single hard key", 5600, 2], ["Tension", "Single hard key", 5600, 2], ["Hope", "Golden hour", 4500, 1], ["Joy", "Golden hour", 4800, 1], ["Nostalgia", "Golden hour", 3400, 2]] as const;
-  const [label, name, kelvin, level] = rows[i];
-  return [{ shot: id, scene: id.startsWith("S01") ? 1 : 2, start: i * 2.2, end: i * 2.2 + 2, section: "verse", mood: label.toLowerCase(), label, valence: 0, arousal: 0, intensity: 0.4, user_set: false, held: i === 1,
+  const [label, name, kelvin, level] = rows[i % rows.length];
+  return [{ shot: id, scene: Number(id.slice(1, 3)), start: i * 2.2, end: i * 2.2 + 2, section: "verse", mood: label.toLowerCase(), label, valence: 0, arousal: 0, intensity: 0.4, user_set: false, held: i === 1,
     why: `${label} (read from the feeling and words of the shot; the song is quiet here) → ${name.toLowerCase()}, neutral, gentle contrast.`,
     design: { label: name, kelvin, level, wording: `${name.toLowerCase()} sunlight, warm low rays and long shadows; neutral colour (about ${kelvin} K); key large and soft from a window; gentle contrast; colour accents: pale neutral` } }];
 });
@@ -221,9 +225,9 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
-    case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : makeStatus;
+    case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : N > 8 ? { ...makeStatus, shots: grow(makeStatus.shots as never[]), counts: { ...(makeStatus as { counts: object }).counts, shots: N } } : makeStatus;
     case "film_check": return continuityMock;
-    case "film_shots": return x.action === "shot" ? { shot: { ...shotContract, plan: blockingPlanMock, ...(/click=Blocking/.test(location.search) ? { locks: { storyboard: false, keyframe: false } } : {}) } } : x.action === "suggest" ? shotSuggestion : x.action === "blocking" ? blockingMock : x.action === "principles" ? { look: "stop-motion", family: "craft", screen_craft: false, picture: [], video: [{ id: "anticipation", name: "Anticipation", plain: "A small opposite move prepares the big one." }, { id: "follow-through", name: "Follow-through and overlapping action", plain: "Loose parts keep going a beat longer." }, { id: "staging", name: "Staging", plain: "One idea reads at once." }, { id: "slow-in-out", name: "Slow in and slow out", plain: "Movements ease in and out." }] } : shotsView;
+    case "film_shots": return x.action === "shot" ? { shot: { ...shotContract, plan: blockingPlanMock, ...(/click=Blocking/.test(location.search) ? { locks: { storyboard: false, keyframe: false } } : {}) } } : x.action === "suggest" ? shotSuggestion : x.action === "blocking" ? blockingMock : x.action === "principles" ? { look: "stop-motion", family: "craft", screen_craft: false, picture: [], video: [{ id: "anticipation", name: "Anticipation", plain: "A small opposite move prepares the big one." }, { id: "follow-through", name: "Follow-through and overlapping action", plain: "Loose parts keep going a beat longer." }, { id: "staging", name: "Staging", plain: "One idea reads at once." }, { id: "slow-in-out", name: "Slow in and slow out", plain: "Movements ease in and out." }] } : N > 8 ? { ...shotsView, shots: grow(shotsView.shots as never[]), scenes: Array.from({ length: Math.ceil(N / 8) }, (_, k) => ({ number: k + 1, shots: 8, seconds: 40 })), seconds: N * 5 } : shotsView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
       if (x.action === "preview") return { kind: "screenplay", words: 61, scenes: 3, characters: 2, locations: 3, seconds: 144, has_headings: true };

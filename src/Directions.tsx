@@ -69,8 +69,9 @@ export function CreativeDirections({ project, onPlanned, onSettings }: {
           </div>
           <div className="dir-grid" role="radiogroup" aria-label="Directions">
             {concepts.map((c, i) => (
-              <div key={i} role="radio" aria-checked={pick === i} tabIndex={busy ? -1 : 0} aria-disabled={!!busy} className={`dir-card ${pick === i ? "on" : ""}`}
-                   onClick={() => { if (!busy) setPick(i); }} onKeyDown={(e) => { if (!busy && (e.key === " " || e.key === "Enter")) { e.preventDefault(); setPick(i); } }}>
+              <div key={i} className={`dir-card ${pick === i ? "on" : ""}`}>
+                <input type="radio" className="sr-only" name="direction" id={`dir-${i}`} checked={pick === i} disabled={!!busy} onChange={() => setPick(i)} />
+                <label htmlFor={`dir-${i}`} className="dir-label">
                 <span className="dir-band" style={{ background: paletteBand(c.palette) }}>
                   <Badge icon={directionGlyph(c.title, c.mood, c.environment, c.premise)} size={20} />
                   <span className="dir-pill">{LEVEL[c.narrative_level] ?? c.narrative_level}</span>
@@ -79,7 +80,8 @@ export function CreativeDirections({ project, onPlanned, onSettings }: {
                 <span className="dir-premise">{c.premise}</span>
                 <span className="dir-hero">“{c.hero_frame}”</span>
                 <span className="dir-tags"><span>{c.mood}</span><span>Look: {lookName(styles, { style: c.suggested_look })}</span></span>
-                <details className="dir-more" onClick={(e) => e.stopPropagation()}><summary>More about this direction</summary>
+                </label>
+                <details className="dir-more"><summary>More about this direction</summary>
                   <span className="dir-row"><b>Performance</b> {c.performance_approach}</span>
                   <span className="dir-row"><b>Camera</b> {c.cinematic_style}</span>
                   <span className="dir-row"><b>World</b> {c.environment}</span>

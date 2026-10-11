@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14.0 (2026-10-11)
+
+- **Select & review has bigger pictures and a larger preview.** Tiles are grouped by scene and sized Small, Medium or Large (remembered); each has an enlarge button (or press `Z`) that opens a preview with arrow keys to step, Esc to close, and the action for that step. "Without a picture (n)" selects the shots that still need one; each scene has Select scene / Clear scene. Review and video tiles are larger and can be enlarged too. Boxes are squarer.
+- **Accessibility pass.** An automated WCAG 2.1 A/AA scan (axe-core) of all 41 screens found seven kinds of issue (names that did not match the visible text, a non-tab inside a tab list, unnamed selects, buttons nested in a radio or a summary); all fixed, 0 findings now. `PF_A11Y=1 node scripts/docshots-edge.mjs` re-runs it.
+- **Large-film check.** 300 shots: engine operations 2.2 s or less; Select, Make and Shots draw in under 3 s. `?n=300` and `PF_PERF=1` in the screenshot harness.
+- Tests: 457 screen tests (17 new for the enlarge preview, grouping and the accessibility structure).
+
 ## 0.13.0 (2026-10-11)
 
 - **Choose the shape of the frame.** New film now asks for it: Scope 2.39:1, 21:9, 16:9, 4:3, 1:1, 4:5 or 9:16, each drawn to scale. Until now every film was silently 16:9. It can be changed later from a **Frame shape** panel in the story workspace, and from the Studio's Aspect setting (which now also changes the film, so the next sync no longer puts the old shape back). A shape outside the list is refused before anything is made. Tested across the engine, the shell and the screens.

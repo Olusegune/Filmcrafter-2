@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.13.0 (2026-10-11)
+# QA report: FilmCrafter 0.14.0 (2026-10-11)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -7,7 +7,7 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 | Check | Result |
 |---|---|
 | Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,817 passed**, 6 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **440 passed** |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **457 passed** |
 | App shell (`cargo test`) | **7 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -17,9 +17,17 @@ Not run: `rafter run` (the remote code-analysis scan; it needs an API key). This
 
 ## Every screen opened in a real browser engine
 
-All **40** screens of the screenshot harness (Home, New film, the story workspace, Cast & World, Rules & style, Shots and its tabs, Blocking, the Studio and its inspector, Make, Export, the Supervisor, the Continuity check, the writing-help sheets, the Direction library, the Look picker and the rest) were opened in headless Edge with console errors and uncaught exceptions recorded: **none from FilmCrafter's own code**. (The testing browser's Grammarly extension throws one error of its own; it is filtered by reading, not hidden.)
+All **41** screens of the screenshot harness (Home, New film, the story workspace, Cast & World, Rules & style, Shots and its tabs, Blocking, the Studio and its inspector, Make, Export, the Supervisor, the Continuity check, the writing-help sheets, the Direction library, the Look picker and the rest) were opened in headless Edge with console errors and uncaught exceptions recorded: **none from FilmCrafter's own code**. (The testing browser's Grammarly extension throws one error of its own; it is filtered by reading, not hidden.)
 
 Interaction was tried, not only rendering: dragging a person and a camera on the Blocking plan (it moves and saves), clicking through the kind of film, the look, the genre feel and the animation principles (state follows the clicks), and the Studio inspector's Advanced fold.
+
+## Accessibility scan (automated)
+
+`PF_A11Y=1 node scripts/docshots-edge.mjs` runs axe-core (WCAG 2.1 A and AA) on every one of the 41 screens: **0 findings** after this cycle's fixes (7 kinds were found first, listed below). Automated rules catch only part of accessibility (roughly names, roles, contrast and structure); it is not a substitute for a keyboard-only or screen-reader walk-through, which has not been done.
+
+## Large film
+
+A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, make status, continuity, hand-off and blocking each 0.1 s or less) and the screens (`?n=300` in the harness; `PF_PERF=1` prints sizes). Select & review, Make and Shots draw in under 3 s with 2,100 to 4,900 page elements and 40 to 84 MB of script memory, no errors. Select & review has no scene folding, so a 300-shot film is a long scroll (grouped by scene, with Select scene shortcuts); folding is a candidate if films that long turn out to be common.
 
 ## Real runs
 
@@ -33,6 +41,12 @@ Interaction was tried, not only rendering: dragging a person and a camera on the
 | Real Kie.ai run | A film with no pictures yet could not make its first picture (the automatic models need a reference) | text-only model of the same family is used when there is nothing to edit |
 | Real Kie.ai run | Subtitles drawn into pictures, from quoted speech in the prompt | the prompt says who speaks, never the words |
 | Resolve import | The EDL named clips after the original files, so Resolve placed one clip six times | the EDL names each clip after its copy in the hand-off folder |
+| Accessibility scan | Film strip blocks' names did not contain their visible text | name now matches the text |
+| Accessibility scan | The Studio's inspector tab list held a button that is not a tab | Advanced sits beside the tab list |
+| Accessibility scan | Three selects (Aspect, Quality, Lip-sync) had no name | named |
+| Accessibility scan | Select tiles' labels differed from their visible text | named by what they show |
+| Accessibility scan | Direction cards were a radio containing buttons and a fold | a real radio, its label, the fold beside it |
+| Accessibility scan | The lighting strip was a "picture" holding buttons; a Lighting summary held a checkbox | group role; the tick moved out of the summary |
 | Screen sweep | Duplicate React key on Clean up; a dropdown given a null value on New film | both fixed |
 | Screen sweep | Two panels (shot references, acting beats) crashed on a reply with a part missing | made tolerant; sample data corrected |
 | Screen sweep | The film screen could be blanked by a progress reply with a part missing | made tolerant, tested |
@@ -48,7 +62,7 @@ Interaction was tried, not only rendering: dragging a person and a camera on the
 - **macOS** (no Mac), **code signing and the updater** (no certificate; Windows warns about the installer).
 - **Providers other than Kie.ai** (fal, Google, OpenAI) for pictures and video; a **whole multi-shot film** with character pictures; the **hands and faces check** with a real vision model.
 - **New frame shapes** (21:9, 9:16...) on a real provider: whether a model returns that shape depends on the model.
-- **Large films** (hundreds of shots), **long videos**, **low-end machines**, **screen readers** and **keyboard-only use** (some style and contrast tests exist; no assistive-technology run).
+- **Long videos**, **low-end machines**, **screen readers** and **keyboard-only use** by a person (the automated scan above is the only accessibility test).
 - **Money limits under failure** (a provider charging for a job that then fails) beyond what the mock provider tests cover.
 
 ## How to re-run everything

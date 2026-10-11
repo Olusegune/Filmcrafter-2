@@ -70,9 +70,9 @@ export function FilmStrip({ dir, rd, shots, selected, onSelect, onChanged }: { d
           const pic = url(s);
           return (
             <div key={s.id} className={`fs-block ${selected === s.id ? "on" : ""} ${drop?.id === s.id ? "moving" : ""}`} style={{ left: b.left, width: b.width, backgroundImage: pic ? `url("${pic}")` : undefined }}
-                 onPointerDown={(e) => dragBlock(e, s)} role="button" tabIndex={0} aria-label={`${s.id}, ${secs[i]} seconds`}
+                 onPointerDown={(e) => dragBlock(e, s)} role="button" tabIndex={0} aria-label={`${s.id} ${secs[i]}s`}
                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(s.id); }}>
-              <span className="fs-id num">{s.id}</span><span className="fs-len num">{secs[i]}s</span>
+              <span className="fs-id num">{s.id}</span>{" "}<span className="fs-len num">{secs[i]}s</span>
               <span className="fs-edge" title="Drag to make the shot shorter or longer" onPointerDown={(e) => resize(e, s)} />
             </div>);
         })}

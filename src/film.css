@@ -609,3 +609,67 @@
 .fs-box { height: 26px; max-width: 100%; }
 .film-side .fs-shapes { flex-wrap: wrap; }
 .film-side .fs-shape { flex: 0 0 calc(25% - 6px); }
+
+/* Select & review: bigger pictures grouped by scene, a larger view, squarer boxes */
+.sr-sheet { position: relative; width: min(1280px, calc(100vw - 48px)); }
+.sr-steps button, .sr-sections .chip { border-radius: 3px !important; }
+.sr-row { border-radius: 4px; background: var(--panel); border-color: var(--hair); }
+.sr-opt-img { border-radius: 2px !important; }
+.sr-opt { width: 230px; }
+.sr-x, .sr-badge { border-radius: 2px !important; }
+.sr-tools { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); flex-wrap: wrap; margin: var(--sp-3, 12px) 0; }
+.sr-tools .sr-sections { margin: 0; }
+.sr-size button { padding: 4px 12px; font-size: 12px; }
+.sr-scroll { overflow-y: auto; min-height: 0; flex: 1; padding: 2px 6px 2px 2px; --sr-min: 210px; }
+.sr-scroll[data-size="s"] { --sr-min: 150px; } .sr-scroll[data-size="l"] { --sr-min: 320px; }
+.sr-scene { margin-bottom: var(--sp-5, 20px); }
+.sr-scene h3 { display: flex; align-items: baseline; gap: 12px; margin: 0 0 var(--sp-3, 12px); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
+.sr-scene h3 em { font-style: normal; letter-spacing: 0.02em; text-transform: none; color: var(--frost); font-weight: 500; }
+.sr-scene h3::after { content: ""; flex: 1; height: 1px; background: var(--hair); order: 5; }
+.sr-scene h3 .link { order: 6; font-size: 11.5px; letter-spacing: 0; text-transform: none; }
+.sr2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--sr-min, 210px), 1fr)); gap: 10px; }
+.sr2-cell { position: relative; border: 1px solid var(--hair); border-radius: 3px; background: var(--panel); overflow: hidden; }
+.sr2-cell.on { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+.sr2-cell.locked { opacity: 0.6; }
+.sr2-pick { position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; text-align: left; color: inherit; cursor: pointer; border-radius: 0 !important; }
+.sr2-pick:disabled { cursor: not-allowed; }
+.sr2-pick:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.sr2-img { display: block; aspect-ratio: var(--ar, 16 / 9); background: rgba(0, 0, 0, 0.35) center / cover no-repeat; position: relative; }
+.sr2-none { position: absolute; inset: 0; display: grid; place-items: center; font-size: 11.5px; color: var(--text-quiet, #8b97a7); }
+.sr2-check { position: absolute; left: 8px; top: 8px; width: 20px; height: 20px; display: grid; place-items: center; border: 1.5px solid rgba(244, 247, 250, 0.6); border-radius: 2px; background: rgba(8, 10, 14, 0.6); color: #1a0f02; }
+.sr2-cell.on .sr2-check { background: var(--gold); border-color: var(--gold); }
+.sr2-meta { display: flex; align-items: baseline; gap: 8px; padding: 8px 10px 9px; font-size: 12px; }
+.sr2-fr { margin-left: auto; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr2-lock { position: absolute; right: 8px; bottom: 36px; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 2px; background: rgba(8, 10, 14, 0.8); font-size: 10.5px; }
+.sr2-flag { position: absolute; right: 8px; bottom: 36px; padding: 1px 7px; border-radius: 2px; font-size: 10.5px; font-weight: 600; background: rgba(255, 122, 107, 0.95); color: #2a0a06; }
+.sr2-zoom, .sr-zoomo { position: absolute; right: 8px; top: 8px; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border: 1px solid var(--hair); border-radius: 2px !important; background: rgba(8, 10, 14, 0.78); color: var(--frost); cursor: pointer; opacity: 0; transition: opacity 0.15s; }
+.sr-zoomo { width: 24px; height: 24px; top: auto; bottom: 6px; right: 6px; }
+.sr2-cell:hover .sr2-zoom, .sr2-cell:focus-within .sr2-zoom, .sr-opt:hover .sr-zoomo, .sr-opt:focus-within .sr-zoomo, .sr2-zoom:focus-visible, .sr-zoomo:focus-visible { opacity: 1; }
+@media (hover: none) { .sr2-zoom, .sr-zoomo { opacity: 1; } }
+.sr-foot2 { align-items: center; margin-top: var(--sp-3, 12px); }
+.sr-hint { font-size: 12px; }
+.sr-pv { position: absolute; inset: 0; z-index: 6; display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; padding: 20px; background: rgba(6, 8, 12, 0.995); border-radius: inherit; outline: none; }
+.sr-pv-fig { margin: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.sr-pv-fig img { max-width: 100%; max-height: calc(100vh - 260px); object-fit: contain; border: 1px solid var(--hair); background: #000; }
+.sr-pv-none { width: min(720px, 100%); aspect-ratio: var(--ar, 16 / 9); display: grid; place-items: center; border: 1px dashed var(--hair); color: var(--text-quiet, #8b97a7); }
+.sr-pv-fig figcaption { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; max-width: 760px; font-size: 13px; }
+.sr-pv-fig figcaption b { font-size: 15px; } .sr-pv-fig figcaption span { color: var(--text-quiet, #8b97a7); } .sr-pv-fig figcaption p { flex-basis: 100%; margin: 0; font-size: 12.5px; color: var(--text-quiet, #8b97a7); }
+.sr-pv-nav { align-self: center; width: 44px; height: 64px; display: grid; place-items: center; border: 1px solid var(--hair); border-radius: 3px !important; background: var(--panel); color: var(--frost); cursor: pointer; }
+.sr-pv-nav:disabled { opacity: 0.3; cursor: default; }
+.sr-pv-bar { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+
+.insp-tabrow { display: flex; align-items: stretch; gap: 8px; }
+.insp-tabrow .insp-tabs { flex: 1; min-width: 0; }
+.insp-tabrow .insp-adv { align-self: center; flex: none; margin-right: 8px; }
+
+/* directions: the card is a label for a real radio, with the fold beside it */
+.dir-card { position: relative; }
+.dir-card .dir-label { display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+.dir-card:focus-within { outline: 2px solid var(--signal); outline-offset: 2px; }
+.dir-card input.sr-only:disabled + .dir-label { cursor: default; }
+.dir-card .dir-more { padding: 0 var(--sp-4, 16px) var(--sp-3, 12px); }
+
+/* lighting: the tick sits beside the run, not inside its summary (a control inside a control cannot be reached reliably) */
+.lt-runrow { display: flex; align-items: flex-start; gap: 10px; }
+.lt-runrow .lt-run { flex: 1; min-width: 0; }
+.lt-runrow .lt-tick { flex: none; margin-top: 16px; }

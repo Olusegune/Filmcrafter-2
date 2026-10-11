@@ -165,6 +165,19 @@ On the story ladder (when your story is not yet a screenplay), **Write it for me
 
 Each step along the top shows how far it is and turns green when done (the story is locked, there are people and a style, every shot has a storyboard panel…). **Back** and **Next** along the bottom take you through the steps in order, with one line on what to do here.
 
+## Select & review: choose, look closely, make
+
+Before making pictures or video you choose which shots to work on. **Select & review** shows every shot as a picture tile, grouped by scene.
+
+![Select & review: shots grouped by scene, each a picture tile with its time and framing](img/film/selectreview.png)
+
+- **Size:** Small, Medium or Large (top right; remembered). Tiles keep the film's frame shape, so a 9:16 film shows tall tiles.
+- **Look closer:** the magnifier on a tile (or `Z` over it) opens a large preview. `←` and `→` step through shots, `Esc` closes, and the preview has the action for the step you are on.
+- **Choose quickly:** *All*, *Without a picture (n)* (the shots that still need one), *None*; *Select scene* / *Clear scene* on each scene heading. Locked shots are never changed.
+- The **Keyframes** and **Video** steps use larger tiles and can be enlarged the same way.
+
+![The large preview](img/film/selectpreview.png)
+
 ## Cards or timeline: the same film two ways
 
 Along the top of a film, **Cards | Timeline** switches how you see the same shots:

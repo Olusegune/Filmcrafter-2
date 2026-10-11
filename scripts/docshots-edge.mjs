@@ -8,7 +8,7 @@
 // Each scene is opened in a tall window; the harness writes "width,height" of what it drew into the page title; the window is then set to exactly that size and photographed.
 // Add a scene to src/docshots/main.tsx, add a line below, and reference docs/img/<file> in docs/GETTING_STARTED.md.
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +32,10 @@ const SCENES = {
   handfix: ["handfix.png", "scene=handfix&drag=0.40,0.48,0.62,0.86"],
   budget: ["planbudget.png", "scene=planbudget"],
   select: ["selectreview.png", "scene=selectreview"],
+  bigselect: ["big-select.png", "scene=selectreview&n=300"],
+  bigmake: ["big-make.png", "scene=make&n=300"],
+  bigshots: ["big-shots.png", "scene=shots&n=300"],
+  selectzoom: ["selectpreview.png", "scene=selectreview&clickcss=.sr2-zoom"],
   compare: ["comparetakes.png", "scene=compare"],
   dirlib: ["directionlib.png", "scene=directionlibrary&clickcss=.dl-card:nth-child(2)"],
   directions: ["directions.png", "scene=directions"],
@@ -102,6 +106,8 @@ const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys
 await send("Page.enable");
 if (process.env.PF_QA) await send("Runtime.enable");
 let bad = 0;
+let axeSource = null;
+const a11y = {};
 for (const name of names) {
   const spec = SCENES[name];
   if (!spec) { console.error(`unknown scene: ${name} (try: ${Object.keys(SCENES).join(", ")})`); continue; }
@@ -112,14 +118,32 @@ for (const name of names) {
     let size = null;
     for (let i = 0; i < 80 && !size; i++) { await sleep(250); const t = await evalJs("document.title"); if (/^\d+,\d+$/.test(t ?? "")) size = t.split(",").map(Number); }
     if (!size) { console.error(`${name}: the screen never reported its size`); continue; }
+    if (process.env.PF_PERF) {                                                    // PF_PERF=1: how long the screen took to appear, and how big it is
+      const m = await evalJs("JSON.stringify({ nodes: document.querySelectorAll('*').length, heapMB: Math.round((performance.memory ? performance.memory.usedJSHeapSize : 0) / 1048576), ms: Math.round(performance.now()) })");
+      console.log(`   perf ${name}: ${m}`);
+    }
     const [w, h] = [Math.min(1500, size[0] === 1440 ? 1440 : size[0]), Math.min(3400, size[1])];
     await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: false });
     await sleep(700);
+    if (process.env.PF_A11Y) {                                                    // PF_A11Y=1: run axe-core (WCAG 2.1 A and AA) on this screen and report what it finds
+      if (!axeSource) axeSource = readFileSync(join(ROOT, "node_modules", "axe-core", "axe.min.js"), "utf8");
+      await evalJs(axeSource);
+      const res = await send("Runtime.evaluate", { expression: "axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }).then(r => JSON.stringify(r.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, first: v.nodes[0] && v.nodes[0].target.join(' '), html: v.nodes[0] && v.nodes[0].html.slice(0, 140) }))))", awaitPromise: true, returnByValue: true });
+      const found = JSON.parse(res.result?.result?.value ?? "[]");
+      a11y[name] = found;
+      for (const v of found) console.log(`   a11y ${v.impact.padEnd(8)} ${v.id}: ${v.help} (${v.nodes} node${v.nodes === 1 ? "" : "s"}) ${v.first ?? ""}`);
+    }
     const shot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
     writeFileSync(join(OUT, file), Buffer.from(shot.result.data, "base64"));
     console.log(`${name.padEnd(11)} ${w}x${h}  ${file}`);
     if (process.env.PF_QA) { const mine = [...new Set(problems.splice(0))].filter((p) => !/createRoot\(\)/.test(p)); bad += mine.length; for (const p of mine) console.log("   !! " + p); }
   } catch (e) { console.error(`${name}: ${String(e.message ?? e).split("\n")[0]}`); }
+}
+if (process.env.PF_A11Y) {
+  writeFileSync(join(OUT, "a11y.json"), JSON.stringify(a11y, null, 1));
+  const all = Object.values(a11y).flat();
+  console.log(`\naccessibility: ${all.length} finding(s) in ${Object.values(a11y).filter((x) => x.length).length} of ${Object.keys(a11y).length} screens (details in ${join(OUT, "a11y.json")})`);
+  process.exitCode = all.length ? 1 : 0;
 }
 ws.close();
 cleanup();

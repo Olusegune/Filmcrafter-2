@@ -7,7 +7,7 @@ import { applySentence, groupRuns, lightColour, runName, runTick, sceneLine, tar
 export function LightStrip({ shots, onPick }: { shots: LightShot[]; onPick?: (id: string) => void }) {
   const total = Math.max(0.1, shots.reduce((a, s) => a + Math.max(0.1, s.end - s.start), 0));
   return (
-    <div className="lt-strip" role="img" aria-label={`The planned light across ${shots.length} shots`}>
+    <div className="lt-strip" role="group" aria-label={`The planned light across ${shots.length} shots`}>
       {shots.map((s) => (
         <button key={s.shot} className={`lt-seg ${s.user_set ? "own" : ""}`} onClick={() => onPick?.(s.shot)}
                 style={{ flexGrow: Math.max(0.1, s.end - s.start) / total * 1000, background: lightColour(s) }}
@@ -22,10 +22,11 @@ function Run({ run, ticked, onToggle, onShow }: { run: LightRun; ticked: Readonl
   const tick = runTick(run, ticked);
   const toggleAll = () => { const want = tick !== "all"; for (const s of run.shots) if (ticked.has(s.shot) !== want) onToggle(s.shot); };
   return (
+    <div className="lt-runrow">
+    <input type="checkbox" className="lt-tick" checked={tick === "all"} ref={(el) => { if (el) el.indeterminate = tick === "some"; }} onChange={toggleAll}
+           aria-label={`Select ${runName(run)}`} />
     <details className={`lt-run ${tick === "none" ? "" : "on"}`} id={`lt-${f.shot}`}>
       <summary>
-        <input type="checkbox" checked={tick === "all"} ref={(el) => { if (el) el.indeterminate = tick === "some"; }} onChange={toggleAll} onClick={(e) => e.stopPropagation()}
-               aria-label={`Select ${runName(run)}`} />
         <span className="lt-swatch" style={{ background: lightColour(f) }} aria-hidden="true" />
         <span className="lt-name"><b className="num">{runName(run)}</b><span className="dim num">{fmtTime(f.start)}{run.shots.length > 1 ? ` · ${run.shots.length} shots` : ""}</span></span>
         <span className="chip">{f.label}</span>
@@ -42,6 +43,7 @@ function Run({ run, ticked, onToggle, onShow }: { run: LightRun; ticked: Readonl
             <button className="link" onClick={() => onShow(s.shot)}>Show</button></li>))}</ul>
       </div>
     </details>
+    </div>
   );
 }
 
