@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.2 (2026-10-11)
+
+- **Export has a format for every frame shape.** The Export format list offered only 16:9, 2.39:1, 9:16 and 1:1, so a 21:9, 4:3, 4:5, 3:4 or 9:21 film had nothing that matched (found in use). It now has all nine: YouTube 16:9, Ultra-wide 21:9 (2520x1080), Cinema 2.39:1, Classic 4:3, Square 1:1, Portrait 4:5, Tall portrait 3:4, TikTok / Reels 9:16 and Ultra-tall 9:21, plus Quick preview. The list starts on the film's own shape. A 21:9 film used to export as 2.39:1 scope; it now exports as true 21:9. The three screens that chose a format (Make film, Export, Autopilot) share one list. Tested: every shape has its own format, at its exact ratio, with even sizes, and the screen's list matches the engine's.
+
 ## 0.14.1 (2026-10-11)
 
 - **Scenes fold in Select & review.** Each scene heading is a button (with its shot count and how many are selected) that folds or opens its tiles; *Open all scenes* and *Fold all* sit in the toolbar. A film of more than 60 shots opens with only its first scene (and any scene already holding a chosen shot) open, so a 300-shot film is one scene of tiles and a short list of headings instead of a very long scroll. Short films open as before. Tested; the accessibility scan is still clean.

@@ -343,7 +343,7 @@ def status(d: str) -> dict:
                     "storyboard": {"options": sb, "chosen": board.get(c["id"]), "locked": bool(c["locks"]["storyboard"])},
                     "keyframe": {"options": kf, "chosen": chosen_kf if _exists(d, chosen_kf) else None, "locked": bool(c["locks"]["keyframe"])},
                     "video": {"takes": takes, "approved": (state.get(c["id"]) or {}).get("approved")}})
-    return {"shots": out, "active": active, "render_dir": rd, "soundtrack": (_read(os.path.join(rd, "soundtrack.json"), {}) or {"kind": "none"}), "synced": os.path.isfile(os.path.join(rd, "production.json")),
+    return {"shots": out, "active": active, "render_dir": rd, "aspect_ratio": _film(d).get("aspect_ratio", "16:9"), "soundtrack": (_read(os.path.join(rd, "soundtrack.json"), {}) or {"kind": "none"}), "synced": os.path.isfile(os.path.join(rd, "production.json")),
             "counts": {"shots": len(out), "storyboard": sum(1 for s in out if s["storyboard"]["chosen"]), "keyframe": sum(1 for s in out if s["keyframe"]["chosen"]),
                        "video": sum(1 for s in out if any(t["ok"] for t in s["video"]["takes"]))}}
 

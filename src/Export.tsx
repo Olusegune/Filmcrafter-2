@@ -4,19 +4,15 @@ import { api, errorText, fmtTime, type EditorPackage, type ExportResult } from "
 import { CaptionsPanel } from "./Captions";
 import { OverlaysPanel } from "./Overlays";
 import * as I from "./icons";
+import { EXPORT_FORMATS, formatFor } from "./exportFormats";
 
-const PRESETS = [
-  { id: "youtube", label: "YouTube", sub: "16:9 · 1920×1080", ar: 16 / 9 },
-  { id: "vertical", label: "TikTok / Reels", sub: "9:16 · 1080×1920", ar: 9 / 16 },
-  { id: "square", label: "Square", sub: "1:1 · 1080×1080", ar: 1 },
-  { id: "cinema", label: "Cinema", sub: "2.39:1 · 1920×804", ar: 2.39 },
-];
+const PRESETS = EXPORT_FORMATS;
 
 /** PRD §31: simple presets. The song is the clock; every cut lands on its frame. */
 export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
   dir: string; projectAspect?: string; shots: number; rendered: number; onClose: () => void;
 }) {
-  const natural = projectAspect === "2.39:1" || projectAspect === "21:9" ? "cinema" : "youtube";
+  const natural = formatFor(projectAspect);
   const [preset, setPreset] = useState(natural);
   const [progress, setProgress] = useState<{ stage: string; p: number; detail?: string } | null>(null);
   const [result, setResult] = useState<ExportResult | null>(null);

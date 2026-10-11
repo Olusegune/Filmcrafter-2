@@ -474,7 +474,7 @@ export type MakeOption = { job: string; image: string | null; state: string; mod
 export type MakeTake = { job: string; video: string | null; state: string; model: string; provider: string; created: number; error?: string | null; cost?: number | null; approved: boolean; ok: boolean };
 export type MakeShot = { id: string; scene: number; title: string; duration: number; framing: string;
   storyboard: { options: MakeOption[]; chosen: string | null; locked: boolean }; keyframe: { options: MakeOption[]; chosen: string | null; locked: boolean }; video: { takes: MakeTake[]; approved: string | null } };
-export type MakeStatus = { shots: MakeShot[]; active: number; render_dir: string; synced: boolean; soundtrack: { kind: string; file?: string; name?: string };
+export type MakeStatus = { shots: MakeShot[]; active: number; render_dir: string; aspect_ratio?: string; synced: boolean; soundtrack: { kind: string; file?: string; name?: string };
   counts: { shots: number; storyboard: number; keyframe: number; video: number } };
 export type MakeSynced = { render_dir: string; shots: number; seconds: number; references: number; look: string; soundtrack: { kind: string } };
 

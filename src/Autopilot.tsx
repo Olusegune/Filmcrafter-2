@@ -3,6 +3,7 @@ import { api, errorText, type BudgetStatus, type Concept, type EngineEvent, type
 import { useRouting } from "./Routing";
 import { PROVIDER_NAME } from "./Render";
 import * as I from "./icons";
+import { formatFor } from "./exportFormats";
 
 /**
  * Autopilot: song → finished video on one screen. Every step is worked out from the project itself (so it resumes
@@ -148,7 +149,7 @@ export function Autopilot({ project: initial, onClose, onReload }: { project: Lo
       else if (id === "approve") { setBusy("Approving the best keyframes…"); await api.library(dir, "approve_keyframes", {}); }
       else if (id === "export") {
         setBusy("Exporting…");
-        const preset = p.project.aspect_ratio === "2.39:1" || p.project.aspect_ratio === "21:9" ? "cinema" : p.project.aspect_ratio === "9:16" ? "vertical" : p.project.aspect_ratio === "1:1" ? "square" : "youtube";
+        const preset = formatFor(p.project.aspect_ratio);
         const r = await api.exportProject(dir, preset);
         try { localStorage.setItem(`pf-autopilot-exported:${dir}`, String(newestTake)); } catch { /* optional */ }
         setBusy(""); setError(""); await refresh(); setDoneFile(r.path); return;

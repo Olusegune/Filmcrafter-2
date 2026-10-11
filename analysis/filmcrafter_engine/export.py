@@ -26,14 +26,19 @@ PRESETS = {
     "vertical": {"label": "TikTok / Reels 9:16", "w": 1080, "h": 1920},
     "square": {"label": "Square 1:1", "w": 1080, "h": 1080},
     "cinema": {"label": "Cinema 2.39:1", "w": 1920, "h": 804},
+    "widescreen": {"label": "Ultra-wide 21:9", "w": 2520, "h": 1080},
+    "standard": {"label": "Classic 4:3", "w": 1440, "h": 1080},
+    "portrait": {"label": "Portrait 4:5", "w": 1080, "h": 1350},
+    "tall": {"label": "Tall portrait 3:4", "w": 1080, "h": 1440},
+    "ultratall": {"label": "Ultra-tall 9:21", "w": 1080, "h": 2520},
     "preview": {"label": "Preview 16:9", "w": 640, "h": 360},          # small and quick, for checking a piece of the film
 }
 NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
-PRESET_FOR_ASPECT = {"2.39:1": "cinema", "21:9": "cinema", "9:16": "vertical", "1:1": "square"}
+PRESET_FOR_ASPECT = {"16:9": "youtube", "21:9": "widescreen", "2.39:1": "cinema", "4:3": "standard", "1:1": "square", "4:5": "portrait", "3:4": "tall", "9:16": "vertical", "9:21": "ultratall"}
 
 
 def preset_for(aspect: str | None) -> str:
-    """The export format that matches a project's shape (cinema for 2.39:1 and 21:9), YouTube otherwise."""
+    """The export format that matches a project's shape (one for each shape a film can take), YouTube otherwise."""
     return PRESET_FOR_ASPECT.get(aspect or "", "youtube")
 
 

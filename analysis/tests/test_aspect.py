@@ -129,8 +129,18 @@ def test_a_finished_keyframe_job_is_fitted_to_a_cinema_project(tmp_path, monkeyp
 
 # ---------------------------------------------------------------- the export that follows
 
-def test_a_21_9_project_exports_as_cinema_by_default():
+def test_every_frame_shape_has_its_own_export_format():
+    from filmcrafter_engine import export, story
+    for ratio in story.ASPECTS:
+        key = export.preset_for(ratio)
+        p = export.PRESETS[key]
+        w, h = (float(x) for x in ratio.split(":"))
+        assert abs(p["w"] / p["h"] - w / h) < 0.01, (ratio, key)            # the file has the film's shape
+        assert p["w"] % 2 == 0 and p["h"] % 2 == 0, key                     # H.264 needs even sizes
+    assert len({export.preset_for(r) for r in story.ASPECTS}) == len(story.ASPECTS)   # none shares another's
+    assert export.preset_for(None) == "youtube" and export.preset_for("5:4") == "youtube"
+
+
+def test_a_21_9_film_exports_as_ultra_wide_not_cinema_scope():
     from filmcrafter_engine import export
-    for ratio, preset in (("21:9", "cinema"), ("2.39:1", "cinema"), ("16:9", "youtube"), ("9:16", "vertical"), ("1:1", "square"), ("4:3", "youtube"), (None, "youtube")):
-        assert export.preset_for(ratio) == preset
-    assert export.preset_for("21:9") in export.PRESETS
+    assert export.preset_for("21:9") == "widescreen" and export.preset_for("2.39:1") == "cinema"

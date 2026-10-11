@@ -124,7 +124,7 @@ In the **Timeline**, the inspector keeps the everyday tabs (Shot, Keyframe, Vide
 
 ![With Advanced open: Compose (prompt, references, start and end frames) and Media appear, and the button now says Fewer](img/film/studio-advanced.png)
 
-**Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film or write a hand-off folder for an editor.
+**Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film (a format for each frame shape: 16:9, 21:9, 2.39:1, 4:3, 1:1, 4:5, 3:4, 9:16, 9:21; it starts on your film's own shape) or write a hand-off folder for an editor.
 
 ![Export: a readiness line, then three numbered panels: soundtrack, export the film, hand off to an editor](img/film/export.png)
 

@@ -4,6 +4,7 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { api, errorText, type ExportResult, type InterchangeResult, type MakeShot, type MakeStatus } from "./api";
 import { ask } from "./ask";
 import { FilmStrip } from "./FilmStrip";
+import { EXPORT_FORMATS, formatFor } from "./exportFormats";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
 const TABS: { id: MakeTab; label: string; blurb: string }[] = [
@@ -13,7 +14,7 @@ const TABS: { id: MakeTab; label: string; blurb: string }[] = [
   { id: "deliver", label: "Export", blurb: "The soundtrack, then the finished film or a hand-off to an editor." },
 ];
 const NOUN = { storyboard: "storyboard panel", keyframe: "keyframe", video: "video" } as const;
-const PRESETS: [string, string][] = [["youtube", "YouTube 16:9"], ["cinema", "Cinema 2.39:1"], ["vertical", "Vertical 9:16"], ["square", "Square 1:1"], ["preview", "Quick preview"]];
+const PRESETS: [string, string][] = [...EXPORT_FORMATS.map((f): [string, string] => [f.id, `${f.label} ${f.sub.split(" · ")[0]}`]), ["preview", "Quick preview"]];
 
 type HandCheck = { flagged: { shot: string; state: "fail" | "look"; detail: string }[]; shots: string[]; usd_est: number; can_check: boolean; unavailable: string };
 type CheckRun = { checked: number; passed: number; failed: { shot: string; detail: string }[]; look: { shot: string; detail: string }[]; errors: { shot: string; error: string }[] };
@@ -30,6 +31,9 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   const [note, setNote] = useState("");
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
+  const aspect = st?.aspect_ratio;
+  const [presetTouched, setPresetTouched] = useState(false);
+  useEffect(() => { if (aspect && !presetTouched) setPreset(formatFor(aspect)); }, [aspect, presetTouched]);   // the film's own shape, until you choose another
   const [handoff, setHandoff] = useState<InterchangeResult | null>(null);
   const [picked, setPicked] = useState<string | null>(null);                 // the shot chosen on the strip: its card is brought into view
 
@@ -171,7 +175,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
           <section className="mk-panel"><span className="mk-n num">2</span><h3>Export the film</h3>
             <p className="mk-big">One video file</p>
             <p className="dim">Shots without a take appear as picture cards, so the film is marked as a draft until every shot has one.</p>
-            <div className="film-actions"><select className="text-input" value={preset} onChange={(e) => setPreset(e.target.value)} aria-label="Format">{PRESETS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select>
+            <div className="film-actions"><select className="text-input" value={preset} onChange={(e) => { setPresetTouched(true); setPreset(e.target.value); }} aria-label="Format">{PRESETS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select>
               <button className="btn primary" disabled={!!busy || st.counts.video === 0} onClick={doExport}>{busy === "export" ? "Exporting…" : "Export the film"}</button></div>
             {st.counts.video === 0 && <p className="dim mk-gate">Make at least one video first.</p>}
             {result && <div className="mk-result"><b>{result.draft ? "Draft exported" : "Exported"}</b> · {result.width}×{result.height} · {result.duration.toFixed(1)}s<br />
