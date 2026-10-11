@@ -96,6 +96,7 @@ def scene_blocks(text: str) -> list[dict]:
     lines = story._norm(text).split("\n")
     scenes: list[dict] = []
     cur: dict | None = None
+    has_headings = any(story.SLUG.match(x.strip()) for x in lines)
     prev_blank, in_dlg, blk = True, False, None
     for i, raw in enumerate(lines):
         s = raw.strip()
@@ -111,7 +112,7 @@ def scene_blocks(text: str) -> list[dict]:
         if cur is None:
             cur = {"number": 1, "heading": "Opening", "int_ext": "", "location": "", "time": "", "blocks": [], "implied": True}
             scenes.append(cur)
-        if not in_dlg and story._is_cue(raw, prev_blank, nxt):
+        if not in_dlg and not (cur.get("implied") and has_headings) and story._is_cue(raw, prev_blank, nxt):          # lines before the first scene heading are a title page (an all-capitals title is not a speaker)
             blk = {"type": "dialogue", "speaker": story.CUE_NOTE.sub("", s).strip().lstrip("@").strip(), "paren": "", "lines": []}
             cur["blocks"].append(blk)
             in_dlg = True
@@ -152,7 +153,28 @@ def _seconds(words: int, dialogue: bool) -> float:
     return round(min(12.0, max(2.0, words / 2.5 + 1.0 if dialogue else words / 3.0 + 1.5)), 1)
 
 
-def _draft_scene(scene: dict, version: int | None) -> list[dict]:
+_GENERIC = {"woman", "man", "girl", "boy", "friend", "mother", "father", "kid", "child", "teacher", "voice", "crowd"}
+
+
+def _named_in(text: str, names: list[str]) -> list[str]:
+    """Which of the film's people are named in some action text, in the order they appear (a full name, or a last name only the one person has)."""
+    last: dict[str, list[str]] = {}
+    for n in names:
+        w = n.split()[-1].lower() if len(n.split()) > 1 else ""
+        if w and "#" not in n and len(w) >= 3 and w not in _GENERIC:
+            last.setdefault(w, []).append(n)
+    found: list[tuple[int, str]] = []
+    for n in names:
+        if "#" in n:
+            continue
+        forms = [n.lower()] + [w for w, who in last.items() if who == [n]]
+        hits = [m.start() for f in forms for m in re.finditer(r"\b" + re.escape(f) + r"\b", text.lower())]
+        if hits:
+            found.append((min(hits), n))
+    return [n for _, n in sorted(found)]
+
+
+def _draft_scene(scene: dict, version: int | None, names: list[str] | None = None) -> list[dict]:
     blocks = scene["blocks"]
     shots: list[dict] = []
     place = scene.get("location", "").title()
@@ -164,7 +186,8 @@ def _draft_scene(scene: dict, version: int | None) -> list[dict]:
         sh = _blank("", scene, len(shots) + 1, version)
         sh["story_purpose"], sh["action"] = purpose, action[:700]
         sh["dialogue"] = dialogue or []
-        sh["characters"] = [{"name": n, "character_id": None, "state_id": None, "wardrobe_id": None} for n in (speakers or [])]
+        who = list(speakers or []) if speakers else _named_in(action, names or [])          # the people speaking; or, in an action shot, the people the action names
+        sh["characters"] = [{"name": n, "character_id": None, "state_id": None, "wardrobe_id": None} for n in who]
         sh["camera"]["framing"] = framing
         sh["generation"]["duration"] = _seconds(words, is_dlg)
         shots.append(sh)
@@ -242,7 +265,9 @@ def breakdown(d: str, scene: int | None = None) -> dict:
     cons = {sid: _contract(d, sid) for sid in idx["order"]}
     bible = B.load(d)
     made = []
-    for sc in scene_blocks(rec["text"]):
+    all_scenes = scene_blocks(rec["text"])
+    names = list(dict.fromkeys([b["speaker"] for s in all_scenes for b in s["blocks"] if b["type"] == "dialogue"] + [x["name"].upper() for x in bible.get("characters", [])]))
+    for sc in all_scenes:
         if scene is not None and sc["number"] != int(scene):
             continue
         mine = [sid for sid in idx["order"] if cons[sid]["scene"] == sc["number"]]
@@ -254,7 +279,7 @@ def breakdown(d: str, scene: int | None = None) -> dict:
             for s in mine:
                 _archive(d, s)
                 idx["order"].remove(s)
-        drafts = _draft_scene(sc, ver)
+        drafts = _draft_scene(sc, ver, names)
         for n, c in enumerate(drafts, 1):
             c["id"] = f"S{sc['number']:02d}-{n:02d}"
             while os.path.exists(os.path.dirname(_cpath(d, c["id"]))):

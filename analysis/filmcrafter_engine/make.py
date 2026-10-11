@@ -22,7 +22,7 @@ import shutil
 import sys
 import time
 
-from .safe import check_id, file_part
+from .safe import check_id, file_name, file_part
 
 LOOK_FOR_LANE = {"photoreal cinematic": "live-action", "photoreal CGI": "photoreal-cgi", "feature 3D": "feature-3d", "low-poly 3D": "low-poly", "hand-drawn 2D": "hand-drawn-2d",
                  "stylized 3D": "stylized-3d", "graphic 3D": "cel-shaded-3d", "2D animation": "digital-2d", "painterly animation": "painterly",
@@ -185,7 +185,7 @@ def sync(d: str) -> dict:
             for mm in it["media"][:6]:
                 src = os.path.join(d, mm["path"])
                 if os.path.isfile(src):
-                    dst = os.path.join(refs, f"{file_part(it['id'], 40)}-{file_part(os.path.basename(mm['path']), 40)}")
+                    dst = os.path.join(refs, f"{file_part(it['id'], 40)}-{file_name(os.path.basename(mm['path']), 48)}")
                     if not os.path.exists(dst):
                         shutil.copyfile(src, dst)
                     files.append("assets/refs/" + os.path.basename(dst))

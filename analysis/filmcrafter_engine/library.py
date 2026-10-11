@@ -186,6 +186,17 @@ LABELS = {"character": "reference for {name} (face, expressions, full-body turna
           "style": "style reference: {name}", "video": "motion reference: {name}", "audio": "audio reference: {name}"}
 
 
+def _clip(text: str, n: int) -> str:
+    """The start of a note, cut at the end of a sentence or a word, never in the middle of one (and never ending on 'often ')."""
+    text = " ".join(str(text).split())
+    if len(text) <= n:
+        return text
+    cut = text[:n]
+    stop = max(cut.rfind(". "), cut.rfind("; "))
+    cut = cut[:stop + 1] if stop >= n // 2 else cut[:cut.rfind(" ")] if " " in cut else cut
+    return cut.rstrip(" ,;:-")
+
+
 def reference_files(d: str, project: dict, shot: dict | None, scene_number=None) -> list[dict]:
     """Files to send for a shot: [{label, path, kind, media}] — the render engine's single source of references."""
     project = json.loads(json.dumps(project))
@@ -200,7 +211,7 @@ def reference_files(d: str, project: dict, shot: dict | None, scene_number=None)
             label = "character sheet (faces, turnarounds, outfits)" if it["kind"] == "character" else \
                 "set and props sheet (locations, props, colour palette)"
         if it.get("notes"):
-            label += f" — {it['notes'][:120]}"
+            label += f" — {_clip(it['notes'], 120)}"
         for f in it.get("files") or []:
             path = os.path.join(d, f)
             if not (os.path.exists(path) and media_kind(f) != "document"):
@@ -219,15 +230,18 @@ def reference_files(d: str, project: dict, shot: dict | None, scene_number=None)
 
 def fit_to_model(refs: list[dict], limits: dict) -> tuple[list[dict], list[str]]:
     """Keep what the model can take (limits: {"image": n, "video": n, "audio": n}); report what was dropped."""
-    kept, dropped, used = [], [], {}
-    for r in refs:
+    # Every person and place gets one picture before anyone gets a second: a model that takes two pictures must not spend both on the first character
+    seen: set = set()
+    first = [r for r in refs if not (tuple(r.get("names") or [r["label"]]) in seen or seen.add(tuple(r.get("names") or [r["label"]])))]
+    order = first + [r for r in refs if not any(r is x for x in first)]
+    chosen, used = set(), {}
+    for r in order:
         m = r.get("media", "image")
-        cap = limits.get(m, 0)
-        if used.get(m, 0) < cap:
-            kept.append(r)
+        if used.get(m, 0) < limits.get(m, 0):
+            chosen.add(id(r))
             used[m] = used.get(m, 0) + 1
-        else:
-            dropped.append(r["label"].split(" — ")[0])
+    kept = [r for r in refs if id(r) in chosen]                      # in the original order, so the story of "first, second" stays the same
+    dropped = [r["label"].split(" — ")[0] for r in refs if id(r) not in chosen]
     return kept, dropped
 
 

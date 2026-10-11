@@ -1056,9 +1056,9 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     if motion_refs and "ref_videos" in roles:
         blocks.append((7, "Motion references: " + "; ".join(r["label"] for r in motion_refs) + "."))
     if image_refs:
-        ordinal = ["first", "second", "third", "fourth", "fifth", "sixth"]
+        ordinal = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"]
         tags = [f"{man['ref_syntax'].format(n=i + 1)} is the {_ref_label(r['label'], shot.get('locked_design'))}" if man.get("ref_syntax")
-                else f"the {ordinal[min(i, 5)]} reference image is the {_ref_label(r['label'], shot.get('locked_design'))}" for i, r in enumerate(image_refs)]
+                else f"the {ordinal[i] if i < len(ordinal) else str(i + 1) + 'th'} reference image is the {_ref_label(r['label'], shot.get('locked_design'))}" for i, r in enumerate(image_refs)]
         blocks.append((9, "References: " + "; ".join(tags) + ". Match the characters' faces, hair and wardrobe exactly."))
 
     lip = bool(sung and "ref_audio" in roles and project.get("lip_sync", "auto") != "off")

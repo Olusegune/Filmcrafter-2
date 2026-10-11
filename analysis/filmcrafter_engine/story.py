@@ -196,6 +196,7 @@ def parse_screenplay(text: str) -> dict:
         return {"number": len(scenes) + 1, "heading": heading.strip().lstrip(".").strip(), **_heading_parts(heading), "line": at,
                 "characters": [], "dialogue_lines": 0, "action_lines": 0, "words": 0, "speeches": 0}
 
+    has_headings = any(SLUG.match(x.strip()) for x in lines)
     prev_blank, in_dialogue, speaker = True, False, ""
     for i, raw in enumerate(lines):
         s = raw.strip()
@@ -212,7 +213,7 @@ def parse_screenplay(text: str) -> dict:
             cur = {"number": 1, "heading": "Opening", "int_ext": "", "location": "", "time": "", "line": i, "characters": [], "dialogue_lines": 0,
                    "action_lines": 0, "words": 0, "speeches": 0, "implied": True}
             scenes.append(cur)
-        if not in_dialogue and not cur.get("implied") and _is_cue(raw, prev_blank, nxt):          # lines before the first scene heading are a title page, not people speaking
+        if not in_dialogue and not (cur.get("implied") and has_headings) and _is_cue(raw, prev_blank, nxt):          # lines before the first scene heading are a title page, not people speaking
             speaker = CUE_NOTE.sub("", s).strip().lstrip("@").strip()
             if speaker not in cur["characters"]:
                 cur["characters"].append(speaker)

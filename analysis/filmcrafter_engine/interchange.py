@@ -27,7 +27,7 @@ import sys
 import time
 from xml.sax.saxutils import escape
 
-from .safe import file_part
+from .safe import file_name, file_part
 
 FPS = 24
 
@@ -178,7 +178,7 @@ def write(d: str) -> dict:
     snd = os.path.join(rd, (g["soundtrack"] or {}).get("file", "")) if (g["soundtrack"] or {}).get("file") else None
     if snd and os.path.isfile(snd):
         os.makedirs(os.path.join(out, "audio"), exist_ok=True)
-        audio_rel = "audio/" + file_part(os.path.basename(snd), 60)
+        audio_rel = "audio/" + file_name(os.path.basename(snd), 60)
         shutil.copyfile(snd, os.path.join(out, audio_rel))
     pj = _read(os.path.join(rd, "project.json"), {})
     aspect = pj.get("aspect_ratio", "16:9")

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.14.3 (2026-10-11)
+
+Found by checking a real screenplay (Summit Sprout) against the prompt of its first shots: the wrong people were reaching the shots. Four real bugs, all fixed:
+
+- **A title became a character.** A title in capitals at the top of the script (`SUMMIT SPROUT: "FROM SHAME TO LIVING` / `WATER"`) was read as someone speaking, so scene 1 was the title page, shot 1 was "Summit Sprout speaks", and every scene number was off by one. A title page before the first scene heading is now never a speaker (a script with no scene headings at all still finds its speakers).
+- **Action shots had no people.** Only people with a line of dialogue were put in a shot; "Chloe sits alone under an oak" had no one in it, so no character reference, no look. A shot now names the people its action names (a full name, or a last name only one person has; "Friend #1" and other crowds only when numbered), in the order they appear.
+- **People with long picture names were never sent.** The pictures a film is given are copied into the render project, and their names were cut at 40 characters, through the extension (`...undefinedx`), so the app no longer recognised them as pictures and silently left them out. Lila, Ethan, Teacher Wen and others had no reference at all. Names now keep their extension (and stay distinct).
+- **One person could use up every picture slot.** A picture model that takes two reference images got both from the first character. Every person (and place) now gets one picture before anyone gets a second.
+- Smaller: a character's note was cut mid-word ("often "); it now ends at a sentence or word. References past the sixth were all called "the sixth".
+- Tests: 9 new (`test_story_accuracy.py`), each failing on the old code. Films made before this version keep their old shots; re-import the screenplay to get a clean breakdown.
+
 ## 0.14.2 (2026-10-11)
 
 - **Export has a format for every frame shape.** The Export format list offered only 16:9, 2.39:1, 9:16 and 1:1, so a 21:9, 4:3, 4:5, 3:4 or 9:21 film had nothing that matched (found in use). It now has all nine: YouTube 16:9, Ultra-wide 21:9 (2520x1080), Cinema 2.39:1, Classic 4:3, Square 1:1, Portrait 4:5, Tall portrait 3:4, TikTok / Reels 9:16 and Ultra-tall 9:21, plus Quick preview. The list starts on the film's own shape. A 21:9 film used to export as 2.39:1 scope; it now exports as true 21:9. The three screens that chose a format (Make film, Export, Autopilot) share one list. Tested: every shape has its own format, at its exact ratio, with even sizes, and the screen's list matches the engine's.

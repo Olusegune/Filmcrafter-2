@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import re
 
 ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -13,6 +14,19 @@ def file_part(text: object, limit: int = 60) -> str:
     """Safe to put inside a file name: letters, digits, dot, dash and underscore only, never starting with a dot, never empty."""
     s = re.sub(r"[^A-Za-z0-9._-]+", "_", str(text or "")).lstrip(".")[:limit]
     return s or "x"
+
+
+def file_name(name: object, limit: int = 60) -> str:
+    """A safe file name that is never cut through its extension: a long name loses the end of its stem (and gains a short tag so two long names stay different), the extension stays."""
+    import hashlib
+    base = str(name or "")
+    stem, ext = os.path.splitext(base)
+    ext = "." + file_part(ext[1:], 7) if len(ext) > 1 else ""
+    room = max(8, limit - len(ext))
+    s = file_part(stem, 10 ** 6)
+    if len(s) > room:
+        s = s[:room - 7].rstrip("._-") + "-" + hashlib.sha1(stem.encode("utf-8", "replace")).hexdigest()[:6]
+    return s + ext
 
 
 def check_id(text: object, what: str = "shot") -> str:
