@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.1 (2026-10-11)
+
+- **Scenes fold in Select & review.** Each scene heading is a button (with its shot count and how many are selected) that folds or opens its tiles; *Open all scenes* and *Fold all* sit in the toolbar. A film of more than 60 shots opens with only its first scene (and any scene already holding a chosen shot) open, so a 300-shot film is one scene of tiles and a short list of headings instead of a very long scroll. Short films open as before. Tested; the accessibility scan is still clean.
+
 ## 0.14.0 (2026-10-11)
 
 - **Select & review has bigger pictures and a larger preview.** Tiles are grouped by scene and sized Small, Medium or Large (remembered); each has an enlarge button (or press `Z`) that opens a preview with arrow keys to step, Esc to close, and the action for that step. "Without a picture (n)" selects the shots that still need one; each scene has Select scene / Clear scene. Review and video tiles are larger and can be enlarged too. Boxes are squarer.

@@ -174,6 +174,7 @@ Before making pictures or video you choose which shots to work on. **Select & re
 - **Size:** Small, Medium or Large (top right; remembered). Tiles keep the film's frame shape, so a 9:16 film shows tall tiles.
 - **Look closer:** the magnifier on a tile (or `Z` over it) opens a large preview. `←` and `→` step through shots, `Esc` closes, and the preview has the action for the step you are on.
 - **Choose quickly:** *All*, *Without a picture (n)* (the shots that still need one), *None*; *Select scene* / *Clear scene* on each scene heading. Locked shots are never changed.
+- **Fold scenes:** click a scene heading to fold or open it (the heading shows how many shots in it are selected); *Open all scenes* and *Fold all* are in the toolbar. A film of more than 60 shots opens with only its first scene open.
 - The **Keyframes** and **Video** steps use larger tiles and can be enlarged the same way.
 
 ![The large preview](img/film/selectpreview.png)

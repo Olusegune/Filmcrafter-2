@@ -673,3 +673,15 @@
 .lt-runrow { display: flex; align-items: flex-start; gap: 10px; }
 .lt-runrow .lt-run { flex: 1; min-width: 0; }
 .lt-runrow .lt-tick { flex: none; margin-top: 16px; }
+
+/* scenes fold: the heading is a button; a closed scene shows only its heading and how many are chosen */
+.sr-fold { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 6px 4px 0; margin: -4px 0; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; border-radius: 2px; }
+.sr-fold:hover { color: var(--text, #e8edf3); }
+.sr-fold:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.sr-fold svg { transition: transform 0.15s ease; }
+.sr-scene.folded .sr-fold svg { transform: rotate(-90deg); }
+.sr-scene.folded { margin-bottom: var(--sp-3, 12px); }
+.sr-scene.folded h3 { margin-bottom: 0; }
+.sr-chosen { color: var(--signal); font-weight: 600; }
+.sr-sep { width: 1px; height: 14px; background: var(--hair); align-self: center; }
+@media (prefers-reduced-motion: reduce) { .sr-fold svg { transition: none; } }

@@ -45,6 +45,16 @@ export function sectionGroups(sections: Section[], shots: { start: number; end: 
     .filter((g) => shots.some((x) => x.start < g.end - 0.01 && x.end > g.start + 0.01));
 }
 
+/** A long film starts with its scenes folded, so the sheet is not a very long scroll. */
+export const FOLD_AT = 60;
+/** Which scenes start folded: none for a short film; for a long one all but the first and any that hold a shot already chosen. */
+export function initialFolded(groups: [number, string, BoardShot[]][], total: number, chosen: string[]): Set<number> {
+  if (total <= FOLD_AT || groups.length < 2) return new Set();
+  const keep = new Set<number>([groups[0][0]]);
+  for (const [n, , list] of groups) if (list.some((x) => chosen.includes(x.id))) keep.add(n);
+  return new Set(groups.map(([n]) => n).filter((n) => !keep.has(n)));
+}
+
 /** The shots grouped by scene, in order: [scene number, heading, its shots]. */
 export function groupByScene(shots: BoardShot[]): [number, string, BoardShot[]][] {
   const out: [number, string, BoardShot[]][] = [];
@@ -114,6 +124,8 @@ export function SelectReview({ dir, shots, sections, initial, aspect, onClose, o
   const [err, setErr] = useState("");
   const [size, setSizeState] = useState<TileSize>(storedSize);
   const setSize = (v: TileSize) => { setSizeState(v); try { localStorage.setItem(SIZE_KEY, v); } catch { /* remembering the size is a convenience only */ } };
+  const [folded, setFolded] = useState<Set<number>>(() => initialFolded(groupByScene(shots), shots.length, initial));
+  const flip = (n: number) => setFolded((f) => { const x = new Set(f); if (x.has(n)) x.delete(n); else x.add(n); return x; });
   const [pv, setPv] = useState<{ items: PreviewItem[]; i: number } | null>(null);          // the larger view, when open
   const ids = useMemo(() => shots.filter((s) => sel.has(s.id)).map((s) => s.id), [shots, sel]);
   const editable = (s: BoardShot) => !s.locked;
@@ -204,6 +216,11 @@ export function SelectReview({ dir, shots, sections, initial, aspect, onClose, o
               <button className="link" onClick={() => setSel(new Set(shots.filter(editable).map((x) => x.id)))}>All</button>
               <button className="link" onClick={() => setSel(new Set(shots.filter((x) => editable(x) && !x.keyframe).map((x) => x.id)))} title="Select only the shots that have no picture yet">Without a picture ({shots.filter((x) => editable(x) && !x.keyframe).length})</button>
               <button className="link" onClick={() => setSel(new Set())}>None</button>
+              {groupByScene(shots).length > 1 && <>
+                <span className="sr-sep" aria-hidden="true" />
+                <button className="link" onClick={() => setFolded(new Set())}>Open all scenes</button>
+                <button className="link" onClick={() => setFolded(new Set(groupByScene(shots).map(([n]) => n)))}>Fold all</button>
+              </>}
             </div>
             <div className="mode-toggle sr-size" role="group" aria-label="Picture size">
               {SIZES.map(([k, label]) => <button key={k} className={size === k ? "on" : ""} aria-pressed={size === k} onClick={() => setSize(k)}>{label}</button>)}</div>
@@ -212,11 +229,15 @@ export function SelectReview({ dir, shots, sections, initial, aspect, onClose, o
             {groupByScene(shots).map(([scene, heading, list]) => {
               const free = list.filter(editable);
               const all = free.length > 0 && free.every((x) => sel.has(x.id));
+              const closed = folded.has(scene);
+              const chosen = list.filter((x) => sel.has(x.id)).length;
               return (
-                <section key={scene} className="sr-scene" aria-label={`Scene ${scene}`}>
-                  <h3><span>Scene {scene}</span>{heading && <em>{heading}</em>}<span className="dim">{list.length} shot{list.length === 1 ? "" : "s"}</span>
+                <section key={scene} className={`sr-scene ${closed ? "folded" : ""}`} aria-label={`Scene ${scene}`}>
+                  <h3><button className="sr-fold" aria-expanded={!closed} aria-controls={`sr-scene-${scene}`} onClick={() => flip(scene)}>
+                      <I.Chevron size={13} /><span>Scene {scene}</span></button>{heading && <em>{heading}</em>}
+                    <span className="dim">{list.length} shot{list.length === 1 ? "" : "s"}{chosen > 0 && <> · <b className="sr-chosen">{chosen} selected</b></>}</span>
                     {free.length > 0 && <button className="link" onClick={() => setSel((cur) => { const n = new Set(cur); free.forEach((x) => (all ? n.delete(x.id) : n.add(x.id))); return n; })}>{all ? "Clear scene" : "Select scene"}</button>}</h3>
-                  <div className="sr2">
+                  {!closed && <div className="sr2" id={`sr-scene-${scene}`}>
                     {list.map((x) => {
                       const on = sel.has(x.id);
                       const src = x.keyframe ?? x.thumb_src;
@@ -239,7 +260,7 @@ export function SelectReview({ dir, shots, sections, initial, aspect, onClose, o
                           <button className="sr2-zoom" onClick={open} aria-label={`Enlarge ${x.id}`} title="Enlarge (Z)"><I.Search size={14} /></button>
                         </div>);
                     })}
-                  </div>
+                  </div>}
                 </section>);
             })}
           </div>

@@ -195,7 +195,7 @@ mockIPC((cmd, a) => {
         { id: "p1", kind: "prop", name: "Red toy car", files: ["s6.png"] }, { id: "st1", kind: "style", name: "Painterly warm", files: ["s2.png"] }],
         assign: { project: ["c1", "st1"], scenes: { "2": { add: ["s1"] } }, shots: {} } };
       if (x.action === "bible") return { world: "", tone: "", rules: "", avoid: "" };
-      if (x.action === "storyboard") return { plan: "p", shots: ids.map((id, i) => ({ id, scene: 1, start: i * 6, end: i * 6 + 5, beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: `t${i}.png`, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })), library: { items: [], assign: { project: [], scenes: {}, shots: {} } } }; if (x.action === "thumbs") return Object.fromEntries(((x.data?.srcs as string[]) ?? []).map((s, i) => [s, still(i + s.length)])); return null;
+      if (x.action === "storyboard") return { plan: "p", shots: ids.map((id, i) => ({ id, scene: N > 8 ? Number(id.slice(1, 3)) : 1, start: i * 6, end: i * 6 + 5, beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: `t${i}.png`, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })), library: { items: [], assign: { project: [], scenes: {}, shots: {} } } }; if (x.action === "thumbs") return Object.fromEntries(((x.data?.srcs as string[]) ?? []).map((s, i) => [s, still(i + s.length)])); return null;
     case "list_styles": return styles.styles;
     case "direction_library":
       if (x.action === "list") return { directions, current: "hayao-miyazaki" };
@@ -306,7 +306,7 @@ const scenes: Record<string, () => ReactNode> = {
   keyframetools: () => <KeyframeTools dir={DIR} onClose={noop} />,
   handfix: () => <HandFix dir={DIR} shot="S01-02" image="s2.png" onClose={noop} />,
   planbudget: () => <RoutingSheet dir={DIR} onClose={noop} />,
-  selectreview: () => <SelectReview dir={DIR} shots={ids.map((id, i) => ({ id, scene: 1, start: i * 6, end: i * 6 + 5, framing: ["Close-up", "Wide", "Medium", "Over the shoulder"][i % 4], beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: null, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })) as never} sections={[{ label: "verse", group: "Verse 1", start: 0, end: 24 }, { label: "chorus", group: "Chorus", start: 24, end: 48 }] as never} initial={ids.slice(0, 4)} onClose={noop} onQueued={noop} />,
+  selectreview: () => <SelectReview dir={DIR} shots={ids.map((id, i) => ({ id, scene: N > 8 ? Number(id.slice(1, 3)) : 1, start: i * 6, end: i * 6 + 5, framing: ["Close-up", "Wide", "Medium", "Over the shoulder"][i % 4], beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: null, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })) as never} sections={[{ label: "verse", group: "Verse 1", start: 0, end: 24 }, { label: "chorus", group: "Chorus", start: 24, end: 48 }] as never} initial={ids.slice(0, 4)} onClose={noop} onQueued={noop} />,
   compare: () => <div className="sheet glass viewer-sheet" style={{ width: 920 }}><div className="vs-head"><h2 className="num">Shot S01-03</h2></div><CompareLazy /></div>,
   directionlibrary: () => <DirectionLibrarySheet dir={DIR} onClose={noop} onApplied={noop} />,
   directions: () => <div style={{ maxWidth: 1180, margin: "0 auto", padding: 24 }}><CreativeDirections project={project} onPlanned={noop} onSettings={noop} /></div>,

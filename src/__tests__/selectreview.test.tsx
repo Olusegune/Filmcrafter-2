@@ -5,7 +5,7 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(() => Promise.resolve(nul
 vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn() }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 
-import { Preview, SelectReview, groupByScene, type PreviewItem } from "../SelectReview";
+import { FOLD_AT, Preview, SelectReview, groupByScene, initialFolded, type PreviewItem } from "../SelectReview";
 import type { BoardShot } from "../api";
 
 const shot = (id: string, scene: number, over: Partial<BoardShot> = {}): BoardShot => ({ id, scene, heading: scene === 1 ? "INT. KITCHEN" : "EXT. PLATFORM", start: 0, end: 4, framing: "Wide", beat: `${id} beat`, performers: [], status: "ready", locked: false,
@@ -84,5 +84,30 @@ describe("the select step", () => {
     expect(h).toContain("--ar:9 / 16");
     for (const w of ["Small", "Medium", "Large"]) expect(h).toContain(w);
     expect(h).toContain('data-size="m"');
+  });
+});
+
+describe("folding scenes", () => {
+  const long = Array.from({ length: FOLD_AT + 20 }, (_, i) => shot(`S${String(Math.floor(i / 8) + 1).padStart(2, "0")}-${String((i % 8) + 1).padStart(2, "0")}`, Math.floor(i / 8) + 1));
+  const g = groupByScene(long);
+  it("leaves a short film open", () => {
+    expect(initialFolded(groupByScene(long.slice(0, 10)), 10, []).size).toBe(0);
+    expect(initialFolded(g, FOLD_AT, []).size).toBe(0);
+  });
+  it("folds all but the first scene of a long film, and any scene holding a chosen shot", () => {
+    const f = initialFolded(g, long.length, []);
+    expect(f.has(1)).toBe(false);
+    expect(f.size).toBe(g.length - 1);
+    const kept = initialFolded(g, long.length, ["S04-02"]);
+    expect(kept.has(4)).toBe(false);
+    expect(kept.size).toBe(g.length - 2);
+  });
+  it("draws a folded scene as its heading only, with a button that says whether it is open", () => {
+    const h = renderToStaticMarkup(<SelectReview dir="f" shots={long} sections={[]} initial={["S03-01"]} onClose={() => {}} onQueued={() => {}} />);
+    expect(h).toContain('aria-expanded="true"');
+    expect(h).toContain('aria-expanded="false"');
+    expect(h).toContain("1 selected");
+    expect(h).toContain("Fold all");
+    expect((h.match(/class="sr2"/g) ?? []).length).toBe(2);   // scene 1 and scene 3 are open
   });
 });
