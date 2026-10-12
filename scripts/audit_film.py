@@ -1,6 +1,6 @@
 """Audit of a film folder: does the right thing reach every shot?  (Free: nothing is sent anywhere; your film is not changed, only its derived render folder is refreshed, as the app does.)
 
-    python scripts/audit_film.py "<film folder>" [--provider kie] [--kind image|video]
+    python scripts/audit_film.py "<film folder>" [--provider kie] [--kind image|video] [--model <id>]
 
 For every shot it builds the prompt the app would send and checks, among other things, that:
   - every person the shot names is in the prompt, and has a reference picture (that exists, and is a picture)
@@ -26,7 +26,7 @@ def quiet(f, *a, **k):
         return f(*a, **k)
 
 
-def audit(film: str, provider: str = "kie", kind: str = "image") -> tuple[list[str], dict]:
+def audit(film: str, provider: str = "kie", kind: str = "image", model: str | None = None) -> tuple[list[str], dict]:
     problems: list[str] = []
     quiet(make.sync, film)                                                   # the render project is derived from the film; refresh it
     rd = os.path.join(film, "render")
@@ -40,7 +40,7 @@ def audit(film: str, provider: str = "kie", kind: str = "image") -> tuple[list[s
         names = [x["name"] for x in c["characters"]]
         where = c["environment"].get("name") or ""
         try:
-            r = quiet(render.preview, rd, sid, provider, None, {}, kind)
+            r = quiet(render.preview, rd, sid, provider, model, {}, kind)
         except SystemExit as e:
             problems.append(f"{sid}: cannot build the prompt ({e})")
             continue
@@ -64,6 +64,11 @@ def audit(film: str, provider: str = "kie", kind: str = "image") -> tuple[list[s
                 problems.append(f"{sid}: {pretty} has no reference picture in this prompt")
             else:
                 stats["people_refs_ok"] += 1
+        if kind == "image" and not refs:                                           # a picture with nothing to look at must not go to a model that insists on one
+            from filmcrafter_engine import refgen
+            use = render.text_only_model(r["manifest"]["model"], False)
+            if refgen._needs_input_image(render.manifest(provider, use)):
+                problems.append(f"{sid}: no reference picture, and {use} needs one (it would be refused)")
         for x in refs:
             full = x["path"] if os.path.isabs(x["path"]) else os.path.join(rd, x["path"])
             if not os.path.isfile(full) or os.path.splitext(full)[1].lower() not in (".png", ".jpg", ".jpeg", ".webp"):
@@ -91,8 +96,9 @@ if __name__ == "__main__":
     ap.add_argument("film")
     ap.add_argument("--provider", default="kie")
     ap.add_argument("--kind", default="image", choices=["image", "video"])
+    ap.add_argument("--model", default=None, help="check with this model instead of the automatic one")
     a = ap.parse_args()
-    probs, st = audit(a.film, a.provider, a.kind)
+    probs, st = audit(a.film, a.provider, a.kind, a.model)
     for p in probs:
         print("  !! " + p)
     print(f"{st['shots']} shots, {st['prompts']} prompts built, {st['with_people']} with people, {len(probs)} problem(s).")

@@ -443,7 +443,13 @@ TEXT_ONLY_SIBLING = {"google/nano-banana-edit": "google/nano-banana", "fal-ai/na
 
 def text_only_model(model: str, has_references: bool) -> str:
     """The model to draw a picture with: the same one when there is a reference to edit, its text-to-picture sibling when there is none."""
-    return model if has_references else TEXT_ONLY_SIBLING.get(model, model)
+    if has_references:
+        return model
+    if model in TEXT_ONLY_SIBLING:
+        return TEXT_ONLY_SIBLING[model]
+    if "image-to-image" in model:                                   # GPT Image, Flux 2, Seedream...: the "image-to-image" model has a "text-to-image" twin
+        return model.replace("image-to-image", "text-to-image")
+    return model
 
 
 def default_model(provider: str, kind: str = "video") -> str:
@@ -2305,9 +2311,14 @@ def _submit(d: str, store: Store, project: dict, p, j: dict) -> None:
     if j.get("kind") == "image" and not refs and not hf:
         sib = text_only_model(j["model"], False)
         if sib != j["model"]:                                       # nothing to edit: draw it from the words alone, on the same family's text model
-            man = manifest(j["provider"], sib)
-            emit(event="progress", stage=f"{j['shot_id']}: no reference picture yet, so {sib.split('/')[-1]} draws it from the words")
-            store.update(j, model=sib, swapped_from=j["model"])
+            try:
+                alt = manifest(j["provider"], sib)
+            except (SystemExit, Exception):
+                alt = None                                          # the twin does not exist on this provider: keep the chosen model, whose own check explains what is missing
+            if alt is not None:
+                man = alt
+                emit(event="progress", stage=f"{j['shot_id']}: no reference picture yet, so {sib.split('/')[-1]} draws it from the words")
+                store.update(j, model=sib, swapped_from=j["model"])
     if j.get("kind") == "lipsync":
         src = next((x for x in store.jobs if x["id"] == j.get("source_job")), None)
         if not src or not src.get("output"):

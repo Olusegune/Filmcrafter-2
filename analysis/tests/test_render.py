@@ -473,3 +473,23 @@ def test_a_picture_with_no_reference_uses_the_text_only_model_of_the_same_family
     j = R.Store(project).jobs[0]
     assert j["model"] == "google/nano-banana" and j["swapped_from"] == "google/nano-banana-edit" and j["state"] == "ready"
     assert "google/nano-banana" in seen
+
+
+def test_every_image_to_image_model_falls_back_to_its_text_to_image_twin_when_there_is_nothing_to_edit():
+    assert R.text_only_model("gpt/gpt-image-2-5-flare-image-to-image", False) == "gpt/gpt-image-2-5-flare-text-to-image"
+    assert R.text_only_model("flux2/pro-image-to-image", False) == "flux2/pro-text-to-image"
+    assert R.text_only_model("gpt/gpt-image-2-5-flare-image-to-image", True) == "gpt/gpt-image-2-5-flare-image-to-image"
+
+
+def test_when_the_text_twin_does_not_exist_the_chosen_model_is_kept_and_nothing_is_swapped(project, fake, monkeypatch):
+    chosen = "acme/thing-image-to-image"
+
+    def man(provider, model, refresh=False):
+        if model != chosen:
+            raise SystemExit("no such model")
+        return R._finish("fal", model, "Picture", "image-to-image", [field("prompt", required=True), field("image_urls", required=True, type="array")])
+    monkeypatch.setattr(R, "manifest", man)
+    R.enqueue(project, ["S01-01"], "fal", chosen, {"_variants": 1}, [], "image")
+    R.run(project, poll_every=0)
+    j = R.Store(project).jobs[0]
+    assert j["model"] == chosen and not j.get("swapped_from")

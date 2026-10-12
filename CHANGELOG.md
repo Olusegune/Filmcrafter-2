@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.14.5 (2026-10-11)
+
+- **Fixed: a shot with no people could not make its picture on GPT Image 2.5 Flare.** The first shot of a scene (the place, nobody in it) has no reference picture, and GPT Image's "image-to-image" model refuses a request without one ("Needs an image for input_urls", nothing charged, found in use). The fix from 0.12.0 only covered Nano Banana. Now any "image-to-image" model falls back to its "text-to-image" twin when there is nothing to edit (GPT Image, Flux 2, Seedream and the rest), and if the twin does not exist the chosen model is kept and its own check explains. Press *Try again* on the failed job. Tested.
+- The film audit tool also catches this: a picture with no reference on a model that insists on one is reported (`--model <id>` checks a model of your choice).
+
 ## 0.14.4 (2026-10-11)
 
 A QA pass over the whole flow, from a real screenplay to every shot's prompt.
