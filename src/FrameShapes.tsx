@@ -1,6 +1,6 @@
 import { ASPECTS, aspectCss } from "./frame";
 
-const SHORT: Record<string, string> = { "2.39:1": "Scope", "21:9": "Ultra-wide", "16:9": "Widescreen", "4:3": "Classic", "1:1": "Square", "4:5": "Portrait", "9:16": "Vertical" };
+const SHORT: Record<string, string> = { "2.39:1": "Scope", "21:9": "Ultra-wide", "16:9": "Widescreen", "4:3": "Classic", "1:1": "Square", "4:5": "Portrait", "3:4": "Tall", "9:16": "Vertical", "9:21": "Ultra-tall" };
 
 /** The frame shapes to choose from, each drawn to scale (a wide strip for 21:9, a tall one for 9:16), with what it is for. */
 export function FrameShapes({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {

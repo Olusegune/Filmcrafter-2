@@ -3,7 +3,7 @@ import type { Manifest } from "./api";
 
 export const ASPECTS: [string, string][] = [
   ["2.39:1", "Cinema scope"], ["21:9", "Ultra-wide"], ["16:9", "Widescreen · YouTube"], ["4:3", "Classic"],
-  ["1:1", "Square"], ["4:5", "Portrait feed"], ["9:16", "Vertical · TikTok, Reels"],
+  ["1:1", "Square"], ["4:5", "Portrait feed"], ["3:4", "Tall portrait"], ["9:16", "Vertical · TikTok, Reels"], ["9:21", "Ultra-tall"],
 ];
 export const QUALITY: [string, string][] = [
   ["draft", "Draft · fastest, cheapest"], ["standard", "Standard · 720p"], ["high", "High · 1080p"], ["max", "Max · best the model offers"],

@@ -29,7 +29,7 @@ Say how your story begins: a screenplay, an idea or logline, a synopsis, a treat
 
 ![New film: the title, the shape of the frame, the story, and what was found in it](img/film/newfilm-story.png)
 
-**Frame shape.** Choose the shape of the picture before you start: Scope (2.39:1) and 21:9 for cinema, 16:9 widescreen, 4:3 classic, 1:1 square, 4:5 portrait, or 9:16 vertical for phones. It is drawn to scale so you can see it, and you can change it any time from the story workspace (the **Frame shape** panel on the right) or the Studio's inspector; pictures and video made from then on are asked for in the new shape, and what is already made stays as it was.
+**Frame shape.** Choose the shape of the picture before you start: Scope (2.39:1) and 21:9 for cinema, 16:9 widescreen, 4:3 classic, 1:1 square, 4:5 or 3:4 portrait, 9:16 vertical for phones, or 9:21 ultra-tall. It is drawn to scale so you can see it, and you can change it any time from the story workspace (the **Frame shape** panel on the right) or the Studio's inspector; pictures and video made from then on are asked for in the new shape, and what is already made stays as it was.
 
 Under the story you see what was found (scenes, speaking characters, places, rough length). **The story is saved exactly as given**, and the file you chose is kept untouched in the film's folder.
 

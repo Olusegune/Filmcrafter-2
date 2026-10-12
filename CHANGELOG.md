@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.6 (2026-10-11)
+
+- **The Shape list has all nine frame shapes.** The Studio's Shape and Aspect lists, New film and the Frame shape panel offered seven; 3:4 (tall portrait) and 9:21 (ultra-tall), which the engine and the Export formats accept, were missing. A test now compares the screens' list with the engine's.
+
 ## 0.14.5 (2026-10-11)
 
 - **Fixed: a shot with no people could not make its picture on GPT Image 2.5 Flare.** The first shot of a scene (the place, nobody in it) has no reference picture, and GPT Image's "image-to-image" model refuses a request without one ("Needs an image for input_urls", nothing charged, found in use). The fix from 0.12.0 only covered Nano Banana. Now any "image-to-image" model falls back to its "text-to-image" twin when there is nothing to edit (GPT Image, Flux 2, Seedream and the rest), and if the twin does not exist the chosen model is kept and its own check explains. Press *Try again* on the failed job. Tested.

@@ -28,3 +28,11 @@ describe("export formats", () => {
     expect(formatFor(undefined)).toBe("youtube");
   });
 });
+
+describe("frame shape choices", () => {
+  it("offers every shape the engine accepts, in the Studio, New film and the Frame shape panel", async () => {
+    const { ASPECTS } = await import("../frame");
+    const shapes = (story.match(/^ASPECTS = \(([^)]*)\)/m)?.[1] ?? "").match(/"([^"]+)"/g)!.map((x) => x.replace(/"/g, ""));
+    expect(ASPECTS.map(([v]) => v).sort()).toEqual([...shapes].sort());
+  });
+});
