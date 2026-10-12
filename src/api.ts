@@ -88,7 +88,7 @@ export const AUTO_IMAGE_MODEL: Record<string, string> = {
   openai: "gpt-image-2.5-flare",
   fal: "fal-ai/nano-banana/edit",
   kie: "google/nano-banana-edit",
-  google: "gemini-3.1-flash-image",
+  google: "gemini-nano-banana-2.1",
 };
 
 export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string; family?: string };

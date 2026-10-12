@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.0 (2026-10-12)
+
+- **Nano Banana 2.1** (Google's image model, released 2026-10-06). Google's own key now makes keyframes with `gemini-nano-banana-2.1` by default (up to 14 reference pictures, 1K/2K/4K, and the extreme shapes 1:4, 4:1, 1:8 and 8:1 are offered); the older `gemini-3.1-flash-image` stays in the list but is marked as retiring, because Google shuts it down on 2026-10-29. Kie lists it as `nano-banana-2-1` (10 reference pictures, 1K/2K/4K); the app already reads a model's exact id from Kie's schema, and a live fetch confirmed it. fal's `google/nano-banana-2.1` (text only) is treated as unable to see your pictures and `.../edit` as able to. **Not yet done:** fal's 2.1 is not the automatic choice (no fal key was available to check it), and 2.1's thinking level and web-search grounding are not passed on.
+- **The Home screen is calm.** The busy board (cameras on an orbit, storyboard frames, a scan line, a pulsing button, a travelling dot) is replaced by one clapperboard above the heading: the arm lifts, the board eases up a little, the arm claps shut and the board settles back, then it rests. Dragging a story over the card makes it clap faster with a warmer light. Still with reduced motion.
+- **A waveform on the Voiceover screen.** Each recording shows its shape beside the player, drawn when the row scrolls into view (the shell may now read your own files for this: `asset:` was added to `connect-src` only).
+- **Big films draw faster.** Make cards and shot-list scenes that are scrolled out of view are skipped by the browser: on a 300-shot film relayout fell from about 115 ms to about 34 ms in the test harness.
+- **Small windows.** The window's minimum height went from 700 to 660 so it fits a 1080p screen at 150% display scaling (about 690 px usable).
+- Removed `blueprint.ts` and its tests (nothing used it once the board went).
+
 ## 0.18.0 (2026-10-12)
 
 - **Fixed: a friend drawn in someone else's clothes.** The previous shot's picture was always sent as a continuity reference ("match its set, light, wardrobe and props"), so a shot of Lila and two friends, following a shot of Chloe under a tree, drew a friend in Chloe's overalls. It is now sent only when the two shots share a person, and then only for the people they share. (Reported in use, with the pictures.)

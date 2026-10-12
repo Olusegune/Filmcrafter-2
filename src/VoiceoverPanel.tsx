@@ -4,6 +4,7 @@ import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { api, errorText, type VoiceImport, type VoiceMatch, type VoiceStatus } from "./api";
 import { FILTERS, audioFiles, fill, MATCH_WORDS, peopleOf, summary, usable } from "./voiceLogic";
 import { notifyVoice, VOICE_EVENT } from "./voiceHooks";
+import { Waveform } from "./Waveform";
 import * as I from "./icons";
 
 export { MATCH_WORDS, audioFiles, fill, peopleOf, summary, usable } from "./voiceLogic";
@@ -124,7 +125,8 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
             <div key={p.key} className="vo-person">
               <div className="vo-who"><b>{p.name}</b>{(p.lines ?? []).length > 0 && <q className="vo-line">{(p.lines ?? []).join(" ")}</q>}</div>
               {p.recording
-                ? <div className="vo-rec"><audio controls preload="none" src={api.mediaUrl(`${dir}/${p.recording.file}`)} aria-label={`${p.name} in ${s.id}`} />
+                ? <div className="vo-rec"><Waveform src={api.mediaUrl(`${dir}/${p.recording.file}`)} />
+                    <audio controls preload="none" src={api.mediaUrl(`${dir}/${p.recording.file}`)} aria-label={`${p.name} in ${s.id}`} />
                     <span className="dim num">{p.recording.seconds.toFixed(1)}s · {p.recording.name}</span>
                     <button className="link" disabled={busy} onClick={() => attachOne(s.id, p.name)}>Replace…</button>
                     <button className="link" disabled={busy} onClick={() => remove(s.id, p.name)}>Remove</button></div>

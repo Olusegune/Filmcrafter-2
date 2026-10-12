@@ -86,91 +86,27 @@ describe("the New film sheet", () => {
   });
 });
 
-describe("the Home director's board", () => {
-  it("is a canvas behind the card, hidden from screen readers, that quickens when a story is dragged over", async () => {
+describe("the Home clapperboard", () => {
+  it("is a small SVG above the heading, hidden from screen readers, that claps faster when a story is dragged over", async () => {
     const { FilmReel } = await import("../FilmReel");
     const calm = renderToStaticMarkup(<FilmReel active={false} />);
     const fast = renderToStaticMarkup(<FilmReel active />);
-    expect(calm).toContain("<canvas");
-    expect(calm).toContain("reel-vignette");
+    expect(calm).toContain("<svg");
+    expect(calm).toContain("clap-arm");
+    expect(calm).not.toContain("<canvas");
     expect(calm).toContain('aria-hidden="true"');
     expect(calm).not.toContain("reel fast");
     expect(fast).toContain("reel fast");
   });
-  it("is still with reduced motion: one frame is drawn and the loop never starts", () => {
-    const src = readFileSync("src/FilmReel.tsx", "utf8");
-    expect(src).toContain("prefers-reduced-motion: reduce");
-    expect(src).toMatch(/if \(!reduce\) raf = requestAnimationFrame\(frame\)/);
-    expect(readFileSync("src/film.css", "utf8")).toMatch(/prefers-reduced-motion: reduce\) \{ \.home-steps-line b \{ animation: none/);
+  it("opens, scales up, claps shut and settles back; it is still with reduced motion and has no other looping motion on the card", () => {
+    const css = readFileSync("src/film.css", "utf8");
+    expect(css).toMatch(/@keyframes clap-arm/);
+    expect(css).toMatch(/@keyframes clap-scale/);
+    expect(css).toMatch(/prefers-reduced-motion: reduce\) \{ \.reel \.clap, \.reel \.clap-arm \{ animation: none/);
+    expect(css).not.toMatch(/cta-breathe|steps-run|reel-scan/);
   });
 });
 
-describe("the board's arithmetic", () => {
-  it("rides an orbit: the points lie on the tilted ellipse and the heading follows it", async () => {
-    const { orbitFor, onOrbit } = await import("../blueprint");
-    const o = orbitFor(1000, 600);
-    for (const t of [0, 1, 2.5, 4, 6]) {
-      const p = onOrbit(o, t);
-      const c = Math.cos(-o.rot), s = Math.sin(-o.rot);
-      const lx = (p.x - o.cx) * c - (p.y - o.cy) * s, ly = (p.x - o.cx) * s + (p.y - o.cy) * c;
-      expect((lx / o.rx) ** 2 + (ly / o.ry) ** 2).toBeCloseTo(1, 6);
-    }
-    const a = onOrbit(o, 0), b = onOrbit(o, 0.01);
-    expect(Math.atan2(b.y - a.y, b.x - a.x)).toBeCloseTo(a.heading, 1);
-  });
-
-  it("keeps four frames in four different shapes inside the box and away from the middle column where the words are", async () => {
-    const { framesFor } = await import("../blueprint");
-    for (const [w, h] of [[880, 600], [700, 520], [1100, 640]]) {
-      const fs = framesFor(w, h);
-      expect(fs).toHaveLength(4);
-      expect(new Set(fs.map((f) => f.label)).size).toBe(4);
-      expect(new Set(fs.map((f) => f.ratio))).toEqual(new Set(["1:1", "21:9", "9:16", "16:9"]));
-      for (const f of fs) {
-        expect(f.x).toBeGreaterThanOrEqual(0); expect(f.y).toBeGreaterThanOrEqual(0);
-        expect(f.x + f.w).toBeLessThanOrEqual(w); expect(f.y + f.h).toBeLessThanOrEqual(h);
-        expect(f.x + f.w <= w * 0.4 || f.x >= w * 0.6).toBe(true);                         // not in the middle fifth
-        const [a, b] = f.ratio.split(":").map(Number);
-        expect(f.w / f.h).toBeCloseTo(a / b, 1);                                           // each really has the shape it is labelled with
-      }
-    }
-  });
-
-  it("puts the playhead along the timeline and loops it", async () => {
-    const { timelineFor, playhead } = await import("../blueprint");
-    const tl = timelineFor(1000, 600);
-    expect(playhead(tl, 0)).toBe(tl.x0);
-    expect(playhead(tl, 7)).toBeCloseTo((tl.x0 + tl.x1) / 2);
-    expect(playhead(tl, 14)).toBeCloseTo(tl.x0);
-    expect(playhead(tl, -7)).toBeCloseTo((tl.x0 + tl.x1) / 2);
-  });
-
-  it("knows what a camera's cone takes in", async () => {
-    const { sees, aimAt } = await import("../blueprint");
-    const cam = { x: 0, y: 0 };
-    expect(sees(cam, 0, 0.5, { x: 10, y: 1 })).toBe(true);
-    expect(sees(cam, 0, 0.5, { x: 10, y: 10 })).toBe(false);
-    expect(sees(cam, Math.PI, 0.5, { x: -10, y: 0 })).toBe(true);                    // across the wrap at 180 degrees
-    expect(aimAt(cam, { x: 0, y: 5 })).toBeCloseTo(Math.PI / 2);
-  });
-
-  it("swings a camera the short way round and has it glance at the nearest frame in reach", async () => {
-    const { turnBetween, turnToward, lookTarget } = await import("../blueprint");
-    expect(turnBetween(0.1, 2 * Math.PI - 0.1)).toBeCloseTo(-0.2);
-    expect(turnToward(0, Math.PI / 2, 0.5)).toBeCloseTo(Math.PI / 4);
-    expect(turnToward(0, 1, 5)).toBeCloseTo(1);                                       // never past where it is going
-    const frames = [{ x: 0, y: 0, w: 10, h: 10 }, { x: 100, y: 0, w: 10, h: 10 }];
-    expect(lookTarget({ x: 12, y: 5 }, frames, 40, { x: 50, y: 50 })).toEqual({ x: 5, y: 5 });
-    expect(lookTarget({ x: 60, y: 60 }, frames, 40, { x: 50, y: 50 })).toEqual({ x: 50, y: 50 });      // nothing in reach: the middle
-  });
-
-  it("makes the same board every time", async () => {
-    const { seeded } = await import("../blueprint");
-    const a = seeded(7), b = seeded(7);
-    expect([a(), a(), a()]).toEqual([b(), b(), b()]);
-    expect(seeded(8)()).not.toBe(seeded(7)());
-  });
-});
 
 import { neighbours, stageBadge, stageDone, stageLabel } from "../storyView";
 import type { FilmProgress } from "../api";

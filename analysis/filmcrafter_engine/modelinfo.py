@@ -22,7 +22,7 @@ UPSCALE_TOOLS = re.compile(r"upscale", re.I)
 
 # can the model take reference pictures? (names of the edit / image-to-image / remix / character / reference variants, and the Nano Banana family)
 SEES = re.compile(r"midjourney|edit|image-to-image|remix|character|nano-?banana(?!$)|pro-image-to-image|reference|wan/2-7-image", re.I)
-BLIND = re.compile(r"text-to-image|^google/nano-banana$|imagen4|^z-image/|^seedream/seedream$|flux2/(?:pro|flex)-text", re.I)
+BLIND = re.compile(r"text-to-image|^google/nano-banana(?:-2\.1)?$|imagen4|^z-image/|^seedream/seedream$|flux2/(?:pro|flex)-text", re.I)
 # models that draw words well (signs, titles, labels, lyrics on a wall)
 TEXT_GOOD = re.compile(r"ideogram|gpt-image|gpt/gpt-image|qwen3|seedream/5-pro|seedream/4-5|nanobanana|nano-banana-2|pro-image-to-image|flux2/pro|wan/2-7-image-pro|recraft", re.I)
 

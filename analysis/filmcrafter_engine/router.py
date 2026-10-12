@@ -34,7 +34,7 @@ FAMILIES: dict[str, dict] = {
     "seedream": {"label": "Seedream 4.5", "kind": "image", "fal": "fal-ai/bytedance/seedream/v4.5/edit", "kie": "seedream/4-5-edit"},
     "qwen-edit": {"label": "Qwen Image Edit", "kind": "image", "fal": "fal-ai/qwen-image-edit-2511", "kie": "qwen2/image-edit"},
     "nano-banana": {"label": "Nano Banana", "kind": "image", "fal": "fal-ai/nano-banana/edit", "kie": "google/nano-banana-edit",
-                    "google": "gemini-3.1-flash-image"},
+                    "google": "gemini-nano-banana-2.1"},
 }
 ALIASES = {
     "seedance": "seedance", "bytedance": "seedance", "kling": "kling", "veo": "veo", "google veo": "veo",

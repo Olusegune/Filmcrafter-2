@@ -42,7 +42,7 @@ AUTO_LIPSYNC = {"fal": "fal-ai/sync-lipsync/v3", "kie": "volcengine/video-to-vid
 AUTO_IMAGE = {
     "fal": "fal-ai/nano-banana/edit",
     "kie": "google/nano-banana-edit",
-    "google": "gemini-3.1-flash-image",
+    "google": "gemini-nano-banana-2.1",
     "openai": "gpt-image-2.5-flare",
 }
 
@@ -340,10 +340,10 @@ def google_manifest(model: str) -> dict:
     fields = [
         _g("prompt", "string", "What the image shows.", required=True),
         _g("image_urls", "array", "Reference images (characters, style, the previous shot).", items="string", max_items=14),
-        _g("aspect_ratio", "string", "Frame shape.", enum=["1:1", "3:2", "2:3", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"], default="16:9"),
+        _g("aspect_ratio", "string", "Frame shape.", enum=["1:1", "3:2", "2:3", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"] + (["1:4", "4:1", "1:8", "8:1"] if "2.1" in model else []), default="16:9"),
         _g("image_size", "string", "Output size.", enum=(["1K"] if "lite" in model else ["1K", "2K", "4K"]), default="1K"),
     ]
-    title = {"gemini-3.1-flash-image": "Nano Banana (Gemini 3.1 Flash Image)", "gemini-3-pro-image": "Nano Banana Pro (Gemini 3 Pro Image)",
+    title = {"gemini-nano-banana-2.1": "Nano Banana 2.1", "gemini-3.1-flash-image": "Nano Banana 2 (Gemini 3.1 Flash Image, retiring 29 Oct 2026)", "gemini-3-pro-image": "Nano Banana Pro (Gemini 3 Pro Image)",
              "gemini-3.1-flash-lite-image": "Gemini 3.1 Flash Lite Image"}.get(model, model)
     return _finish("google", model, title, "image", fields)
 
@@ -433,7 +433,7 @@ def openai_manifest(model: str) -> dict:
 
 GOOGLE_MODELS = [
     ("veo-3.1-generate-preview", "video"), ("veo-3.1-fast-generate-preview", "video"), ("veo-3.1-lite-generate-preview", "video"),
-    ("gemini-3.1-flash-image", "image"), ("gemini-3-pro-image", "image"), ("gemini-3.1-flash-lite-image", "image"),
+    ("gemini-nano-banana-2.1", "image"), ("gemini-3.1-flash-image", "image"), ("gemini-3-pro-image", "image"), ("gemini-3.1-flash-lite-image", "image"),
 ]
 
 # The automatic picture models are editing models: they redraw reference pictures, so they need one. A film that has no pictures yet (no character art, nothing chosen before) would be refused,

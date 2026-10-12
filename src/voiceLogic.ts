@@ -26,3 +26,19 @@ export const fill = (s: Pick<VoiceShot, "people" | "seconds">): { pct: number; o
 
 export const summary = (st: VoiceStatus) => st.people === 0 ? "Nobody speaks in this film yet." : st.missing === 0 ? `Every voice is recorded (${st.recorded}).` : `${st.recorded} of ${st.people} voices recorded; ${st.missing} still to attach.`;
 
+
+/** The outline of a recording for a waveform: the loudest sample in each of `n` equal slices, scaled so the loudest slice is 1 (silence stays 0). */
+export const peaksOf = (samples: ArrayLike<number>, n: number): number[] => {
+  if (n <= 0) return [];
+  const out = new Array<number>(n).fill(0);
+  const len = samples.length;
+  if (len === 0) return out;
+  for (let i = 0; i < n; i++) {
+    const a = Math.floor((i * len) / n), b = Math.max(a + 1, Math.floor(((i + 1) * len) / n));
+    let m = 0;
+    for (let j = a; j < b && j < len; j++) { const v = Math.abs(samples[j]); if (v > m) m = v; }
+    out[i] = m;
+  }
+  const top = Math.max(...out);
+  return top > 0 ? out.map((v) => v / top) : out;
+};

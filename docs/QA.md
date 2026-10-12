@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.18.0 (2026-10-11)
+# QA report: FilmCrafter 0.19.0 (2026-10-12)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,8 +6,8 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,732 passed**, 6 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **477 passed** |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,733 passed**, 8 skipped (optional-dependency tests), 0 failed |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **475 passed** |
 | App shell (`cargo test`) | **7 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -80,12 +80,21 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 | Frame-shape work | Changing Aspect in the Studio would have been undone by the next sync | the film keeps its shape; the Studio changes both |
 | Looks work | Photorealistic looks would have had "photograph" reworded away like drawn looks | every photoreal look is exempt, from the data |
 
+## What 0.19.0 changed, and how it was checked
+
+- **Screen sweep** (47 screens, 1100 px and 1280 px wide): no console errors, 0 accessibility findings, no overflow. Run after the clapperboard, waveform and big-film changes.
+- **Home clapperboard:** looked at in a browser (arm open and board scaled up mid-loop); structure and reduced-motion tested. Not seen in the installed app.
+- **Waveform:** drawn from a generated test WAV in the browser harness (decode, bars, collapsing when a file can't be decoded); the peak arithmetic is unit tested. The `asset:` fetch inside the installed Tauri app is **not** tested.
+- **Big films:** on the 300-shot harness film, relayout fell from about 115 ms to about 34 ms with off-screen cards skipped. Measured in a headless browser, not on a real film.
+- **Nano Banana 2.1:** a read-only key check (no generation, no spend) showed the Kie key valid (17,451.6 credits) and `gemini-nano-banana-2.1` available to the Google key; no fal key was found. Kie's manifest was fetched live: model id `nano-banana-2-1`, 10 reference pictures, 1K/2K/4K, 15 shapes. Three engine tests cover the default, the list and which endpoints see pictures. **No picture has been made with it yet.** fal's 2.1 is untested; thinking level and web-search grounding are not passed on.
+- **Minimum window height** 700 to 660 for 150% display scaling on a 1080p screen: reasoned from the screen arithmetic, not tried on a real 125% or 150% display.
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app.** Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.
 - **Premiere Pro and Final Cut Pro** importing the hand-off (Resolve only).
 - **macOS** (no Mac), **code signing and the updater** (no certificate; Windows warns about the installer).
-- **Providers other than Kie.ai** (fal, Google, OpenAI) for pictures and video; a **whole multi-shot film** with character pictures; the **hands and faces check** with a real vision model.
+- **Providers other than Kie.ai** (fal, Google, OpenAI; Google's Nano Banana 2.1 is reachable with your key but has not made a picture) for pictures and video; a **whole multi-shot film** with character pictures; the **hands and faces check** with a real vision model.
 - **New frame shapes** (21:9, 9:16...) on a real provider: whether a model returns that shape depends on the model.
 - **Long videos**, **low-end machines**, **screen readers** and **keyboard-only use** by a person (the automated scan above is the only accessibility test).
 - **Money limits under failure** (a provider charging for a job that then fails) beyond what the mock provider tests cover.
