@@ -1708,3 +1708,12 @@ select option, select optgroup { background: #12171e; color: var(--frost); }
 .hf-found-list { margin: 4px 0 8px 18px; padding: 0; font-size: 12.5px; }
 .hf-adjust { margin: 6px 0 10px; font-size: 12.5px; }
 .hf-slide { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 8px; margin: 4px 0; color: var(--mist); }
+
+/* a film's recorded voices on the timeline's shot cards */
+.shot-card.story .kc-voice { position: absolute; right: 4px; top: 4px; z-index: 2; display: inline-flex; align-items: center; gap: 3px; padding: 2px 5px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.18); background: rgba(9,11,15,0.72); color: var(--mist); font-size: 10.5px; cursor: pointer; }
+.shot-card.story .kc-voice.all { color: #5ec27f; border-color: rgba(94,194,127,0.5); }
+.shot-card.story .kc-voice.some { color: var(--warn, #e8b04a); border-color: rgba(232,176,74,0.5); }
+.shot-card.story .kc-voice:hover { background: rgba(9,11,15,0.92); }
+.shot-card.story .kc-voicebar { position: absolute; left: 0; bottom: 0; height: 3px; background: #5ec27f; opacity: 0.9; pointer-events: none; }
+.shot-card.story .kc-voicebar.over { background: var(--warn, #e8b04a); }
+.shot-card.voice-over, .mk-card.voice-over { outline: 2px dashed var(--signal); outline-offset: -2px; }

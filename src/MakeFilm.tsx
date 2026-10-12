@@ -6,6 +6,8 @@ import { ask } from "./ask";
 import { FilmStrip } from "./FilmStrip";
 import { EXPORT_FORMATS, formatFor } from "./exportFormats";
 import { VoiceoverSheet } from "./VoiceoverSheet";
+import { VoiceChip } from "./VoiceChip";
+import { useVoiceDrop } from "./VoiceDrop";
 import type { VoiceStatus } from "./api";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
@@ -34,6 +36,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const dropped = useVoiceDrop(dir, !voiceOpen);                                  // drop a recording on a card
   const [voices, setVoices] = useState<VoiceStatus | null>(null);                 // how many of the film's voices are your own recordings
   useEffect(() => { if (!voiceOpen) api.voice("status", dir).then(setVoices).catch(() => {}); }, [dir, voiceOpen, tab]);
   const aspect = st?.aspect_ratio;
@@ -140,6 +143,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   return (
     <div className="mk">
       {voiceOpen && <VoiceoverSheet dir={dir} onClose={() => setVoiceOpen(false)} />}
+      {dropped}
       <div className="mk-head">
         {tab !== "deliver" ? <div className="cw-tabs" role="tablist">{TABS.filter((x) => x.id !== "deliver").map((x) => <button key={x.id} role="tab" aria-selected={tab === x.id} className={tab === x.id ? "on" : ""} onClick={() => onTab(x.id)}>{x.label}
           <span className="dim"> {st.counts[x.id as "storyboard" | "keyframe" | "video"]}/{st.counts.shots}</span></button>)}</div> : <h2 className="mk-title">Export</h2>}
@@ -213,12 +217,13 @@ function Card({ dir, rd, stage, s, busy, flag, onMake, onBring, onChoose, onLock
   const preview = stage === "video" ? chosenVideo?.video ?? null : s[stage].chosen;
   const options = stage === "video" ? [] : s[stage].options.filter((o) => o.ok);
   return (
-    <article id={`mk-${s.id}`} className={`mk-card ${locked ? "locked" : ""}`}>
+    <article id={`mk-${s.id}`} data-shot-id={s.id} className={`mk-card ${locked ? "locked" : ""}`}>
       <div className="mk-pic">
         {preview ? (stage === "video" ? <video src={url(preview)} controls preload="metadata" /> : <img src={url(preview)} alt={`${s.id}`} />) : <span className="dim">{open_ ? "Making…" : "Nothing yet"}</span>}
         <span className="mk-id num">{s.id}</span>{flag && stage !== "storyboard" && <span className={`mk-check ${flag.state}`} title={flag.detail}>{flag.state === "fail" ? "hands or face?" : "look closely"}</span>}{open_ && <span className="mk-busy">making</span>}{locked && <span className="mk-lock">locked</span>}
       </div>
       <div className="mk-meta"><b>{s.title || s.id}</b><span className="dim">{s.framing || "—"} · {s.duration}s</span></div>
+      <VoiceChip dir={dir} shotId={s.id} compact />
       {stage === "video" && s.video.takes.length > 1 && <div className="mk-opts">{s.video.takes.filter((t) => t.ok).map((t, i) => (
         <button key={t.job} className={t.approved ? "on" : ""} onClick={() => onChoose(t.job)} title={`${t.model}${t.approved ? " (approved)" : ""}`}>Take {i + 1}{t.approved ? " ✓" : ""}</button>))}</div>}
       {options.length > 0 && <div className="mk-opts">{options.map((o) => (

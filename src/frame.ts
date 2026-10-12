@@ -1,5 +1,6 @@
 import { api } from "./api";
 import type { Manifest } from "./api";
+import { filmDirOfRender, isRenderDir } from "./filmPaths";
 
 export const ASPECTS: [string, string][] = [
   ["2.39:1", "Cinema scope"], ["21:9", "Ultra-wide"], ["16:9", "Widescreen · YouTube"], ["4:3", "Classic"],
@@ -24,6 +25,9 @@ export const PROJECT_EVENT = "pf-project-settings";
 /** Save an aspect or quality choice for the whole project and tell every open panel. */
 export async function saveFrame(dir: string, key: "aspect_ratio" | "quality", value: string): Promise<void> {
   await api.setProjectSettings(dir, { [key]: value });
+  // A film keeps its shape in the film itself, and the render project is rebuilt from the film: change only the render project and the next sync puts the old shape back
+  // (found in use: choosing 21:9 in the Shape list came back as 16:9). So a film's shape is set on the film too, whichever screen the choice was made on.
+  if (key === "aspect_ratio" && isRenderDir(dir)) await api.film("set_aspect", filmDirOfRender(dir), { aspect_ratio: value }).catch(() => {});
   window.dispatchEvent(new CustomEvent(PROJECT_EVENT, { detail: { [key]: value } }));
 }
 

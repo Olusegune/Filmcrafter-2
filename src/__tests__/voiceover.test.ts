@@ -59,3 +59,17 @@ describe("the voiceover can be found", () => {
     expect(readFileSync("src/ShotLab.tsx", "utf8")).toContain("Voiceover</button>");
   });
 });
+
+describe("voice at the card and the timeline", () => {
+  it("is on the Make film cards, the timeline shot cards and the Studio's shot panel, and files can be dropped on a card", () => {
+    expect(readFileSync("src/MakeFilm.tsx", "utf8")).toMatch(/<VoiceChip dir=\{dir\} shotId=\{s\.id\} compact/);
+    expect(readFileSync("src/MakeFilm.tsx", "utf8")).toContain('data-shot-id={s.id}');
+    const board = readFileSync("src/Board.tsx", "utf8");
+    expect(board).toContain("data-shot-id={s.id}");
+    expect(board).toContain("kc-voice");
+    const studio = readFileSync("src/Studio.tsx", "utf8");
+    expect(studio).toContain("<VoiceChip dir={filmDirOfRender(project.dir)} shotId={s.id}");
+    expect(studio).toContain("useVoiceDrop(");
+    expect(readFileSync("src/voiceHooks.ts", "utf8")).toContain('closest("[data-shot-id]")');
+  });
+});

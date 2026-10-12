@@ -72,3 +72,4 @@ export const Info = (p: P) => <S {...p}><circle cx="12" cy="12" r="9" /><path d=
 export const Rocket = (p: P) => <S {...p}><path d="M5 19c0-3 1.5-4.5 3-5l-1-3c-1 .3-2 1-3 2.5L2 14c1-4 4-6 7-6 3-4.5 8-6 12-5-1 4-1.5 9-6 12 0 3-2 6-6 7l.5-2.5c1.5-1 2.5-2 2.5-3z" /></S>;
 export const Eye = (p: P) => <S {...p}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></S>;
 export const Refresh = (p: P) => <S {...p}><path d="M20 11a8 8 0 0 0-14.6-3.5M4 4v4h4M4 13a8 8 0 0 0 14.6 3.5M20 20v-4h-4" /></S>;
+export const Mic = (p: P) => <S {...p}><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></S>;

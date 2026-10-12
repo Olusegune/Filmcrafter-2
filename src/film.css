@@ -725,3 +725,15 @@
 .vo-sheet { width: min(960px, 94vw); max-height: 92vh; display: flex; flex-direction: column; }
 .vo-sheet-body { overflow: auto; padding: 0 var(--sp-4, 16px) var(--sp-4, 16px); }
 .mk-voices { margin: 6px 0 0; }
+
+/* the voice on a card and in the shot panel */
+.vchip { display: flex; flex-direction: column; gap: 4px; }
+.vchip-row { display: flex; align-items: center; gap: 8px; font-size: 12px; min-height: 24px; color: var(--text-quiet, #8b97a7); flex-wrap: wrap; }
+.vchip-row.has { color: var(--frost); }
+.vchip-name { font-weight: 600; color: var(--frost); }
+.vchip-play { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 3px; border: 1px solid rgba(94,194,127,0.5); background: rgba(94,194,127,0.1); color: #5ec27f; cursor: pointer; font-size: 11.5px; }
+.vchip-add { padding: 2px 8px; border-radius: 3px; border: 1px dashed var(--hair-strong, rgba(255,255,255,0.28)); background: transparent; color: var(--frost); cursor: pointer; font-size: 11.5px; }
+.vchip-add:hover { border-color: var(--signal); color: var(--signal); }
+.vchip.compact .vchip-row { font-size: 11.5px; min-height: 22px; }
+.vchip-err { margin: 0; font-size: 11.5px; }
+.vo-toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 80; padding: 8px 16px; border-radius: 4px; background: rgba(20,24,31,0.96); border: 1px solid var(--hair); font-size: 13px; box-shadow: 0 8px 28px rgba(0,0,0,0.45); }

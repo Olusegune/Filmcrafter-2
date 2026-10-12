@@ -1,47 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { api, errorText, type VoiceImport, type VoiceMatch, type VoiceShot, type VoiceStatus } from "./api";
+import { api, errorText, type VoiceImport, type VoiceMatch, type VoiceStatus } from "./api";
+import { FILTERS, audioFiles, fill, MATCH_WORDS, peopleOf, summary, usable } from "./voiceLogic";
+import { notifyVoice, VOICE_EVENT } from "./voiceHooks";
 import * as I from "./icons";
 
-const AUDIO = ["wav", "mp3", "m4a", "flac", "aac", "ogg"];
-const FILTERS = [{ name: "Recordings", extensions: AUDIO }];
-
-/** What a row of the match table will do, in words. */
-export const MATCH_WORDS: Record<VoiceMatch["status"], string> = {
-  ok: "Ready", replace: "Replaces the recording now there", ambiguous: "Who is this?", no_shot: "Which shot?", no_speaker: "Who is speaking?",
-  not_in_shot: "Not in this shot", duplicate: "Already in this batch", bad_file: "Can't use this file",
-};
-/** A row the person can confirm as it stands. */
-export const usable = (r: VoiceMatch) => (r.status === "ok" || r.status === "replace") && !!r.shot && !!r.speaker;
-
-/** The people a recording can be for in a shot: those who speak, then those who are only there. */
-export const peopleOf = (s: VoiceShot | undefined): string[] => (s ? [...(s.people ?? []).map((p) => p.name), ...(s.others ?? [])] : []);
-
-/** Only audio files are taken from a drop. */
-export const audioFiles = (paths: string[]): string[] => paths.filter((p) => new RegExp(`\.(${AUDIO.join("|")})$`, "i").test(p));
-
-/** How much of the shot the recordings fill, as a percentage for a bar, and whether they overflow it (the shot is then lengthened). */
-export const fill = (s: Pick<VoiceShot, "people" | "seconds">): { pct: number; over: boolean; total: number } => {
-  const recs = (s.people ?? []).map((p) => p.recording?.seconds ?? 0).filter((x) => x > 0);
-  const total = recs.reduce((a, b) => a + b, 0) + Math.max(0, recs.length - 1) * 0.25;
-  return { total, pct: s.seconds > 0 ? Math.min(100, Math.round((total / s.seconds) * 100)) : 0, over: total > s.seconds + 0.001 };
-};
-
-export const summary = (st: VoiceStatus) => st.people === 0 ? "Nobody speaks in this film yet." : st.missing === 0 ? `Every voice is recorded (${st.recorded}).` : `${st.recorded} of ${st.people} voices recorded; ${st.missing} still to attach.`;
+export { MATCH_WORDS, audioFiles, fill, peopleOf, summary, usable } from "./voiceLogic";
 
 /**
  * Your own recorded voices. Name each file for the person and the shot (CHLOE_S01-04.wav); add them all at once, check the matches, confirm. The video model then makes the
  * mouth follow your recording, and the finished film plays your recording. Shows every shot, or only `only`.
  */
-export function VoiceoverPanel({ dir, only, onChanged }: { dir: string; only?: string; onChanged?: () => void }) {
+export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: string; only?: string; onChanged?: () => void; initialRows?: VoiceMatch[] | null }) {
   const [st, setSt] = useState<VoiceStatus | null>(null);
-  const [rows, setRows] = useState<VoiceMatch[] | null>(null);
+  const [rows, setRows] = useState<VoiceMatch[] | null>(initialRows ?? null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<VoiceImport | null>(null);
   const load = useCallback(() => api.voice("status", dir).then(setSt).catch((e) => setErr(errorText(e))), [dir]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); window.addEventListener(VOICE_EVENT, load); return () => window.removeEventListener(VOICE_EVENT, load); }, [load]);   // other screens change recordings too
   const shots = useMemo(() => (st?.shots ?? []).filter((s) => !only || s.id === only), [st, only]);
   const byId = useMemo(() => Object.fromEntries((st?.shots ?? []).map((s) => [s.id, s])), [st]);
 
@@ -72,7 +50,7 @@ export function VoiceoverPanel({ dir, only, onChanged }: { dir: string; only?: s
   }, [matchFiles]);
   const importRows = async (items: { file: string; shot: string; speaker: string }[]) => {
     setBusy(true); setErr("");
-    try { const r = await api.voice<VoiceImport>("import", dir, { items }); setDone(r); setSt(r.status); setRows(null); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
+    try { const r = await api.voice<VoiceImport>("import", dir, { items }); setDone(r); setSt(r.status); setRows(null); notifyVoice(); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
   };
   const attachOne = async (shot: string, speaker: string) => {
     setErr(""); setDone(null);
@@ -80,7 +58,7 @@ export function VoiceoverPanel({ dir, only, onChanged }: { dir: string; only?: s
   };
   const remove = async (shot: string, speaker: string) => {
     setBusy(true); setErr(""); setDone(null);
-    try { setSt(await api.voice("remove", dir, { shot, speaker })); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
+    try { setSt(await api.voice("remove", dir, { shot, speaker })); notifyVoice(); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
   };
   const setRow = (i: number, patch: Partial<VoiceMatch>) => setRows((cur) => cur && cur.map((r, j) => {
     if (j !== i) return r;

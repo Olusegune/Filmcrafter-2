@@ -4,6 +4,8 @@ import { RefGenSheet } from "./RefGen";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { api, errorText, fmtTime, type Board, type BoardShot, type Job, type Library, type RefItem, type RefKind, type ShotStatus, type Version } from "./api";
+import { fill } from "./voiceLogic";
+import type { VoiceShot } from "./api";
 import * as I from "./icons";
 import { FramesPanel } from "./Frames";
 import { ask } from "./ask";
@@ -47,8 +49,9 @@ const media = (dir: string, rel: string) => api.mediaUrl(`${dir}/${rel}`);
 const isVideo = (p?: string | null) => !!p && /\.(mp4|mov|webm|mkv|m4v)$/i.test(p);
 
 /** Shot cards on the timeline: real thumbnails, status, hover preview, double-click to open. Only visible cards are drawn. */
-export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSelect, onOpen }: {
+export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSelect, onOpen, voices, onVoice }: {
   dir: string; shots: BoardShot[]; pps: number; view: [number, number]; selected: string | null;
+  voices?: Record<string, VoiceShot>; onVoice?: (id: string) => void;                       // a film's own recorded voices: a mic on each card that has someone speaking
   thumbs: Record<string, string | null>; want: (srcs: string[]) => void;
   onSelect: (id: string) => void; onOpen: (id: string) => void;
 }) {
@@ -64,7 +67,7 @@ export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSe
         const t = s.thumb_src ? thumbs[s.thumb_src] : null;
         const w = Math.max(8, (s.end - s.start) * pps - 3);
         return (
-          <div key={s.id} className={`shot-card story ${selected === s.id ? "sel" : ""} st-${s.status}`}
+          <div key={s.id} data-shot-id={s.id} className={`shot-card story ${selected === s.id ? "sel" : ""} st-${s.status}`}
                style={{ left: s.start * pps + 1, width: w, backgroundImage: t ? `url("${media(dir, t)}")` : undefined }}
                title={`${s.id} · ${s.framing ?? ""}`}
                onClick={(e) => { e.stopPropagation(); onSelect(s.id); }}
@@ -77,6 +80,15 @@ export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSe
               {s.keyframe_check === "fail" && <span className="kf-flag fail" title="The keyframe's hands or body look wrong. Open Keyframe tools to see which." aria-label="Keyframe hands or body look wrong">✋</span>}
               {s.keyframe_check === "look" && <span className="kf-flag look" title="The keyframe passed but its hands are worth a look." aria-label="Keyframe hands worth a look">✋</span>}
               {s.versions.length > 1 && w > 70 && <span className="vers num">v{s.versions.length}</span>}</div>
+            {voices?.[s.id] && (voices[s.id].people ?? []).length > 0 && (() => {
+              const v = voices[s.id], n = v.people.length, r = v.people.filter((p) => p.recording).length, f = fill(v);
+              return <>
+                <button className={`kc-voice ${r === n ? "all" : r ? "some" : "none"}`} onClick={(e) => { e.stopPropagation(); onVoice?.(s.id); }}
+                        aria-label={r ? `${s.id}: ${r}/${n} voices recorded` : `+ Add a voice to ${s.id}`} title={r ? `${r} of ${n} voice${n === 1 ? "" : "s"} recorded: open` : "Add your recorded voice (or drop the file here)"}>
+                  <I.Mic size={11} />{w > 60 && <span className="num">{r ? `${r}/${n}` : "+"}</span>}</button>
+                {f.total > 0 && <i className={`kc-voicebar ${f.over ? "over" : ""}`} style={{ width: Math.min(w, Math.max(4, f.total * pps)) }} aria-hidden="true" />}
+              </>;
+            })()}
             {w > 54 && <div className="card-bot"><i className={`dot-st ${STATUS[s.status].cls}`} />{w > 90 && STATUS[s.status].label}</div>}
           </div>
         );

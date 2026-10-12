@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.0 (2026-10-12)
+
+- **Fixed: choosing 21:9 gave 16:9 again.** The Shape list in the Keyframe and Video panels saved the shape on the film's render project only, and the render project is rebuilt from the film (which still said 16:9) the next time anything synced, so the choice silently came back as 16:9 (reported in use; it also explains the 21:9 in a screenshot next to a 16:9 picture). A film's shape is now set on the film itself from every place it can be chosen. Tested with the same path that failed.
+- **Voice at the card and on the timeline.** Each Make film card shows who speaks in that shot with a play button and length, or **Add voice…**; on the timeline each shot card has a small mic (green when every voice is recorded, amber when some are, hollow with a + when none) and a thin bar showing how much of the shot the recording fills; the Studio's shot panel has a **Your voice** section. **Drop an audio file on a card or a timeline shot** to attach it: if the file is clear it is attached at once, otherwise the Voiceover sheet opens on the match table for that shot. Clicking a timeline mic opens the sheet for that shot. The full Voiceover sheet (every shot) is still there.
+- Tests: the shape save path (backslash and slash paths, films and non-films), and structure tests for the voice on cards, timeline and shot panel.
+
 ## 0.16.2 (2026-10-12)
 
 - **The voiceover is now easy to find.** It was only on the Shots screen, which is hidden in Simple mode, so it could not be found there (reported in use). It now opens from a **Voiceover** button in the Studio's top bar and from a **Voiceover…** link under Soundtrack on the Export screen (which also says how many voices are recorded), as a sheet over whatever you are doing. The Shots screen keeps its own button and each shot's Voice tab.

@@ -183,7 +183,9 @@ Before making pictures or video you choose which shots to work on. **Select & re
 
 If you have recorded the lines yourself, attach them and the picture speaks them.
 
-**Where to find it:** the **Voiceover** button in the Studio's top bar (next to *Select & review*), the **Voiceover…** link under *Soundtrack* on the Export screen (both work in Simple mode too), and, in Studio mode, **Voiceover** (every shot at once) and each shot's **Voice** tab on the Shots screen.
+**Quickest:** on any shot's card (Make film) or on the timeline, press **Add voice…** (or the small mic on a timeline shot), or **drop an audio file on the card or timeline shot**. A green mic means every voice in that shot is recorded.
+
+**Everything at once:** the **Voiceover** button in the Studio's top bar (next to *Select & review*), the **Voiceover…** link under *Soundtrack* on the Export screen (both work in Simple mode too), and, in Studio mode, **Voiceover** (every shot at once) and each shot's **Voice** tab on the Shots screen.
 
 ![Voiceover: every shot with someone speaking, the line, and your recording or a button to attach one](img/film/voiceover.png)
 

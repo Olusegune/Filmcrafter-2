@@ -52,6 +52,10 @@ import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
 import { VoiceoverSheet } from "./VoiceoverSheet";
+import { VoiceChip } from "./VoiceChip";
+import { useVoiceDrop } from "./VoiceDrop";
+import { useVoiceStatus } from "./voiceHooks";
+import { isRenderDir } from "./filmPaths";
 import { ask } from "./ask";
 
 type Selection = { kind: "shot"; id: string } | { kind: "section"; index: number } | null;
@@ -96,6 +100,9 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [confirmAll, setConfirmAll] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);                     // a film's own recorded voices
+  const [voiceShot, setVoiceShot] = useState<string | undefined>(undefined);
+  useEffect(() => { const h = (e: Event) => { setVoiceShot((e as CustomEvent).detail as string | undefined); setVoiceOpen(true); }; window.addEventListener("fc-open-voice", h); return () => window.removeEventListener("fc-open-voice", h); }, []);
+  const dropped = useVoiceDrop((project.project as { film?: boolean }).film ? filmDirOfRender(project.dir) : null, !voiceOpen);          // drop a recording on a shot on the timeline
   const [exporting, setExporting] = useState(false);
   const [lookOpen, setLookOpen] = useState(false);
   const [reviewing, setReviewing] = useState(false);
@@ -675,7 +682,8 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
       {exporting && <ExportSheet dir={project.dir} projectAspect={project.project.aspect_ratio} shots={shots.length}
                                  rendered={shots.filter((s) => latest.get(s.id)?.state === "ready").length}
                                  onClose={() => setExporting(false)} />}
-      {voiceOpen && isFilm && <VoiceoverSheet dir={filmDirOfRender(project.dir)} onClose={() => setVoiceOpen(false)} onChanged={() => onReload()} />}
+      {dropped}
+      {voiceOpen && isFilm && <VoiceoverSheet dir={filmDirOfRender(project.dir)} only={voiceShot} onClose={() => { setVoiceOpen(false); setVoiceShot(undefined); }} onChanged={() => onReload()} />}
       {selecting && board && <SelectReview dir={project.dir} shots={board.shots} sections={map?.sections ?? []}
                                            aspect={frame.aspect_ratio}
                                            initial={sel?.kind === "shot" ? [sel.id] : []} onClose={() => { setSelecting(false); reloadBoard(); refreshPendingKf(); }}
@@ -953,6 +961,7 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
           <div className="insp-section"><h4>{s.beats.length > 1 ? `Story beats (${s.beats.length})` : "Action"}</h4>
             {s.beats.length > 1 ? <ol className="beats">{s.beats.map((b, i) => <li key={i}>{b}</li>)}</ol> : <p className="prose">{s.beats[0]}</p>}</div>
           {s.lyrics?.length ? <div className="insp-section"><h4>{project?.project && (project.project as { film?: boolean }).film ? "Dialogue in this shot" : "Lyrics under this shot"}</h4>{s.lyrics.map((l, i) => <p key={i} className="lyric-q">{l}</p>)}</div> : null}
+          {(project.project as { film?: boolean }).film && <div className="insp-section"><h4>Your voice</h4><VoiceChip dir={filmDirOfRender(project.dir)} shotId={s.id} /></div>}
           {tabs.shot}
           {(s.performance || s.expression || s.movement) && <div className="insp-section"><h4>Performance</h4><div className="kv">
             {row("Acting", s.performance)}{row("Expression", s.expression)}{row("Movement", s.movement)}</div></div>}
@@ -1032,6 +1041,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
   layerSel: string | null; onLayerSelect: (id: string | null) => void; onBoardChanged: () => void;
   onSeek: (t: number) => void; onSelect: (s: Selection) => void; onOpen: (id: string) => void;
 }) {
+  const { byShot: voiceByShot } = useVoiceStatus(isRenderDir(dir) ? filmDirOfRender(dir) : null);          // a film's recorded voices, shown on the shots
   const [laneN, setLaneN] = useState(0);
   const [addMenu, setAddMenu] = useState(false);
   const [addErr, setAddErr] = useState("");
@@ -1189,7 +1199,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
             ))}
           </div>
           <div className="tl-shots" style={{ top: shotsTop }}>
-            <StoryCards dir={dir} shots={board} pps={pps} view={[left, left + width]} selected={sel?.kind === "shot" ? sel.id : null}
+            <StoryCards dir={dir} shots={board} pps={pps} view={[left, left + width]} selected={sel?.kind === "shot" ? sel.id : null} voices={voiceByShot} onVoice={(id) => window.dispatchEvent(new CustomEvent("fc-open-voice", { detail: id }))}
                         thumbs={thumbs} want={want} onOpen={onOpen} onSelect={(id) => onSelect({ kind: "shot", id })} />
           </div>
           <TransitionHandles dir={dir} shots={board} pps={pps} top={transTop} onChanged={onBoardChanged} />
@@ -1213,7 +1223,7 @@ function ProjectSettingsRow({ project }: { project: LoadedProject }) {
   const change = async (k: keyof typeof s, v: string) => {
     const next = { ...s, [k]: v };
     setS(next); setErr("");
-    try { if (k === "aspect_ratio" || k === "quality") { await saveFrame(project.dir, k, v); if (k === "aspect_ratio" && (project.project as { film?: boolean }).film) await api.film("set_aspect", filmDirOfRender(project.dir), { aspect_ratio: v }); }       // a film keeps its shape in the film too, or the next sync would put the old one back
+    try { if (k === "aspect_ratio" || k === "quality") { await saveFrame(project.dir, k, v); }       // a film keeps its shape in the film too, or the next sync would put the old one back
        else if (k === "vocalist") await api.setProjectSettings(project.dir, { vocalist: v as "onscreen" | "offscreen" }); else await api.setProjectSettings(project.dir, { lip_sync: v as "auto" | "closeups" | "off" }); } catch (e) { setErr(errorText(e)); }
   };
   return (
