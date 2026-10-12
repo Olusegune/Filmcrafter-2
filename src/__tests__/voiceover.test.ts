@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { MATCH_WORDS, peopleOf, summary, usable } from "../VoiceoverPanel";
+import { MATCH_WORDS, audioFiles, fill, peopleOf, summary, usable } from "../VoiceoverPanel";
 import type { VoiceMatch, VoiceShot, VoiceStatus } from "../api";
 
 const row = (over: Partial<VoiceMatch>): VoiceMatch => ({ file: "C:/v/CHLOE_S01-04.wav", name: "CHLOE_S01-04.wav", shot: "S01-04", speaker: "Chloe", status: "ok", note: "", seconds: 2.4, ...over });
@@ -30,6 +30,19 @@ describe("voiceover screen logic", () => {
     expect(summary(st({ people: 0, recorded: 0, missing: 0 }))).toMatch(/Nobody speaks/);
     expect(summary(st({}))).toBe("2 of 5 voices recorded; 3 still to attach.");
     expect(summary(st({ people: 4, recorded: 4, missing: 0 }))).toBe("Every voice is recorded (4).");
+  });
+  it("takes only audio files from a drop", () => {
+    expect(audioFiles(["C:/a/CHLOE_S01-04.WAV", "C:/a/notes.txt", "C:/a/x.mp3", "C:/a/pic.png", "C:/a/y.M4A", "C:/a/z.wav.exe"])).toEqual(["C:/a/CHLOE_S01-04.WAV", "C:/a/x.mp3", "C:/a/y.M4A"]);
+    expect(audioFiles([])).toEqual([]);
+  });
+  it("shows how much of a shot its recordings fill, with the gap between people", () => {
+    const rec = (n: number) => ({ file: "f", name: "n", seconds: n, rms_db: -20, peak_db: -3 });
+    const p = (n: number | null) => ({ name: "x", key: "x", lines: [], recording: n == null ? null : rec(n) });
+    expect(fill({ seconds: 4, people: [p(2)] })).toEqual({ total: 2, pct: 50, over: false });
+    expect(fill({ seconds: 4, people: [p(2), p(1.5)] }).total).toBe(3.75);
+    expect(fill({ seconds: 3, people: [p(2), p(1.5)] })).toMatchObject({ pct: 100, over: true });
+    expect(fill({ seconds: 3, people: [p(null)] })).toEqual({ total: 0, pct: 0, over: false });
+    expect(fill({ seconds: 0, people: [p(1)] }).pct).toBe(0);
   });
   it("knows every action the shell allows, and the shell and engine agree", () => {
     const rust = readFileSync("src-tauri/src/lib.rs", "utf8");

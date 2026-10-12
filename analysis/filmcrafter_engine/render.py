@@ -1072,8 +1072,14 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         tag = "@Audio1" if man.get("ref_syntax") == "@Image{n}" else "the reference audio"
         lyric = " / ".join(sung.get("lyrics", []))
         verb = "speaks along to" if sung.get("spoken") or SPEAK_WORDS.search(" ".join(str(shot.get(k, "")) for k in ("beats", "performance", "movement"))) else "sings along to"
-        blocks.append((9, f"{sung['performer']} {verb} {tag}" + (f": \"{lyric}\"" if lyric.strip() else "") + ". Mouth shapes, breaths and phrasing "
-                          f"follow the voice exactly; the performance is felt, not mimed."))
+        turns = sung.get("turns") or []
+        if len(turns) > 1:                                           # two or more people, one after the other, in the one audio clip: who speaks when, and the others listen
+            when = "; then ".join(f"{t['speaker']} from {t['start']:.1f} to {t['end']:.1f} s" + (f" (\"{t['line']}\")" if str(t.get("line", "")).strip() else "") for t in turns)
+            blocks.append((9, f"{sung['performer']} speak in turn, following {tag}: {when}. Only the person speaking moves their mouth; the others listen with their mouths closed, eyes on the speaker. "
+                              f"Mouth shapes, breaths and phrasing follow the voice exactly; the performance is felt, not mimed."))
+        else:
+            blocks.append((9, f"{sung['performer']} {verb} {tag}" + (f": \"{lyric}\"" if lyric.strip() else "") + ". Mouth shapes, breaths and phrasing "
+                              f"follow the voice exactly; the performance is felt, not mimed."))
     model_sound = bool(said and not lip and not native and roles.get("audio") and (overrides or {}).get(roles["audio"]) is True)   # the take's sound is switched on
     if said and not lip and not (native and "audio" in roles):
         what = "speaks" if said.get("spoken") else "voices"
@@ -1871,7 +1877,8 @@ def singing(d: str, shot: dict, plan: dict) -> dict | None:
     mine = voiceover.for_shot(d, shot.get("id", ""))
     if mine and sing_setting(d, shot.get("id")) != "off":      # the person's own recording is the voice of this shot: it is followed, whatever the song or the model would do
         names = [r["speaker"] for r in mine]
-        return {"performer": names[0] if len(names) == 1 else " and ".join(names), "lyrics": [r["line"] for r in mine if r.get("line")] or [""], "spoken": True, "voiceover": True}
+        return {"performer": names[0] if len(names) == 1 else " and ".join(names), "lyrics": [r["line"] for r in mine if r.get("line")] or [""], "spoken": True, "voiceover": True,
+                **({"turns": voiceover.windows(d, shot.get("id", ""))} if len(mine) > 1 else {})}
     song_map = _read(os.path.join(d, "songmap.json"), {}) or {}
     lines = [l for l in song_map.get("lyrics", []) if l.get("start") is not None
              and l["start"] < shot["end"] and (l.get("end") or l["start"]) > shot["start"]]
@@ -1993,19 +2000,24 @@ def take_duration(path: str) -> float:
 
 
 def compile_lipsync(d: str, man: dict, shot: dict, source: dict, overrides: dict | None) -> dict:
-    """Lip-sync pass request: the source take plus the isolated vocal under the shot, same length."""
+    """Lip-sync pass request: the source take plus the sound to follow, same length: the person's own recording of the shot when there is one, else the isolated vocal under the shot."""
     roles = man["roles"]
     if "src_video" not in roles or "src_audio" not in roles:
         raise SystemExit(f"{man['title']} doesn't take a video and an audio track, so it can't lip-sync a take.")
     take = os.path.join(d, source["output"])
     seconds = take_duration(take) or (shot["end"] - shot["start"])
+    from . import voiceover
+    mine = voiceover.for_shot(d, shot.get("id", ""))                    # the person's own recording is what the mouth is re-timed to, when there is one
+    audio = voiceover.slice_for(d, shot["id"], seconds) if mine else song_slice(d, shot, seconds, vocals_only=True)
     payload = {roles["src_video"]: PROJECT_MEDIA + source["output"],
-               roles["src_audio"]: PROJECT_MEDIA + os.path.relpath(song_slice(d, shot, seconds, vocals_only=True), d).replace(os.sep, "/")}
+               roles["src_audio"]: PROJECT_MEDIA + os.path.relpath(audio, d).replace(os.sep, "/")}
     fields = {f["name"]: f for f in man["inputs"]}
     if "sync_mode" in fields:
         payload["sync_mode"] = "cut_off"
-    if "separate_vocal" in fields and not _vocal_stem(d):
+    if "separate_vocal" in fields and not mine and not _vocal_stem(d):    # a clean recording has nothing to separate; a song may
         payload["separate_vocal"] = True
+    elif "separate_vocal" in fields and mine:
+        payload["separate_vocal"] = False
     mode = fields.get("mode")
     if mode and "basic" in (mode.get("enum") or []):   # Kie / Volcengine: "lite" is for one person facing the camera; "basic" copes with other scenes and finds who is speaking
         one_face = len(shot.get("performers") or []) <= 1 and is_closeup(shot)
@@ -2534,7 +2546,7 @@ def model_inputs(refs: list[dict], payload: dict, man: dict, sung: dict | None) 
             taken += 1 if sent else 0
             out.append({"role": "reference", "label": ("Reference picture (your approved keyframe)" if kf else r.get("label", "Reference picture").split(" (")[0].split(":")[0]), "path": path, "sent": sent})
     if sung and audio_key and payload.get(audio_key):
-        out.append({"role": "audio", "label": (f"Your recording of {sung.get('performer', 'the speaker')}, for the mouth to follow" if sung.get("voiceover")
+        out.append({"role": "audio", "label": (f"Your recording{'s' if sung.get('turns') else ''} of {sung.get('performer', 'the speaker')}, for the mouth{'s' if sung.get('turns') else ''} to follow" if sung.get("voiceover")
                                                else f"The song's vocal under this shot, for {sung.get('performer', 'the singer')} to follow"), "path": None, "sent": True})
     return out
 

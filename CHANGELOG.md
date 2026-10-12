@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.0 (2026-10-12)
+
+- **Voiceover: two people in one shot.** Each person's recording has its own window in the shot's one audio clip, and the prompt now says who speaks when ("Lila from 0.0 to 2.0 s, then Chloe from 2.2 to 3.8 s") and that the others listen with their mouths closed.
+- **Voiceover: drag and drop.** Drop recordings anywhere on the Voiceover screen (or a shot's Voice tab: a file with no shot in its name goes to that shot). Only audio files are taken. Each shot shows a bar of how much of its length the recordings fill.
+- **Voiceover: lip-sync after the take.** *Lip-sync this take…* in the Studio now re-times the mouth to your recording (not the song) when the shot has one, with no vocal separation.
+- **Props reach only the shots that show them.** A shot's props are found from its action (the cast list's prop names, whole names or plurals), listed in the shot, and written into its prompt ("Props: Letter."). A prop's picture is sent to the shots that name it; a prop no shot names is still sent everywhere, as before. The audit tool checks it.
+- Checked and not changed: the engine starts in about 0.2 s per call, so a long-running engine process would not be noticeable and is not worth the risk; and 90 of the 93 engine modules are still reachable from the app, so the music-era code is not dead code to delete (see the QA notes).
+
 ## 0.15.0 (2026-10-11)
 
 - **Voiceover: attach your own recorded voices to the people in each shot.** On Shots, **Voiceover** (all shots) and each shot's **Voice** tab. Name files for the person and shot (`CHLOE_S01-04.wav`), add them all at once, check the match table, attach. Nothing is guessed: ambiguous, unknown or out-of-shot files are asked about. A shot shorter than its recording is lengthened to hold it; originals are never changed; replaced or removed recordings are kept in `voice/_removed`.

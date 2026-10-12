@@ -166,3 +166,70 @@ def test_a_pronoun_after_a_line_of_dialogue_is_about_the_speaker(tmp_path):
     assert seen["She wrin"] == ["LILA"]
     assert seen["Chloe ke"] == ["CHLOE"]
     assert seen["She does"] == ["CHLOE"]                                   # the last person the story named
+
+
+# ---------------------------------------------------------------- props: the ones the cast list holds reach only the shots that show them
+
+PROP_SCRIPT = "INT. KITCHEN - DAY\n\nSarah pours tea.\n\nSARAH\nHe said he would call.\n\nA letter lies by the sink. Sarah picks up the letter.\n\nJOHN\nWho is it from?\n\nThe kettle whistles.\n"
+
+
+def _film_with_props(tmp_path):
+    from PIL import Image
+    d = story.create(str(tmp_path / "f"), "T", "screenplay", PROP_SCRIPT)["dir"]
+    bible.seed(d)
+    for name in ("Letter", "Kettle", "Spare Key"):
+        bible.upsert(d, "prop", {"name": name, "description": f"the {name.lower()}"})
+    for p in bible.load(d)["props"]:
+        img = tmp_path / f"{p['id']}.png"
+        Image.new("RGB", (16, 16), (200, 100, 50)).save(img)
+        bible.add_media(d, "prop", p["id"], str(img))
+    shots.breakdown(d)
+    return d
+
+
+def test_the_props_a_shots_action_names_are_in_the_shot(tmp_path):
+    d = _film_with_props(tmp_path)
+    got = {}
+    for sid in os.listdir(os.path.join(d, "shots")):
+        f = os.path.join(d, "shots", sid, "contract.json")
+        if os.path.isfile(f):
+            c = json.load(open(f, encoding="utf-8"))
+            got[c["action"][:10]] = [x["name"] for x in c["props"]]
+    assert got["A letter l"] == ["Letter"] and got["The kettle"] == ["Kettle"] and got["Sarah pour"] == []
+    assert all(x["prop_id"] for sid in os.listdir(os.path.join(d, "shots")) if os.path.isfile(os.path.join(d, "shots", sid, "contract.json"))
+               for x in json.load(open(os.path.join(d, "shots", sid, "contract.json"), encoding="utf-8"))["props"])        # linked to the cast list
+
+
+def test_naming_props_finds_whole_names_and_plurals_only():
+    assert shots._props_in("She holds two letters and a Spare Key.", ["Letter", "Spare Key", "Key"]) == ["Letter", "Spare Key", "Key"]
+    assert shots._props_in("The keyboard clatters.", ["Key"]) == [] and shots._props_in("Nothing here.", ["Letter"]) == []
+    assert shots._props_in("A letter.", ["", "ab"]) == []
+
+
+def test_a_prop_picture_goes_only_to_the_shots_that_name_it_and_the_prompt_says_so(tmp_path):
+    d = _film_with_props(tmp_path)
+    make.sync(d)
+    rd = os.path.join(d, "render")
+    plan = json.load(open(os.path.join(rd, "production.json"), encoding="utf-8"))
+    by = {s["visual_prompt"][:10]: s["id"] for sc in plan["scenes"] for s in sc["shots"]}
+    from filmcrafter_engine import library as L
+    pj = json.load(open(os.path.join(rd, "project.json"), encoding="utf-8"))
+    def names(sid):
+        sh, sc = render._shot(plan, sid)
+        return [r["label"] for r in L.reference_files(rd, pj, sh, sc["number"]) if "prop reference" in r["label"]]
+    assert any("Letter" in x for x in names(by["A letter l"])) and not any("Kettle" in x for x in names(by["A letter l"]))
+    assert not any("Letter" in x or "Kettle" in x for x in names(by["Sarah pour"]))        # not sent to a shot that does not show it
+    assert any("Kettle" in x for x in names(by["The kettle"]))
+    assert "Props: Letter." in next(s["visual_prompt"] for sc in plan["scenes"] for s in sc["shots"] if s["id"] == by["A letter l"])
+
+
+def test_a_prop_no_shot_names_still_goes_everywhere_as_before(tmp_path):
+    d = _film_with_props(tmp_path)
+    make.sync(d)
+    rd = os.path.join(d, "render")
+    plan = json.load(open(os.path.join(rd, "production.json"), encoding="utf-8"))
+    pj = json.load(open(os.path.join(rd, "project.json"), encoding="utf-8"))
+    from filmcrafter_engine import library as L
+    sid = plan["scenes"][0]["shots"][0]["id"]
+    sh, sc = render._shot(plan, sid)
+    assert any("Spare Key" in r["label"] for r in L.reference_files(rd, pj, sh, sc["number"]))

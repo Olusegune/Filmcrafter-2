@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { api, errorText, type VoiceImport, type VoiceMatch, type VoiceShot, type VoiceStatus } from "./api";
 import * as I from "./icons";
 
@@ -16,6 +17,16 @@ export const usable = (r: VoiceMatch) => (r.status === "ok" || r.status === "rep
 
 /** The people a recording can be for in a shot: those who speak, then those who are only there. */
 export const peopleOf = (s: VoiceShot | undefined): string[] => (s ? [...(s.people ?? []).map((p) => p.name), ...(s.others ?? [])] : []);
+
+/** Only audio files are taken from a drop. */
+export const audioFiles = (paths: string[]): string[] => paths.filter((p) => new RegExp(`\.(${AUDIO.join("|")})$`, "i").test(p));
+
+/** How much of the shot the recordings fill, as a percentage for a bar, and whether they overflow it (the shot is then lengthened). */
+export const fill = (s: Pick<VoiceShot, "people" | "seconds">): { pct: number; over: boolean; total: number } => {
+  const recs = (s.people ?? []).map((p) => p.recording?.seconds ?? 0).filter((x) => x > 0);
+  const total = recs.reduce((a, b) => a + b, 0) + Math.max(0, recs.length - 1) * 0.25;
+  return { total, pct: s.seconds > 0 ? Math.min(100, Math.round((total / s.seconds) * 100)) : 0, over: total > s.seconds + 0.001 };
+};
 
 export const summary = (st: VoiceStatus) => st.people === 0 ? "Nobody speaks in this film yet." : st.missing === 0 ? `Every voice is recorded (${st.recorded}).` : `${st.recorded} of ${st.people} voices recorded; ${st.missing} still to attach.`;
 
@@ -38,10 +49,27 @@ export function VoiceoverPanel({ dir, only, onChanged }: { dir: string; only?: s
     const r = await open({ multiple: true, filters: FILTERS });
     return r == null ? [] : Array.isArray(r) ? r : [r];
   };
-  const add = async () => {
+  const matchFiles = useCallback(async (files: string[]) => {
     setErr(""); setDone(null);
-    try { const files = await pick(); if (files.length) setRows((await api.voice<{ rows: VoiceMatch[] }>("match", dir, { files })).rows); } catch (e) { setErr(errorText(e)); }
-  };
+    try { if (files.length) setRows((await api.voice<{ rows: VoiceMatch[] }>("match", dir, { files, ...(only ? { shot: only } : {}) })).rows); } catch (e) { setErr(errorText(e)); }
+  }, [dir, only]);
+  const add = async () => { try { await matchFiles(await pick()); } catch (e) { setErr(errorText(e)); } };
+  const [over, setOver] = useState(false);                                      // recordings are being dragged over the window
+  useEffect(() => {
+    let un: (() => void) | undefined;
+    let live = true;
+    getCurrentWebview().onDragDropEvent((e) => {
+      const p = e.payload;
+      if (p.type === "enter" || p.type === "over") setOver(true);
+      else if (p.type === "leave") setOver(false);
+      else if (p.type === "drop") {
+        setOver(false);
+        const files = audioFiles(p.paths);
+        if (files.length) void matchFiles(files); else setErr("Drop audio files: WAV, MP3, M4A, FLAC, AAC or OGG.");
+      }
+    }).then((f) => { if (live) un = f; else f(); }).catch(() => {});
+    return () => { live = false; un?.(); };
+  }, [matchFiles]);
   const importRows = async (items: { file: string; shot: string; speaker: string }[]) => {
     setBusy(true); setErr("");
     try { const r = await api.voice<VoiceImport>("import", dir, { items }); setDone(r); setSt(r.status); setRows(null); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
@@ -67,12 +95,14 @@ export function VoiceoverPanel({ dir, only, onChanged }: { dir: string; only?: s
   if (!st) return <p className="dim" aria-live="polite">{err || "Loading the voices…"}</p>;
   const ready = rows?.filter(usable) ?? [];
   return (
-    <section className="vo" aria-label="Voiceover">
+    <section className={`vo ${over ? "over" : ""}`} aria-label="Voiceover">
       <div className="vo-head">
         <p className="vo-sum" aria-live="polite">{summary(st)}</p>
         <button className="btn primary sm" disabled={busy} onClick={add}><I.Upload size={14} /> Add recordings…</button>
       </div>
-      <p className="dim vo-how">Name each file for the person and the shot, like <b className="num">CHLOE_S01-04.wav</b>. Your recording is what the mouth follows, and what the finished film plays. Your files are copied in, never changed.</p>
+      {over && <div className="vo-drop" aria-hidden="true">Drop your recordings here</div>}
+      <p className="dim vo-how">Drag recordings onto this screen, or use the button. Name each file for the person and the shot, like <b className="num">CHLOE_S01-04.wav</b>. Your recording is what the mouth follows, and what the finished film plays. Your files are copied in, never changed.</p>
+      <p className="dim vo-how">If a mouth drifts in a finished take, open the shot in the Studio and press <b>Lip-sync this take…</b>: it re-times the mouth to your recording (the price is shown first).</p>
       {err && <p className="error-text" role="alert">{err}</p>}
 
       {rows && <div className="vo-match">
@@ -108,7 +138,9 @@ export function VoiceoverPanel({ dir, only, onChanged }: { dir: string; only?: s
       {shots.length === 0 && <p className="dim">No shot has anyone speaking yet.</p>}
       {shots.map((s) => (
         <article key={s.id} className="vo-shot">
-          <h3><span className="num">{s.id}</span> <span className="dim">Scene {s.scene} · {s.seconds}s</span></h3>
+          <h3><span className="num">{s.id}</span> <span className="dim">Scene {s.scene} · {s.seconds}s</span>
+            {fill(s).total > 0 && <span className={`vo-meter ${fill(s).over ? "over" : ""}`} title={`The recordings take ${fill(s).total.toFixed(1)} s of this ${s.seconds} s shot`}>
+              <i style={{ width: `${fill(s).pct}%` }} /><span className="num">{fill(s).total.toFixed(1)} / {s.seconds}s</span></span>}</h3>
           {(s.notes ?? []).map((n) => <p key={n} className="vo-note"><I.Alert size={12} /> {n}</p>)}
           {(s.people ?? []).map((p) => (
             <div key={p.key} className="vo-person">

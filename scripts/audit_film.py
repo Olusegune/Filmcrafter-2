@@ -64,6 +64,9 @@ def audit(film: str, provider: str = "kie", kind: str = "image", model: str | No
                 problems.append(f"{sid}: {pretty} has no reference picture in this prompt")
             else:
                 stats["people_refs_ok"] += 1
+        for pr in c.get("props") or []:                                           # a prop the shot lists must be in what the model is told
+            if pr.get("name") and pr["name"].lower() not in low:
+                problems.append(f"{sid}: the prop '{pr['name']}' is in the shot but not in the prompt")
         if kind == "image" and not refs:                                           # a picture with nothing to look at must not go to a model that insists on one
             from filmcrafter_engine import refgen
             use = render.text_only_model(r["manifest"]["model"], False)

@@ -194,7 +194,7 @@ If you have recorded the lines yourself, attach them and the picture speaks them
 
 **What happens when you render.** For a model that takes reference audio (Seedance 2 on Kie.ai), your recording goes with the shot and the prompt says who speaks along to it; your approved keyframe goes as a reference picture, so the mouth follows your voice. **What you hear in the finished film is your recording**, laid on the film at its shot, not the video model's own sound. The editor hand-off folder gets each recording as its own file, named for the shot and person, in `audio/voice`. Models that cannot take audio are still told the words, and your recording is still the sound at export.
 
-Not built yet: two people speaking turn by turn inside one shot with each lip-synced separately (their recordings are joined in order for now), and a lip-sync pass after the video is made.
+**Two people in one shot:** attach each person's recording; they are placed one after the other in the shot's audio, and the prompt says who speaks when and that the others listen. **Drag and drop:** drop recordings onto the screen. **If a mouth drifts** in a finished take, open the shot in the Studio and press *Lip-sync this take…*: it re-times the mouth to your recording.
 
 ## Cards or timeline: the same film two ways
 

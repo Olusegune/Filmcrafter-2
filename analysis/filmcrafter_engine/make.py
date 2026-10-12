@@ -112,7 +112,8 @@ def _visual(c: dict) -> str:
         speakers = list(dict.fromkeys(x["speaker"].title() for x in c["dialogue"][:6] if x.get("speaker")))
         say = (" " + " and ".join(speakers) + (" are talking, taking turns." if len(speakers) > 1 else " is speaking.")) if speakers else " Someone is speaking."
     place = f" In {c['environment']['name']}." if c["environment"].get("name") else ""
-    return (f"{what}{' ' if what and not what.endswith(('.', '!', '?')) else ''}{('People: ' + who + '.') if who else ''}{place}{say}").strip()
+    things = ", ".join(x["name"] for x in c.get("props") or [] if x.get("name"))
+    return (f"{what}{' ' if what and not what.endswith(('.', '!', '?')) else ''}{('People: ' + who + '.') if who else ''}{place}{(' Props: ' + things + '.') if things else ''}{say}").strip()
 
 
 def _plan(d: str, bible: dict, cons: list[dict]) -> dict:
@@ -194,6 +195,14 @@ def sync(d: str) -> dict:
             name = it["name"].title() if it["name"].isupper() else it["name"]
             library.upsert(rd, {"id": "fc-" + it["id"], "kind": lkind, "name": name, "files": files, "notes": (it.get("physical") or it.get("description") or it.get("notes") or "")[:300]})
             made += 1
+            if kind == "prop":                                       # a prop goes to the shots that name it; a prop no shot names stays everywhere, as before
+                users = [c["id"] for c in cons if any((x.get("prop_id") == it["id"]) or (x.get("name") or "").lower() == it["name"].lower() for x in c.get("props") or [])]
+                if users:
+                    library.assign(rd, "project", None, "fc-" + it["id"], False)
+                    for sid in users:
+                        library.assign(rd, "shot", sid, "fc-" + it["id"], True)
+                else:
+                    library.assign(rd, "project", None, "fc-" + it["id"], True)
             if kind == "environment":
                 library.assign(rd, "project", None, "fc-" + it["id"], False)
                 for n in it.get("scenes") or []:

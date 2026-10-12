@@ -713,3 +713,11 @@
 .vo-r.ok .vo-state b { color: var(--ok, #5ec27f); }
 .vo-done { font-size: 13px; }
 @media (max-width: 1100px) { .vo-person { grid-template-columns: 1fr; } .vo-rec { justify-content: flex-start; } }
+
+.vo { position: relative; }
+.vo.over { outline: 2px dashed var(--signal); outline-offset: 6px; border-radius: 4px; }
+.vo-drop { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; background: rgba(9,11,15,0.78); font-size: 16px; font-weight: 600; color: var(--signal); pointer-events: none; border-radius: 4px; }
+.vo-meter { margin-left: auto; position: relative; display: inline-flex; align-items: center; width: 150px; height: 16px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+.vo-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(94,194,127,0.45); }
+.vo-meter.over i { background: rgba(232,176,74,0.5); }
+.vo-meter .num { position: relative; z-index: 1; margin: 0 6px; font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--frost); }

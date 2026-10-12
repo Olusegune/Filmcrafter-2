@@ -152,7 +152,7 @@ def _notes(seconds: float, peak_db: float, shot_seconds: float) -> list[str]:
 
 # ---------------------------------------------------------------- matching file names to shots and people
 
-def match(d: str, files: list[str]) -> list[dict]:
+def match(d: str, files: list[str], hint: str | None = None) -> list[dict]:
     """What each file would be attached to. Free; changes nothing. Each row: file, name, shot, speaker, status and a plain note.
     status: ok, replace (ok, and it replaces a recording), ambiguous, no_shot, no_speaker, not_in_shot, duplicate, bad_file."""
     _film(d)
@@ -174,7 +174,7 @@ def match(d: str, files: list[str]) -> list[dict]:
             continue
         row["seconds"] = info["seconds"]
         stem = os.path.splitext(base)[0]
-        sid = shot_id_in(stem)
+        sid = shot_id_in(stem) or (check_id(hint, "shot") if hint and hint in cons else None)          # a file with no shot in its name goes to the shot the person is looking at
         if not sid:
             row.update(status="no_shot", note="The name has no shot in it (like S01-04). Choose the shot.")
             rows.append(row)
@@ -400,6 +400,15 @@ def for_shot(d: str, shot_id: str) -> list[dict]:
     return [r for r in rows if isinstance(r, dict) and (lambda p: bool(p) and os.path.isfile(p))(inside(d, r.get("path")))]
 
 
+def windows(d: str, shot_id: str) -> list[dict]:
+    """When each person speaks inside the shot's one audio clip (see slice_for): [{speaker, start, end, line}] in seconds, in speaking order."""
+    out, at = [], 0.0
+    for r in for_shot(d, shot_id):
+        out.append({"speaker": r["speaker"], "start": round(at, 2), "end": round(at + float(r["seconds"]), 2), "line": r.get("line", "")})
+        at += float(r["seconds"]) + GAP
+    return out
+
+
 def slice_for(d: str, shot_id: str, seconds: float) -> str:
     """One audio clip for the shot: its recordings in order with a short gap, cut to at most `seconds`. Cached; the recordings are never changed."""
     from .export import ffmpeg
@@ -475,7 +484,7 @@ def main(argv: list[str]) -> int:
         if a.action == "status":
             res = status(d)
         elif a.action == "match":
-            res = {"rows": match(d, [str(f) for f in x.get("files") or []])}
+            res = {"rows": match(d, [str(f) for f in x.get("files") or []], str(x.get("shot") or "") or None)}
         elif a.action == "import":
             res = import_files(d, x.get("items") or [], x.get("fit", True) is not False)
         else:

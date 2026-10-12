@@ -306,3 +306,64 @@ def test_an_endless_recording_is_refused(tmp_path, monkeypatch):
     monkeypatch.setattr(R, "take_duration", lambda p: 3 * 3600.0)
     info = V.probe(str(src))
     assert not info["ok"] and "20 minutes" in info["why"]
+
+
+# ---------------------------------------------------------------- two people, one shot (phase 3)
+
+@pytest.fixture
+def two(film, tmp_path):
+    sid = first_shot_with(film, "Lila")                                                   # Lila speaks to Chloe: both are in the shot
+    V.import_files(film, [{"file": tone(tmp_path, "a.wav", 2.0), "shot": sid, "speaker": "Lila"}, {"file": tone(tmp_path, "b.wav", 1.5, 440), "shot": sid, "speaker": "Chloe"}])
+    return film, os.path.join(film, "render"), sid
+
+
+def test_each_person_has_a_window_in_the_shots_one_clip(two):
+    film, rd, sid = two
+    w = V.windows(rd, sid)
+    assert [x["speaker"] for x in w] == ["Lila", "Chloe"]
+    assert w[0]["start"] == 0.0 and w[0]["end"] == 2.0
+    assert w[1]["start"] == pytest.approx(2.0 + V.GAP, abs=0.01) and w[1]["end"] == pytest.approx(2.0 + V.GAP + 1.5, abs=0.01)
+    assert shots._contract(film, sid)["generation"]["duration"] >= 2.0 + V.GAP + 1.5 + V.FIT_MARGIN - 0.5     # the shot was lengthened to hold both
+
+
+def test_the_prompt_says_who_speaks_when_and_that_the_others_listen(two):
+    film, rd, sid = two
+    r = render.preview(rd, sid, "kie", "bytedance/seedance-2", {}, "video")
+    p = r["payload"][r["manifest"]["roles"]["prompt"]]
+    assert "Lila and Chloe speak in turn" in p and "Lila from 0.0 to 2.0 s" in p and "then Chloe from 2.2 to 3.8 s" in p
+    assert "others listen with their mouths closed" in p
+    assert len(r["payload"][r["manifest"]["roles"]["ref_audio"]]) == 1                    # one clip: the order and the gaps are in it
+    assert any("recordings of Lila and Chloe" in x["label"] for x in r.get("inputs", []) if x["role"] == "audio") or "inputs" not in r
+
+
+def test_one_person_keeps_the_single_speaker_wording(voiced):
+    film, rd, sid = voiced
+    r = render.preview(rd, sid, "kie", "bytedance/seedance-2", {}, "video")
+    p = r["payload"][r["manifest"]["roles"]["prompt"]]
+    assert "speak in turn" not in p and "Lila speaks along to the reference audio" in p
+
+
+def test_a_file_with_no_shot_in_its_name_goes_to_the_shot_being_looked_at(film, tmp_path):
+    sid = first_shot_with(film, "Lila")
+    tone(tmp_path, "lila_final.wav", 1.0)
+    tone(tmp_path, "take.wav", 1.0)
+    got = {os.path.basename(r["file"]): r for r in V.match(film, [str(tmp_path / "lila_final.wav"), str(tmp_path / "take.wav")], sid)}
+    assert got["lila_final.wav"]["shot"] == sid and got["lila_final.wav"]["speaker"] == "Lila" and got["lila_final.wav"]["status"] == "ok"
+    assert got["take.wav"]["shot"] == sid                                                  # the shot is known; who is not guessed past two people
+    assert V.match(film, [str(tmp_path / "lila_final.wav")], "../../x")[0]["status"] == "no_shot"         # a hint that is not a shot of this film is ignored
+
+
+# ---------------------------------------------------------------- the lip-sync pass after the take (phase 4)
+
+def test_the_lip_sync_pass_follows_your_recording_when_the_shot_has_one(voiced, monkeypatch):
+    film, rd, sid = voiced
+    man = render.manifest("kie", "volcengine/video-to-video-lip-sync")
+    take = {"output": "gen/take.mp4"}
+    os.makedirs(os.path.join(rd, "gen"), exist_ok=True)
+    monkeypatch.setattr(render, "take_duration", lambda p: 2.5)
+    plan = json.load(open(os.path.join(rd, "production.json"), encoding="utf-8"))
+    shot, _ = render._shot(plan, sid)
+    p = render.compile_lipsync(rd, man, shot, take, None)
+    audio = p[man["roles"]["src_audio"]]
+    assert audio.startswith("project:cache/voice/") and audio.endswith(".mp3")                 # the recording, cut to the take's length, not the song
+    assert p.get("separate_vocal") in (False, None)

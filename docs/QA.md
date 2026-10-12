@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.15.0 (2026-10-11)
+# QA report: FilmCrafter 0.16.0 (2026-10-11)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,8 +6,8 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,868 passed**, 6 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **469 passed** |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,877 passed**, 6 skipped (optional-dependency tests), 0 failed |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **471 passed** |
 | App shell (`cargo test`) | **7 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -28,6 +28,11 @@ Interaction was tried, not only rendering: dragging a person and a camera on the
 ## Voiceover (new in 0.15.0)
 
 34 engine tests: file names to shots and people (odd spellings, the longer name winning, unknown names asked about, never guessed), bad files refused with a reason, attaching, lengthening a short shot, replacing and removing without deleting, the render request for Seedance 2 (audio sent, who speaks named, the recording beating native speech), the exported film playing the recording at its shot, the hand-off folder, and a film from elsewhere unable to point outside itself. A security review (path containment, size and length limits, no shell) found two hardening gaps that are fixed. **Not tested:** a real provider run with a recording (needs your permission and a spend cap), two people speaking in one shot, long films with hundreds of recordings.
+
+## Measured, and decided against (0.16.0)
+
+- **A long-running engine process.** Each engine call starts Python and answers in about 0.18 to 0.22 s (shots, make status, voiceover, blocking on a 58-shot film), of which about 0.24 s is importing the modules once. A resident process would save a fifth of a second per call, which no one would feel, and adds a process to supervise and restart. Not built. Reconsider if real use shows lag.
+- **Removing the music-era code.** A reachability check from the app shell's commands finds 90 of the 93 engine modules still reachable; of the three it did not reach, two (`animation_principles`, `styleguard`) are in use (imported with an alias the check does not follow) and one (`model_audit`) is a developer tool. The music-era code is not dead: the app can still open PULSEFRAME projects. Removing it would mean dropping that, which is your call, not a clean-up.
 
 ## Film audit (every shot's prompt)
 

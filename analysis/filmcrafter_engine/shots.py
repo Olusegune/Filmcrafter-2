@@ -174,7 +174,21 @@ def _named_in(text: str, names: list[str]) -> list[str]:
     return [n for _, n in sorted(found)]
 
 
-def _draft_scene(scene: dict, version: int | None, names: list[str] | None = None) -> list[dict]:
+def _props_in(text: str, props: list[str]) -> list[str]:
+    """Which of the film's props the text names (the whole name, or its plural), in the order they appear."""
+    low = text.lower()
+    found: list[tuple[int, str]] = []
+    for p in props:
+        n = p.strip().lower()
+        if len(n) < 3:
+            continue
+        m = re.search(r"(?<![a-z0-9])" + re.escape(n) + r"(?:s|es)?(?![a-z0-9])", low)
+        if m:
+            found.append((m.start(), p))
+    return [p for _, p in sorted(found)]
+
+
+def _draft_scene(scene: dict, version: int | None, names: list[str] | None = None, props: list[str] | None = None) -> list[dict]:
     blocks = scene["blocks"]
     shots: list[dict] = []
     place = scene.get("location", "").title()
@@ -188,6 +202,7 @@ def _draft_scene(scene: dict, version: int | None, names: list[str] | None = Non
         sh["dialogue"] = dialogue or []
         who = list(speakers or []) if speakers else _named_in(action, names or [])          # the people speaking; or, in an action shot, the people the action names
         sh["characters"] = [{"name": n, "character_id": None, "state_id": None, "wardrobe_id": None} for n in who]
+        sh["props"] = [{"name": p, "prop_id": None, "state": ""} for p in _props_in(action, props or [])]          # the props the shot's action names
         sh["camera"]["framing"] = framing
         sh["generation"]["duration"] = _seconds(words, is_dlg)
         shots.append(sh)
@@ -248,6 +263,10 @@ def _link(c: dict, bible: dict) -> None:
     """Link people and the place to the Bible by name, so the shot refers to the one canonical entry."""
     chars = {x["name"].lower(): x for x in bible.get("characters", [])}
     envs = {x["name"].lower(): x for x in bible.get("environments", [])}
+    for pr in c.get("props", []):
+        hit = next((x for x in bible.get("props", []) if x["name"].lower() == pr["name"].lower()), None)
+        if hit:
+            pr["prop_id"] = hit["id"]
     for ch in c["characters"]:
         hit = chars.get(ch["name"].lower())
         if hit:
@@ -286,7 +305,7 @@ def breakdown(d: str, scene: int | None = None) -> dict:
             for s in mine:
                 _archive(d, s)
                 idx["order"].remove(s)
-        drafts = _draft_scene(sc, ver, names)
+        drafts = _draft_scene(sc, ver, names, [x["name"] for x in bible.get("props", [])])
         for n, c in enumerate(drafts, 1):
             c["id"] = f"S{sc['number']:02d}-{n:02d}"
             while os.path.exists(os.path.dirname(_cpath(d, c["id"]))):
