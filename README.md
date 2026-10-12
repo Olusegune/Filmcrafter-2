@@ -34,6 +34,7 @@ Scripts (`scripts/`):
 | Script | What it does |
 |---|---|
 | `test_all.py` | every kind of check in one table |
+| `engine_reach.py` | which engine modules the app can still reach (a start for removing dead code); `--why <module>` says who imports one |
 | `audit_film.py` | builds every shot's prompt for a film folder (free) and checks the right people, pictures, setting and look reached each one |
 | `docshots-edge.mjs` | opens each of the 41 screens in headless Edge and photographs it; `PF_QA=1` also fails on any console error, `PF_A11Y=1` runs an accessibility scan (axe-core), `PF_PERF=1` prints page size, `PF_OVERFLOW=1 PF_WIDTH=1100` checks the layout at a window width, and `?n=300` makes the sample film 300 shots long |
 | `make_look_docs.py` | rewrites the look library in the guide from `styles.json` |

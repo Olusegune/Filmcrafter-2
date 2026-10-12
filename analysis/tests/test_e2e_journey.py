@@ -9,7 +9,8 @@ import subprocess
 import pytest
 from PIL import Image
 
-from filmcrafter_engine import analyze, cleanup, customframe, export as E, library as L, media, overlays as O, render as R
+from tests import songmap_fixture
+from filmcrafter_engine import cleanup, customframe, export as E, library as L, media, overlays as O, render as R
 from tests.test_render import FakeProvider, field, man
 
 pytestmark = pytest.mark.e2e
@@ -82,7 +83,7 @@ def test_a_song_becomes_a_finished_film(journey, tmp_path):
     d, parts = journey
 
     # 1. the song is listened to, and a shot plan is cut on the bars (no AI involved)
-    assert analyze.main([os.path.join(d, "song.wav"), "--out", os.path.join(d, "songmap.json")]) == 0
+    songmap_fixture.write(d)
     sm = json.load(open(os.path.join(d, "songmap.json")))
     assert abs(sm["duration"] - SECONDS) < 0.5 and sm["bpm"] > 0
     made = media.plan_from_song(d, bars=1)

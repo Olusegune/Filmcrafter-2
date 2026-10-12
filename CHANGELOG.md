@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.0 (2026-10-12)
+
+- **Fixed: a friend drawn in someone else's clothes.** The previous shot's picture was always sent as a continuity reference ("match its set, light, wardrobe and props"), so a shot of Lila and two friends, following a shot of Chloe under a tree, drew a friend in Chloe's overalls. It is now sent only when the two shots share a person, and then only for the people they share. (Reported in use, with the pictures.)
+- **Fixed: "two friends in tow" had no friends.** The shot breakdown only found people named in the action. A plural ("friends") now means the scene's numbered friends (Friend #1 and Friend #2), and "Friend #2" written in the action is found. Summit Sprout's S01-03 was given its two friends; re-make its picture.
+- **Fixed: a Word (.docx) screenplay was cut after 6,000 characters, silently.** Found while cleaning up (the Word reader lived in a module only meant for dance notes). A Word screenplay is now read whole.
+- **The music-video engine code is gone.** After the screens and commands in 0.16.1, the engine modules behind them were removed in three batches, the full test suite after each: dance, choreography, producer packages, onboarding, shows, the show script, show finish, voices, lyrics and song analysis, plus their tests. The engine goes from 92 modules to 81 and 1,877 to 1,732 tests; the few helpers films still used moved to `captions`, `fonts`, `overlays` and `story`. Heavy audio packages (`librosa`, `scipy`, `faster-whisper`) are no longer listed; `demucs` is optional. `scripts/engine_reach.py` shows what the app can still reach.
+- Kept on purpose: the shared render pipeline (the song map, the plan, the render project), and native-dialogue code in the render (the model speaks the lines), which has tests but no screen.
+
 ## 0.17.0 (2026-10-12)
 
 - **Fixed: choosing 21:9 gave 16:9 again.** The Shape list in the Keyframe and Video panels saved the shape on the film's render project only, and the render project is rebuilt from the film (which still said 16:9) the next time anything synced, so the choice silently came back as 16:9 (reported in use; it also explains the 21:9 in a screenshot next to a 16:9 picture). A film's shape is now set on the film itself from every place it can be chosen. Tested with the same path that failed.

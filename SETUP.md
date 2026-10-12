@@ -38,11 +38,10 @@ cd ..
 On macOS use `python3.11 -m venv .venv` and `.venv/bin/python`.
 
 Notes from the top of `requirements-engine.txt`:
-- `torch` and `torchaudio` are installed separately. Without an NVIDIA GPU: `pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu`. With one, use the `cu124` index instead, plus `nvidia-cublas-cu12` and `nvidia-cudnn-cu12==9.*` for fast lyric alignment.
-- ffmpeg needs no separate install: it comes with the `imageio-ffmpeg` package.
-- The song-analysis models (Whisper, Demucs) download themselves the first time you use them.
+- The film workflow needs only those packages. ffmpeg needs no separate install: it comes with the `imageio-ffmpeg` package.
+- Optional: splitting a video model's own sound into voices and the rest (Sound layers) uses `demucs`, which needs `torch`. Without an NVIDIA GPU: `pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu`, then `pip install demucs`. The app works without it.
 
-Check it: `analysis\.venv\Scripts\python -c "import librosa, imageio_ffmpeg, PIL; print('ok')"`.
+Check it: `analysis\.venv\Scripts\python -c "import imageio_ffmpeg, PIL, numpy, soundfile; print('ok')"`.
 
 ## 4. Run the app
 
@@ -56,7 +55,7 @@ To keep the build files off a synced or slow folder, set `CARGO_TARGET_DIR` firs
 
 ## 5. Bring your own things (they are not in the repository)
 
-- **Your projects.** A project is a folder (it has `project.json`). Copy the whole folder across, including `generations`, `assets` and the song; or use **Save as One File (.pulse)…** in the File menu to pack it into a single file. Open the folder or the file from Home (or double-click it).
+- **Your films.** A film is a folder (it has `film.json`), usually in `Documents\FilmCrafter\`. Copy the whole folder across, including `render`, `voice` and `cast`; or open the film's Studio and use **Save as One File (.pulse)…** in the File menu to pack its render project into a single file. Open the folder from Home (or double-click the `.filmcrafter` file inside it).
 - **API keys.** They live in the computer's own keychain, so enter them again under **Settings** (fal.ai, Kie.ai, OpenAI, Google, ElevenLabs, whichever you use). They are never stored in a project or in this repository.
 - **Your settings and saved items** in `C:\Users\<you>\.filmcrafter`: the directions library (`directions.json`), the language-model settings (`llm.json`), the ComfyUI setup (`comfyui`), and, once you have made them, your saved layer styles (`layer_styles.json`) and templates (`layer_templates.json`). Copy that folder if you want them; the model catalogue cache in it (`manifests`) rebuilds itself.
 
@@ -85,7 +84,7 @@ The Windows installers (`.msi` and `-setup.exe`) appear under `src-tauri/target/
 |---|---|
 | `src/` | the screens (React + TypeScript) and their tests (`src/__tests__`) |
 | `src-tauri/` | the app shell (Rust): windows, the keychain, running the engine |
-| `analysis/filmcrafter_engine/` | the engine (Python): listening to songs, planning, rendering, export, layers |
+| `analysis/filmcrafter_engine/` | the engine (Python): story, shots, cast, prompts and rendering, voiceover, export and the editor hand-off |
 | `analysis/tests/` | the engine's tests |
 | `docs/` | the user guide (`GETTING_STARTED.md`), testing, acceptance, code signing, plans |
 | `scripts/` | `test_all.py` (every check) and `rehearse.py` (a dress rehearsal on a real project) |

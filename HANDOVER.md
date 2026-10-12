@@ -1,6 +1,6 @@
 # Handover: continuing FilmCrafter on another computer
 
-Written 2026-10-12 at version **0.17.0**. Everything described here is in GitHub (`Olusegune/FilmCrafter`, branch `main`); the only things that are not are your **API keys**, your **film folders** and anything on your Desktop. Read this first, then `SETUP.md` (a fresh-clone walk-through), `README.md`, `docs/QA.md` (what has and has not been tested) and `CHANGELOG.md` (what each version did and why).
+Written 2026-10-12 at version **0.18.0**. Everything described here is in GitHub (`Olusegune/FilmCrafter`, branch `main`); the only things that are not are your **API keys**, your **film folders** and anything on your Desktop. Read this first, then `SETUP.md` (a fresh-clone walk-through), `README.md`, `docs/QA.md` (what has and has not been tested) and `CHANGELOG.md` (what each version did and why).
 
 ## 1. What this is
 
@@ -25,7 +25,7 @@ Then enter your API keys again in the app (**Settings**): they live in the Windo
 ## 3. The checks (run all of these before a release)
 
 ```
-cd analysis ; python -X utf8 -m pytest -q            # engine: about 1,880 tests, about 5 minutes
+cd analysis ; python -X utf8 -m pytest -q            # engine: about 1,730 tests, about 5 minutes
 npx tsc --noEmit ; npx vitest run                    # screens: about 475 tests
 cargo test --manifest-path src-tauri/Cargo.toml      # shell: 7 tests
 rafter secrets .                                     # no secrets in the repo (rafter run needs RAFTER_API_KEY and has not been run)
@@ -78,7 +78,7 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 
 ## 8. Where things stand
 
-- **Version 0.16.2** is pushed (`main`, tag `before-music-removal` marks the code before the cleanup below). Installers are on the Desktop only (`FilmCrafter 0.17.0`); rebuild with section 4.
+- **Version 0.16.2** is pushed (`main`, tag `before-music-removal` marks the code before the cleanup below). Installers are on the Desktop only (`FilmCrafter 0.18.0`); rebuild with section 4.
 - **Built recently:** frame shapes (9), Select & review with enlarge preview and folding scenes, accessibility pass, export formats for every shape, the voiceover system (attach your own recordings by file name, one or two speakers per shot, drag and drop, lip-sync pass to your recording, export mix, hand-off files), props reach only the shots that show them, the film audit tool, and the removal of the music-video ways in.
 - **Frame shape lesson (0.17.0):** the film's `film.json` is the source of truth for its shape and `render/` is rebuilt from it; any screen that changes the shape must also set it on the film (`frame.ts saveFrame` does). Summit Sprout was set to 21:9 on 2026-10-12 at the user's request (its existing 16:9 pictures should be re-made).
 - **The Summit Sprout film** (`Documents\FilmCrafter\SUMMIT SPROUT FROM SHAME TO LIVING WATER Final Version 2`): repaired breakdown (58 shots, 8 scenes, all linked to the cast; `audit_film.py` reports 0 problems). A backup copy sits beside it, `... (before repair)`. The older `... Final Version` folder is stale. The film's frame shape is 16:9 in `film.json`; the user's screenshot once showed 21:9, so ask which they want (change it with the Frame shape panel or `film set_aspect`).
@@ -88,7 +88,7 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 
 1. The user decides the Summit Sprout frame shape (21:9 or 16:9).
 2. The real voiceover test: one Seedance 2 shot (Kie.ai) with one recording; ask permission, get a cap, show the price. Check the mouth follows the voice and the export plays the recording.
-3. **Engine cleanup, batch by batch** (in progress): the music-video entry points are gone from the screens and the shell (0.16.1). Next, delete the engine modules only those screens used (`dance`, `choreo`, `show*`, `lyrics`, song analysis `analyze`...), **one small batch at a time**, running the full checks after each and fixing imports in the film modules that still reach them (`acting`, `refgen`, `onboarding`, `producer_import` import some). Do not touch the shared render pipeline (song map, plan, render project): films run on it. A reachability script idea: list modules not reachable from the shell's commands (watch for `from . import x as Y` aliases).
+3. **Engine cleanup: done in 0.18.0.** The music-video ways in went in 0.16.1; 0.18.0 removed the engine modules behind them (dance, choreography, producer packages, onboarding, shows, show script, show finish, voices, lyrics, song analysis) with their tests, in three batches with the full suite after each (engine 92 -> 81 modules). `python scripts/engine_reach.py` lists what the app can still reach (only `model_audit`, a developer tool, is left unreached). What is deliberately **kept**: the shared render pipeline (song map, plan, render project), native-dialogue code in `render` (the model speaks the lines; it has tests but no screen), and `from . import x as Y` helpers. If you want to go further, native dialogue is the next candidate: it touches `compile_request`, the price sheet and the Studio's estimate fields, so do it carefully.
 4. The user's own walk-through of the installed app; a keyboard-only and screen-reader pass.
 5. Premiere Pro / Final Cut hand-off check, macOS build and signing (needs a Mac and certificates; see `docs/CODE_SIGNING.md`).
 

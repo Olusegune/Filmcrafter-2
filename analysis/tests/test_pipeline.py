@@ -9,41 +9,10 @@ from PIL import Image
 
 from filmcrafter_engine import export as E
 from filmcrafter_engine import library as L
-from filmcrafter_engine import lyrics as Ly
 from filmcrafter_engine import script_import as S
 
 
 # ------------------------------------------------------------------ lyrics
-
-def test_parse_lyrics_sections_and_labels():
-    secs = Ly.parse_lyrics("[Intro]\n\n[Verse 1]\nI wake before the light\nMy bag is by the door\n[Pre-Chorus]\nHold on\n[Chorus]\nStay\n")
-    assert [s.label for s in secs] == ["INTRO", "VERSE", "PRE-CHORUS", "CHORUS"]
-    assert [ln.text for ln in secs[1].lines] == ["I wake before the light", "My bag is by the door"]
-
-
-def test_untagged_lyrics_become_a_verse():
-    assert Ly.parse_lyrics("just one line")[0].label == "VERSE"
-
-
-def test_align_times_lines_and_interpolates_misses():
-    secs = Ly.parse_lyrics("[Verse]\nI wake before the light\nsomething the model never heard\nmy bag is by the door")
-    words = [("I", 1.0, 1.2), ("wake", 1.2, 1.5), ("before", 1.5, 1.8), ("the", 1.8, 1.9), ("light", 1.9, 2.4),
-             ("my", 6.0, 6.2), ("bag", 6.2, 6.5), ("is", 6.5, 6.6), ("by", 6.6, 6.7), ("the", 6.7, 6.8), ("door", 6.8, 7.3)]
-    frac = Ly.align(secs, words)
-    a, b, c = secs[0].lines
-    assert (a.start, a.end) == (1.0, 2.4) and (c.start, c.end) == (6.0, 7.3)
-    assert (b.start, b.end) == (2.4, 6.0)            # unheard line fills the gap between its neighbours
-    assert 0.5 < frac < 1.0
-
-
-def test_sections_from_lyrics_snap_to_bars_and_add_intro_outro():
-    secs = Ly.parse_lyrics("[Verse]\nline one\n[Chorus]\nline two")
-    secs[0].lines[0].start, secs[0].lines[0].end = 8.2, 12.0
-    secs[1].lines[0].start, secs[1].lines[0].end = 16.1, 20.0
-    out = Ly.sections_from_lyrics(secs, 30.0, downbeats=[0, 4, 8, 12, 16, 20, 24, 28])
-    assert [s["label"] for s in out] == ["INTRO", "VERSE", "CHORUS", "OUTRO"]
-    assert out[1]["start"] == 8 and out[2]["start"] == 16 and out[-1]["end"] == 30.0
-
 
 # ------------------------------------------------------------------ script import
 

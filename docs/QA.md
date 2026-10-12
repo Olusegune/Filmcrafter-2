@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.17.0 (2026-10-11)
+# QA report: FilmCrafter 0.18.0 (2026-10-11)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,8 +6,8 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,877 passed**, 6 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **478 passed** |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,732 passed**, 6 skipped (optional-dependency tests), 0 failed |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **477 passed** |
 | App shell (`cargo test`) | **7 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -61,6 +61,8 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 | Use (user report), real screenplay | An all-capitals title was read as a speaker (shot 1 "Title speaks", scenes off by one); action shots had no people; people with long picture names were never sent; one person could take every picture slot | all four fixed; a test for each |
 | Use (user report) | A shot with no people could not make its picture on GPT Image 2.5 Flare ("Needs an image"): the fallback to a text-to-image twin only covered Nano Banana | every image-to-image model falls back to its text twin; the audit tool checks it |
 | Film audit | A pronoun action shot ("She wrinkles her nose") had no one in it; numbered scene headings were not scenes; a forced @Name was not a speaker | all three fixed; tested |
+| Use (user report, with pictures) | A friend drawn in another character's clothes: the previous shot's picture was sent as a reference to a shot of other people; "two friends" had no friends in the shot | the reference is sent only for people the shots share; plurals mean the scene's numbered friends; tested |
+| Clean-up | A Word (.docx) screenplay was silently cut after 6,000 characters | read whole; tested |
 | Use (user report) | Choosing 21:9 in the Shape list gave 16:9 again: the shape was saved on the render project only and the next sync rebuilt it from the film | the film's shape is set from every place it can be chosen; tested |
 | Use (user report) | The voiceover could not be found: it was only on the Shots screen, which Simple mode hides | opens from the Studio's bar and the Export screen as a sheet |
 | Use (user report) | The Export format list had no 21:9 (nor 4:3, 4:5, 3:4, 9:21), and did not start on the film's shape | one format per frame shape, shared by three screens, tested against the engine |

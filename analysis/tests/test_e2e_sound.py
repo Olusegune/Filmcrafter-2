@@ -10,7 +10,8 @@ import subprocess
 import numpy as np
 import pytest
 
-from filmcrafter_engine import analyze, export as E, layerkit, media, overlays as O, render as R, shotsound as SS
+from tests import songmap_fixture
+from filmcrafter_engine import export as E, layerkit, media, overlays as O, render as R, shotsound as SS
 from tests.test_e2e_journey import SECONDS, ff, parts  # noqa: F401  (the 16 s click-track song; a fixture)
 from tests.test_render import FakeProvider, field, man
 from tests.test_shotsound import fake_demucs, level
@@ -61,7 +62,7 @@ def test_the_models_sound_is_mine_to_keep_split_trim_and_measure_without_renderi
     d = journey
 
     # 1. the song is listened to and cut into shots; the first shot is described and rendered once, by the stand-in model
-    assert analyze.main([os.path.join(d, "song.wav"), "--out", os.path.join(d, "songmap.json")]) == 0
+    songmap_fixture.write(d)
     media.plan_from_song(d, bars=1)
     plan = json.load(open(os.path.join(d, "production.json")))
     shots = [s for sc in plan["scenes"] for s in sc["shots"]]
