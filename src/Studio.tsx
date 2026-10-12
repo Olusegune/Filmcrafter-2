@@ -51,6 +51,7 @@ import { ScriptSheet } from "./ScriptSheet";
 import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
+import { VoiceoverSheet } from "./VoiceoverSheet";
 import { ask } from "./ask";
 
 type Selection = { kind: "shot"; id: string } | { kind: "section"; index: number } | null;
@@ -94,6 +95,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [keys, setKeys] = useState<KeyStatus>({ openai: false, fal: false, kie: false, google: false, elevenlabs: false });
   const [confirmAll, setConfirmAll] = useState(false);
   const [selecting, setSelecting] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);                     // a film's own recorded voices
   const [exporting, setExporting] = useState(false);
   const [lookOpen, setLookOpen] = useState(false);
   const [reviewing, setReviewing] = useState(false);
@@ -507,6 +509,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
           {plan && board && <button className="btn" onClick={() => setSelecting(true)}
                   title="Choose shots, approve their keyframes, then pay for video only where the still is right">Select &amp; review</button>}
+          {isFilm && <button className="btn" onClick={() => setVoiceOpen(true)} title="Attach your own recorded voices to the people in the shots">Voiceover</button>}
           {plan && (keys.fal || keys.kie) && toRender.length > 0 && <button className={`btn ${project.directed ? "hero" : ""}`} onClick={() => setConfirmAll(true)}
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </div>}</div>
@@ -515,6 +518,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
           {plan && board && <button className="btn" onClick={() => setSelecting(true)}
                   title="Choose shots, approve their keyframes, then pay for video only where the still is right">Select &amp; review</button>}
+          {isFilm && <button className="btn" onClick={() => setVoiceOpen(true)} title="Attach your own recorded voices to the people in the shots">Voiceover</button>}
           {plan && (keys.fal || keys.kie) && toRender.length > 0 && <button className={`btn ${project.directed ? "hero" : ""}`} onClick={() => setConfirmAll(true)}
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </>}
@@ -671,6 +675,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
       {exporting && <ExportSheet dir={project.dir} projectAspect={project.project.aspect_ratio} shots={shots.length}
                                  rendered={shots.filter((s) => latest.get(s.id)?.state === "ready").length}
                                  onClose={() => setExporting(false)} />}
+      {voiceOpen && isFilm && <VoiceoverSheet dir={filmDirOfRender(project.dir)} onClose={() => setVoiceOpen(false)} onChanged={() => onReload()} />}
       {selecting && board && <SelectReview dir={project.dir} shots={board.shots} sections={map?.sections ?? []}
                                            aspect={frame.aspect_ratio}
                                            initial={sel?.kind === "shot" ? [sel.id] : []} onClose={() => { setSelecting(false); reloadBoard(); refreshPendingKf(); }}

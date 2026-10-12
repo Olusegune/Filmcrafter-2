@@ -18,8 +18,8 @@ macOS: Xcode command line tools instead of the Visual Studio Build Tools. Linux 
 ## 2. Get the code and the screens' packages
 
 ```bash
-git clone https://github.com/Olusegune/FilmCrafterCode.git
-cd FilmCrafterCode
+git clone https://github.com/Olusegune/FilmCrafter.git
+cd FilmCrafter
 npm ci
 ```
 

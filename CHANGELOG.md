@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.2 (2026-10-12)
+
+- **The voiceover is now easy to find.** It was only on the Shots screen, which is hidden in Simple mode, so it could not be found there (reported in use). It now opens from a **Voiceover** button in the Studio's top bar and from a **Voiceover…** link under Soundtrack on the Export screen (which also says how many voices are recorded), as a sheet over whatever you are doing. The Shots screen keeps its own button and each shot's Voice tab.
+
 ## 0.16.1 (2026-10-12)
 
 First step of removing the music-video leftovers: the ways in.

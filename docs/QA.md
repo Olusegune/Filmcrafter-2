@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.16.1 (2026-10-11)
+# QA report: FilmCrafter 0.16.2 (2026-10-11)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -7,7 +7,7 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 | Check | Result |
 |---|---|
 | Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,877 passed**, 6 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **474 passed** |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **475 passed** |
 | App shell (`cargo test`) | **7 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -61,6 +61,7 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 | Use (user report), real screenplay | An all-capitals title was read as a speaker (shot 1 "Title speaks", scenes off by one); action shots had no people; people with long picture names were never sent; one person could take every picture slot | all four fixed; a test for each |
 | Use (user report) | A shot with no people could not make its picture on GPT Image 2.5 Flare ("Needs an image"): the fallback to a text-to-image twin only covered Nano Banana | every image-to-image model falls back to its text twin; the audit tool checks it |
 | Film audit | A pronoun action shot ("She wrinkles her nose") had no one in it; numbered scene headings were not scenes; a forced @Name was not a speaker | all three fixed; tested |
+| Use (user report) | The voiceover could not be found: it was only on the Shots screen, which Simple mode hides | opens from the Studio's bar and the Export screen as a sheet |
 | Use (user report) | The Export format list had no 21:9 (nor 4:3, 4:5, 3:4, 9:21), and did not start on the film's shape | one format per frame shape, shared by three screens, tested against the engine |
 | Accessibility scan | Film strip blocks' names did not contain their visible text | name now matches the text |
 | Accessibility scan | The Studio's inspector tab list held a button that is not a tab | Advanced sits beside the tab list |

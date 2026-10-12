@@ -721,3 +721,7 @@
 .vo-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(94,194,127,0.45); }
 .vo-meter.over i { background: rgba(232,176,74,0.5); }
 .vo-meter .num { position: relative; z-index: 1; margin: 0 6px; font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--frost); }
+
+.vo-sheet { width: min(960px, 94vw); max-height: 92vh; display: flex; flex-direction: column; }
+.vo-sheet-body { overflow: auto; padding: 0 var(--sp-4, 16px) var(--sp-4, 16px); }
+.mk-voices { margin: 6px 0 0; }

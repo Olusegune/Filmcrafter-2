@@ -5,6 +5,8 @@ import { api, errorText, type ExportResult, type InterchangeResult, type MakeSho
 import { ask } from "./ask";
 import { FilmStrip } from "./FilmStrip";
 import { EXPORT_FORMATS, formatFor } from "./exportFormats";
+import { VoiceoverSheet } from "./VoiceoverSheet";
+import type { VoiceStatus } from "./api";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
 const TABS: { id: MakeTab; label: string; blurb: string }[] = [
@@ -31,6 +33,9 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
   const [note, setNote] = useState("");
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voices, setVoices] = useState<VoiceStatus | null>(null);                 // how many of the film's voices are your own recordings
+  useEffect(() => { if (!voiceOpen) api.voice("status", dir).then(setVoices).catch(() => {}); }, [dir, voiceOpen, tab]);
   const aspect = st?.aspect_ratio;
   const [presetTouched, setPresetTouched] = useState(false);
   useEffect(() => { if (aspect && !presetTouched) setPreset(formatFor(aspect)); }, [aspect, presetTouched]);   // the film's own shape, until you choose another
@@ -134,6 +139,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
 
   return (
     <div className="mk">
+      {voiceOpen && <VoiceoverSheet dir={dir} onClose={() => setVoiceOpen(false)} />}
       <div className="mk-head">
         {tab !== "deliver" ? <div className="cw-tabs" role="tablist">{TABS.filter((x) => x.id !== "deliver").map((x) => <button key={x.id} role="tab" aria-selected={tab === x.id} className={tab === x.id ? "on" : ""} onClick={() => onTab(x.id)}>{x.label}
           <span className="dim"> {st.counts[x.id as "storyboard" | "keyframe" | "video"]}/{st.counts.shots}</span></button>)}</div> : <h2 className="mk-title">Export</h2>}
@@ -170,6 +176,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
           <section className="mk-panel"><span className="mk-n num">1</span><h3>Soundtrack</h3>
             <p className="mk-big">{st.soundtrack.kind === "file" ? <>Using <b>{st.soundtrack.name ?? st.soundtrack.file}</b></> : "Silence, the length of the film"}</p>
             <p className="dim">Music, a dialogue mix or an ADR track you made elsewhere. It is copied in untouched and laid under the film.</p>
+            <p className="dim mk-voices">{voices ? (voices.people === 0 ? "Nobody speaks in this film yet." : `Your own voices: ${voices.recorded} of ${voices.people} recorded.`) : ""} <button className="link" onClick={() => setVoiceOpen(true)}>Voiceover…</button></p>
             <div className="film-actions"><button className="btn" disabled={!!busy} onClick={soundtrack}>Choose a soundtrack…</button>
               {st.soundtrack.kind === "file" && <button className="btn ghost" disabled={!!busy} onClick={() => call("sound", () => api.make("soundtrack", dir, { file: null }))}>Use silence</button>}</div></section>
           <section className="mk-panel"><span className="mk-n num">2</span><h3>Export the film</h3>

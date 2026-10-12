@@ -51,3 +51,11 @@ describe("voiceover screen logic", () => {
     expect(readFileSync("src/api.ts", "utf8")).toContain('invoke<T>("film_voice"');
   });
 });
+
+describe("the voiceover can be found", () => {
+  it("opens from the Studio's bar and the Export screen (so also in Simple mode, where the Shots stage is hidden), as well as from Shots", () => {
+    expect(readFileSync("src/Studio.tsx", "utf8")).toMatch(/isFilm && <button.*setVoiceOpen.*>Voiceover</);
+    expect(readFileSync("src/MakeFilm.tsx", "utf8")).toMatch(/setVoiceOpen\(true\)\}>Voiceover…/);
+    expect(readFileSync("src/ShotLab.tsx", "utf8")).toContain("Voiceover</button>");
+  });
+});
