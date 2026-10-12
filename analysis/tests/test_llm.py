@@ -84,21 +84,6 @@ def test_vision_review_needs_a_vision_model(server):
     assert L.local_model(L.client(), vision=True) == "llava:13b"
 
 
-def test_choreography_engine_runs_on_a_local_model(server, tmp_path, monkeypatch):
-    from filmcrafter_engine import choreo as C, onboarding as O
-    d = tmp_path / "p"; d.mkdir()
-    (d / "songmap.json").write_text(json.dumps({"bpm": 100, "sections": [{"start": 0, "end": 10, "group": "Chorus"}], "lyrics": []}))
-    (d / "directed.json").write_text(json.dumps({"characters": [{"name": "Ada"}], "scenes": [{"number": 1, "shots": [
-        {"id": "S01-01", "start": 0, "end": 10, "performers": ["Ada"], "beats": ["Ada dances."]}]}]}))
-    O.choreo_set(str(d), {"mode": "ai"})
-    L.save({"provider": "ollama", "base_url": server, "model": "qwen2.5:14b"})
-    Fake.reply = json.dumps({"concept": "joy", "dancers": ["Ada"], "sections": [{"section": "Chorus 1", "feel": "open", "counts": [{"counts": "1-8", "move": "bounce"}]}],
-                             "shots": [{"shot_id": "S01-01", "dancing": True, "pose": "mid-bounce", "motion": "bounces on 1 and 5", "energy": 7}]})
-    plan = C.design(str(d))
-    assert plan["model"] == "qwen2.5:14b" and plan["shots"]["S01-01"]["motion"] == "bounces on 1 and 5"
-    assert Fake.calls[-1]["model"] == "qwen2.5:14b"
-
-
 def test_offline_local_server_is_explained(monkeypatch, tmp_path):
     from filmcrafter_engine.director import openai_error
     monkeypatch.setattr(L, "CONFIG", str(tmp_path / "llm.json"))

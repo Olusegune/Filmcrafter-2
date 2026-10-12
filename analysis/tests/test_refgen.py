@@ -6,8 +6,8 @@ import shutil
 import pytest
 from PIL import Image
 
-from filmcrafter_engine import library, producer_import as PI, refgen, render as R
-from tests.test_producer_import import _project
+from filmcrafter_engine import library, refgen, render as R
+from tests.refgen_fixture import apply_assets, project as _project
 
 SPEC = """# Solomon
 
@@ -50,7 +50,7 @@ def _package(tmp_path):
 @pytest.fixture
 def proj(tmp_path):
     d = _project(tmp_path)
-    PI.apply(d, _package(tmp_path))
+    apply_assets(d, _package(tmp_path))
     return d
 
 

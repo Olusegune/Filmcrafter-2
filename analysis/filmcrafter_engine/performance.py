@@ -152,8 +152,7 @@ def drift_for(project: dict, shot: dict) -> dict | None:
 
 def get(d: str) -> dict:
     p = _read(os.path.join(d, "project.json"), {})
-    dance = {str(k): v for k, v in (p.get("dance_shots") or {}).items() if v in ("on", "off")}
-    return {"profiles": [{"id": k, "label": v["label"], "blurb": v["blurb"]} for k, v in PROFILES.items()], **settings(p), "dance": dance}
+    return {"profiles": [{"id": k, "label": v["label"], "blurb": v["blurb"]} for k, v in PROFILES.items()], **settings(p)}
 
 
 def set_(d: str, data: dict) -> dict:
@@ -176,17 +175,6 @@ def set_(d: str, data: dict) -> dict:
     p = _read(path, {})
     if cur.get("scenes") or cur.get("characters") or cur.get("shots") or "default" in data or p.get("performance"):
         p["performance"] = cur
-    # dance direction per shot ("on" always, "off" never, "auto" = the shot's own text decides). Kept apart from the acting profile: choosing it must not switch acting on for the project.
-    if "dance" in data:
-        dance = dict(p.get("dance_shots") or {})
-        for k, v in (data.get("dance") or {}).items():
-            if v in (None, "", "auto"):
-                dance.pop(str(k), None)
-            elif v in ("on", "off"):
-                dance[str(k)] = v
-            else:
-                raise SystemExit("Choose automatic, always or never.")
-        p["dance_shots"] = dance
     _write(path, p)
     return get(d)
 

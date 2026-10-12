@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from filmcrafter_engine import dance, looks, media, overlays, transitions
+from filmcrafter_engine import looks, media, overlays, transitions
 
 
 def project(tmp_path):
@@ -132,7 +132,6 @@ def test_the_free_checks_survive_unreadable_project_files(tmp_path):
     d.mkdir()
     for name in ("project.json", "songmap.json", "production.json", "choreography.json", "camera.json"):
         (d / name).write_text("{ not json", encoding="utf-8")
-    assert dance.check(str(d))["shots"] == []
     assert looks.suggest(str(d))["shots"] == []
     assert looks.suggest_apply(str(d), ["S01-01"]) == {"changed": []}
 

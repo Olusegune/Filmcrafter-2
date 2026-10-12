@@ -282,14 +282,13 @@ def test_ACC18_a_transition_never_changes_how_long_the_film_is(tmp_path):
 
 
 def test_ACC19_the_free_checks_never_send_anything_anywhere(tmp_path, monkeypatch):
-    """As someone watching the cost I want the dance-ready check, the sound check and the camera suggestions to stay on my computer: with the network switched off they still answer."""
+    """As someone watching the cost I want the sound check and the camera suggestions to stay on my computer: with the network switched off they still answer."""
     import socket
-    from filmcrafter_engine import dance, looks
-    from tests.test_dance import project, shot
+    from filmcrafter_engine import looks
+    from tests.test_planio import plan
     def no_network(*a, **k):
         raise AssertionError("a free check tried to use the network")
     monkeypatch.setattr(socket, "socket", no_network)
     monkeypatch.setattr(socket, "create_connection", no_network)
-    d = project(tmp_path, [shot(1, 4.0, 8.0, emotion="dread", performance_intensity=8)])
-    assert dance.check(d)["dance_shots"] == 1
+    d = plan(tmp_path, production={"scenes": [{"number": 1, "shots": [{"id": "S01-01", "start": 4.0, "end": 8.0, "emotion": "dread", "performance_intensity": 8}]}]})
     assert looks.suggest(d)["count"] == 1

@@ -2,6 +2,7 @@
 a model with few picture slots gives each person one before anyone gets a second, and a long file name keeps its extension.
 (Found by a user's real screenplay: the all-capitals title became a character, shot 1 'Summit Sprout speaks', and the people with long picture names were never sent.)"""
 import json
+import pytest
 import os
 
 from filmcrafter_engine import bible, library as L, make, render, shots, story
@@ -233,3 +234,18 @@ def test_a_prop_no_shot_names_still_goes_everywhere_as_before(tmp_path):
     sid = plan["scenes"][0]["shots"][0]["id"]
     sh, sc = render._shot(plan, sid)
     assert any("Spare Key" in r["label"] for r in L.reference_files(rd, pj, sh, sc["number"]))
+
+
+# ---------------------------------------------------------------- a long Word screenplay is read whole
+
+def test_a_word_screenplay_is_read_in_full(tmp_path):
+    import zipfile
+    p = tmp_path / "long.docx"
+    paras = "".join(f"<w:p><w:r><w:t>Line {i} of the screenplay with some words in it.</w:t></w:r></w:p>" for i in range(600))
+    with zipfile.ZipFile(p, "w") as z:
+        z.writestr("word/document.xml", f'<?xml version="1.0"?><w:document xmlns:w="x"><w:body>{paras}</w:body></w:document>')
+    r = story.read_document(str(p))
+    assert len(r["text"]) > 29000 and "Line 599 of the screenplay" in r["text"]          # it used to stop after 6,000 characters, and said nothing
+    with pytest.raises(SystemExit, match="Word file"):
+        (tmp_path / "bad.docx").write_bytes(b"not a zip")
+        story.read_document(str(tmp_path / "bad.docx"))

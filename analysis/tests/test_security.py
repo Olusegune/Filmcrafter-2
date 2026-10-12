@@ -10,7 +10,7 @@ import zipfile
 import pytest
 from PIL import Image
 
-from filmcrafter_engine import customframe, fonts, media, overlays as O, producer_import as PI, render as R, safe, svg_text, titlecard
+from filmcrafter_engine import customframe, fonts, media, overlays as O, render as R, safe, svg_text, titlecard
 from filmcrafter_engine.export import NO_WINDOW, ffmpeg
 from tests.test_render import FakeProvider, field, man
 
@@ -111,32 +111,6 @@ def test_a_hostile_id_in_an_imported_plan_cannot_steer_where_a_frame_is_saved(pr
 
 
 # ---------------------------------------------------------------- imported packages
-
-def _zip(path, entries):
-    with zipfile.ZipFile(path, "w") as z:
-        for name, data in entries:
-            z.writestr(name, data)
-
-
-def test_a_package_with_an_entry_that_climbs_out_of_its_folder_is_not_opened(tmp_path):
-    z = tmp_path / "evil.pfproducer"
-    _zip(z, [("../../escaped.txt", "x"), ("filmcrafter_manifest.json", "{}")])
-    with pytest.raises(SystemExit, match="unsafe path"):
-        PI.open_package(str(z))
-    assert not (tmp_path.parent / "escaped.txt").exists()
-
-
-def test_a_package_that_is_small_to_send_but_huge_to_open_is_refused(tmp_path, monkeypatch):
-    z = tmp_path / "bomb.pfproducer"
-    _zip(z, [("filmcrafter_manifest.json", "{}"), ("big.bin", b"\0" * 5000)])
-    monkeypatch.setattr(PI, "MAX_PACKAGE_BYTES", 1000)
-    with pytest.raises(SystemExit, match="too large"):
-        PI.open_package(str(z))
-    monkeypatch.setattr(PI, "MAX_PACKAGE_BYTES", 10 ** 9)
-    monkeypatch.setattr(PI, "MAX_PACKAGE_FILES", 1)
-    with pytest.raises(SystemExit, match="too large"):
-        PI.open_package(str(z))
-
 
 # ---------------------------------------------------------------- fonts and pictures a user chooses
 

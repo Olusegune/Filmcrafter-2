@@ -5,9 +5,7 @@ import { PanelHead } from "./Dock";
 import { ArcSection, BeatsPanel, GesturesSection } from "./ActingDepth";
 
 export type PerfData = { profiles: { id: string; label: string; blurb: string }[]; default: string;
-  scenes: Record<string, string>; characters: Record<string, string>; shots: Record<string, string>; set: boolean;
-  /** shots whose dance direction was chosen: always ("on") or never ("off"); any other shot decides from its own text */
-  dance?: Record<string, "on" | "off"> };
+  scenes: Record<string, string>; characters: Record<string, string>; shots: Record<string, string>; set: boolean };
 
 export function usePerformance(dir: string) {
   const [p, setP] = useState<PerfData | null>(null);
@@ -75,20 +73,19 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
 }
 
 /** In the shot panel: this shot's acting profile. */
-export function ShotPerformance({ dir, shotId, onChanged, film }: { dir: string; shotId: string; onChanged: () => void; film?: boolean }) {
+export function ShotPerformance({ dir, shotId, onChanged }: { dir: string; shotId: string; onChanged: () => void }) {
   const { perf, setPerf } = usePerformance(dir);
   if (!perf) return null;
   return <>
-    <ShotPerformanceView perf={perf} shotId={shotId} noDance={film}
+    <ShotPerformanceView perf={perf} shotId={shotId}
                          onProfile={async (v) => { await setPerf({ shots: { [shotId]: v } }); onChanged(); }}
-                         onDance={async (v) => { await setPerf({ dance: { [shotId]: v } }); onChanged(); }}
                          onUseNatural={async () => { await setPerf({ default: "natural" }); onChanged(); }} />
     <BeatsPanel dir={dir} shotId={shotId} onChanged={onChanged} />
   </>;
 }
 
-/** What is drawn: the acting profile for this shot, and whether it gets the project's dance direction. */
-export function ShotPerformanceView({ perf, shotId, onProfile, onDance, onUseNatural, noDance }: { perf: PerfData; shotId: string; noDance?: boolean; onProfile: (v: string) => void; onDance: (v: string) => void; onUseNatural?: () => void }) {
+/** What is drawn: the acting profile for this shot. */
+export function ShotPerformanceView({ perf, shotId, onProfile, onUseNatural }: { perf: PerfData; shotId: string; onProfile: (v: string) => void; onUseNatural?: () => void }) {
   return (
     <section className="panel">
       <PanelHead icon={<I.Mask size={18} />} title="Acting" tag="Free" tone="free" hint="How the performers play this shot." />
@@ -98,12 +95,6 @@ export function ShotPerformanceView({ perf, shotId, onProfile, onDance, onUseNat
         <option value="inherit">Inherit (scene, character or video)</option>
         {perf.profiles.map((p) => <option key={p.id} value={p.id}>{p.label}: {p.blurb.split(".")[0]}</option>)}
       </select>
-      {!noDance && <label className="dim perf-dance-label" htmlFor={`dance-${shotId}`}>Dance direction in this shot</label>}
-      {!noDance && <select id={`dance-${shotId}`} className="perf-shot" value={perf.dance?.[shotId] ?? "auto"} onChange={(e) => onDance(e.target.value)}>
-        <option value="auto">Automatic: only if this shot's action is dancing</option>
-        <option value="on">Always: use the dance direction</option>
-        <option value="off">Never: leave the dance direction out</option>
-      </select>}
     </section>
   );
 }

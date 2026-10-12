@@ -88,6 +88,19 @@ def _norm(text: str) -> str:
     return str(text or "").replace("\r\n", "\n").replace("\r", "\n").replace("﻿", "").replace("\x00", "")[:MAX_TEXT]
 
 
+def _docx_text(path: str) -> str:
+    """The words of a Word (.docx) file, paragraph by paragraph. Whole: a screenplay is long (an earlier reader kept only the first 6,000 characters and said nothing)."""
+    import zipfile
+    try:
+        with zipfile.ZipFile(path) as z:
+            xml = z.read("word/document.xml").decode("utf-8", "replace")
+    except Exception:
+        raise SystemExit("That Word file couldn't be read. If it is protected, save it as text or PDF and choose that.")
+    text = re.sub(r"<w:p[ >/]", "\n<w:p ", xml)
+    text = re.sub(r"<[^>]+>", "", text)
+    return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&apos;", "'")
+
+
 def read_document(path: str) -> dict:
     """The words in a file the user chose. Plain text keeps every line exactly; PDF and Word are read for their text."""
     p = os.path.abspath(str(path or ""))
@@ -102,8 +115,7 @@ def read_document(path: str) -> dict:
     elif low.endswith(".pdf"):
         text = _pdf_text(p)
     else:
-        from . import onboarding
-        text = onboarding.doc_text(p)["text"]
+        text = _docx_text(p)
     text = _norm(text)
     if not text.strip():
         raise SystemExit("No text was found in that file.")

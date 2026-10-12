@@ -14,8 +14,7 @@ seen the price and confirmed it.
   own         use a picture of your own for a card instead of making one
 
 A card can be made again with a plain-language change ("older, warmer"): the current picture is shown to the model so the design holds.
-Props and dance sheets are shown their owner's approved character sheet, so they match the person. Dance sheets (id choreo_*) come from
-an in-app plan and, once chosen, join the project's choreography files.
+Props are shown their owner's approved character sheet, so they match the person.
 
 Money and safety: nothing is queued without confirmed=True, a batch is capped, Local First and the project budget are respected,
 prompts are length-limited text (never run, never put in a path), a downloaded picture must open as a real image before it is
@@ -36,13 +35,12 @@ import uuid
 MAX_BATCH = 40
 MAX_PROMPT = 1500
 MAX_NOTE = 300
-CHOREO = "choreo_"
 SAFE_ID = re.compile(r"[a-z0-9_]{1,60}")
 VISUAL = ("character", "wardrobe", "prop", "set")
-ASPECT = {"character": ("3:2", "4:3", "1:1"), "wardrobe": ("3:2", "4:3", "1:1"), "prop": ("1:1", "4:3", "3:2"), "set": ("16:9", "3:2", "4:3"), "choreo": ("3:2", "16:9", "4:3")}
+ASPECT = {"character": ("3:2", "4:3", "1:1"), "wardrobe": ("3:2", "4:3", "1:1"), "prop": ("1:1", "4:3", "3:2"), "set": ("16:9", "3:2", "4:3")}
 NO_TEXT = " No text, labels, captions, logos or watermarks anywhere in the picture."
 PLAIN = {"character": " Plain light neutral background.", "wardrobe": " Plain light neutral background.", "prop": " Plain white background.",
-         "set": " No people.", "choreo": " Plain light neutral background."}
+         "set": " No people."}
 SECTION = re.compile(r"(?im)^[ \t]*(?:visual generation prompt|image prompt|generation prompt|prompt)[ \t]*:?[ \t]*\n+(.+?)(?:\n[ \t]*\n|\Z)", re.S)
 
 
@@ -139,34 +137,10 @@ def _generated_ids(d: str) -> set[str]:
     return {i["id"] for i in lib.get("items") or [] if i.get("generated_from_spec")}
 
 
-def _choreo_sheets(d: str) -> list[dict]:
-    """The dance sheets an in-app plan calls for: one eight-panel sheet per dancer, built from the plan's own moves."""
-    from .producer_import import DANCE
-    a = (_read(os.path.join(d, "producer", "plan.json"), {}) or {}).get("assets") or {}
-    people = {c.get("id"): c for c in a.get("characters") or []}
-    out = []
-    for e in a.get("choreography") or []:
-        c, moves = people.get(e.get("character_id")), [m for m in e.get("moves") or [] if isinstance(m, dict)]
-        if not (c and moves and DANCE.search(str(e.get("classification") or "")) and SAFE_ID.fullmatch(str(e.get("id") or ""))):
-            continue
-        panels = " ".join(f"Panel {i}: {str(m.get('name') or '')[:50]}, {str(m.get('action') or '')[:150]}." for i, m in enumerate(moves[:8], 1))
-        out.append({"id": CHOREO + e["id"], "name": f"{c.get('name', 'Dancer')}: dance sheet", "owner_ext": c.get("id"), "owner_name": c.get("name", ""),
-                    "base": f"{a.get('visual_style', '')} Dance choreography sheet for {c.get('name', 'the dancer')}: {min(len(moves), 8)} pose panels in a grid on a plain light "
-                            f"background, read left to right and top to bottom. {panels} Thin arrows show the direction of motion. The same dancer, outfit and build in every panel.".strip()})
-    return out
-
-
-def _sheet_picture(d: str, store, asset_id: str) -> str | None:
-    """The chosen picture of a dance sheet (it is not a library item): the output of its in-use job."""
-    j = next((x for x in store.jobs if x.get("kind") == "asset" and x.get("asset_id") == asset_id and x.get("used") and x.get("output")), None)
-    return j["output"] if j and os.path.exists(os.path.join(d, j["output"])) else None
-
-
 def candidates(d: str, redo: list[str] | tuple = (), notes: dict | None = None) -> list[dict]:
     """What is missing a picture: items with no picture at all, and characters who appear only in a picture shared with others.
     `redo` names pictures that were made here and are to be made again (with an optional note per picture); your own pictures are never offered."""
     from .library import load
-    from .render import Store
     project, lib = load(d)
     items = lib.get("items") or []
     by_ext = {i.get("external_id"): i for i in items if i.get("external_id")}
@@ -204,20 +178,7 @@ def candidates(d: str, redo: list[str] | tuple = (), notes: dict | None = None) 
         out.append({"id": it["id"], "name": it["name"], "kind": kind, "reason": "made again" if again else "only a group picture" if shared else "no picture",
                     "prompt": prompt, "prompt_from": "the spec's own prompt" if written else "built from the item's notes", "refs": refs,
                     "owner": (owner or {}).get("name", ""), "owner_ready": _own_picture(d, owner, use_count)})
-    store = Store(d)
-    for sh in _choreo_sheets(d):
-        owner = by_ext.get(sh["owner_ext"])
-        has = _sheet_picture(d, store, sh["id"])
-        if has and sh["id"] not in redo:
-            continue
-        own_imgs = _images(d, owner) if owner else []
-        refs = [{"path": f, "label": f"{sh['owner_name']}: match this dancer's face, hair, build and outfit and the art style; draw only {sh['owner_name']}"} for f in own_imgs[:1]]
-        if has and sh["id"] in redo:
-            refs = [{"path": has, "label": "the current version of this sheet: keep the dancer and the style, and change only what the note says"}] + refs[:1]
-        out.append({"id": sh["id"], "name": sh["name"], "kind": "choreo", "reason": "made again" if has else "no picture",
-                    "prompt": _clip(sh["base"] + _note(notes, sh["id"]) + PLAIN["choreo"] + NO_TEXT), "prompt_from": "built from the plan's moves", "refs": refs,
-                    "owner": sh["owner_name"], "owner_ready": _own_picture(d, owner, use_count)})
-    order = {"character": 0, "set": 1, "prop": 2, "wardrobe": 3, "choreo": 4}
+    order = {"character": 0, "set": 1, "prop": 2, "wardrobe": 3}
     return sorted(out, key=lambda c: (order[c["kind"]], c["name"]))
 
 
@@ -411,8 +372,6 @@ def use(d: str, job_id: str) -> dict:
     path = os.path.join(d, j["output"])
     if not (os.path.exists(path) and _inside(os.path.join(d, "generations"), path)):
         raise SystemExit("That picture's file is missing.")
-    if str(j["asset_id"]).startswith(CHOREO):
-        return _use_sheet(d, store, j)
     p, lib = library.load(d)
     it = next((i for i in lib["items"] if i["id"] == j["asset_id"]), None)
     if not it:
@@ -426,19 +385,6 @@ def use(d: str, job_id: str) -> dict:
     return status(d)
 
 
-def _use_sheet(d: str, store, j: dict) -> dict:
-    """A chosen dance sheet is added to the project's choreography files (the one it replaces is taken out)."""
-    from .onboarding import choreo_get, choreo_set
-    ch = choreo_get(d)
-    old = {o["output"] for o in store.jobs if o.get("kind") == "asset" and o.get("asset_id") == j["asset_id"] and o.get("used") and o.get("output")}
-    files = [f for f in ch.get("files") or [] if f not in old]
-    if j["output"] not in files:
-        files.append(j["output"])
-    mode = ch.get("mode") if ch.get("mode") not in (None, "none") else "upload"
-    choreo_set(d, {**ch, "mode": mode, "files": files, "precise": bool(ch.get("precise"))})
-    _retire_others(store, j["asset_id"], j["id"])
-    store.update(j, used=True, replaced=False)
-    return status(d)
 
 
 def own(d: str, item_id: str, rel: str) -> dict:
@@ -478,7 +424,7 @@ def cards(d: str) -> dict:
         if it.get("kind") == "character":
             for f in _images(d, it):
                 use_count[f] = use_count.get(f, 0) + 1
-    made = list(_generated_ids(d)) + [sh["id"] for sh in _choreo_sheets(d)]
+    made = list(_generated_ids(d))
     prompts = {c["id"]: c for c in candidates(d, made)}
     out = []
 
@@ -505,10 +451,7 @@ def cards(d: str) -> dict:
         has = bool(imgs) and not shared
         card(it["id"], it["name"], kind, imgs[0] if has else None, has and not it.get("generated_from_spec"), (owner or {}).get("name", ""),
              _own_picture(d, owner, use_count) if owner else True)
-    for sh in _choreo_sheets(d):
-        owner = by_ext.get(sh["owner_ext"])
-        card(sh["id"], sh["name"], "choreo", _sheet_picture(d, store, sh["id"]), False, sh["owner_name"], _own_picture(d, owner, use_count))
-    order = {"character": 0, "set": 1, "prop": 2, "wardrobe": 3, "choreo": 4}
+    order = {"character": 0, "set": 1, "prop": 2, "wardrobe": 3}
     out.sort(key=lambda c: (order[c["kind"]], c["name"]))
     return {"cards": out, "working": any(c["state"] == "making" for c in out)}
 

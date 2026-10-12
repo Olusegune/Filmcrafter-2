@@ -611,7 +611,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                        shot: <>
                          {board && <ShotRefs dir={project.dir} shot={boardShot.get(s.id)} library={board.library} thumbs={thumbs} want={want} onChanged={reloadBoard} />}
                          <ShotCamera dir={project.dir} shotId={s.id} sceneShotIds={shots.filter((x) => x.scene === s.scene).map((x) => x.id)} onChanged={mediaChanged} />
-                         <ShotPerformance dir={project.dir} shotId={s.id} onChanged={reloadBoard} film={!!(project.project as { film?: boolean }).film} />
+                         <ShotPerformance dir={project.dir} shotId={s.id} onChanged={reloadBoard} />
                          <ShotContinuity dir={project.dir} shotId={s.id} onChanged={mediaChanged} />
                        </>,
                        keyframe: (go) => <KeyframePanel dir={project.dir} shot={s} plan={planName} aspect={aspectCss(frame.aspect_ratio)} frame={frame.aspect_ratio} quality={frame.quality}

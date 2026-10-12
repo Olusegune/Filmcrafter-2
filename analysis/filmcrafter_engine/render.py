@@ -1019,10 +1019,6 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         blocks.append((7, shot["arc_text"]))
     if "duration" in roles and shot.get("business_text") and not custom:
         blocks.append((6, shot["business_text"]))
-    # choreography: the starting pose for stills (keyframes), the motion for video
-    move = shot.get("choreo_pose") if "duration" not in roles else shot.get("choreography")
-    if move and not custom:
-        blocks.append((8, move))
     if shot.get("continuity") and not only:   # Continuity Director: blocking, 180-degree line, eyelines, wardrobe, light
         blocks.append((7, shot["continuity"]))
     if shot.get("locked_design"):   # canonical assets (e.g. from a Producer package)
@@ -2393,23 +2389,13 @@ def _previous_shot_ref(d: str, plan_name: str, plan: dict, shot_id: str) -> list
 
 
 def _with_movement(d: str, shot: dict) -> dict:
-    """Attach the Choreography Engine's direction: motion for video prompts, pose for keyframe prompts. Camera and lighting choices
-    made in the shot's camera picker (camera.json) are written over the Director's wording first."""
-    from .onboarding import movement_for
+    """Camera and lighting choices made in the shot's camera picker (camera.json) are written over the Director's wording first, and the locked rules of the shot's designs are added."""
     try:
         from . import camera
         shot = camera.apply(d, shot)
     except Exception:
         pass
     extra = {}
-    try:
-        m, p = movement_for(d, shot, "video"), movement_for(d, shot, "image")
-        if m:
-            extra["choreography"] = m
-        if p:
-            extra["choreo_pose"] = p
-    except Exception:
-        pass
     try:   # canonical designs: their locked rules go into the prompt in full (reference labels are short)
         from .library import load as _load_lib, shot_items
         _, lib = _load_lib(d)

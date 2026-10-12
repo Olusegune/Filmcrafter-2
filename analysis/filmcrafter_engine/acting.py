@@ -190,8 +190,24 @@ def beats_text(d: str, shot: dict, kind: str = "video") -> str | None:
 
 # ---------------------------------------------------------------- the arc
 
+def numbered_sections(song_map: dict) -> list[dict]:
+    """The timeline's sections with numbered names ('Scene 1', 'Chorus 2'): the acting arc is drawn on them, and a shot's section is found by time."""
+    out, seen = [], {}
+    for s in song_map.get("sections", []):
+        group = (s.get("group") or "").strip()
+        label = (group if len(group) > 2 else s.get("label") or group or "Section").strip()
+        base = label.rstrip("0123456789 ").title() or "Section"
+        seen[base] = seen.get(base, 0) + 1
+        out.append({"name": f"{base} {seen[base]}", "base": base, "start": s["start"], "end": s["end"],
+                    "energy": s.get("energy"), "mood": s.get("mood")})
+    return out
+
+
+def section_at(sections: list[dict], t: float) -> dict | None:
+    return next((s for s in sections if s["start"] <= t < s["end"]), sections[-1] if sections else None)
+
+
 def sections(d: str) -> list[dict]:
-    from .choreo import numbered_sections
     sm = _read(os.path.join(d, "songmap.json"), {}) or {}
     return numbered_sections(sm) if isinstance(sm, dict) else []
 
@@ -238,7 +254,6 @@ def arc_set(d: str, character: str, points: list, source: str = "you") -> dict:
 
 
 def _section_of(d: str, shot: dict, names: list[dict]) -> str | None:
-    from .choreo import section_at
     if shot.get("section"):
         want = str(shot["section"]).lower().strip("[] ")
         hit = next((s["name"] for s in names if s["name"].lower() == want or s["base"].lower() == want), None)

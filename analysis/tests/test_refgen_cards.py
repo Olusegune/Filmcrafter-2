@@ -130,37 +130,6 @@ def test_a_picture_of_your_own_replaces_a_made_one_and_is_checked(wired, tmp_pat
         refgen.own(wired, bid, os.path.join(str(tmp_path), "x.png"))
 
 
-def _plan_with_dancer(d):
-    os.makedirs(os.path.join(d, "producer"), exist_ok=True)
-    plan = {"assets": {"visual_style": "Stylized 3D.", "characters": [{"id": "c_sol", "name": "Solomon"}],
-                       "choreography": [{"id": "chor_sol", "character_id": "c_sol", "classification": "featured dance choreography",
-                                         "moves": [{"name": "Open", "action": "arms wide"}, {"name": "Turn", "action": "spins on one foot"}]},
-                                        {"id": "../bad", "character_id": "c_sol", "classification": "group dance choreography", "moves": [{"name": "x", "action": "y"}]},
-                                        {"id": "act_sol", "character_id": "c_sol", "classification": "acting only, restrained", "moves": [{"name": "x", "action": "y"}]}]}}
-    json.dump(plan, open(os.path.join(d, "producer", "plan.json"), "w"))
-
-
-def test_a_dancer_gets_a_dance_sheet_made_after_the_person_and_added_to_the_choreography(wired):
-    _plan_with_dancer(wired)
-    sheets = [c for c in refgen.candidates(wired) if c["kind"] == "choreo"]
-    assert [c["id"] for c in sheets] == ["choreo_chor_sol"]                              # no unsafe id, no acting-only entry
-    assert "2 pose panels" in sheets[0]["prompt"] and "Panel 1: Open, arms wide." in sheets[0]["prompt"] and not sheets[0]["owner_ready"]
-    _make(wired, "Solomon")
-    refgen.use(wired, _card(wired, "Solomon")["pending"]["job"])
-    sheet = next(c for c in refgen.candidates(wired) if c["kind"] == "choreo")
-    assert sheet["owner_ready"] and sheet["refs"][0]["path"].startswith("generations/") and "Solomon" in sheet["refs"][0]["label"]
-    FakeKie.sent.clear()
-    refgen.queue(wired, ["choreo_chor_sol"], "kie", "fake/model", confirmed=True)
-    R.run(wired, poll_every=0)
-    c = _card(wired, "Solomon: dance sheet")
-    assert c["state"] == "waiting" and c["kind"] == "choreo"
-    refgen.use(wired, c["pending"]["job"])
-    ch = json.load(open(os.path.join(wired, "choreography.json"), encoding="utf-8"))
-    assert ch["mode"] == "upload" and ch["files"] == [_card(wired, "Solomon: dance sheet")["picture"]]
-    assert _card(wired, "Solomon: dance sheet")["state"] == "approved"
-    assert "choreo_chor_sol" not in [x["id"] for x in refgen.candidates(wired)]
-
-
 def test_a_spend_limit_that_is_not_a_real_amount_never_lets_a_batch_through(wired):
     cid = next(c["id"] for c in refgen.candidates(wired) if c["name"] == "Bell")
     for bad in (float("nan"), -1, "abc", float("inf")):

@@ -6,7 +6,7 @@ import pytest
 # several parts together: real ffmpeg, files on disk, fake providers and local servers
 INTEGRATION = {
     "test_captions", "test_cleanup", "test_comfy", "test_comfy_setup", "test_local_ai", "test_chaining", "test_promptwriter", "test_compose", "test_comfy_install", "test_midjourney", "test_lighting", "test_extend", "test_render_queue", "test_customframe", "test_editor_export", "test_keyframes", "test_layerkit", "test_llm", "test_media",
-    "test_native_dialogue", "test_overlays", "test_overnight", "test_pipeline", "test_producer_import", "test_producer_plan", "test_recorded_dialogue", "test_refgen",
+    "test_native_dialogue", "test_overlays", "test_overnight", "test_pipeline", "test_recorded_dialogue", "test_refgen",
     "test_refgen_cards", "test_render", "test_review", "test_shapes", "test_show", "test_show_finish", "test_stills", "test_supervisor", "test_title_motion",
     "test_titlecard", "test_library", "test_e2e_journey", "test_create_from_song_flow", "test_transitions", "test_lipsync_timing", "test_changes", "test_track",
 }

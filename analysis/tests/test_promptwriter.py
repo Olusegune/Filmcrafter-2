@@ -202,16 +202,16 @@ def build(project, **shot_extra):
     _, plan = load_plan(project)
     sh, sc = find_shot(plan, "S01-01")
     sh = {**sh, "acting_beats": "ACTING-BEATS-TEXT", "arc_text": "ARC-TEXT", "continuity": "CONTINUITY-TEXT", "lighting": "warm lamp", "environment": "a bare room", "wardrobe": "grey coat",
-          "choreography": "CHOREO-TEXT", **shot_extra}
+          **shot_extra}
     return R.compile_request(sh, sc, plan, {"title": "T", "aspect_ratio": "16:9"}, video_man(), [], None)["prompt"]
 
 
 def test_your_words_replace_what_the_shot_does_and_its_competing_acting(project):
     auto = build(project)
-    assert "Two figures embrace in a bare room." in auto and "ACTING-BEATS-TEXT" in auto and "CHOREO-TEXT" in auto
+    assert "Two figures embrace in a bare room." in auto and "ACTING-BEATS-TEXT" in auto
     mine = build(project, custom_prompt="Little Sege dissolves into the light.")
     assert mine.startswith("Little Sege dissolves into the light.")
-    assert "Two figures embrace in a bare room." not in mine and "ACTING-BEATS-TEXT" not in mine and "ARC-TEXT" not in mine and "CHOREO-TEXT" not in mine
+    assert "Two figures embrace in a bare room." not in mine and "ACTING-BEATS-TEXT" not in mine and "ARC-TEXT" not in mine
     assert "Characters: Little Sege" in mine and "Camera:" in mine and "Setting: a bare room" in mine and "Lighting: warm lamp" in mine and "Look:" in mine and "CONTINUITY-TEXT" in mine
 
 

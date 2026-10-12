@@ -8,7 +8,7 @@ import pytest
 import soundfile as sf
 from PIL import Image
 
-from filmcrafter_engine import export as E, overlays as O, producer_import as PI, svg_text
+from filmcrafter_engine import export as E, overlays as O, svg_text
 
 TITLE_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="180" viewBox="0 0 1600 180"><text x="800" y="70" '
              'text-anchor="middle" font-weight="bold" font-size="44" fill="#d8b35b">I AM YOUR MOTHER!</text></svg>')
@@ -203,43 +203,6 @@ def test_the_real_export_draws_the_text_and_reports_it(tmp_path):
 
 
 # ---------------------------------------------------------------- from a Producer package
-
-def _package(tmp_path):
-    pk = tmp_path / "pkg"
-    (pk / "assets" / "overlays").mkdir(parents=True)
-    (pk / "assets" / "overlays" / "TEXT_TITLE.svg").write_text(TITLE_SVG, encoding="utf-8")
-    (pk / "assets" / "overlays" / "TEXT_CHART.svg").write_text(CHART_SVG, encoding="utf-8")
-    om = [{"id": "overlay_title", "text": "I AM YOUR MOTHER!", "section": "chorus1", "file": "assets/overlays/TEXT_TITLE.svg"},
-          {"id": "overlay_chart", "text": "QUEEN BEE | SOLOMON", "section": "chorus2", "file": "assets/overlays/TEXT_CHART.svg"},
-          {"id": "overlay_bad", "text": "no file", "section": "pre1", "file": "assets/overlays/MISSING.svg"}]
-    (pk / "overlay_map.json").write_text(json.dumps(om))
-    m = {"schema_version": "1.0", "project": {"id": "p", "title": "T"}, "song": {},
-         "assets": {"characters": [], "wardrobe": [], "props": [], "environments": [],
-                    "references": [{"id": "ref_overlays", "name": "Typography", "kind": "style",
-                                    "files": ["overlay_map.json", "assets/overlays/TEXT_TITLE.svg", "assets/overlays/TEXT_CHART.svg"]}]},
-         "choreography": [], "shots": [], "continuity": {}, "qa": {}}
-    (pk / "manifest.json").write_text(json.dumps(m))
-    return str(pk)
-
-
-def test_a_packages_text_signs_become_on_screen_text_and_keep_your_edits(tmp_path):
-    d = _project(tmp_path)
-    json.dump({"title": "T", "song": "song.wav", "look": {"style": "auto"}}, open(os.path.join(d, "project.json"), "w"))
-    open(os.path.join(d, "jobs.json"), "w").write(json.dumps({"jobs": []}))
-    pk = _package(tmp_path)
-    rep = PI.apply(d, pk)
-    assert rep["imported"]["overlays"] == 2                                                         # the sign whose file is missing is skipped
-    r = {o["package_id"]: o for o in O.resolve(d)}
-    assert set(r) == {"overlay_title", "overlay_chart"} and r["overlay_title"]["section"] == "chorus1"
-    assert r["overlay_title"]["placed"] and 50 <= r["overlay_title"]["start"] < 80                  # the first chorus of the song map
-    assert (r["overlay_title"]["width"], r["overlay_title"]["y"]) == (0.6, 0.86) and (r["overlay_chart"]["width"], r["overlay_chart"]["y"]) == (0.5, 0.5)
-    O.update(d, r["overlay_title"]["id"], {"x": 0.25, "start": 55, "end": 58})
-    PI.apply(d, pk)                                                                                  # importing again
-    again = {o["package_id"]: o for o in O.resolve(d)}
-    assert len(again) == 2 and again["overlay_title"]["x"] == 0.25 and again["overlay_title"]["start"] == 55 and again["overlay_title"]["id"] == r["overlay_title"]["id"]
-    img = O.render_image(d, again["overlay_chart"], 1280, 720)
-    assert img.mode == "RGBA" and img.width > 300
-
 
 def test_a_preview_shows_the_overlay_where_it_will_sit(tmp_path):
     d = _project(tmp_path)
