@@ -200,6 +200,16 @@ If you have recorded the lines yourself, attach them and the picture speaks them
 
 ![A shot's Voice tab](img/film/shot-voice.png)
 
+**Make a voice here (ElevenLabs).** Add your ElevenLabs key in **Settings** and the Voiceover screen gains **Voices for your characters**: for each person, **Give a voice…** offers three ways.
+
+- **From your library:** search the voices already in your ElevenLabs account (your own, saved and default ones), hear the sample, press **Use for** the person.
+- **Design one:** describe the voice in a sentence or two (age, sound, accent, mood), press **Hear a few options…** (you are asked first: ElevenLabs uses a little of your plan to make the samples), listen, name your favourite and **Keep this voice**. Nothing is kept until you choose.
+- **Clone my own:** choose one or more recordings of a real voice (a minute or two of clean speech is plenty), tick that it is your own voice or the speaker has agreed, name it and **Create the voice**. This needs an ElevenLabs plan with instant cloning; the screen tells you if yours does not.
+
+Designing or cloning keeps the voice in your ElevenLabs library and uses one of your plan's voice slots. A **Model** choice sets the voice's quality: Multilingual v2 (steady), Flash v2.5 (fast, half the credits) or v3 (most expressive).
+
+**Have a line spoken.** A person with a voice gets **Speak it** beside their line (on the Voiceover screen and on the shot card). The app first shows what it will use of your plan, in characters and credits (ElevenLabs bills your own plan, so it is not shown in dollars) and asks for a yes; a line already spoken in that voice is free and asks nothing. The result is attached like any recording and marked **spoken by ElevenLabs**, so you can tell it from your own voice and replace it any time by recording or attaching yours (the spoken one is kept in `voice/_removed`). **Speak the lines with no recording** does every missing line in one go, price first. **Hear it** plays a short sample of a person's voice. Your ElevenLabs key is given only to the voice tools, never to anything else.
+
 **What happens when you render.** For a model that takes reference audio (Seedance 2 on Kie.ai), your recording goes with the shot and the prompt says who speaks along to it; your approved keyframe goes as a reference picture, so the mouth follows your voice. **What you hear in the finished film is your recording**, laid on the film at its shot, not the video model's own sound. The editor hand-off folder gets each recording as its own file, named for the shot and person, in `audio/voice`. Models that cannot take audio are still told the words, and your recording is still the sound at export.
 
 **Two people in one shot:** attach each person's recording; they are placed one after the other in the shot's audio, and the prompt says who speaks when and that the others listen. **Drag and drop:** drop recordings onto the screen. **If a mouth drifts** in a finished take, open the shot in the Studio and press *Lip-sync this take…*: it re-times the mouth to your recording.

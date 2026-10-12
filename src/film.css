@@ -779,3 +779,41 @@
 .vr-dot { width: 10px; height: 10px; border-radius: 50%; background: #e0604a; display: inline-block; margin-right: 6px; }
 .vr-said { margin: 0; color: #7fe0b0; font-size: 13px; }
 .vr-hint { margin: 0; font-size: 11.5px; }
+
+/* voices for your characters (ElevenLabs) */
+.cv { margin: 14px 0; padding: 14px 16px; border: 1px solid var(--hair); border-radius: 4px; background: rgba(255, 255, 255, 0.025); display: flex; flex-direction: column; gap: 10px; }
+.cv h3 { margin: 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
+.cv-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.cv-plan { font-size: 12px; }
+.cv-row { display: grid; grid-template-columns: 130px 1fr auto; gap: 10px; align-items: center; min-height: 30px; }
+.cv-voice { font-size: 12.5px; color: var(--text-quiet, #8b97a7); display: inline-flex; gap: 6px; align-items: center; }
+.cv-voice.has { color: var(--frost); }
+.cv-voice em { font-style: normal; font-size: 11px; color: var(--gold, #e8b45c); }
+.cv-btns { display: inline-flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.cv-all { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 4px; border-top: 1px solid var(--hair); }
+.cv-heard { margin: 0; font-size: 11.5px; }
+.cv-sheet { width: min(760px, 94vw); display: flex; flex-direction: column; gap: 14px; padding: 20px 24px 18px; max-height: 88vh; overflow: auto; }
+.cv-sheet .vs-head { display: flex; align-items: center; gap: 12px; }
+.cv-sheet .vs-head h2 { margin: 0; font-size: 16px; }
+.cv-pane { display: flex; flex-direction: column; gap: 10px; }
+.cv-search { display: flex; gap: 8px; }
+.cv-search input, .cv-name input, .cv-pane textarea { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--hair); border-radius: 3px; color: var(--frost); padding: 7px 10px; font: inherit; }
+.cv-pane textarea { resize: vertical; }
+.cv-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow: auto; }
+.cv-item { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 8px 10px; border: 1px solid var(--hair); border-radius: 3px; }
+.cv-item audio { height: 30px; width: 200px; }
+.cv-tags { font-size: 11.5px; }
+.cv-ex { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; }
+.cv-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cv-name { display: flex; gap: 10px; align-items: center; font-size: 12.5px; }
+.cv-check { display: flex; gap: 8px; align-items: center; font-size: 12.5px; }
+.cv-model { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; color: var(--text-quiet, #8b97a7); }
+.cv-model select { background: rgba(255, 255, 255, 0.05); color: var(--frost); border: 1px solid var(--hair); border-radius: 3px; padding: 3px 6px; }
+.vo-gen { font-size: 11px; color: var(--gold, #e8b45c); }
+@media (max-width: 760px) { .cv-row { grid-template-columns: 1fr; } .cv-item { grid-template-columns: 1fr; } }
+.cv-model select { max-width: 230px; }
+
+/* the Home drop card, snugger: the clapperboard, the line, the buttons, with room to breathe but no wasted height */
+.dropcard.story { min-height: 430px; padding: 52px 28px 48px; gap: 16px; }
+.dropcard.story .home-steps { margin-bottom: 2px; }
+@media (max-width: 760px) { .dropcard.story { min-height: 360px; padding: 40px 18px 36px; } }

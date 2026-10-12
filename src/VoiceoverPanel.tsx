@@ -3,9 +3,10 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { api, errorText, type VoiceImport, type VoiceMatch, type VoiceStatus } from "./api";
 import { FILTERS, audioFiles, fill, MATCH_WORDS, nextUnvoiced, peopleOf, summary, usable } from "./voiceLogic";
-import { notifyVoice, VOICE_EVENT } from "./voiceHooks";
+import { notifyVoice, useCast, VOICE_EVENT } from "./voiceHooks";
 import { Waveform } from "./Waveform";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { CastVoices, speakLine } from "./CastVoices";
 import * as I from "./icons";
 
 export { MATCH_WORDS, audioFiles, fill, peopleOf, summary, usable } from "./voiceLogic";
@@ -19,6 +20,8 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
   const [rows, setRows] = useState<VoiceMatch[] | null>(initialRows ?? null);
   const [busy, setBusy] = useState(false);
   const [record, setRecord] = useState<{ shot: string; who?: string } | null>(null);
+  const { cast } = useCast(dir);
+  const speak = async (shot: string, who: string) => { setErr(""); setBusy(true); try { await speakLine(dir, shot, who); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); } };
   const [err, setErr] = useState("");
   const [done, setDone] = useState<VoiceImport | null>(null);
   const load = useCallback(() => api.voice("status", dir).then(setSt).catch((e) => setErr(errorText(e))), [dir]);
@@ -89,6 +92,7 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
       <p className="dim vo-how">Drag recordings onto this screen, or use the button. Name each file for the person and the shot, like <b className="num">CHLOE_S01-04.wav</b>. Your recording is what the mouth follows, and what the finished film plays. Your files are copied in, never changed.</p>
       <p className="dim vo-how">If a mouth drifts in a finished take, open the shot in the Studio and press <b>Lip-sync this take…</b>: it re-times the mouth to your recording (the price is shown first).</p>
       {err && <p className="error-text" role="alert">{err}</p>}
+      {!only && <CastVoices dir={dir} shots={st.shots} />}
 
       {rows && <div className="vo-match">
         <h3>Check the matches</h3>
@@ -136,10 +140,12 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
                     <span className="dim num">{p.recording.seconds.toFixed(1)}s · {p.recording.name}</span>
                     <button className="link" disabled={busy} onClick={() => attachOne(s.id, p.name)}>Replace…</button>
                     <button className="link" disabled={busy} onClick={() => setRecord({ shot: s.id, who: p.name })}>Re-record</button>
+                    {p.recording.source === "elevenlabs" && <span className="vo-gen" title="Spoken by ElevenLabs. Record or attach your own to replace it.">spoken by ElevenLabs</span>}
                     <button className="link" disabled={busy} onClick={() => remove(s.id, p.name)}>Remove</button></div>
                 : <div className="vo-rec"><span className="vo-none">No recording</span>
                     <button className="btn sm" disabled={busy} onClick={() => attachOne(s.id, p.name)}>Attach…</button>
-                    <button className="btn sm" disabled={busy} onClick={() => setRecord({ shot: s.id, who: p.name })}><I.Mic size={12} /> Record</button></div>}
+                    <button className="btn sm" disabled={busy} onClick={() => setRecord({ shot: s.id, who: p.name })}><I.Mic size={12} /> Record</button>
+                    {cast?.people[p.key] && p.lines.length > 0 && <button className="btn sm" disabled={busy} onClick={() => void speak(s.id, p.name)} title={"Have the written line spoken in " + p.name + "'s ElevenLabs voice (the price is shown first)"}><I.Sparkle size={12} /> Speak it</button>}</div>}
             </div>))}
           {(s.others ?? []).length > 0 && <p className="dim vo-others">Also in the shot, with nothing to say: {(s.others ?? []).join(", ")}.</p>}
         </article>))}

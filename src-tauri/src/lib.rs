@@ -1244,6 +1244,21 @@ async fn film_voice(app: AppHandle, action: String, target: String, data: Value)
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "voice", &args, &[])).await.map_err(err)?
 }
 
+/// Custom voices with ElevenLabs (filmcrafter_engine.cast_voice): choose, design or clone a person's voice, and speak a written line in it. Only the ElevenLabs key is given to the engine here.
+/// Looking things up is free; anything that uses the person's plan (a designed voice, a spoken line) is refused by the engine unless the screen says `confirmed` after showing the characters
+/// and credits, and cloning is refused without `consent`.
+#[tauri::command]
+async fn film_cast_voice(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 10] = ["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let dir = film_dir(&target)?;
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.cast_voice".into(), action, dir.to_string_lossy().into(), "--data".into(), data.to_string()];
+    let envs: Vec<(&str, String)> = keyring::Entry::new(KEY_SERVICE, "elevenlabs").and_then(|e| e.get_password()).ok().map(|k| vec![("ELEVENLABS_KEY", k)]).unwrap_or_default();
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "cast_voice", &args, &envs)).await.map_err(err)?
+}
+
 /// Making the film (filmcrafter_engine.make): builds the render project from the shots, tracks storyboard panels, keyframes and takes, locks and chooses. It never spends money:
 /// pictures and video are queued with the render commands, after the app has shown the price and the person has confirmed it.
 #[tauri::command]
@@ -2003,7 +2018,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, film, film_bible, film_shots, film_make, film_voice, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, backups, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

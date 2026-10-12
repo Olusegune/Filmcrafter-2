@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type VoicePerson } from "./api";
 import { FILTERS } from "./voiceLogic";
-import { notifyVoice, useVoiceStatus } from "./voiceHooks";
+import { notifyVoice, useCast, useVoiceStatus } from "./voiceHooks";
+import { speakLine } from "./CastVoices";
 import { VoiceRecorder } from "./VoiceRecorder";
 import * as I from "./icons";
 
@@ -14,6 +15,7 @@ let playing: HTMLAudioElement | null = null;           // one recording plays at
  */
 export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: string; compact?: boolean }) {
   const { byShot } = useVoiceStatus(dir);
+  const { cast } = useCast(dir);
   const shot = byShot[shotId];
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -62,6 +64,7 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
             : <>
                 <button className="vchip-add" disabled={busy} onClick={() => pick(p.name)} title={`Choose ${p.name}'s recording for this shot (or drop the file on ${p.name}'s name)`}>Add voice…</button>
                 <button className="vchip-rec" disabled={busy} onClick={() => setRec(p.name)} title={`Record ${p.name}'s voice now`}><I.Mic size={11} /> Record</button>
+                {cast?.people[p.key] && p.lines.length > 0 && <button className="vchip-rec" disabled={busy} onClick={() => { setErr(""); setBusy(true); speakLine(dir, shotId, p.name).catch((e) => setErr(errorText(e))).finally(() => setBusy(false)); }} title={"Have the written line spoken in " + p.name + "'s ElevenLabs voice (the price is shown first)"}><I.Sparkle size={11} /> Speak it</button>}
               </>}
         </div>))}
       {err && <p className="error-text vchip-err" role="alert">{err}</p>}

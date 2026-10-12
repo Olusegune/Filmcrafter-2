@@ -347,7 +347,7 @@ def status(d: str) -> dict:
             p = people.setdefault(key_of(x["speaker"]), {"name": pretty(x["speaker"]), "key": key_of(x["speaker"]), "lines": [], "recording": None})
             p["lines"].append(x["line"])
         for k, e in have.items():
-            people.setdefault(k, {"name": e["speaker"], "key": k, "lines": [], "recording": None})["recording"] = {f: e[f] for f in ("file", "name", "seconds", "rms_db", "peak_db")}
+            people.setdefault(k, {"name": e["speaker"], "key": k, "lines": [], "recording": None})["recording"] = {f: e[f] for f in ("file", "name", "seconds", "rms_db", "peak_db", "source") if f in e}
         secs = float(c["generation"].get("duration") or 3.0)
         notes = []
         for k, e in have.items():

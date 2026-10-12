@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { api, type VoiceMatch, type VoiceShot, type VoiceStatus } from "./api";
+import { api, type CastStatus, type VoiceMatch, type VoiceShot, type VoiceStatus } from "./api";
 import { audioFiles, personAt, usable } from "./voiceLogic";
 
 /** Any screen that changes a recording tells every other screen showing voices, so a card, the timeline and the sheet stay in step. */
@@ -88,4 +88,20 @@ export function useShotDrop(enabled: boolean, onDrop: (shot: string, files: stri
     }).then((f) => { if (live) un = f; else f(); }).catch(() => {});
     return () => { live = false; light(null); pick(null, null); un?.(); };
   }, [enabled, onDrop]);
+}
+
+const castCache = new Map<string, CastStatus>();
+const castBusy = new Map<string, Promise<CastStatus>>();
+
+/** The voices given to the film's people with ElevenLabs (one shared load, no call to ElevenLabs itself: that is only the Voiceover screen's plan line). Reloads when voices change anywhere. */
+export function useCast(dir: string | null): { cast: CastStatus | null; reload: () => void } {
+  const [cast, setCast] = useState<CastStatus | null>(dir ? castCache.get(dir) ?? null : null);
+  const reload = useCallback(() => {
+    if (!dir) return;
+    const p = castBusy.get(dir) ?? api.castVoice("status", dir).finally(() => castBusy.delete(dir));
+    castBusy.set(dir, p);
+    p.then((r) => { castCache.set(dir, r); setCast(r); }).catch(() => {});
+  }, [dir]);
+  useEffect(() => { reload(); window.addEventListener(VOICE_EVENT, reload); return () => window.removeEventListener(VOICE_EVENT, reload); }, [reload]);
+  return { cast, reload };
 }

@@ -1,6 +1,6 @@
 # Handover: continuing FilmCrafter on another computer
 
-Written 2026-10-12 at version **0.19.0**. Everything described here is in GitHub (`Olusegune/FilmCrafter`, branch `main`); the only things that are not are your **API keys**, your **film folders** and anything on your Desktop. Read this first, then **`docs/NEXT_PHASE.md` (the plan for what to do next and what was learned recently)**, `SETUP.md` (a fresh-clone walk-through), `README.md`, `docs/QA.md` (what has and has not been tested) and `CHANGELOG.md` (what each version did and why).
+Written 2026-10-12 at version **0.20.0**. Everything described here is in GitHub (`Olusegune/FilmCrafter`, branch `main`); the only things that are not are your **API keys**, your **film folders** and anything on your Desktop. Read this first, then **`docs/NEXT_PHASE.md` (the plan for what to do next and what was learned recently)**, `SETUP.md` (a fresh-clone walk-through), `README.md`, `docs/QA.md` (what has and has not been tested) and `CHANGELOG.md` (what each version did and why).
 
 ## 1. What this is
 
@@ -53,7 +53,7 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 | `src/*.tsx` | the screens. `App.tsx` (Home, film, studio), `Home.tsx`, `NewFilm.tsx`, `FilmView.tsx` and its stages (`CastWorld`, `ShotLab`, `MakeFilm`, `VoiceoverPanel`...), `Studio.tsx` (the timeline editor), `SelectReview.tsx`, `film.css` (most of the look) |
 | `src/api.ts` | every call to the shell (`invoke("...")`) with its types |
 | `src-tauri/src/lib.rs` | the shell: file dialogs, key storage, and one command per engine area. Each command has an `ACTIONS` list that **`analysis/tests/test_security.py` checks against the engine's argparse choices**: add an action in both places or the test fails |
-| `analysis/filmcrafter_engine/` | the engine, one module per area: `story` (script reading, `ASPECTS`), `shots` (breakdown into shots, contracts), `bible` (cast, world, style), `make` (builds the render project from the film), `render` (provider requests, prompts, the queue), `library` (reference pictures), `export` and `interchange` (the film file and the editor hand-off), `voiceover` (your own recordings), `blocking`, `looks`/`styles.json`, `animation_principles`, `styleguard`, `supervisor`, `continuity`... |
+| `analysis/filmcrafter_engine/` | the engine, one module per area: `story` (script reading, `ASPECTS`), `shots` (breakdown into shots, contracts), `bible` (cast, world, style), `make` (builds the render project from the film), `render` (provider requests, prompts, the queue), `library` (reference pictures), `export` and `interchange` (the film file and the editor hand-off), `voiceover` (your own recordings), `cast_voice` (ElevenLabs voices: library, design, clone, speak a line; never spends without `confirmed`), `blocking`, `looks`/`styles.json`, `animation_principles`, `styleguard`, `supervisor`, `continuity`... |
 | `analysis/tests/` | about 126 test files |
 | `scripts/` | the tools in section 3, plus Resolve and look-library helpers |
 | `docs/` | `GETTING_STARTED.md` (the in-app guide, with screenshots in `docs/img/film/`), `QA.md`, `architecture/`, older phase notes |
@@ -74,11 +74,11 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 - Windows console: use `python -X utf8`. Git warns about LF→CRLF: harmless.
 - Background node sweeps get killed: run them in the foreground, in chunks.
 - DaVinci Resolve scripting needs Preferences > System > General > External scripting = Local, and the Preferences window closed. Two test projects named "FilmCrafter hand-off check…" are still in the user's Resolve; **do not delete anything of theirs** (a project called "wEN" is theirs).
-- API keys: the Kie.ai key was read from Credential Manager entry `kie.filmcrafter` only for the authorised real run. Never print, save or commit a key.
+- API keys: an ElevenLabs key was **not** stored on the development computer, so `cast_voice` has only been tested with faked replies; do a real run (a short line, a small cap) before trusting it. The Kie.ai key was read from Credential Manager entry `kie.filmcrafter` only for the authorised real run. Never print, save or commit a key.
 
 ## 8. Where things stand
 
-- **Version 0.19.0** (0.18.0 is the last one pushed until you say so) (`main`, tag `before-music-removal` marks the code before the cleanup below). Installers are on the Desktop only (`FilmCrafter 0.19.0`); rebuild with section 4.
+- **Version 0.20.0** (`main`, tag `before-music-removal` marks the code before the cleanup below). Installers are on the Desktop only (`FilmCrafter 0.20.0`); rebuild with section 4.
 - **Built recently:** frame shapes (9), Select & review with enlarge preview and folding scenes, accessibility pass, export formats for every shape, the voiceover system (attach your own recordings by file name, one or two speakers per shot, drag and drop, lip-sync pass to your recording, export mix, hand-off files), props reach only the shots that show them, the film audit tool, and the removal of the music-video ways in.
 - **Frame shape lesson (0.17.0):** the film's `film.json` is the source of truth for its shape and `render/` is rebuilt from it; any screen that changes the shape must also set it on the film (`frame.ts saveFrame` does). Summit Sprout was set to 21:9 on 2026-10-12 at the user's request (its existing 16:9 pictures should be re-made).
 - **The Summit Sprout film** (`Documents\FilmCrafter\SUMMIT SPROUT FROM SHAME TO LIVING WATER Final Version 2`): repaired breakdown (58 shots, 8 scenes, all linked to the cast; `audit_film.py` reports 0 problems). A backup copy sits beside it, `... (before repair)`. The older `... Final Version` folder is stale. The film's frame shape is 16:9 in `film.json`; the user's screenshot once showed 21:9, so ask which they want (change it with the Frame shape panel or `film set_aspect`).

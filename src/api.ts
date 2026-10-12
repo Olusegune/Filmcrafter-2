@@ -263,6 +263,8 @@ export const api = {
   shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles" | "blocking", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
   voice: <T = VoiceStatus>(action: "status" | "match" | "import" | "remove", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice", { action, target, data }),
+  /** Custom voices with ElevenLabs inside a film (filmcrafter_engine.cast_voice). Looking things up is free; the engine refuses to spend without `confirmed: true`, and to clone without `consent: true`. */
+  castVoice: <T = CastStatus>(action: "status" | "library" | "set" | "clear" | "design" | "design_save" | "clone" | "estimate" | "speak" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cast_voice", { action, target, data }),
   /** A take recorded in the app (a 16-bit WAV): saved under ~/.filmcrafter/incoming, the path comes back for `voice("import")`. */
   saveVoiceTake: (wav: Uint8Array) => invoke<string>("save_voice_take", wav),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
@@ -467,7 +469,7 @@ export type MakeOption = { job: string; image: string | null; state: string; mod
 export type MakeTake = { job: string; video: string | null; state: string; model: string; provider: string; created: number; error?: string | null; cost?: number | null; approved: boolean; ok: boolean };
 export type MakeShot = { id: string; scene: number; title: string; duration: number; framing: string;
   storyboard: { options: MakeOption[]; chosen: string | null; locked: boolean }; keyframe: { options: MakeOption[]; chosen: string | null; locked: boolean }; video: { takes: MakeTake[]; approved: string | null } };
-export type VoiceRecording = { file: string; name: string; seconds: number; rms_db: number; peak_db: number };
+export type VoiceRecording = { file: string; name: string; seconds: number; rms_db: number; peak_db: number; source?: "elevenlabs" };
 export type VoicePerson = { name: string; key: string; lines: string[]; recording: VoiceRecording | null };
 export type VoiceShot = { id: string; scene: number; title: string; seconds: number; people: VoicePerson[]; others: string[]; notes: string[] };
 export type VoiceStatus = { shots: VoiceShot[]; people: number; recorded: number; missing: number; problems: number };
@@ -491,3 +493,10 @@ export type AssistResult = AssistPrice & { proposal: Record<string, unknown>; mo
 
 export type FilmProgress = { story: { kind: StoryKind; locked: boolean; as_is: boolean }; cast: { characters: number; places: number; pictures: number; style: boolean };
   shots: { count: number; edited: number }; make: { shots: number; storyboard: number; keyframe: number; video: number } };
+
+export type CastPlan = { tier: string; used: number; limit: number; left: number; can_clone: boolean; slots_used: number; slots: number };
+export type CastVoice = { name: string; voice_id: string; voice_name: string; model: string; stability: number; similarity: number; style: number; speed: number; made: "library" | "design" | "clone" };
+export type CastStatus = { key: boolean; models: { id: string; label: string }[]; people: Record<string, CastVoice>; plan: CastPlan | null; plan_error: string };
+export type ElevenVoice = { voice_id: string; name: string; category: string; description: string; labels: Record<string, string>; preview_url: string };
+export type CastEstimate = { rows: ({ shot: string; speaker: string; ok: true; characters: number; credits: number; cached: boolean; text: string } | { shot: string; speaker: string; ok: false; why: string })[]; characters: number; credits: number; basis: string };
+export type CastPreview = { id: string; file: string; seconds: number };

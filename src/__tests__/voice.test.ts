@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { encodeWav, lineFor, nextUnvoiced, peaksOf, personAt, trimSilence } from "../voiceLogic";
 import type { VoiceShot } from "../api";
 
@@ -89,5 +89,44 @@ describe("recording in the app", () => {
     expect(src).toContain("NotAllowedError");
     expect(src).toContain("Privacy & security");
     expect(src).toContain("NotFoundError");
+  });
+});
+
+describe("custom voices with ElevenLabs", () => {
+  it("says the price in characters and credits, never dollars, and says a repeat is free", async () => {
+    vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(), convertFileSrc: (p: string) => p }));
+    vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn(), save: vi.fn() }));
+    const { priceWords } = await import("../CastVoices");
+    expect(priceWords({ characters: 1240, credits: 620 })).toContain("1,240 characters, about 620 credits of your ElevenLabs plan");
+    expect(priceWords({ characters: 1240, credits: 620 })).not.toContain("$");
+    expect(priceWords({ characters: 0, credits: 0 })).toContain("costs nothing");
+    expect(priceWords({ characters: 1, credits: 1 })).toContain("1 character,");
+  });
+  it("asks for a yes before speaking, hears options only after asking, needs consent to clone, and is reachable from the Voiceover screen, cards and the shell", () => {
+    const src = readFileSync("src/CastVoices.tsx", "utf8");
+    expect(src.indexOf("await ask(")).toBeGreaterThan(-1);
+    expect(src.indexOf("await ask(")).toBeLessThan(src.indexOf('castVoice("speak"'));          // the yes is asked before the first spoken line is sent
+    expect(src).toContain("confirmed: true");
+    expect(src).toContain("Hear options");
+    expect(src).toMatch(/disabled=\{[^}]*!consent/);
+    expect(src).toContain("consent,");
+    expect(readFileSync("src/VoiceoverPanel.tsx", "utf8")).toContain("<CastVoices");
+    expect(readFileSync("src/VoiceChip.tsx", "utf8")).toContain("speakLine(");
+    const rust = readFileSync("src-tauri/src/lib.rs", "utf8");
+    expect(rust).toMatch(/fn film_cast_voice/);
+    expect(rust).toMatch(/invoke_handler[\s\S]*film_cast_voice/);
+    expect(rust).toContain('("ELEVENLABS_KEY"');
+  });
+  it("shows a spoken line as spoken by ElevenLabs, so it is not mistaken for your own voice", () => {
+    expect(readFileSync("src/VoiceoverPanel.tsx", "utf8")).toContain("spoken by ElevenLabs");
+  });
+});
+
+describe("the Home card", () => {
+  it("is snugger than before: a short card with modest padding", () => {
+    const css = readFileSync("src/film.css", "utf8");
+    const last = [...css.matchAll(/\.dropcard\.story \{ min-height: (\d+)px; padding: (\d+)px 28px (\d+)px;/g)].pop()!;
+    expect(Number(last[1])).toBeLessThanOrEqual(460);
+    expect(Number(last[2])).toBeLessThanOrEqual(60);
   });
 });

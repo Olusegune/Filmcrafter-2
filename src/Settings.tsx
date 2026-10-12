@@ -13,7 +13,7 @@ const PROVIDERS: { id: keyof KeyStatus; name: string; purpose: string }[] = [
   { id: "openrouter", name: "OpenRouter", purpose: "One key for hundreds of cheaper AI models for the writing helper and picture checks (pick it under AI brain)" },
   { id: "fal", name: "fal.ai", purpose: "Video, images and upscaling" },
   { id: "google", name: "Google Gemini", purpose: "Veo video and Nano Banana images, direct from Google" },
-  { id: "elevenlabs", name: "ElevenLabs", purpose: "Voices for spoken scenes" },
+  { id: "elevenlabs", name: "ElevenLabs", purpose: "Custom voices: choose, design or clone one for each character, and have lines spoken in it" },
 ];
 
 /** Keys go straight to the Windows Credential Manager / macOS Keychain; they never touch project files. */
