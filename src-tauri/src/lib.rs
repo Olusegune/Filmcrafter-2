@@ -1197,6 +1197,40 @@ async fn film_shots(app: AppHandle, action: String, target: String, data: Value)
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "shots", &args, &[])).await.map_err(err)?
 }
 
+/// A take recorded in the app: the screen sends a 16-bit WAV as the raw request body and gets back the path of a file saved under ~/.filmcrafter/incoming, which the person's voice import then
+/// copies into the film. Only a small, well-formed WAV is accepted; the name is made here (never taken from the screen), and old takes there are cleared after a day.
+const MAX_TAKE_BYTES: usize = 64 * 1024 * 1024;
+
+fn wav_ok(b: &[u8]) -> bool {
+    b.len() > 44 && &b[0..4] == b"RIFF" && &b[8..12] == b"WAVE"
+}
+
+#[tauri::command]
+fn save_voice_take(request: tauri::ipc::Request<'_>) -> Result<String, String> {
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else { return Err("No recording was sent.".into()) };
+    if bytes.len() > MAX_TAKE_BYTES {
+        return Err("That recording is too long. Record a line or a scene at a time.".into());
+    }
+    if !wav_ok(bytes) {
+        return Err("That recording is not a WAV file.".into());
+    }
+    let dir = dirs_home().ok_or("No home folder.")?.join(".filmcrafter").join("incoming");
+    fs::create_dir_all(&dir).map_err(err)?;
+    if let Ok(rd) = fs::read_dir(&dir) {
+        for e in rd.flatten() {
+            let old = e.file_name().to_string_lossy().starts_with("take-")
+                && e.metadata().and_then(|m| m.modified()).ok().and_then(|t| t.elapsed().ok()).map(|a| a.as_secs() > 86_400).unwrap_or(false);
+            if old {
+                let _ = fs::remove_file(e.path());
+            }
+        }
+    }
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let path = dir.join(format!("take-{stamp}-{}.wav", std::process::id()));
+    fs::write(&path, bytes).map_err(err)?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
 /// The person's own recorded voices (filmcrafter_engine.voiceover): matching file names to shots and people, attaching, removing. Nothing here spends money or sends a file anywhere;
 /// the recordings are copied into the film and only read by the render when a video is made, after the price has been shown and confirmed.
 #[tauri::command]
@@ -1969,7 +2003,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, film, film_bible, film_shots, film_make, film_voice, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, backups, frames, film, film_bible, film_shots, film_make, film_voice, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
@@ -1989,6 +2023,17 @@ fn load_project_data(d: &Path) -> Option<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_recorded_take_must_be_a_wav() {
+        let mut w = b"RIFF".to_vec();
+        w.extend([0u8; 4]);
+        w.extend(b"WAVE");
+        w.extend([0u8; 40]);
+        assert!(wav_ok(&w));
+        assert!(!wav_ok(b"RIFF"));
+        assert!(!wav_ok(&[0u8; 100]));
+    }
 
     #[test]
     fn keychain_round_trip() {

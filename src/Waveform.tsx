@@ -38,9 +38,16 @@ export function Waveform({ src }: { src: string }) {
   }, [src, peaks]);
   return (
     <div className={`vo-wave ${peaks ? "has" : ""}`} ref={box} aria-hidden="true">
-      {peaks && <svg viewBox={`0 0 ${BARS * 3} 32`} preserveAspectRatio="none" focusable="false">
-        {peaks.map((v, i) => { const h = Math.max(1.5, v * 30); return <rect key={i} x={i * 3} y={16 - h / 2} width={2} height={h} rx={1} />; })}
-      </svg>}
+      {peaks && <WaveBars peaks={peaks} />}
     </div>
+  );
+}
+
+/** Bars for a list of peaks (0 to 1). */
+export function WaveBars({ peaks }: { peaks: number[] }) {
+  return (
+    <svg viewBox={`0 0 ${peaks.length * 3} 32`} preserveAspectRatio="none" focusable="false">
+      {peaks.map((v, i) => { const h = Math.max(1.5, v * 30); return <rect key={i} x={i * 3} y={16 - h / 2} width={2} height={h} rx={1} />; })}
+    </svg>
   );
 }

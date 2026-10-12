@@ -263,6 +263,8 @@ export const api = {
   shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles" | "blocking", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
   voice: <T = VoiceStatus>(action: "status" | "match" | "import" | "remove", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice", { action, target, data }),
+  /** A take recorded in the app (a 16-bit WAV): saved under ~/.filmcrafter/incoming, the path comes back for `voice("import")`. */
+  saveVoiceTake: (wav: Uint8Array) => invoke<string>("save_voice_take", wav),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
   assist: <T = AssistResult>(action: "estimate" | "suggest", target: string, data: Record<string, unknown>) => invoke<T>("film_assist", { action, target, data }),

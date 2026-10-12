@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type VoicePerson } from "./api";
 import { FILTERS } from "./voiceLogic";
 import { notifyVoice, useVoiceStatus } from "./voiceHooks";
+import { VoiceRecorder } from "./VoiceRecorder";
 import * as I from "./icons";
 
 let playing: HTMLAudioElement | null = null;           // one recording plays at a time
@@ -17,6 +18,7 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [now, setNow] = useState<string | null>(null);
+  const [rec, setRec] = useState<string | null>(null);
   const el = useRef<HTMLAudioElement | null>(null);
   useEffect(() => () => { if (el.current && playing === el.current) { el.current.pause(); playing = null; } }, []);
   if (!shot || !(shot.people ?? []).length) return null;
@@ -46,7 +48,7 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
   return (
     <div className={`vchip ${compact ? "compact" : ""}`}>
       {shot.people.map((p) => (
-        <div key={p.key} className={`vchip-row ${p.recording ? "has" : ""}`}>
+        <div key={p.key} data-voice-person={p.name} className={`vchip-row ${p.recording ? "has" : ""}`}>
           <I.Mic size={13} />
           <span className="vchip-name">{p.name}</span>
           {p.recording
@@ -54,11 +56,16 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
                 <button className="vchip-play" onClick={() => play(p)} aria-label={`${now === p.key ? "Stop" : "Play"} ${p.name}'s recording in ${shotId}, ${p.recording.seconds.toFixed(1)}s`} title={p.recording.name}>
                   {now === p.key ? <I.Pause size={12} /> : <I.Play size={12} />}<span className="num">{p.recording.seconds.toFixed(1)}s</span></button>
                 <button className="link" disabled={busy} onClick={() => pick(p.name)}>Replace</button>
+                <button className="link" disabled={busy} onClick={() => setRec(p.name)} title={`Record ${p.name}'s voice for this shot again`}>Re-record</button>
                 {!compact && <button className="link" disabled={busy} onClick={() => remove(p.name)}>Remove</button>}
               </>
-            : <button className="vchip-add" disabled={busy} onClick={() => pick(p.name)} title={`Choose ${p.name}'s recording for this shot (or drop the file on the card)`}>Add voice…</button>}
+            : <>
+                <button className="vchip-add" disabled={busy} onClick={() => pick(p.name)} title={`Choose ${p.name}'s recording for this shot (or drop the file on ${p.name}'s name)`}>Add voice…</button>
+                <button className="vchip-rec" disabled={busy} onClick={() => setRec(p.name)} title={`Record ${p.name}'s voice now`}><I.Mic size={11} /> Record</button>
+              </>}
         </div>))}
       {err && <p className="error-text vchip-err" role="alert">{err}</p>}
+      {rec && <VoiceRecorder dir={dir} shotId={shotId} speaker={rec} onClose={() => setRec(null)} />}
     </div>
   );
 }

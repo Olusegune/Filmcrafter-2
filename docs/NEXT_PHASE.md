@@ -1,13 +1,15 @@
-# Next phase: what to do after 0.18.0
+# Next phase: what to do after 0.19.0
 
 Written 2026-10-12. Read `HANDOVER.md` first (setup, checks, release steps, rules); this note is the plan for what comes next and what was learned recently. Everything here is in GitHub (`Olusegune/FilmCrafter`, branch `main`, commit of 0.18.0 or later).
 
 ## 1. Where things stand
 
-FilmCrafter is at **0.18.0**: a Windows app (Tauri 2 + React/TypeScript + Python engine) that turns a screenplay into a film. Recently done:
+FilmCrafter is at **0.19.0** (the voice work below is in the working tree for the release after it): a Windows app (Tauri 2 + React/TypeScript + Python engine) that turns a screenplay into a film. Recently done:
 
 - **Voiceover** (0.15 to 0.17): attach your own recordings to people in shots by file name (`CHLOE_S01-04.wav`), from the Studio's bar, the Export screen, a shot's card, the timeline's shot cards (a mic and a bar) and the shot panel; drag a file onto a card or timeline shot; one or two speakers per shot; the recording is the audio a Seedance 2 shot follows (keyframe sent as a reference picture), the sound at export, and per-shot files in the editor hand-off. "Lip-sync this take" uses the recording.
 - **Correctness fixes found by using the app**: a title read as a character, action shots with no people, long picture names dropped, one person using every reference slot, the frame shape reverting to 16:9, the previous shot's picture copying one character onto another, plural "friends", Word screenplays cut at 6,000 characters.
+- **0.19.0**: Nano Banana 2.1 (Google default; Kie checked; fal not), a calm clapperboard Home, a waveform beside each recording, big films skip off-screen cards, window minimum height 660.
+- **Next release (built, tested in the harness, not yet in an installer)**: drop a file on a person's name to give it to them (with Undo); record a line inside the app (teleprompter, level, silence trimmed, retake, next unvoiced line). The microphone itself has **not** been tried in the installed app: try it first.
 - **Cleanup**: music-video screens, commands and engine modules removed (92 to 81 modules); tag `before-music-removal` marks the old code.
 
 **Not proven**: a real Seedance render with a user recording (nobody has heard the lip-sync); the installed app has not been walked through by a person end to end; no keyboard-only or screen-reader run; Premiere Pro / Final Cut hand-off; macOS; code signing; 125% and 150% display scaling.
@@ -31,6 +33,13 @@ Goal: hear whether a Seedance 2 mouth follows a recording. Steps:
 5. Judge: does the mouth follow the voice? Does the exported film play the recording (not Seedance's sound)? If the mouth drifts, try the Studio's "Lip-sync this take…" (extra cost, shown first).
 6. Write the result into `docs/QA.md` ("Real runs") and `CHANGELOG.md`.
 Facts: Seedance 2 takes up to 3 reference audio files, 9 reference pictures, and refuses a first frame together with reference audio; that is why `render.audio_first` sends the keyframe as a reference picture. Two speakers in one shot are one clip with each person's window; the prompt says who speaks when.
+
+### A2. Ideas for making voices feel magical (agreed order)
+1. Done in the working tree: drop on a person; record in the app.
+2. **Match by what is said:** drop unnamed files or one long session; transcribe and match to the scripted lines, asking only when unsure. Needs speech-to-text (0.18.0 removed the bundled one): an optional local model or a priced provider call. The user decides which.
+3. **A voice per character** (Cast & World): unnamed files go to the right person; optional ElevenLabs scratch voice from the written line (priced first).
+4. **Next-line flow in the Studio's bar** (N for the next unvoiced line) and a play-through of the film with voices and soundtrack before any video is paid for.
+Also: a first-run sample film, a "film so far" animatic on Home, hover previews on the Make wall.
 
 ### B. A person walks through the installed app
 Install, open Summit Sprout, and try (watch for confusion, not only bugs): New film from a screenplay file (also a Word file), the frame-shape tiles, Cast & World, Shots (Studio mode), Select & review (enlarge, fold scenes), Make film cards (add a voice, drop a file), the Studio timeline mic, Export (formats for every shape), the editor hand-off. Keep a list; fix in small releases. Also try with only the keyboard (Tab, Enter, Esc, arrow keys in the preview) and, if possible, a screen reader.

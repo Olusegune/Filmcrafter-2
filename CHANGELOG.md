@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased (for the next version)
+
+- **Drop a voice on the person.** Dragging a recording over a shot card lights up the people in it; dropping on a name gives the file to that person at once (no match table). Every quick attach shows a note with **Undo** for seven seconds (a voice it replaced is kept in `voice/_removed`).
+- **Record a line in the app.** **Record** beside a name on a card, **Re-record**, or **Record the missing voices** on the Voiceover screen opens a recorder: the line in large type to read from, a level bar, Space to start and stop, silence trimmed from the ends, then **Keep this take** (Enter) or **Retake** (R). Keeping attaches it and moves to the next person or shot with no voice. The shell gained one small command (`save_voice_take`) that saves only a well-formed WAV of at most 64 MB to `~/.filmcrafter/incoming` under a name it makes itself, and clears takes there after a day. A blocked or missing microphone says what to do. **The microphone has not been tried in the installed app.**
+- Guide: the Home picture and text describe the clapperboard; the voice section covers dropping on a person, recording and the waveform; a new "Which picture model" section covers Nano Banana 2.1 and the 29 October retirement of the older Google model.
+
 ## 0.19.0 (2026-10-12)
 
 - **Nano Banana 2.1** (Google's image model, released 2026-10-06). Google's own key now makes keyframes with `gemini-nano-banana-2.1` by default (up to 14 reference pictures, 1K/2K/4K, and the extreme shapes 1:4, 4:1, 1:8 and 8:1 are offered); the older `gemini-3.1-flash-image` stays in the list but is marked as retiring, because Google shuts it down on 2026-10-29. Kie lists it as `nano-banana-2-1` (10 reference pictures, 1K/2K/4K); the app already reads a model's exact id from Kie's schema, and a live fetch confirmed it. fal's `google/nano-banana-2.1` (text only) is treated as unable to see your pictures and `.../edit` as able to. **Not yet done:** fal's 2.1 is not the automatic choice (no fal key was available to check it), and 2.1's thinking level and web-search grounding are not passed on.

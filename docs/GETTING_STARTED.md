@@ -16,7 +16,7 @@ Along the top: **Story, Cast & World, Shots, Studio, Export**. Each shows how fa
 
 ## Home
 
-![Home: drop a screenplay, start a new film, or start from an idea. Behind the card a gold car is chased around a night road while camera rigs follow it](img/film/home.png)
+![Home: drop a screenplay, start a new film, or start from an idea. A small clapperboard above the heading opens, rises a little, claps shut and settles back; drag a story over it and it claps faster](img/film/home.png)
 
 - **Drop a screenplay** on the window (Fountain, text, Markdown, PDF or Word), press **New film**, or press **Start from an idea**.
 - **Open project** opens a film or an older project. Older music-video projects and shows still open from **Recent**.
@@ -185,6 +185,10 @@ If you have recorded the lines yourself, attach them and the picture speaks them
 
 **Quickest:** on any shot's card (Make film) or on the timeline, press **Add voice…** (or the small mic on a timeline shot), or **drop an audio file on the card or timeline shot**. A green mic means every voice in that shot is recorded.
 
+**Drop it on the person.** On a card, drag a file over the shot and the people in it light up; drop it on a name (it says *drop here*) and the file is that person's, at once, with no table. A note says what happened and offers **Undo** for seven seconds (a voice it replaced is kept in `voice/_removed`). Dropped on the card but not on a name, the file is matched by its name as before, and if anything is unclear the match table opens.
+
+**Record it here.** Press **Record** beside a name on a card, **Re-record** on one that is done, or **Record the missing voices** on the Voiceover screen. The line is shown large to read from. **Space** starts and stops, the bar shows your level, and the take is trimmed of silence. Listen, then **Keep this take** (Enter) or **Retake** (R). Keeping attaches it to that person and moves on to whoever in the shot is still silent, then the next shot with no voice; **Skip to the next line** moves on without recording. Esc closes. The first time, Windows may ask to allow the microphone (*Settings, Privacy & security, Microphone, let desktop apps use it*). Each recording on the Voiceover screen shows its **waveform** beside the player.
+
 **Everything at once:** the **Voiceover** button in the Studio's top bar (next to *Select & review*), the **Voiceover…** link under *Soundtrack* on the Export screen (both work in Simple mode too), and, in Studio mode, **Voiceover** (every shot at once) and each shot's **Voice** tab on the Shots screen.
 
 ![Voiceover: every shot with someone speaking, the line, and your recording or a button to attach one](img/film/voiceover.png)
@@ -199,6 +203,10 @@ If you have recorded the lines yourself, attach them and the picture speaks them
 **What happens when you render.** For a model that takes reference audio (Seedance 2 on Kie.ai), your recording goes with the shot and the prompt says who speaks along to it; your approved keyframe goes as a reference picture, so the mouth follows your voice. **What you hear in the finished film is your recording**, laid on the film at its shot, not the video model's own sound. The editor hand-off folder gets each recording as its own file, named for the shot and person, in `audio/voice`. Models that cannot take audio are still told the words, and your recording is still the sound at export.
 
 **Two people in one shot:** attach each person's recording; they are placed one after the other in the shot's audio, and the prompt says who speaks when and that the others listen. **Drag and drop:** drop recordings onto the screen. **If a mouth drifts** in a finished take, open the shot in the Studio and press *Lip-sync this take…*: it re-times the mouth to your recording.
+
+## Which picture model
+
+In **Settings** add a key for Kie.ai, fal, Google or OpenAI; the app lists each one's models and shows the price before anything is made. **Nano Banana 2.1** (Google's image model, October 2026) is the automatic picture model on a Google key (`gemini-nano-banana-2.1`: up to 14 reference pictures, 1K, 2K or 4K, and very wide or tall shapes). On Kie.ai it appears as *Google - Nano Banana 2.1* (10 reference pictures). The older Nano Banana 2 on Google (`gemini-3.1-flash-image`) is marked *retiring*: Google switches it off on 29 October 2026, so choose 2.1 for anything new.
 
 ## Cards or timeline: the same film two ways
 

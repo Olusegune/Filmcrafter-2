@@ -748,3 +748,34 @@
 /* big films: the browser skips drawing cards and scenes that are scrolled out of view (300 shots drew about 5,000 elements at once) */
 .mk-card { content-visibility: auto; contain-intrinsic-size: auto 290px; }
 .sl-scene { content-visibility: auto; contain-intrinsic-size: auto 160px; }
+
+/* dropping a file on a person's name in a card, and the Undo in the note */
+.voice-over .vchip-row { padding: 2px 6px; border-radius: 3px; background: rgba(159, 184, 232, 0.08); outline: 1px dashed rgba(159, 184, 232, 0.45); }
+.vchip-row.voice-target { background: rgba(232, 180, 92, 0.22); outline: 2px solid var(--gold, #e8b45c); color: var(--frost); }
+.vchip-row.voice-target .vchip-name::after { content: "  drop here"; font-weight: 400; color: var(--gold, #e8b45c); }
+.vo-undo { margin-left: 12px; color: var(--gold, #e8b45c); }
+.vchip-rec { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 3px; border: 1px solid rgba(232, 180, 92, 0.5); background: rgba(232, 180, 92, 0.08); color: var(--frost); cursor: pointer; font-size: 11.5px; }
+.vchip-rec:hover { background: rgba(232, 180, 92, 0.2); }
+.vo-head-btns { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* the recorder */
+.vr { width: min(640px, 94vw); display: flex; flex-direction: column; gap: 14px; padding: 20px 24px 18px; }
+.vr .vs-head { display: flex; align-items: center; gap: 12px; }
+.vr .vs-head h2 { margin: 0; font-size: 16px; }
+.vr-prog { font-size: 12px; }
+.vr-who { display: flex; gap: 6px; flex-wrap: wrap; }
+.vr-who button { padding: 4px 12px; border-radius: 3px; border: 1px solid var(--hair); background: transparent; color: var(--text-quiet, #8b97a7); cursor: pointer; font-size: 12.5px; }
+.vr-who button.on { color: var(--frost); border-color: var(--gold, #e8b45c); background: rgba(232, 180, 92, 0.1); }
+.vr-line { margin: 0; padding: 18px 20px; border-left: 2px solid var(--gold, #e8b45c); background: rgba(255, 255, 255, 0.03); font: 500 24px/1.4 var(--font-display); color: var(--frost); min-height: 3.2em; }
+.vr-meter { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.vr-meter > div { height: 100%; width: 0; background: linear-gradient(90deg, #5ec27f, #e8b45c 80%, #e0604a); transition: width 60ms linear; }
+.vr-time { font-size: 13px; }
+.vr-take { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.vr-take .vo-wave { max-width: 240px; }
+.vr-take audio { height: 34px; flex: 1 1 220px; }
+.vr-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.vr-actions kbd { margin-left: 8px; padding: 0 5px; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 3px; font: 11px var(--font-mono, monospace); opacity: 0.8; }
+.vr-rec { min-width: 150px; justify-content: center; }
+.vr-dot { width: 10px; height: 10px; border-radius: 50%; background: #e0604a; display: inline-block; margin-right: 6px; }
+.vr-said { margin: 0; color: #7fe0b0; font-size: 13px; }
+.vr-hint { margin: 0; font-size: 11.5px; }
