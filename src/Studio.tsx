@@ -48,7 +48,6 @@ import { MaterialsPanel } from "./Materials";
 import { ApproveKeyframes, LibrarySheet, ShotViewer, StoryCards, useBoard } from "./Board";
 import { SelectReview } from "./SelectReview";
 import { ScriptSheet } from "./ScriptSheet";
-import { Autopilot } from "./Autopilot";
 import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
@@ -185,15 +184,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   useEffect(() => { const f = () => setDlOpen(true); window.addEventListener("pf-open-directions", f); return () => window.removeEventListener("pf-open-directions", f); }, []);
   useEffect(() => { const f = () => setSupOpen(true); window.addEventListener("pf-open-supervisor", f); return () => window.removeEventListener("pf-open-supervisor", f); }, []);
   const { route } = useRouting(project.dir);
-  // Autopilot: from the top bar, or straight after the setup wizard's "Direct my video"
-  const [autopilot, setAutopilot] = useState(() => {
-    try { const k = `pf-autopilot:${project.dir}`; const v = localStorage.getItem(k) === "1"; localStorage.removeItem(k); return v; } catch { return false; }
-  });
-  useEffect(() => {
-    const on = () => setAutopilot(true);
-    window.addEventListener("pf-open-autopilot", on);
-    return () => window.removeEventListener("pf-open-autopilot", on);
-  }, []);
   useEffect(() => {
     const on = () => setScriptOpen(true);
     window.addEventListener("pf-open-script", on);
@@ -513,7 +503,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           {narrowBar ? <div className="menu-wrap"><button className="btn ghost" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-haspopup="menu">More ▾</button>
             {moreOpen && <div className="menu glass tb-more" role="menu" onClick={() => setMoreOpen(false)} onMouseLeave={() => setMoreOpen(false)}>
           {isFilm && <button className="btn" role="menuitem" aria-pressed={director} onClick={() => setDirector(!director)} title="Show the set, wardrobe, continuity and every scene note in the inspector">{director ? "Director Mode: on" : "Director Mode: off"}</button>}
-          {!isFilm && <button className="btn" role="menuitem" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
           {plan && board && <button className="btn" onClick={() => setSelecting(true)}
@@ -522,7 +511,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </div>}</div>
             : <>
-          {!isFilm && <button className="btn" onClick={() => setAutopilot(true)} title="Song to finished video, stopping only for your decisions">Autopilot</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
           {plan && board && <button className="btn" onClick={() => setSelecting(true)}
@@ -647,7 +635,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                     onRegenerate={() => { setSel({ kind: "shot", id: viewing }); setInspector(true); setViewing(null); }} />}
       {approvingKf && <ApproveKeyframes dir={project.dir} pending={pendingKf} onClose={() => setApprovingKf(false)}
                                         onDone={() => { setApprovingKf(false); refreshPendingKf(); reloadBoard(); onReload(); }} />}
-      {autopilot && <Autopilot project={project} onClose={() => setAutopilot(false)} onReload={onReload} />}
       {perfOpen && <PerformanceSheet dir={project.dir} scenes={scenes.map((s) => ({ number: s.number, heading: s.heading }))}
                                      characters={[...new Set(shots.flatMap((s) => s.performers ?? []))]}
                                      onClose={() => setPerfOpen(false)} onChanged={reloadBoard} />}

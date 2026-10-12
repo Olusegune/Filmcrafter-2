@@ -82,18 +82,14 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
             {hiddenN > 0 && <button className="link" onClick={() => recent("restore")}>Show {hiddenN} hidden</button>}
           </div>
           <div className="recent-row">
-            {projects.map((p) => (
+            {projects.filter((p) => p.kind === "film").map((p) => (
               <div key={p.dir} className="project-card-wrap">
                 <button className="recent-x" title="Remove from Recent (the project stays on disk)" aria-label={`Remove ${p.title} from Recent`}
                         onClick={() => recent("remove", p.dir)}>×</button>
-                <button className={`project-card ${p.kind === "film" ? "is-film" : ""}`} onClick={() => onOpen(p.dir)}>
+                <button className="project-card is-film" onClick={() => onOpen(p.dir)}>
                   <div className="t">{p.title}</div>
-                  <div className="m">{p.kind === "film" || p.kind === "show" ? p.state : p.onboarding && p.onboarding.stage !== "done" ? <span className="setup-badge">Setup · {SETUP[p.onboarding.stage] ?? "in progress"}</span>
-                    : stateLabel(p.state)} · {new Date(p.modified * 1000).toLocaleDateString()}</div>
-                  {p.kind === "film"
-                    ? <div className="mini-strip" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>
-                    : <div className="mini-wave">{Array.from({ length: 36 }, (_, i) =>
-                      <i key={i} style={{ height: `${25 + 70 * Math.abs(Math.sin(i * 1.7 + p.title.length))}%` }} />)}</div>}
+                  <div className="m">{p.state} · {new Date(p.modified * 1000).toLocaleDateString()}</div>
+                  <div className="mini-strip" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>
                 </button></div>
             ))}
           </div>
@@ -102,8 +98,3 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
     </div>
   );
 }
-
-export const stateLabel = (s: string) =>
-  ({ new: "New", analyzing: "Listening…", analyzed: "Ready to direct", directed: "Directed" } as Record<string, string>)[s] ?? s;
-
-const SETUP: Record<string, string> = { music: "Music", lyrics: "Lyrics", script: "Script", assets: "References", choreography: "Choreography", review: "Review" };

@@ -509,12 +509,6 @@ fn list_projects(app: AppHandle) -> Result<Vec<Value>, String> {
     let hide = hidden(&app);
     for dir in dirs {
         if hide.iter().any(|h| Path::new(h) == dir.as_path()) { continue; }
-        if let (Ok(meta), Some(s)) = (fs::metadata(dir.join("show.json")), read_json(&dir.join("show.json"))) {   // a show
-            let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
-            let n = s["items"].as_object().map(|o| o.len()).unwrap_or(0);
-            out.push(json!({"title": s["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "show", "state": format!("Show · {n} items")}));
-            continue;
-        }
         if let (Ok(meta), Some(f)) = (fs::metadata(dir.join("film.json")), read_json(&dir.join("film.json"))) {   // a film
             let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
             let locked = f["story"]["locked"].is_number();
@@ -559,40 +553,6 @@ fn load_project(app: AppHandle, dir: String) -> Result<Value, String> {
         "concepts": read_json(&d.join("concepts.json")),
         "treatment": read_json(&d.join("treatment.json")),
     }))
-}
-
-#[tauri::command]
-async fn analyze_project(app: AppHandle, dir: String) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let d = project_dir(&dir)?;
-        let project = read_json(&d.join("project.json")).ok_or("Missing project file")?;
-        let p = |k: &str| d.join(k).to_string_lossy().to_string();
-        update_project(&d, json!({"state": "analyzing"}))?;
-        let mut args = vec!["-m".into(), "filmcrafter_engine".into(),
-                            p(project["song"].as_str().unwrap_or("song.wav")),
-                            "--out".into(), p("songmap.json"), "--work-dir".into(), p("cache/stems")];
-        if let Some(l) = project["lyrics"].as_str() {
-            args.push("--lyrics".into());
-            args.push(p(l));
-        }
-        run_engine(&app, "analysis", &args, &[])?;
-        if let Some(s) = project["script"].as_str() {
-            let _ = app.emit("engine-progress", json!({"task": "analysis", "stage": "script", "progress": 1.0}));
-            // A free-form story has no scenes to place: keep the analysis and let creative directions use it instead.
-            if let Err(e) = run_engine(&app, "script", &["-m".into(), "filmcrafter_engine.script_import".into(),
-                                                        p(s), p("songmap.json"), p("production.json")], &[]) {
-                update_project(&d, json!({"script_note": e}))?;
-            }
-        }
-        // an imported Producer package waits for the song map to place its shots
-        if read_json(&d.join("project.json")).map(|p| p["producer_pending"] == json!(true)).unwrap_or(false) {
-            let _ = run_engine(&app, "producer", &["-m".into(), "filmcrafter_engine.producer_import".into(), "plan".into(),
-                                                   d.to_string_lossy().to_string()], &[]);
-        }
-        update_project(&d, json!({"state": "analyzed"}))
-    })
-    .await
-    .map_err(err)?
 }
 
 #[tauri::command]
@@ -942,18 +902,6 @@ async fn upscale(app: AppHandle, dir: String, action: String, data: Option<Value
     }).await.map_err(err)?
 }
 
-/// Dance-ready check (filmcrafter_engine.dance): which dance shots can really be danced in (whole body in frame, long enough, cut on the beat). Free, reads files only.
-#[tauri::command]
-async fn dance(app: AppHandle, dir: String, action: String) -> Result<Value, String> {
-    if action != "check" {
-        return Err("Unknown dance action.".into());
-    }
-    let d = project_dir(&dir)?.to_string_lossy().to_string();
-    tauri::async_runtime::spawn_blocking(move || {
-        run_engine_result(&app, "dance", &["-m".into(), "filmcrafter_engine.dance".into(), action, d], &[])
-    }).await.map_err(err)?
-}
-
 /// Routing modes and the project budget (filmcrafter_engine.routing).
 #[tauri::command]
 async fn routing(app: AppHandle, dir: String, action: String, data: Option<Value>) -> Result<Value, String> {
@@ -1198,11 +1146,6 @@ async fn frames(app: AppHandle, dir: String, action: String, data: Value) -> Res
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "frames", &args, &provider_env())).await.map_err(err)?
 }
 
-fn show_dir(path: &str) -> Result<PathBuf, String> {
-    let p = PathBuf::from(path);
-    if p.join("show.json").exists() { Ok(p) } else { Err("That isn't a FilmCrafter show.".into()) }
-}
-
 fn film_dir(path: &str) -> Result<PathBuf, String> {
     let p = PathBuf::from(path);
     let dir = if p.is_file() { p.parent().map(Path::to_path_buf).unwrap_or(p) } else { p };
@@ -1317,49 +1260,6 @@ async fn film_assist(app: AppHandle, action: String, target: String, data: Value
 fn is_film(path: String) -> bool {
     let p = PathBuf::from(&path);
     p.join("film.json").exists() || p.parent().map(|d| d.join("film.json").exists() && p.extension().and_then(|x| x.to_str()) == Some(DOC_EXT)).unwrap_or(false)
-}
-
-/// Shows: numbers and spoken scenes with one cast (filmcrafter_engine.show). `create` makes a new show in the
-/// projects folder; every other action works on an existing show folder.
-#[tauri::command]
-async fn show(app: AppHandle, action: String, target: Option<String>, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 23] = ["create", "status", "add_number", "add_existing", "add_scene", "move", "set_act", "add_act",
-                                 "remove_act", "rename", "transition", "remove", "settings", "sync", "export",
-                                 "attach_song", "set_costume", "preview_script", "import_script", "add_intermission", "set_card", "set_ambience", "set_budget"];
-    if !ACTIONS.contains(&action.as_str()) {
-        return Err("Unknown show action.".into());
-    }
-    let dir = if action == "create" { projects_root(&app)? } else { show_dir(target.as_deref().unwrap_or(""))? };
-    if action != "create" { remember(&app, &dir); }
-    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.show".into(), action.clone(), dir.to_string_lossy().into(),
-                                 "--data".into(), data.to_string()];
-    let app2 = app.clone();
-    let res = tauri::async_runtime::spawn_blocking(move || run_engine_result(&app2, "show", &args, &provider_env())).await.map_err(err)??;
-    if action == "create" {
-        if let Some(d) = res["dir"].as_str() { remember(&app, Path::new(d)); }
-    }
-    Ok(res)
-}
-
-/// Voices for spoken scenes (filmcrafter_engine.voices). `voices`, `set_voice` and `preview` take the show folder;
-/// the dialogue actions take the scene's folder.
-#[tauri::command]
-async fn voices(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 10] = ["voices", "set_voice", "dialogue", "set_dialogue", "estimate", "preview", "generate", "set_recording", "clear_recording", "eleven_voices"];
-    if !ACTIONS.contains(&action.as_str()) {
-        return Err("Unknown voices action.".into());
-    }
-    let dir = if ["voices", "set_voice", "preview", "eleven_voices"].contains(&action.as_str()) { show_dir(&target)? } else { project_dir(&target)? };
-    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.voices".into(), action, dir.to_string_lossy().into(),
-                                 "--data".into(), data.to_string()];
-    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "voices", &args, &provider_env())).await.map_err(err)?
-}
-
-/// Is this path a show (a folder with show.json, or the show.json itself)?
-#[tauri::command]
-fn is_show(path: String) -> bool {
-    let p = PathBuf::from(&path);
-    p.join("show.json").exists() || (p.file_name().and_then(|n| n.to_str()) == Some("show.json"))
 }
 
 /// Overnight on ComfyUI (filmcrafter_engine.overnight): start | stop | status. Free: ComfyUI only.
@@ -2067,10 +1967,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
-            analyze_project, direct_project, ensure_renderer, render_catalog, render_preview,
+            direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_voice, film_check, film_assist, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
-            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
+            save_project, save_project_as, backups, frames, film, film_bible, film_shots, film_make, film_voice, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

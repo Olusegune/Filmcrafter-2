@@ -22,7 +22,7 @@ type View =
   | { name: "film"; dir: string; stage?: string };
 
 /** FilmCrafter makes films. A music video that was never finished, a show, or a Producer package belongs in PULSEFRAME, which still has the song-first screens. */
-const LEGACY = "This is a PULSEFRAME music-video project that FilmCrafter does not set up or continue from the start. Open it in PULSEFRAME to finish it. Finished projects open in the Studio here.";
+const LEGACY = "This is not a FilmCrafter film. Music-video projects belong in PULSEFRAME: open it there.";
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
@@ -39,21 +39,19 @@ export default function App() {
   // First paint is done: swap the splash window for this one.
   useEffect(() => { api.appReady().catch(() => {}); }, []);
 
-  const openProject = useCallback(async (dir: string) => {
+  const openProject = useCallback(async (dir: string): Promise<void> => {
     setError("");
     if (isProducerPackage(dir)) { setError(LEGACY); return; }
     try {
-      if (await api.isFilm(dir)) { setView({ name: "film", dir: filmDirOfDoc(dir) }); return; }
-      if (await api.isShow(dir)) { setError(LEGACY); return; }
-      if (dir.toLowerCase().endsWith(".pulse")) {   // one-file project: unpack it into the projects folder first
+      if (dir.toLowerCase().endsWith(".pulse")) {   // one-file project: unpack it into the projects folder first, then open what came out
         setToast("Unpacking the project…");
         dir = await api.openPulse(dir);
         setToast("");
       }
+      if (await api.isFilm(dir)) { setView({ name: "film", dir: filmDirOfDoc(dir) }); return; }
       const p = await api.loadProject(dir);
-      // A music project whose setup or listening was never finished is not continued here; a finished one opens in the Studio.
-      if ((p.project.onboarding && p.project.onboarding.stage !== "done") || !p.song_map || p.project.state === "new" || p.project.state === "analyzing") { setError(LEGACY); return; }
-      setView({ name: "studio", project: p });
+      if ((p.project as { film?: boolean }).film) { setView({ name: "studio", project: p }); return; }     // a film's render project saved on its own (File, Save as One File) opens in the Studio
+      setError(LEGACY);                              // FilmCrafter opens films; a music-video project belongs in PULSEFRAME
     } catch (e) { setError(errorText(e)); }
   }, []);
 

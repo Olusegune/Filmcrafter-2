@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.16.1 (2026-10-12)
+
+First step of removing the music-video leftovers: the ways in.
+
+- **FilmCrafter opens films.** A project that is not a film (a PULSEFRAME music video, a show) now says plainly that it belongs in PULSEFRAME, instead of opening in the Studio or a half-finished setup. A film's own render project saved on its own, and `.pulse` one-file copies of a film, still open (a `.pulse` is now unpacked and then checked like any project).
+- **Recent lists only films.** The song-wave cards and "Setup · Music" badges are gone.
+- **Removed:** Autopilot (song to finished video), song analysis, the dance check, shows and their voices command, an unused dialogue screen; about 800 lines. The engine modules they used are still there and still tested; they are the next batch.
+- A test now fails if any of these ways in comes back. A git tag, `before-music-removal`, marks the code as it was.
+
 ## 0.16.0 (2026-10-12)
 
 - **Voiceover: two people in one shot.** Each person's recording has its own window in the shot's one audio clip, and the prompt now says who speaks when ("Lila from 0.0 to 2.0 s, then Chloe from 2.2 to 3.8 s") and that the others listen with their mouths closed.

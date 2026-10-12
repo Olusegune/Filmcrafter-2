@@ -202,15 +202,12 @@ export const api = {
   golden: <T = unknown>(dir: string, action: "status" | "preview" | "split" | "changes", data: Record<string, unknown> = {}) => invoke<T>("golden", { dir, action, data }),
   upscale: <T = unknown>(dir: string, action: "tools" | "status" | "resume" | "revert" | "run", data: Record<string, unknown> = {}) => invoke<T>("upscale", { dir, action, data }),
   track: (dir: string) => invoke<TrackStats>("track", { dir, action: "stats" }),
-  dance: (dir: string) => invoke<DanceCheck>("dance", { dir, action: "check" }),
   lipsyncCheck: <T = unknown>(dir: string, action: "count" | "run" | "timing", data: Record<string, unknown> = {}) => invoke<T>("lipsync_check", { dir, action, data }),
   supervisor: <T = unknown>(dir: string, action: "list" | "decide" | "decide_many", data: Record<string, unknown> = {}) => invoke<T>("supervisor", { dir, action, data }),
   directionLibrary: <T = unknown>(action: "list" | "match" | "apply" | "save" | "delete", dir: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("direction_library", { action, dir, data }),
   diagnostics: () => invoke<{ providers: Diagnosis[] }>("diagnostics"),
   budget: (dir: string | null, need: Record<string, number> = {}) => invoke<BudgetStatus>("budget", { action: "status", dir, need, provider: null }),
-  reroute: (dir: string, provider: string) =>
-    invoke<{ moved: { shot: string; to: string; model: string; same_family: boolean }[]; stuck: string[] }>("budget", { action: "reroute", dir, need: null, provider }),
   aiBrain: <T = Brain>(action: "get" | "set" | "models" | "test", data: Record<string, unknown> = {}) => invoke<T>("ai_brain", { action, data }),
   /** Is the chosen AI brain ready: OpenAI with its key, OpenRouter with its key and a model, or a local model chosen? */
   aiReady: async () => {
@@ -262,12 +259,6 @@ export const api = {
   deleteKey: (provider: string) => invoke<void>("delete_key", { provider }),
   frames: <T = unknown>(dir: string, action: "get" | "set" | "start" | "chain" | "support" | "options" | "choose" | "use_image" | "use_start" | "extend_info",
                         data: Record<string, unknown> = {}) => noteChange("frames", action, invoke<T>("frames", { dir, action, data })),
-  show: <T = ShowStatus>(action: "create" | "status" | "add_number" | "add_existing" | "add_scene" | "move" | "set_act" | "add_act" | "remove_act" | "attach_song" | "set_costume" | "preview_script" | "import_script" | "add_intermission" | "set_card" | "set_ambience" | "set_budget" |
-                         "rename" | "transition" | "remove" | "settings" | "sync" | "export", target: string | null, data: Record<string, unknown> = {}) =>
-    invoke<T>("show", { action, target, data }),
-  voices: <T = unknown>(action: "voices" | "set_voice" | "dialogue" | "set_dialogue" | "estimate" | "preview" | "generate" | "set_recording" | "clear_recording" | "eleven_voices", target: string,
-                        data: Record<string, unknown> = {}) => invoke<T>("voices", { action, target, data }),
-  isShow: (path: string) => invoke<boolean>("is_show", { path }),
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
   shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles" | "blocking", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
@@ -290,7 +281,6 @@ export const api = {
   listStyles: () => invoke<Style[]>("list_styles"),
   setLook: (dir: string, look: Look) => invoke<void>("set_look", { dir, look }),
   loadProject: (dir: string) => invoke<LoadedProject>("load_project", { dir }),
-  analyzeProject: (dir: string) => invoke<void>("analyze_project", { dir }),
   directProject: (dir: string) => invoke<void>("direct_project", { dir }),
   ensureRenderer: (dir: string) => invoke<void>("ensure_renderer", { dir }),
   renderCatalog: (provider: string, kind: "video" | "image" | "lipsync" | "upscale" = "video", refresh = false) => invoke<CatalogItem[]>("render_catalog", { provider, kind, refresh }),
