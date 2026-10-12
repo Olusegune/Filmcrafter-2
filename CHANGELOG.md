@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.14.4 (2026-10-11)
+
+A QA pass over the whole flow, from a real screenplay to every shot's prompt.
+
+- **A film audit tool.** `python scripts/audit_film.py "<film folder>"` builds the prompt of every shot (free, nothing is sent) and checks that each person in a shot is in its prompt, has a real reference picture and is in the cast; that the setting and the look are there; that no title text, leftover template words or (for pictures) quoted speech slipped in; and that scenes and ids agree. The repaired Summit Sprout film passes: 58 shots, 0 problems.
+- **More ways of typing a screenplay are understood.** Numbered scene headings (`12  INT. KITCHEN - DAY  12`, `2A`) are scenes (a place with a number in it, `EXT. HIGHWAY 61`, keeps its number); a forced `@Name` is a speaker; title pages with author and contact lines, `(V.O.)`, `(O.S.)` and `(CONT'D)` are handled and tested.
+- **A pronoun shot belongs to someone.** "She wrinkles her nose", straight after a line of dialogue, now has that speaker in the shot; after an action that names one person, the pronoun means that person.
+- **Layout checked at the smallest window the app allows.** All screens were opened at 1100 px wide (the minimum) and 1280 px and checked for anything pushed outside the window or the page scrolling sideways: none. `PF_OVERFLOW=1 PF_WIDTH=1100 PF_QA=1 node scripts/docshots-edge.mjs`.
+- Tests: 1,832 engine tests (6 new).
+
 ## 0.14.3 (2026-10-11)
 
 Found by checking a real screenplay (Summit Sprout) against the prompt of its first shots: the wrong people were reaching the shots. Four real bugs, all fixed:

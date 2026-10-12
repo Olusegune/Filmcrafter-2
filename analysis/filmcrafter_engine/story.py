@@ -33,7 +33,7 @@ MAX_TEXT = 600_000                 # characters kept per version: a feature-leng
 MAX_FILE_BYTES = 25 * 1024 * 1024
 LINES_PER_PAGE = 55                # a screenplay page is about a minute of film: the usual rule of thumb, nothing more
 
-SLUG = re.compile(r"^\s*(?:\.(?=[A-Za-z0-9])|(?:INT|EXT|EST|INT\.?/EXT|EXT\.?/INT|I/E)[\. ])", re.I)
+SLUG = re.compile(r"^\s*(?:\d+[A-Z]?[\s.]+)?(?:\.(?=[A-Za-z0-9])|(?:INT|EXT|EST|INT\.?/EXT|EXT\.?/INT|I/E)[\. ])", re.I)
 CUE_NOTE = re.compile(r"\s*\((?:V\.?O\.?|O\.?S\.?|O\.?C\.?|CONT'?D\.?|CONT\.?|FILTERED|ON PHONE|ON RADIO)[^)]*\)\s*", re.I)
 TRANSITION = re.compile(r"^\s*(?:[A-Z ]+ TO:|FADE (?:IN|OUT)\.?|CUT TO BLACK\.?|SMASH CUT\.?|MATCH CUT\.?|DISSOLVE TO:)\s*$")
 
@@ -168,14 +168,26 @@ def _is_cue(line: str, prev_blank: bool, nxt: str | None) -> bool:
         return False
     if SLUG.match(s) or TRANSITION.match(s) or s.startswith(("(", "[", "#", "=", ">")):
         return False
+    if s.startswith("@"):                                           # Fountain: an @ forces a character cue, whatever its capitals
+        return len(CUE_NOTE.sub("", s).strip().lstrip("@").strip()) in range(1, 41)
     name = CUE_NOTE.sub("", s).strip().lstrip("@")
     if not name or len(name) > 40 or not re.search(r"[A-Z]", name):
         return False
     return name == name.upper() and not re.search(r"[a-z]", name) and not re.search(r"[.!?]\s*$", name.strip("()"))
 
 
+def clean_heading(h: str) -> str:
+    """A scene heading without its scene numbers ("12  INT. KITCHEN - DAY  12") and without a forcing dot. A trailing number is dropped only when it repeats the leading one ("EXT. HIGHWAY 61" keeps its 61)."""
+    s = h.strip()
+    m = re.match(r"^\s*(\d+[A-Z]?)[\s.]+(?=\S)", s)
+    if m:
+        s = s[m.end():]
+        s = re.sub(r"[\s.]+" + re.escape(m.group(1)) + r"$", "", s)
+    return s.lstrip(".").strip()
+
+
 def _heading_parts(h: str) -> dict:
-    s = h.strip().lstrip(".").strip()
+    s = clean_heading(h)
     m = re.match(r"(?i)^(int\.?/ext|ext\.?/int|i/e|int|ext|est)[\. ]+", s)
     tag = m.group(1).lower() if m else ""
     kind = "INT/EXT" if "/" in tag else ("EXT" if tag == "est" else tag.upper())
@@ -193,7 +205,7 @@ def parse_screenplay(text: str) -> dict:
     cur: dict | None = None
 
     def new_scene(heading: str, at: int) -> dict:
-        return {"number": len(scenes) + 1, "heading": heading.strip().lstrip(".").strip(), **_heading_parts(heading), "line": at,
+        return {"number": len(scenes) + 1, "heading": clean_heading(heading), **_heading_parts(heading), "line": at,
                 "characters": [], "dialogue_lines": 0, "action_lines": 0, "words": 0, "speeches": 0}
 
     has_headings = any(SLUG.match(x.strip()) for x in lines)

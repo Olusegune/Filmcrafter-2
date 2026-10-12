@@ -105,7 +105,7 @@ def scene_blocks(text: str) -> list[dict]:
             prev_blank, in_dlg, blk = True, False, None
             continue
         if story.SLUG.match(s) and prev_blank:
-            cur = {"number": len(scenes) + 1, "heading": s.lstrip(".").strip(), **story._heading_parts(s), "blocks": []}
+            cur = {"number": len(scenes) + 1, "heading": story.clean_heading(s), **story._heading_parts(s), "blocks": []}
             scenes.append(cur)
             prev_blank, in_dlg, blk = False, False, None
             continue
@@ -221,16 +221,23 @@ def _draft_scene(scene: dict, version: int | None, names: list[str] | None = Non
             add("close-up" if short else "medium", f"{speakers[0].title()} speaks.", "", dlg, speakers, words, True)
         run = []
 
+    last_speaker = ""
     for b in blocks:
         if b is used_first:
             continue
         if b["type"] == "dialogue":
             run.append(b)
+            last_speaker = b["speaker"]
             continue
         flush()
         text = " ".join(b["lines"])
         held = re.search(r"\b(hand|hands|letter|phone|ring|key|photo|photograph|glass|cup|door|window|clock|note|knife|gun)\b", text, re.I)
-        add("insert" if held and len(text.split()) <= 14 else "medium", "Show what happens." if not held else f"A detail that matters: {held.group(1)}.", text, words=len(text.split()))
+        who, named = None, _named_in(text, names or [])
+        if len(named) == 1:
+            last_speaker = named[0]                                    # "Chloe keeps drawing." then "She does not look up." is Chloe
+        if last_speaker and not named and re.match(r"(?i)\s*(she|he|her|his|him|they)\b", text):
+            who = [last_speaker]                                       # "She wrinkles her nose" straight after someone's line is about that person
+        add("insert" if held and len(text.split()) <= 14 else "medium", "Show what happens." if not held else f"A detail that matters: {held.group(1)}.", text, speakers=who, words=len(text.split()))
     flush()
     if not shots:
         add("wide", "Open the scene.", "", words=6)

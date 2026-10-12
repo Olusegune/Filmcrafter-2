@@ -122,7 +122,8 @@ for (const name of names) {
       const m = await evalJs("JSON.stringify({ nodes: document.querySelectorAll('*').length, heapMB: Math.round((performance.memory ? performance.memory.usedJSHeapSize : 0) / 1048576), ms: Math.round(performance.now()) })");
       console.log(`   perf ${name}: ${m}`);
     }
-    const [w, h] = [Math.min(1500, size[0] === 1440 ? 1440 : size[0]), Math.min(3400, size[1])];
+    let [w, h] = [Math.min(1500, size[0] === 1440 ? 1440 : size[0]), Math.min(3400, size[1])];
+    if (process.env.PF_WIDTH) w = Number(process.env.PF_WIDTH);                    // PF_WIDTH=1000: photograph (and check) the screen in a narrower window
     await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: false });
     await sleep(700);
     if (process.env.PF_A11Y) {                                                    // PF_A11Y=1: run axe-core (WCAG 2.1 A and AA) on this screen and report what it finds
@@ -132,6 +133,15 @@ for (const name of names) {
       const found = JSON.parse(res.result?.result?.value ?? "[]");
       a11y[name] = found;
       for (const v of found) console.log(`   a11y ${v.impact.padEnd(8)} ${v.id}: ${v.help} (${v.nodes} node${v.nodes === 1 ? "" : "s"}) ${v.first ?? ""}`);
+    }
+    if (process.env.PF_OVERFLOW) {                                                // PF_OVERFLOW=1: anything pushed outside the window, or the page scrolling sideways
+      const res = await send("Runtime.evaluate", { expression: `(() => { const W = document.documentElement.clientWidth; const out = [];
+        const scrolls = (el) => { for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) { const o = getComputedStyle(p).overflowX; if (o === "auto" || o === "scroll" || o === "hidden") return true; } return false; };
+        for (const el of document.querySelectorAll("body *")) { const r = el.getBoundingClientRect(); if (r.width === 0 || r.height === 0) continue; const cs = getComputedStyle(el); if (cs.position === "fixed" && r.right <= W + 1) continue;
+          if ((r.right > W + 2 || r.left < -2) && !scrolls(el) && cs.visibility !== "hidden" && !el.closest("svg")) out.push((el.className && el.className.baseVal === undefined ? "." + String(el.className).split(" ")[0] : el.tagName.toLowerCase()) + " " + Math.round(r.left) + ".." + Math.round(r.right)); }
+        return JSON.stringify({ W, sideways: document.documentElement.scrollWidth > W + 1, n: out.length, first: [...new Set(out)].slice(0, 6) }); })()`, returnByValue: true });
+      const o = JSON.parse(res.result?.result?.value ?? "{}");
+      if (o.sideways || o.n) { bad++; console.log(`   !! overflow at ${o.W}px: ${o.sideways ? "page scrolls sideways; " : ""}${o.n} element(s) outside the window: ${(o.first ?? []).join(", ")}`); }
     }
     const shot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
     writeFileSync(join(OUT, file), Buffer.from(shot.result.data, "base64"));

@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.14.3 (2026-10-11)
+# QA report: FilmCrafter 0.14.4 (2026-10-11)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,7 +6,7 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,826 passed**, 6 skipped (optional-dependency tests), 0 failed |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,832 passed**, 6 skipped (optional-dependency tests), 0 failed |
 | Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **463 passed** |
 | App shell (`cargo test`) | **7 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
@@ -25,6 +25,14 @@ Interaction was tried, not only rendering: dragging a person and a camera on the
 
 `PF_A11Y=1 node scripts/docshots-edge.mjs` runs axe-core (WCAG 2.1 A and AA) on every one of the 41 screens: **0 findings** after this cycle's fixes (7 kinds were found first, listed below). Automated rules catch only part of accessibility (roughly names, roles, contrast and structure); it is not a substitute for a keyboard-only or screen-reader walk-through, which has not been done.
 
+## Film audit (every shot's prompt)
+
+`python scripts/audit_film.py "<film folder>"` (free; nothing is sent) was run on the repaired Summit Sprout film: 58 shots, 45 with people, **0 problems** for pictures. For video it also passes (spoken lines are meant to reach video, so the quoted-speech check is for pictures only). Before this release the same film failed in four ways (see the table below). Screenplay layouts tested: numbered scene headings, forced `@Name` cues, title pages with author and contact lines, `(V.O.)`, `(O.S.)`, `(CONT'D)`, scripts with no scene headings, PDF-extracted text.
+
+## Layout at the smallest window
+
+All screens at 1100 px (the app's minimum width) and 1280 px: nothing outside the window, no sideways scrolling (`PF_OVERFLOW=1 PF_WIDTH=1100`). Tested in a browser engine, not in the installed window; nothing was tested below 1100 px (the app does not allow it), at 125% or 150% display scaling, or on a second monitor.
+
 ## Large film
 
 A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, make status, continuity, hand-off and blocking each 0.1 s or less) and the screens (`?n=300` in the harness; `PF_PERF=1` prints sizes). Select & review, Make and Shots draw in under 3 s with 2,100 to 4,900 page elements and 40 to 84 MB of script memory, no errors. Scenes fold in Select & review (a film over 60 shots opens with only its first scene open), so a 300-shot film is one scene of tiles and a list of headings.
@@ -42,6 +50,7 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 | Real Kie.ai run | Subtitles drawn into pictures, from quoted speech in the prompt | the prompt says who speaks, never the words |
 | Resolve import | The EDL named clips after the original files, so Resolve placed one clip six times | the EDL names each clip after its copy in the hand-off folder |
 | Use (user report), real screenplay | An all-capitals title was read as a speaker (shot 1 "Title speaks", scenes off by one); action shots had no people; people with long picture names were never sent; one person could take every picture slot | all four fixed; a test for each |
+| Film audit | A pronoun action shot ("She wrinkles her nose") had no one in it; numbered scene headings were not scenes; a forced @Name was not a speaker | all three fixed; tested |
 | Use (user report) | The Export format list had no 21:9 (nor 4:3, 4:5, 3:4, 9:21), and did not start on the film's shape | one format per frame shape, shared by three screens, tested against the engine |
 | Accessibility scan | Film strip blocks' names did not contain their visible text | name now matches the text |
 | Accessibility scan | The Studio's inspector tab list held a button that is not a tab | Advanced sits beside the tab list |

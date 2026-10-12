@@ -115,3 +115,54 @@ def test_references_beyond_the_sixth_are_not_all_called_the_sixth():
     from filmcrafter_engine import render as R
     src = open(R.__file__, encoding="utf-8").read()
     assert '"seventh", "eighth", "ninth", "tenth"' in src and "ordinal[min(i, 5)]" not in src
+
+
+# ---------------------------------------------------------------- the usual ways screenplays are typed
+
+def _scenes_and_speakers(t):
+    p = story.parse_screenplay(t)
+    sc = shots.scene_blocks(t)
+    return [s["heading"] for s in p["scenes"]], [c["name"] for c in p["characters"]], [b["speaker"] for s in sc for b in s["blocks"] if b["type"] == "dialogue"]
+
+
+def test_numbered_scene_headings_are_scenes():
+    heads, chars, speakers = _scenes_and_speakers("1  INT. KITCHEN - DAY  1\n\nSarah cooks.\n\nSARAH\nHi.\n\n2A  EXT. YARD - DAY  2A\n\nBirds.\n")
+    assert heads == ["INT. KITCHEN - DAY", "EXT. YARD - DAY"] and chars == ["SARAH"] and speakers == ["SARAH"]
+
+
+def test_a_number_that_is_part_of_the_place_is_kept():
+    heads, _, _ = _scenes_and_speakers("EXT. HIGHWAY 61 - DAY\n\nCars.\n\n3  INT. DINER 2 - NIGHT  3\n\nPie.\n")
+    assert heads == ["EXT. HIGHWAY 61 - DAY", "INT. DINER 2 - NIGHT"]
+    assert story.parse_screenplay("EXT. HIGHWAY 61 - DAY\n\nCars.\n")["scenes"][0]["location"] == "HIGHWAY 61"
+
+
+def test_a_forced_character_cue_is_a_speaker():
+    _, chars, speakers = _scenes_and_speakers(".SNOWY FIELD\n\nWind.\n\n@mcCoy\nHello.\n")
+    assert chars == ["mcCoy"] and speakers == ["mcCoy"]
+
+
+def test_title_page_with_author_and_contact_lines_is_not_a_scene_or_a_person():
+    t = 'THE LONG NIGHT\n\nWritten by\nA. Writer\n\nDraft 2\nContact: a@b.com\n\nFADE IN:\n\nINT. KITCHEN - NIGHT\n\nSARAH stands at the sink.\n\nSARAH\nWho is there?\n\nJOHN (O.S.)\nIt is me.\n'
+    heads, chars, speakers = _scenes_and_speakers(t)
+    assert heads == ["INT. KITCHEN - NIGHT"] and set(chars) == {"SARAH", "JOHN"} and speakers == ["SARAH", "JOHN"]
+
+
+def test_voice_over_and_contd_notes_do_not_make_new_people():
+    _, chars, speakers = _scenes_and_speakers("INT. CAR - NIGHT\n\nA car moves.\n\nSARAH (V.O.)\nI left.\n\nSARAH (CONT'D)\nI never came back.\n\nJOHN (O.S.)\nWait!\n")
+    assert chars == ["SARAH", "JOHN"] and speakers == ["SARAH", "SARAH", "JOHN"]
+
+
+def test_a_pronoun_after_a_line_of_dialogue_is_about_the_speaker(tmp_path):
+    t = "INT. YARD - DAY\n\nA schoolyard.\n\nLILA\nIt looked weird.\n\nShe wrinkles her nose.\n\nChloe keeps drawing.\n\nShe does not look up.\n\nCHLOE\nI heard you.\n"
+    d = story.create(str(tmp_path), "T", "screenplay", t)["dir"]
+    bible.seed(d)
+    shots.breakdown(d)
+    seen = {}
+    for sid in os.listdir(os.path.join(d, "shots")):
+        f = os.path.join(d, "shots", sid, "contract.json")
+        if os.path.isfile(f):
+            c = json.load(open(f, encoding="utf-8"))
+            seen[c["action"][:8]] = [x["name"] for x in c["characters"]]
+    assert seen["She wrin"] == ["LILA"]
+    assert seen["Chloe ke"] == ["CHLOE"]
+    assert seen["She does"] == ["CHLOE"]                                   # the last person the story named
