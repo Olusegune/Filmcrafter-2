@@ -249,3 +249,45 @@ def test_a_word_screenplay_is_read_in_full(tmp_path):
     with pytest.raises(SystemExit, match="Word file"):
         (tmp_path / "bad.docx").write_bytes(b"not a zip")
         story.read_document(str(tmp_path / "bad.docx"))
+
+
+# ---------------------------------------------------------------- "two friends in tow": the scene's numbered friends are in the shot
+
+def test_plural_friends_are_the_scenes_numbered_friends():
+    group = ["FRIEND #1", "FRIEND #2"]
+    assert shots._named_in("The camera finds Lila approaching with two friends in tow.", ["LILA", "FRIEND #1", "FRIEND #2"], group) == ["LILA", "FRIEND #1", "FRIEND #2"]
+    assert shots._named_in("Her friend waves.", ["LILA", "FRIEND #1"], ["FRIEND #1"]) == []                        # one friend, unnumbered: not guessed
+    assert shots._named_in("Friend #2 laughs.", ["FRIEND #1", "FRIEND #2"], ["FRIEND #1", "FRIEND #2"]) == ["FRIEND #2"]
+    assert shots._named_in("Friends cheer.", ["FRIEND #1"], []) == []                                              # not in this scene's group
+
+
+def test_a_shot_of_lila_and_her_friends_has_all_three(tmp_path):
+    script = "INT. YARD - DAY\n\nA schoolyard.\n\nThe camera finds Lila approaching with two friends in tow.\n\nLILA\nHi.\n\nFRIEND #1\nHey.\n\nFRIEND #2\nHello.\n"
+    d = story.create(str(tmp_path / "f"), "T", "screenplay", script)["dir"]
+    bible.seed(d)
+    shots.breakdown(d)
+    for sid in os.listdir(os.path.join(d, "shots")):
+        f = os.path.join(d, "shots", sid, "contract.json")
+        if os.path.isfile(f):
+            c = json.load(open(f, encoding="utf-8"))
+            if c["action"].startswith("The camera finds"):
+                assert [x["name"] for x in c["characters"]] == ["LILA", "FRIEND #1", "FRIEND #2"]
+                return
+    raise AssertionError("the shot was not made")
+
+
+# ---------------------------------------------------------------- the previous shot is a reference only for the people it shares
+
+def test_the_previous_shots_picture_is_not_sent_to_a_shot_of_other_people(tmp_path):
+    from filmcrafter_engine import continuity as CO
+    d = tmp_path / "p"
+    (d / "gen").mkdir(parents=True)
+    (d / "gen" / "kf.png").write_bytes(b"x")
+    (d / "keyframes.json").write_text(json.dumps({"production": {"S01-02": "project:gen/kf.png"}}))
+    (d / "continuity.json").write_text(json.dumps({"scenes": {"1": {"enabled": True}}}))
+    plan = {"scenes": [{"number": 1, "shots": [{"id": "S01-02", "start": 0, "performers": ["Chloe"]}, {"id": "S01-03", "start": 3, "performers": ["Lila", "Friend #1"]},
+                                               {"id": "S01-04", "start": 6, "performers": ["Chloe", "Lila"]}]}]}
+    shared: list = []
+    assert CO.previous_keyframe(str(d), "production", plan, "S01-03", shared) is None and shared == []          # nobody in common: nothing to copy from
+    assert CO.previous_keyframe(str(d), "production", plan, "S01-03") is not None                              # the older call is unchanged
+    assert CO.previous_keyframe(str(d), "production", plan, "S01-04", shared).endswith("kf.png") and shared == ["Chloe"]

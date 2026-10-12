@@ -2379,13 +2379,17 @@ def _submit(d: str, store: Store, project: dict, p, j: dict) -> None:
 
 def _previous_shot_ref(d: str, plan_name: str, plan: dict, shot_id: str) -> list[dict]:
     """Continuity: the scene's previous approved keyframe, last in line (dropped first when the model takes few refs)."""
+    shared: list[str] = []
     try:
         from .continuity import previous_keyframe
-        p = previous_keyframe(d, plan_name, plan, shot_id)
+        p = previous_keyframe(d, plan_name, plan, shot_id, shared)       # only a shot that shows the same people: another person's picture is copied onto this shot's people
     except Exception:
         p = None
-    return [{"label": "the previous shot of this scene (match its set, light, wardrobe and props, not its framing)",
-             "path": p, "kind": "continuity", "media": "image", "sheet": False}] if p else []
+    if not p:
+        return []
+    who = " and ".join(shared)
+    return [{"label": f"the previous shot of this scene (match its set and light, and the clothes of {who} only; do not copy anyone else from it, not its framing)",
+             "path": p, "kind": "continuity", "media": "image", "sheet": False}]
 
 
 def _with_movement(d: str, shot: dict) -> dict:

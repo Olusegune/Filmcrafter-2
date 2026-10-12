@@ -156,8 +156,10 @@ def direction(d: str, shot: dict) -> str:
     return " ".join(parts)
 
 
-def previous_keyframe(d: str, plan_name: str, plan: dict, shot_id: str) -> str | None:
-    """The approved keyframe of the shot before this one in the same scene (a reference for matching set, light and wardrobe)."""
+def previous_keyframe(d: str, plan_name: str, plan: dict, shot_id: str, shared_with: list | None = None) -> str | None:
+    """The approved keyframe of the shot before this one in the same scene (a reference for matching set, light and wardrobe).
+    With `shared_with` (filled in, it receives the names of the people in both shots): only a previous shot that shows at least one of the same people counts, because a picture of
+    other people is copied onto the people of this shot (a friend drawn in someone else's clothes)."""
     kfs = (_read(os.path.join(d, "keyframes.json"), {}) or {}).get(plan_name, {})
     for sc in plan.get("scenes", []):
         ids = [s["id"] for s in sorted(sc["shots"], key=lambda x: x["start"])]
@@ -165,9 +167,15 @@ def previous_keyframe(d: str, plan_name: str, plan: dict, shot_id: str) -> str |
             s = load(d)["scenes"].get(str(sc.get("number")))
             if not s or not s.get("enabled", True):   # only once continuity is set up for the scene
                 return None
+            people = {s["id"]: [str(x) for x in s.get("performers") or []] for s in sc["shots"]}
             for prev in reversed(ids[:ids.index(shot_id)]):
                 ref = kfs.get(prev)
                 if isinstance(ref, str) and ref.startswith("project:") and os.path.exists(os.path.join(d, ref[8:])):
+                    if shared_with is not None:
+                        both = [n for n in people.get(shot_id, []) if n.lower() in {x.lower() for x in people.get(prev, [])}]
+                        if not both:
+                            continue
+                        shared_with[:] = both
                     return os.path.join(d, ref[8:])
             return None
     return None

@@ -156,21 +156,34 @@ def _seconds(words: int, dialogue: bool) -> float:
 _GENERIC = {"woman", "man", "girl", "boy", "friend", "mother", "father", "kid", "child", "teacher", "voice", "crowd"}
 
 
-def _named_in(text: str, names: list[str]) -> list[str]:
-    """Which of the film's people are named in some action text, in the order they appear (a full name, or a last name only the one person has)."""
+def _named_in(text: str, names: list[str], group: list[str] | None = None) -> list[str]:
+    """Which of the film's people are named in some action text, in the order they appear: a full name, a last name only the one person has, a numbered person
+    written as in the script or as "Friend 1", and, with `group` (the numbered people who speak in this scene), a plural: "two friends" means Friend #1 and Friend #2."""
     last: dict[str, list[str]] = {}
     for n in names:
         w = n.split()[-1].lower() if len(n.split()) > 1 else ""
         if w and "#" not in n and len(w) >= 3 and w not in _GENERIC:
             last.setdefault(w, []).append(n)
+    low = text.lower()
     found: list[tuple[int, str]] = []
     for n in names:
         if "#" in n:
+            base, _, num = n.partition("#")
+            base, num = base.strip().lower(), num.strip()
+            m = re.search(r"(?<![a-z0-9])" + re.escape(base) + r"\s*#?\s*" + re.escape(num) + r"(?![0-9])", low) if base and num else None
+            if m:
+                found.append((m.start(), n))
             continue
         forms = [n.lower()] + [w for w, who in last.items() if who == [n]]
-        hits = [m.start() for f in forms for m in re.finditer(r"\b" + re.escape(f) + r"\b", text.lower())]
+        hits = [m.start() for f in forms for m in re.finditer(r"(?<![a-z0-9])" + re.escape(f) + r"(?![a-z0-9])", low)]
         if hits:
             found.append((min(hits), n))
+    for n in group or []:                                          # "with two friends in tow": the scene's numbered friends
+        base = n.partition("#")[0].strip().lower()
+        if "#" in n and len(base) >= 3 and n not in [x for _, x in found]:
+            m = re.search(r"(?<![a-z0-9])" + re.escape(base) + r"(?:s|es)(?![a-z0-9])", low)
+            if m:
+                found.append((m.start(), n))
     return [n for _, n in sorted(found)]
 
 
@@ -190,6 +203,7 @@ def _props_in(text: str, props: list[str]) -> list[str]:
 
 def _draft_scene(scene: dict, version: int | None, names: list[str] | None = None, props: list[str] | None = None) -> list[dict]:
     blocks = scene["blocks"]
+    in_scene = list(dict.fromkeys(b["speaker"] for b in blocks if b["type"] == "dialogue"))       # who speaks in this scene (the numbered group members among them)
     shots: list[dict] = []
     place = scene.get("location", "").title()
     first_action = next((b for b in blocks if b["type"] == "action"), None)
@@ -200,7 +214,7 @@ def _draft_scene(scene: dict, version: int | None, names: list[str] | None = Non
         sh = _blank("", scene, len(shots) + 1, version)
         sh["story_purpose"], sh["action"] = purpose, action[:700]
         sh["dialogue"] = dialogue or []
-        who = list(speakers or []) if speakers else _named_in(action, names or [])          # the people speaking; or, in an action shot, the people the action names
+        who = list(speakers or []) if speakers else _named_in(action, names or [], in_scene)          # the people speaking; or, in an action shot, the people the action names
         sh["characters"] = [{"name": n, "character_id": None, "state_id": None, "wardrobe_id": None} for n in who]
         sh["props"] = [{"name": p, "prop_id": None, "state": ""} for p in _props_in(action, props or [])]          # the props the shot's action names
         sh["camera"]["framing"] = framing
