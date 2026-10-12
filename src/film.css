@@ -685,3 +685,31 @@
 .sr-chosen { color: var(--signal); font-weight: 600; }
 .sr-sep { width: 1px; height: 14px; background: var(--hair); align-self: center; }
 @media (prefers-reduced-motion: reduce) { .sr-fold svg { transition: none; } }
+
+/* voiceover: your own recordings, attached to the people in each shot */
+.vo { max-width: 880px; margin: 0 auto; padding: var(--sp-5, 20px) 0 var(--sp-7, 40px); display: flex; flex-direction: column; gap: var(--sp-4, 16px); }
+.vo-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); flex-wrap: wrap; }
+.vo-sum { margin: 0; font-size: 15px; font-weight: 600; }
+.vo-how { margin: 0; max-width: 70ch; }
+.vo-shot { border: 1px solid var(--hair); border-radius: 4px; background: var(--panel, rgba(255,255,255,0.02)); padding: var(--sp-3, 12px) var(--sp-4, 16px); display: flex; flex-direction: column; gap: 10px; }
+.vo-shot h3 { margin: 0; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; gap: 10px; align-items: baseline; }
+.vo-note { margin: 0; display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--warn, #e8b04a); }
+.vo-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding-top: 10px; border-top: 1px solid var(--hair); }
+.vo-person:first-of-type { border-top: 0; padding-top: 0; }
+.vo-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vo-line { quotes: "\201C" "\201D"; color: var(--frost); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.vo-rec { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.vo-rec audio { height: 34px; width: 260px; max-width: 100%; }
+.vo-none { font-size: 12.5px; color: var(--text-quiet, #8b97a7); }
+.vo-others { margin: 0; font-size: 12px; }
+.vo-match { border: 1px solid var(--signal); border-radius: 4px; padding: var(--sp-4, 16px); display: flex; flex-direction: column; gap: 12px; }
+.vo-match h3 { margin: 0; font-size: 13px; }
+.vo-match table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.vo-match th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); font-weight: 600; padding: 4px 8px; }
+.vo-match td { padding: 6px 8px; border-top: 1px solid var(--hair); vertical-align: middle; }
+.vo-match select { max-width: 150px; }
+.vo-file { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vo-r.no .vo-state b { color: var(--warn, #e8b04a); }
+.vo-r.ok .vo-state b { color: var(--ok, #5ec27f); }
+.vo-done { font-size: 13px; }
+@media (max-width: 1100px) { .vo-person { grid-template-columns: 1fr; } .vo-rec { justify-content: flex-start; } }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.0 (2026-10-11)
+
+- **Voiceover: attach your own recorded voices to the people in each shot.** On Shots, **Voiceover** (all shots) and each shot's **Voice** tab. Name files for the person and shot (`CHLOE_S01-04.wav`), add them all at once, check the match table, attach. Nothing is guessed: ambiguous, unknown or out-of-shot files are asked about. A shot shorter than its recording is lengthened to hold it; originals are never changed; replaced or removed recordings are kept in `voice/_removed`.
+- **Your recording speaks.** For a video model that takes reference audio (Seedance 2), the recording is sent as the audio to follow, your keyframe goes as a reference picture, and the prompt says who speaks along to it. It wins over the model speaking for itself. At export your recordings are laid on the film at their shots and are what is heard; the editor hand-off folder gets one file per person per shot (`audio/voice`, listed in `shots.csv`).
+- **Checked for safety:** a film folder from elsewhere cannot make the app copy, upload or mix a file from outside the film; recordings over 20 minutes or 200 MB are refused; file names are reduced to safe names; the shell only passes four known actions.
+- The audit tool (`scripts/audit_film.py --kind video`) also checks that a shot with a recording carries it and names who speaks.
+- Tests: 34 engine tests for voiceover (matching, attaching, replacing, the render request, the export mix, the hand-off, safety) and 5 screen tests. Not tested: a real provider run with a recording (needs your permission and a spend cap).
+- Not built yet (phases 3 and 4): separate lip-sync for two speakers in one shot, and a lip-sync pass after the take.
+
 ## 0.14.6 (2026-10-11)
 
 - **The Shape list has all nine frame shapes.** The Studio's Shape and Aspect lists, New film and the Frame shape panel offered seven; 3:4 (tall portrait) and 9:21 (ultra-tall), which the engine and the Export formats accept, were missing. A test now compares the screens' list with the engine's.

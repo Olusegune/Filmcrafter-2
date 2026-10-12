@@ -180,6 +180,14 @@ def write(d: str) -> dict:
         os.makedirs(os.path.join(out, "audio"), exist_ok=True)
         audio_rel = "audio/" + file_name(os.path.basename(snd), 60)
         shutil.copyfile(snd, os.path.join(out, audio_rel))
+    from . import voiceover                                         # your own recordings, one file per person per shot, named for both, ready to line up under each shot
+    voice_rel: dict[str, list[str]] = {}
+    for r in rows:
+        for v in voiceover.for_shot(rd, r["id"]):
+            os.makedirs(os.path.join(out, "audio", "voice"), exist_ok=True)
+            rel = "audio/voice/" + file_name(f"{r['id']}-{v['key']}{os.path.splitext(v['path'])[1].lower()}", 70)
+            shutil.copyfile(voiceover.inside(rd, v["path"]), os.path.join(out, rel))
+            voice_rel.setdefault(r["id"], []).append(rel)
     pj = _read(os.path.join(rd, "project.json"), {})
     aspect = pj.get("aspect_ratio", "16:9")
     w, h = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080), "2.39:1": (1920, 804), "21:9": (1920, 804)}.get(aspect, (1920, 1080))
@@ -200,7 +208,7 @@ def write(d: str) -> dict:
         files["srt"] = f"{title}.srt"
     table = [{"shot": r["id"], "scene": r["scene"], "title": r["title"], "framing": r["framing"], "seconds": round(r["frames"] / FPS, 2), "start_timecode": tc(r["start"]),
               "take": media_rel.get(r["id"]), "provider": (r["take"] or {}).get("provider"), "model": (r["take"] or {}).get("model"), "cost": (r["take"] or {}).get("cost"),
-              "approved": bool((r["take"] or {}).get("approved"))} for r in rows]
+              "approved": bool((r["take"] or {}).get("approved")), "voice": ";".join(voice_rel.get(r["id"], []))} for r in rows]
     with open(os.path.join(out, "shots.json"), "w", encoding="utf-8", newline="\n") as fh:
         json.dump({"film": pretty, "fps": FPS, "shots": table}, fh, indent=2)
     with open(os.path.join(out, "shots.csv"), "w", encoding="utf-8", newline="") as fh:
@@ -208,6 +216,8 @@ def write(d: str) -> dict:
         wr.writeheader()
         wr.writerows(table)
     files["manifest"] = "shots.csv"
+    if voice_rel:
+        files["voiceover"] = "audio/voice"
     placed = sum(1 for r in rows if r["take"])
     return {"dir": out, "files": files, "shots": len(rows), "placed": placed, "missing": [r["id"] for r in rows if not r["take"]], "audio": audio_rel, "seconds": round(g["total"] / FPS, 1)}
 

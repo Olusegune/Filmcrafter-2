@@ -1072,7 +1072,7 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         tag = "@Audio1" if man.get("ref_syntax") == "@Image{n}" else "the reference audio"
         lyric = " / ".join(sung.get("lyrics", []))
         verb = "speaks along to" if sung.get("spoken") or SPEAK_WORDS.search(" ".join(str(shot.get(k, "")) for k in ("beats", "performance", "movement"))) else "sings along to"
-        blocks.append((9, f"{sung['performer']} {verb} {tag}: \"{lyric}\". Mouth shapes, breaths and phrasing "
+        blocks.append((9, f"{sung['performer']} {verb} {tag}" + (f": \"{lyric}\"" if lyric.strip() else "") + ". Mouth shapes, breaths and phrasing "
                           f"follow the voice exactly; the performance is felt, not mimed."))
     model_sound = bool(said and not lip and not native and roles.get("audio") and (overrides or {}).get(roles["audio"]) is True)   # the take's sound is switched on
     if said and not lip and not (native and "audio" in roles):
@@ -1867,6 +1867,11 @@ def singing(d: str, shot: dict, plan: dict) -> dict | None:
     Lyrics nobody is named for are assumed to be sung by the lead, when the lead is on screen in a medium or closer shot (or the shot's own words say someone sings, calls or speaks). A
     shot that shows someone else (the lead as a child, a crowd) is not assumed to sing: that is usually a narrator over a memory, and a mouth synced to a voice that is not theirs looks wrong.
     The person has the last word: a shot marked "on" always sings, "off" never does, and a project whose vocalist is off screen (`vocalist: "offscreen"`) sings nowhere unless a shot is marked "on"."""
+    from . import voiceover
+    mine = voiceover.for_shot(d, shot.get("id", ""))
+    if mine and sing_setting(d, shot.get("id")) != "off":      # the person's own recording is the voice of this shot: it is followed, whatever the song or the model would do
+        names = [r["speaker"] for r in mine]
+        return {"performer": names[0] if len(names) == 1 else " and ".join(names), "lyrics": [r["line"] for r in mine if r.get("line")] or [""], "spoken": True, "voiceover": True}
     song_map = _read(os.path.join(d, "songmap.json"), {}) or {}
     lines = [l for l in song_map.get("lyrics", []) if l.get("start") is not None
              and l["start"] < shot["end"] and (l.get("end") or l["start"]) > shot["start"]]
@@ -1920,6 +1925,9 @@ def native_lines(d: str, shot: dict) -> list[dict]:
 
 def native_for(d: str, shot: dict, man: dict) -> dict | None:
     """What the model is asked to say in this shot, or None (not a native scene, no one speaks here, or the model makes no sound)."""
+    from . import voiceover
+    if voiceover.for_shot(d, shot.get("id", "")):                # a recording is attached: the model is not asked to speak, the recording is followed
+        return None
     lines = native_lines(d, shot)
     return {"lines": lines} if lines and "audio" in man["roles"] else None
 
@@ -2500,7 +2508,8 @@ def audio_first(d: str, project: dict, shot: dict, plan: dict, man: dict) -> boo
         return False
     if "ref_audio" not in (man.get("roles") or {}) or not _exclusive_model(man) or native_for(d, shot, man) or not singing(d, shot, plan):
         return False
-    return mode == "audio_first" or _mouth_shown(d, shot)
+    from . import voiceover
+    return mode == "audio_first" or bool(voiceover.for_shot(d, shot.get("id", ""))) or _mouth_shown(d, shot)
 
 
 def model_inputs(refs: list[dict], payload: dict, man: dict, sung: dict | None) -> list[dict]:
@@ -2525,7 +2534,8 @@ def model_inputs(refs: list[dict], payload: dict, man: dict, sung: dict | None) 
             taken += 1 if sent else 0
             out.append({"role": "reference", "label": ("Reference picture (your approved keyframe)" if kf else r.get("label", "Reference picture").split(" (")[0].split(":")[0]), "path": path, "sent": sent})
     if sung and audio_key and payload.get(audio_key):
-        out.append({"role": "audio", "label": f"The song's vocal under this shot, for {sung.get('performer', 'the singer')} to follow", "path": None, "sent": True})
+        out.append({"role": "audio", "label": (f"Your recording of {sung.get('performer', 'the speaker')}, for the mouth to follow" if sung.get("voiceover")
+                                               else f"The song's vocal under this shot, for {sung.get('performer', 'the singer')} to follow"), "path": None, "sent": True})
     return out
 
 
@@ -2590,7 +2600,11 @@ def _sung_for(d: str, shot: dict, plan: dict, man: dict, provider=None) -> dict 
             dur = float(str(_duration_value(fields[man["roles"]["duration"]], dur)).rstrip("s"))
         except ValueError:
             pass
-    local = song_slice(d, shot, dur, vocals_only=project.get("lip_sync_audio", "vocals") != "mix")   # the clean vocal when the song has been separated: instruments confuse a mouth
+    if sing.get("voiceover"):
+        from . import voiceover
+        local = voiceover.slice_for(d, shot["id"], dur)                                              # the person's own recording(s) for this shot
+    else:
+        local = song_slice(d, shot, dur, vocals_only=project.get("lip_sync_audio", "vocals") != "mix")   # the clean vocal when the song has been separated: instruments confuse a mouth
     url = f"(upload) {os.path.basename(local)}" if provider is None else _upload_cached(d, provider, local)
     return {**sing, "url": url}
 

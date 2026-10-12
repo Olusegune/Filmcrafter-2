@@ -278,6 +278,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     enc = ["-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv", "-an"]
     parts, rendered = [], 0
     mix_items: list[dict] = []                            # each shot's take and where its shot sits on the film: its own sound is mixed from this (Sound layers)
+    vo_items: list[dict] = []                             # where each shot sits on the film, for the person's own recordings (a shot with no picture yet still speaks)
     from .render import native_mode
     native = native_mode(d)
     for i, (kind, sh, sc, frames) in enumerate(segments):
@@ -324,6 +325,9 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
             _check_frames(out + ".tmp.mp4", frames)
             os.replace(out + ".tmp.mp4", out)
         rendered += 1 if src else 0
+        if sh:
+            at = (base + sum(s[3] for s in segments[:i])) / FPS
+            vo_items.append({"shot": sh["id"], "start": at, "end": at + frames / FPS})
         if src and sh and take.get("media_kind") != "image" and take.get("provider") != "own":
             start = (base + sum(s[3] for s in segments[:i])) / FPS      # the shot's place on the whole song, in whole frames like its picture
             mix_items.append({"shot": sh["id"], "start": start, "end": start + frames / FPS, "take": take})
@@ -348,6 +352,10 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     mixed = shotsound.mix_track(d, mix_items, duration, None if native else song, os.path.join(work, "mix.wav"))
     if mixed:
         sound, song = mixed, mixed["path"]
+    from . import voiceover                                   # the person's own recorded voices are laid on the film: they, not the video model's sound, are heard
+    voiced = voiceover.mix_into(d, song, vo_items, duration, os.path.join(work, "voiced.wav"))
+    if voiced:
+        song = voiced["path"]
     length = sum(s[3] for s in segments) / FPS if win else duration
     _run(["-f", "concat", "-safe", "0", "-i", listfile] + (["-ss", f"{base / FPS:.4f}"] if win else []) + ["-i", song,
           "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
@@ -373,6 +381,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     shot_count = sum(1 for s in segments if s[0] == "shot")
     return {"path": out_path, "preset": preset["label"], "width": w, "height": h, "fps": FPS,
             "duration": duration, "shots": shot_count, "rendered": rendered, "draft": rendered < shot_count, "loudness": loud,
+            **({"voiceovers": voiced["recordings"]} if voiced else {}),
             **({"native_sound": sound["with_sound"], "native_silent": sound["silent"]} if sound and native else {}),
             **({"shot_sound": sound["with_sound"], "sound_layers": sound["layers"]} if sound and not native else {}),
             "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": srt,

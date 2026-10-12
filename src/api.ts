@@ -271,6 +271,7 @@ export const api = {
   isFilm: (path: string) => invoke<boolean>("is_film", { path }),
   shots: <T = ShotsView>(action: "get" | "breakdown" | "shot" | "set" | "add" | "duplicate" | "delete" | "move" | "merge" | "split" | "suggest" | "command" | "principles" | "blocking", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_shots", { action, target, data }),
+  voice: <T = VoiceStatus>(action: "status" | "match" | "import" | "remove", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice", { action, target, data }),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_make", { action, target, data }),
   assist: <T = AssistResult>(action: "estimate" | "suggest", target: string, data: Record<string, unknown>) => invoke<T>("film_assist", { action, target, data }),
@@ -474,6 +475,13 @@ export type MakeOption = { job: string; image: string | null; state: string; mod
 export type MakeTake = { job: string; video: string | null; state: string; model: string; provider: string; created: number; error?: string | null; cost?: number | null; approved: boolean; ok: boolean };
 export type MakeShot = { id: string; scene: number; title: string; duration: number; framing: string;
   storyboard: { options: MakeOption[]; chosen: string | null; locked: boolean }; keyframe: { options: MakeOption[]; chosen: string | null; locked: boolean }; video: { takes: MakeTake[]; approved: string | null } };
+export type VoiceRecording = { file: string; name: string; seconds: number; rms_db: number; peak_db: number };
+export type VoicePerson = { name: string; key: string; lines: string[]; recording: VoiceRecording | null };
+export type VoiceShot = { id: string; scene: number; title: string; seconds: number; people: VoicePerson[]; others: string[]; notes: string[] };
+export type VoiceStatus = { shots: VoiceShot[]; people: number; recorded: number; missing: number; problems: number };
+export type VoiceMatch = { file: string; name: string; shot: string | null; speaker: string | null; note: string; seconds: number | null;
+  status: "ok" | "replace" | "ambiguous" | "no_shot" | "no_speaker" | "not_in_shot" | "duplicate" | "bad_file" };
+export type VoiceImport = { attached: { shot: string; speaker: string; seconds: number; notes: string[]; replaced: boolean; lengthened_to?: number }[]; failed: { file: string; shot: string | null; why: string }[]; status: VoiceStatus };
 export type MakeStatus = { shots: MakeShot[]; active: number; render_dir: string; aspect_ratio?: string; synced: boolean; soundtrack: { kind: string; file?: string; name?: string };
   counts: { shots: number; storyboard: number; keyframe: number; video: number } };
 export type MakeSynced = { render_dir: string; shots: number; seconds: number; references: number; look: string; soundtrack: { kind: string } };

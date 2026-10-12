@@ -70,6 +70,8 @@ def audit(film: str, provider: str = "kie", kind: str = "image", model: str | No
             if refgen._needs_input_image(render.manifest(provider, use)):
                 problems.append(f"{sid}: no reference picture, and {use} needs one (it would be refused)")
         for x in refs:
+            if not x.get("path"):
+                continue                                                           # a reference that is only a link (nothing local to check)
             full = x["path"] if os.path.isabs(x["path"]) else os.path.join(rd, x["path"])
             if not os.path.isfile(full) or os.path.splitext(full)[1].lower() not in (".png", ".jpg", ".jpeg", ".webp"):
                 problems.append(f"{sid}: reference is not a picture file: {os.path.basename(x['path'])}")
@@ -85,6 +87,16 @@ def audit(film: str, provider: str = "kie", kind: str = "image", model: str | No
             problems.append(f"{sid}: no Look in the prompt")
         if not c["action"].strip() and not c["dialogue"] and not names:
             problems.append(f"{sid}: the shot has nothing in it (no action, no words, no people)")
+        if kind == "video":                                                         # a shot with your own recording must carry it, and say who speaks along to it
+            from filmcrafter_engine import voiceover
+            mine = voiceover.for_shot(rd, sid)
+            roles = r["manifest"].get("roles") or {}
+            if mine and "ref_audio" in roles:
+                if not r["payload"].get(roles["ref_audio"]):
+                    problems.append(f"{sid}: has a recording but the video request does not carry it")
+                if "speaks along" not in low:
+                    problems.append(f"{sid}: has a recording but the prompt does not say who speaks along to it")
+            stats["recordings"] = stats.get("recordings", 0) + len(mine)
         sc = c["scene"]
         if not sid.startswith(f"S{sc:02d}-"):
             problems.append(f"{sid}: its id does not match its scene ({sc})")

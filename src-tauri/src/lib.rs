@@ -1254,6 +1254,19 @@ async fn film_shots(app: AppHandle, action: String, target: String, data: Value)
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "shots", &args, &[])).await.map_err(err)?
 }
 
+/// The person's own recorded voices (filmcrafter_engine.voiceover): matching file names to shots and people, attaching, removing. Nothing here spends money or sends a file anywhere;
+/// the recordings are copied into the film and only read by the render when a video is made, after the price has been shown and confirmed.
+#[tauri::command]
+async fn film_voice(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 4] = ["status", "match", "import", "remove"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let dir = film_dir(&target)?;
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.voiceover".into(), action, dir.to_string_lossy().into(), "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "voice", &args, &[])).await.map_err(err)?
+}
+
 /// Making the film (filmcrafter_engine.make): builds the render project from the shots, tracks storyboard panels, keyframes and takes, locks and chooses. It never spends money:
 /// pictures and video are queued with the render commands, after the app has shown the price and the person has confirmed it.
 #[tauri::command]
@@ -2056,7 +2069,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             analyze_project, direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_check, film_assist, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, backups, frames, show, film, film_bible, film_shots, film_make, film_voice, film_check, film_assist, film_interchange, is_film, voices, is_show, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, dance, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

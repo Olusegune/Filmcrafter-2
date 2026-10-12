@@ -151,6 +151,19 @@ const bibleView = { rev: 4, updated: now, rules: { world: "A coastal town where 
   media_kinds: ["master", "front", "reference"], need: [], counts: { characters: 2, environments: 2, props: 1, characters_with_pictures: 2 } };
 
 const blockingPlanMock = { people: [{ name: "Sarah", x: 30, y: 36, facing: 20 }, { name: "John", x: 72, y: 34, facing: 190 }], props: [{ name: "Tea", x: 24, y: 24 }], camera: { x: 12, y: 46, aim: 342, fov: 42 } };
+const voiceStatus = {
+  people: 5, recorded: 2, missing: 3, problems: 1,
+  shots: [
+    { id: "S01-04", scene: 1, title: "Lila speaks.", seconds: 3, others: ["Chloe"], notes: ["Lila: 3.4 s recording, 3.0 s shot: the shot is lengthened to hold it"],
+      people: [{ name: "Lila", key: "lila", lines: ["She eats the weirdest stuff."], recording: { file: "voice/S01-04/lila.wav", name: "LILA_S01-04.wav", seconds: 3.4, rms_db: -21.2, peak_db: -4.1 } }] },
+    { id: "S01-06", scene: 1, title: "Friend #1 speaks to Lila.", seconds: 2, others: [],
+      people: [{ name: "Friend #1", key: "friend-1", lines: ["Like what?"], recording: { file: "voice/S01-06/friend-1.wav", name: "friend1_S01-06_take2.wav", seconds: 1.6, rms_db: -23.0, peak_db: -6.0 } },
+               { name: "Lila", key: "lila", lines: ["Yesterday? It looked like... spiced beans?"], recording: null }] },
+    { id: "S02-02", scene: 2, title: "Ethan speaks.", seconds: 5.4, others: ["Chloe"],
+      people: [{ name: "Ethan", key: "ethan", lines: ["Hey. You coming to the thing on Friday?"], recording: null }] },
+    { id: "S02-04", scene: 2, title: "Chloe speaks to Ethan.", seconds: 3.4, others: [], people: [{ name: "Chloe", key: "chloe", lines: ["I might."], recording: null }] },
+  ],
+};
 const blockingMock = { id: "S01-02", scene: 1, framing: "over the shoulder", plan: blockingPlanMock, suggested: null, has_previous: true, people: ["Sarah", "John"], room: { w: 100, h: 70 },
   text: "Blocking as the camera sees it: John screen-right, facing screen-left. Camera over Sarah's shoulder.",
   scene_shots: [{ id: "S01-01", framing: "wide", plan: { ...blockingPlanMock, camera: { x: 50, y: 66, aim: 270, fov: 65 } } }, { id: "S01-02", framing: "over the shoulder", plan: blockingPlanMock }, { id: "S01-03", framing: "over the shoulder", plan: { ...blockingPlanMock, camera: { x: 90, y: 20, aim: 190, fov: 40 } } }],
@@ -227,6 +240,7 @@ mockIPC((cmd, a) => {
     case "film_bible": return bibleView;
     case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : N > 8 ? { ...makeStatus, shots: grow(makeStatus.shots as never[]), counts: { ...(makeStatus as { counts: object }).counts, shots: N } } : makeStatus;
     case "film_check": return continuityMock;
+    case "film_voice": return voiceStatus;
     case "film_shots": return x.action === "shot" ? { shot: { ...shotContract, plan: blockingPlanMock, ...(/click=Blocking/.test(location.search) ? { locks: { storyboard: false, keyframe: false } } : {}) } } : x.action === "suggest" ? shotSuggestion : x.action === "blocking" ? blockingMock : x.action === "principles" ? { look: "stop-motion", family: "craft", screen_craft: false, picture: [], video: [{ id: "anticipation", name: "Anticipation", plain: "A small opposite move prepares the big one." }, { id: "follow-through", name: "Follow-through and overlapping action", plain: "Loose parts keep going a beat longer." }, { id: "staging", name: "Staging", plain: "One idea reads at once." }, { id: "slow-in-out", name: "Slow in and slow out", plain: "Movements ease in and out." }] } : N > 8 ? { ...shotsView, shots: grow(shotsView.shots as never[]), scenes: Array.from({ length: Math.ceil(N / 8) }, (_, k) => ({ number: k + 1, shots: 8, seconds: 40 })), seconds: N * 5 } : shotsView;
     case "film":
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
@@ -293,6 +307,7 @@ const scenes: Record<string, () => ReactNode> = {
   shotsuggest: () => <ShotSuggestionSheet shot="S01-02" current={shotContract as never} onClose={noop} onUse={noop}
     proposal={{ emotional_intention: "A held-back dread that neither of them names", beats: [{ character: "Sarah", what: "Holds the cup with both hands", want: "To be asked", hiding: "That she has packed", start: "calm", turn: "he does not look up", end: "still" }], micro_animation: "Steam rises; she blinks slowly",
       camera: { framing: "over the shoulder", angle: "low", lens: "portrait (50mm)", movement: "locked off", focus: "shallow", why: "Low and close keeps us with Sarah's silence." }, lighting: { description: "Low window light from the left", why: "Morning light is soft and slow." } }} />,
+  shotvoice: () => <div style={{ width: "min(1240px, 100vw)", height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   shots: () => <div style={{ width: "min(1240px, 100vw)", height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: "min(1200px, 100vw)", height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,

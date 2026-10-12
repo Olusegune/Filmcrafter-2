@@ -10,6 +10,7 @@ Screenplay or idea -> Production Bible, Cast and World -> shots with Shot Contra
 Your story is kept exactly as given; suggestions never edit it. Every generation shows its price and waits for a yes. Chosen and locked work is never replaced.
 
 - **Look:** about 100 looks in six kinds of film (photorealistic, 3D, 2D, hybrid, hands-on crafts, art movements), a genre feel on top, the twelve principles of animation, and 48 filmmakers' visual approaches that work in any look. Where: Cast & World > Rules & style.
+- **Voiceover:** attach your own recorded voices (`CHLOE_S01-04.wav`) to the people in each shot; the mouth follows your recording and the finished film plays it.
 - **Frame shape:** 2.39:1, 21:9, 16:9, 4:3, 1:1, 4:5, 3:4, 9:16 or 9:21, chosen when the film is made and changeable later.
 - **Blocking:** a top-down plan per shot, with the 180-degree line checked across a scene.
 - **Quality:** a Production Supervisor shot by shot, a hands and faces check, a continuity check.

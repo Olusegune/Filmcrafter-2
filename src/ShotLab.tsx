@@ -5,10 +5,11 @@ import { FilmContinuity } from "./FilmContinuity";
 import { BlockingPlan } from "./BlockingPlan";
 import { askForHelp } from "./AssistSheet";
 import { ShotSuggestionSheet } from "./ShotSuggestionSheet";
+import { VoiceoverPanel } from "./VoiceoverPanel";
 import * as I from "./icons";
 
-type Tab = "story" | "acting" | "camera" | "blocking" | "light" | "continuity";
-const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "blocking", label: "Blocking" }, { id: "light", label: "Light" }, { id: "continuity", label: "Continuity" }];
+type Tab = "story" | "acting" | "camera" | "blocking" | "light" | "voice" | "continuity";
+const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "blocking", label: "Blocking" }, { id: "light", label: "Light" }, { id: "voice", label: "Voice" }, { id: "continuity", label: "Continuity" }];
 const BEAT: [keyof ShotBeat, string][] = [["character", "Who"], ["what", "What we see"], ["want", "Wants"], ["need", "Needs"], ["fear", "Fears"], ["hiding", "Hiding"], ["subtext", "Subtext"], ["start", "Starts feeling"], ["turn", "Turns to"], ["end", "Ends feeling"]];
 const EMPTY_BEAT: ShotBeat = { character: "", what: "", want: "", need: "", fear: "", hiding: "", subtext: "", start: "", turn: "", end: "" };
 
@@ -32,6 +33,7 @@ export function ShotLab({ dir }: { dir: string }) {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [review, setReview] = useState(false);
+  const [voices, setVoices] = useState(false);                         // every shot's recorded voices, in one place
   const [princ, setPrinc] = useState<{ screen_craft: boolean; video: { id: string; name: string; plain: string }[] } | null>(null);          // the animation principles this shot will carry
   const [helpShot, setHelpShot] = useState<Record<string, unknown> | null>(null);          // the writing helper suggestion for this shot
   const [helping, setHelping] = useState(false);
@@ -103,7 +105,8 @@ export function ShotLab({ dir }: { dir: string }) {
     <div className="sl">
       <aside className="sl-list" aria-label="Shots">
         <button className="btn ghost sm sl-ck" onClick={() => setCmd({ text: "", busy: false, result: null })} title="Say what you want changed in this shot (Ctrl+K)">Director Command  Ctrl+K</button>
-        <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => setReview((x) => !x)} title="Where something may have changed between shots">Continuity check</button>
+        <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => { setReview((x) => !x); setVoices(false); }} title="Where something may have changed between shots">Continuity check</button>
+        <button className={`btn ghost sm sl-ck ${voices ? "on" : ""}`} aria-pressed={voices} onClick={() => { setVoices((x) => !x); setReview(false); }} title="Attach your own recorded voices to the people in the shots">Voiceover</button>
         <div className="sl-listhead"><h2>Shots <span className="dim">{v.shots.length}{v.seconds ? ` · ${clock(v.seconds)}` : ""}</span></h2>
           <button className="btn ghost sm" onClick={() => act("break", () => api.shots("breakdown", dir), (r) => r.made?.[0] ?? sel)} disabled={!!busy}
                   title="Draft shots for any scene that has none. Shots you have edited are never changed.">{v.shots.length ? "Break down new scenes" : "Break down the story"}</button></div>
@@ -130,7 +133,8 @@ export function ShotLab({ dir }: { dir: string }) {
           {!cmd.result && <div className="film-actions"><button className="btn primary" disabled={cmd.busy || !cmd.text.trim() || !sel}>Show me the change</button><span className="dim">Nothing changes until you press Apply.</span></div>}
         </form></div>}
       {helpShot && c && <ShotSuggestionSheet shot={c.id} proposal={helpShot} current={c} onClose={() => setHelpShot(null)} onUse={async (patch) => { setHelpShot(null); if (Object.keys(patch).length) await save(patch); }} />}
-      {review ? <main className="sl-main"><FilmContinuity dir={dir} onGo={(id) => { setSel(id); setReview(false); }} onChanged={() => { void load(sel); if (sel) api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch(() => {}); }} /></main>
+      {voices ? <main className="sl-main"><VoiceoverPanel dir={dir} /></main>
+        : review ? <main className="sl-main"><FilmContinuity dir={dir} onGo={(id) => { setSel(id); setReview(false); }} onChanged={() => { void load(sel); if (sel) api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch(() => {}); }} /></main>
         : c ? <main className="sl-main">
         <div className="sl-head"><h2>{c.id} <input className="sl-title" aria-label="Shot title" value={draft.title ?? c.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} onBlur={() => commit("title")} placeholder="Name this shot" /></h2>
           <div className="sl-tools">
@@ -193,6 +197,7 @@ export function ShotLab({ dir }: { dir: string }) {
             {text("camera.why", "Why", 2, "What this choice does for the story")}
           </>}
 
+          {tab === "voice" && <VoiceoverPanel dir={dir} only={c.id} />}
           {tab === "blocking" && c && <BlockingPlan dir={dir} shot={c.id} locked={locked} plan={c.plan ?? null} onSaved={save} />}
           {tab === "light" && <>
             {text("lighting.description", "The light", 3, "Where it comes from, how hard or soft, what colour")}

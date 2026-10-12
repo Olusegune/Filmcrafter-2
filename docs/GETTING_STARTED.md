@@ -179,6 +179,23 @@ Before making pictures or video you choose which shots to work on. **Select & re
 
 ![The large preview](img/film/selectpreview.png)
 
+## Your own voices: voiceover for each person
+
+If you have recorded the lines yourself, attach them and the picture speaks them. On **Shots**, press **Voiceover** (every shot at once) or open a shot's **Voice** tab (just that shot).
+
+![Voiceover: every shot with someone speaking, the line, and your recording or a button to attach one](img/film/voiceover.png)
+
+1. **Name each file for the person and the shot:** `CHLOE_S01-04.wav`, `S01-04_Chloe.mp3`, or `Lila S01-06 take 3.wav`. When only one person speaks in the shot, `S01-04.wav` is enough. WAV, MP3, M4A, FLAC, AAC and OGG work.
+2. **Add recordings…** and choose them all at once. A table shows what each file matches: *Ready*, *Who is this?*, *Which shot?*, *Not in this shot*, *Can't use this file*. Nothing is guessed: change the shot or person in the table, then press **Attach**.
+3. A shot shorter than its recording is **lengthened to hold it** (never shortened). A recording longer than 15 seconds is flagged: a video model can follow only so much, so split that shot.
+4. Your original file is never changed. **Replace…** and **Remove** keep the old recording in the film's `voice/_removed` folder.
+
+![A shot's Voice tab](img/film/shot-voice.png)
+
+**What happens when you render.** For a model that takes reference audio (Seedance 2 on Kie.ai), your recording goes with the shot and the prompt says who speaks along to it; your approved keyframe goes as a reference picture, so the mouth follows your voice. **What you hear in the finished film is your recording**, laid on the film at its shot, not the video model's own sound. The editor hand-off folder gets each recording as its own file, named for the shot and person, in `audio/voice`. Models that cannot take audio are still told the words, and your recording is still the sound at export.
+
+Not built yet: two people speaking turn by turn inside one shot with each lip-synced separately (their recordings are joined in order for now), and a lip-sync pass after the video is made.
+
 ## Cards or timeline: the same film two ways
 
 Along the top of a film, **Cards | Timeline** switches how you see the same shots:

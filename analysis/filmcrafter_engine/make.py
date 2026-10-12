@@ -200,7 +200,9 @@ def sync(d: str) -> dict:
                     library.assign(rd, "scene", str(n), "fc-" + it["id"], True)
     sound = _soundtrack(d, total)
     _write(os.path.join(rd, "songmap.json"), _timeline_map(d, cons, plan, total))
-    return {"render_dir": rd, "shots": len(cons), "seconds": total, "references": made, "look": pj["look"]["style"], "soundtrack": sound}
+    from . import voiceover                          # the person's own recorded voices, for the render project to follow
+    voices = voiceover.to_render(d, rd)
+    return {"render_dir": rd, "shots": len(cons), "seconds": total, "references": made, "look": pj["look"]["style"], "soundtrack": sound, "voiceovers": voices}
 
 
 # ---------------------------------------------------------------- the soundtrack

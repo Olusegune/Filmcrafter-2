@@ -59,6 +59,8 @@ const SCENES = {
   studioshot: ["studio-shot.png", "scene=studio&clickcss=.shot-card.story&click=zzz&click=OK"],
   studioadvanced: ["studio-advanced.png", "scene=studio&clickcss=.shot-card.story&click=zzz&click=Advanced&click=OK"],
   shotacting: ["shots-acting.png", "scene=shots&click=Acting"],
+  voice: ["voiceover.png", "scene=shots&click=Voiceover"],
+  shotvoice: ["shot-voice.png", "scene=shotvoice&clickcss=.sl-tabs button:nth-child(6)"],
   shotblocking: ["shots-blocking.png", "scene=shots&click=Blocking"],
   bible: ["bible.png", "scene=cast&click=Rules %26 style"],
   library: ["library.png", "scene=library"],
