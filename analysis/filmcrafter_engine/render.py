@@ -2954,8 +2954,7 @@ def estimate(d: str, shot_ids: list[str], provider: str, model: str | None, kind
             blocked_native.append(sid)
         if "audio" in sman["roles"] and payload.get(sman["roles"]["audio"]) is True:
             native_shots += 1
-            from .voices import native_seconds
-            if sum(native_seconds(x["text"]) for x in native_lines(d, shot)) > (shot["end"] - shot["start"]) + 0.3:
+            if sum(max(1.0, len(x["text"].split()) / 2.5) for x in native_lines(d, shot)) > (shot["end"] - shot["start"]) + 0.3:     # about 2.5 words a second, at least a second a line
                 crowded_native.append(sid)       # more speech than the shot holds: the model rushes it or cuts it off
         if lip_prov and wants_lipsync_pass(d, project, plan, shot):
             lip_shots += 1

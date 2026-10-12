@@ -174,8 +174,12 @@ def load(d: str, spec: str | None, size: int):
             return ImageFont.truetype(p, size)
         except Exception:
             pass
-    from .show_finish import _font
-    return _font(size)
+    for name in ("segoeuib.ttf", "arialbd.ttf", "DejaVuSans-Bold.ttf", "Arial Bold.ttf"):          # no font chosen (or it would not open): a bold system font
+        try:
+            return ImageFont.truetype(name, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size)
 
 
 def add_file(d: str, src: str) -> dict:

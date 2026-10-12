@@ -219,6 +219,20 @@ def _with_shadow(img):
     return Image.alpha_composite(offset, canvas)
 
 
+
+def _wrap(draw, text: str, font, width: int) -> list[str]:
+    """Words broken into lines no wider than `width`."""
+    lines, cur = [], ""
+    for word in text.split():
+        trial = f"{cur} {word}".strip()
+        if cur and draw.textlength(trial, font=font) > width:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = trial
+    return lines + ([cur] if cur else [])
+
+
 def render_image(d: str, o: dict, W: int, H: int):
     """The overlay as a transparent picture sized for a W x H frame."""
     from PIL import Image, ImageDraw
@@ -233,7 +247,6 @@ def render_image(d: str, o: dict, W: int, H: int):
     scale = min(5.0, max(0.1, float(o.get("scale") or 1)))
     if kind == "text":
         from . import fonts, shapes
-        from .show_finish import _wrap
         size = max(10, min(int(H * 1.5), int(H * min(0.3, max(0.02, float(o.get("size") or 0.06))) * scale)))
         font = fonts.load(d, o.get("font"), size)
         probe = ImageDraw.Draw(Image.new("RGBA", (4, 4)))

@@ -180,12 +180,26 @@ def track(d: str, W: int, H: int, duration: float) -> str | None:
     return lst
 
 
+def _clock(t: float) -> str:
+    """A time as an .srt writes it: 00:01:02,345."""
+    ms = int(round(max(0.0, t) * 1000))
+    h, ms = divmod(ms, 3_600_000)
+    m, ms = divmod(ms, 60_000)
+    s, ms = divmod(ms, 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+
+def _srt(path: str, cues: list[tuple[float, float, str]]) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        for n, (a, b, text) in enumerate(cues, 1):
+            f.write(f"{n}\n{_clock(a)} --> {_clock(b)}\n{text}\n\n")
+
+
 def write_srt(d: str, video: str) -> str | None:
     """The visible captions as an .srt next to the film (same name)."""
     cfg = load(d)
     if not (cfg["enabled"] and cfg["style"].get("srt")):
         return None
-    from .show_finish import write_srt as _srt
     cues = [(o["start"], o["end"], caption_text(o, cfg["style"])) for o in lines(d) if not o["hidden"] and o["text"].strip()]
     if not cues:
         return None

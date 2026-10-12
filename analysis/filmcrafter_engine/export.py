@@ -185,17 +185,14 @@ def native_track(d: str, clips: list[tuple[float, float, str]], duration: float,
     clips: [(start_s, end_s, take_path)]. Returns {"path", "with_sound", "silent"}."""
     import numpy as np
     import soundfile as sf
-    from .voices import _decode, _rms
+    from .shotsound import _rms, decode
     total = int(round(duration * NATIVE_RATE))
     track = np.zeros(total, dtype=np.float32)
     used = 0
     for a, b, src in clips:
         if not _has_audio(src):
             continue
-        try:
-            x = _decode(src)
-        except SystemExit:
-            continue
+        x = decode(src, 1)[:, 0]                  # mono; a file that cannot be read gives nothing and the shot stays silent
         i0, i1 = int(round(a * NATIVE_RATE)), min(total, int(round(b * NATIVE_RATE)))
         x = x[: max(0, i1 - i0)].copy()
         if len(x) < 2 or _rms(x) < 0.003:       # nothing audible: leave the shot silent

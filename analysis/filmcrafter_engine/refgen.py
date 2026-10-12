@@ -152,7 +152,7 @@ def candidates(d: str, redo: list[str] | tuple = (), notes: dict | None = None) 
     out = []
     for it in items:
         kind = it.get("kind")
-        if kind not in VISUAL or it.get("from_show"):
+        if kind not in VISUAL:
             continue
         imgs = _images(d, it)
         shared = kind == "character" and bool(imgs) and all(use_count.get(f, 0) > 1 for f in imgs)
@@ -441,7 +441,7 @@ def cards(d: str) -> dict:
 
     for it in items:
         kind = it.get("kind")
-        if kind not in VISUAL or it.get("from_show"):
+        if kind not in VISUAL:
             continue
         imgs = _images(d, it)
         shared = kind == "character" and bool(imgs) and all(use_count.get(f, 0) > 1 for f in imgs)

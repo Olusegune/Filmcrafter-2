@@ -7,8 +7,18 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from filmcrafter_engine import export as E, render as R, show as S, voices as V
-from filmcrafter_engine.voices import _decode
+from filmcrafter_engine import export as E, render as R, shotsound
+
+RATE = shotsound.RATE
+
+
+def _decode(path):
+    return shotsound.decode(path, 1)[:, 0]
+
+
+def _dlg(scene, data):
+    """The scene's dialogue switch and lines, as the render reads them (dialogue.json)."""
+    json.dump(data, open(os.path.join(scene, "dialogue.json"), "w"))
 
 
 def field(name, type="string", **kw):
@@ -29,10 +39,10 @@ LINES = [{"character": "Ada", "text": "Where were you last night?"}, {"character
 
 @pytest.fixture
 def scene(tmp_path):
-    show = S.create(str(tmp_path / "shows"), "Night Market")["dir"]
-    sc = S.add_scene(show, "Quarrel")["dir"]
-    V.set_dialogue(sc, {"lines": LINES})
-    return sc
+    sc = tmp_path / "scene"
+    sc.mkdir()
+    _dlg(str(sc), {"lines": LINES})
+    return str(sc)
 
 
 def _songmap(d, lyrics):
@@ -45,38 +55,10 @@ PLAN = {"meta": {}, "characters": [{"name": "Ada", "appearance": "tall. red coat
 
 # ---------------------------------------------------------------- the switch and the free track
 
-def test_native_is_off_until_chosen_and_changing_it_makes_the_track_stale(scene):
-    assert not V.dialogue(scene).get("native") and R.native_mode(scene) is False
-    V.set_dialogue(scene, {"lines": LINES, "native": True})
-    assert R.native_mode(scene) is True
-    r = V.generate(scene)
-    assert r["native"] is True and r["voiced"] == 0 and r["lines"] == 2
-    d = V.dialogue(scene)
-    t = d["timings"]
-    assert all(x["estimated"] for x in t) and t[0]["start"] == V.LEAD_IN and t[1]["start"] > t[0]["end"]
-    assert t[0]["end"] - t[0]["start"] == pytest.approx(V.native_seconds(LINES[0]["text"])) and V.native_seconds("Hi") == V.NATIVE_MIN
-    data, rate = sf.read(os.path.join(scene, "song.wav"))
-    assert rate == V.RATE and 0.0 < float(np.abs(data).max()) < 0.02 and len(data) / rate == pytest.approx(r["duration"], abs=0.01)   # inaudible, as long as the lines
-    assert V._stale(scene, {**d, "native": True}) is False
-    assert V.estimate(scene)["usd"] == 0.0 and V.estimate(scene)["native"] is True
-    V.set_dialogue(scene, {"lines": LINES, "native": False})
-    assert V._stale(scene, V.dialogue(scene)) is True                                                # spoken another way now: make the track again
-
-
-def test_recordings_cannot_be_mixed_with_a_scene_the_model_speaks(scene, tmp_path):
-    wav = str(tmp_path / "take.wav")
-    sf.write(wav, (0.3 * np.sin(np.linspace(0, 600, 24000))).astype(np.float32), 24000)
-    lid = V.dialogue(scene)["lines"][0]["id"]
-    V.set_recording(scene, lid, wav)
-    with pytest.raises(SystemExit, match="recordings"):
-        V.set_dialogue(scene, {"lines": V.dialogue(scene)["lines"], "native": True})
-    assert not V.dialogue(scene).get("native")
-
-
 # ---------------------------------------------------------------- what the model is asked
 
 def test_a_shot_where_people_speak_asks_the_model_to_say_it_with_sound_on(scene):
-    V.set_dialogue(scene, {"lines": LINES, "native": True})
+    _dlg(scene, {"lines": LINES, "native": True})
     _songmap(scene, [{"text": 'Where were "you"?', "start": 0.6, "end": 2.0, "performer": "Ada"}, {"text": "Out.", "start": 2.2, "end": 2.8, "performer": "Ben"},
                      {"text": "Later line", "start": 5.0, "end": 6.0, "performer": "Ada"}])
     man = _talking()
@@ -95,7 +77,7 @@ def test_a_shot_where_people_speak_asks_the_model_to_say_it_with_sound_on(scene)
 
 
 def test_a_lines_emotion_becomes_how_it_is_said(scene):
-    V.set_dialogue(scene, {"lines": [{"character": "Ada", "text": "Where were you?", "emotion": "angry"}, {"character": "Ben", "text": "Out.", "emotion": "neutral"}], "native": True})
+    _dlg(scene, {"lines": [{"character": "Ada", "text": "Where were you?", "emotion": "angry"}, {"character": "Ben", "text": "Out.", "emotion": "neutral"}], "native": True})
     _songmap(scene, [{"text": "Where were you?", "start": 0.6, "end": 2.0, "performer": "Ada"}, {"text": "Out.", "start": 2.2, "end": 2.8, "performer": "Ben"}])
     n = R.native_for(scene, SHOT, _talking())
     assert [x["how"] for x in n["lines"]] == ["angrily", ""]                                           # neutral adds nothing
@@ -105,7 +87,7 @@ def test_a_lines_emotion_becomes_how_it_is_said(scene):
 
 def test_a_shot_with_more_speech_than_it_holds_is_flagged_in_the_price_sheet(scene, monkeypatch):
     words = " ".join(["word"] * 20)                                                                    # about eight seconds of speech
-    V.set_dialogue(scene, {"lines": [{"character": "Ada", "text": words}], "native": True})
+    _dlg(scene, {"lines": [{"character": "Ada", "text": words}], "native": True})
     _songmap(scene, [{"text": words, "start": 0.6, "end": 8.6, "performer": "Ada"}])
     plan = {"meta": {}, "characters": [], "scenes": [{"number": 1, "heading": "INT.", "shots": [{**SHOT, "start": 0.6, "end": 3.0}]}]}
     json.dump(plan, open(os.path.join(scene, "production.json"), "w"))
@@ -118,14 +100,14 @@ def test_a_shot_with_more_speech_than_it_holds_is_flagged_in_the_price_sheet(sce
 
 
 def test_a_model_that_cannot_make_sound_is_refused_before_anything_is_sent(scene):
-    V.set_dialogue(scene, {"lines": LINES, "native": True})
+    _dlg(scene, {"lines": LINES, "native": True})
     _songmap(scene, [{"text": "Hello", "start": 0.6, "end": 2.0, "performer": "Ada"}])
     man = _mute()
     assert R.native_for(scene, SHOT, man) is None
     why = R.native_problem(scene, SHOT, man)
     assert "Mute 1" in why and "turn native dialogue off" in why
     assert R.native_problem(scene, {**SHOT, "start": 6.0, "end": 7.0}, man) is None                  # a shot where nobody speaks can still be made silently
-    V.set_dialogue(scene, {"lines": LINES, "native": False})
+    _dlg(scene, {"lines": LINES, "native": False})
     assert R.native_problem(scene, SHOT, man) is None                                                 # and a normal scene is not affected at all
 
 
@@ -134,7 +116,7 @@ def test_the_lip_sync_pass_and_the_recorded_voice_are_not_used_for_a_native_scen
     proj = {"lip_sync": "closeups"}
     close = {**SHOT, "framing": "close-up"}
     assert R.wants_lipsync_pass(scene, proj, PLAN, close) is True
-    V.set_dialogue(scene, {"lines": LINES, "native": True})
+    _dlg(scene, {"lines": LINES, "native": True})
     assert R.wants_lipsync_pass(scene, proj, PLAN, close) is False
     man = R._finish("fal", "test/talker", "Talker", "image-to-video", [field("prompt"), field("generate_audio", "boolean"), field("audio_urls", "array", items="string")])
     assert R._sung_for(scene, SHOT, PLAN, man) is None
@@ -159,7 +141,7 @@ def test_the_track_is_each_shots_own_sound_laid_at_its_shot_and_silent_elsewhere
     r = E.native_track(str(tmp_path), [(0.0, 1.5, a), (1.5, 3.0, b), (3.0, 4.0, c)], 5.0, out)
     assert r["with_sound"] == 2 and r["silent"] == 1
     x = _decode(out)
-    rate = V.RATE
+    rate = RATE
     assert len(x) == 5 * rate
     seg = lambda t0, t1: float(np.sqrt(np.mean(x[int(t0 * rate):int(t1 * rate)] ** 2)))
     assert seg(0.2, 1.3) > 0.03 and seg(1.7, 2.9) < 0.001 and seg(3.2, 3.9) > 0.03 and seg(4.2, 4.9) < 0.001
@@ -183,7 +165,7 @@ def test_a_native_scene_exports_with_the_models_sound_not_the_placeholder(tmp_pa
     r = E.build(str(d), "square")
     assert r["native_sound"] == 1 and r["native_silent"] == 1 and not r["draft"]
     x = _decode(r["path"])
-    seg = lambda t0, t1: float(np.sqrt(np.mean(x[int(t0 * V.RATE):int(t1 * V.RATE)] ** 2)))
+    seg = lambda t0, t1: float(np.sqrt(np.mean(x[int(t0 * RATE):int(t1 * RATE)] ** 2)))
     assert seg(0.2, 1.3) > 0.03 and seg(1.8, 2.9) < 0.001
 
 
