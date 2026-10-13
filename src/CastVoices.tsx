@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type CastEstimate, type CastPlan, type CastPreview, type CastVoice, type ElevenVoice, type VoiceShot } from "./api";
 import { ask } from "./ask";
@@ -108,6 +108,24 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
     </section>);
 }
 
+/** Plays a library voice's sample. The app only plays local audio, so the sample is fetched into the film first (free), then played from there. */
+function SamplePlayer({ dir, url, name }: { dir: string; url: string; name: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const el = useRef<HTMLAudioElement | null>(null);
+  const load = async () => {
+    setErr(""); setBusy(true);
+    try {
+      const r = await api.castVoice<{ file: string }>("sample", dir, { url });
+      setSrc(api.mediaUrl(`${dir}/${r.file}`));
+      setTimeout(() => void el.current?.play().catch(() => {}), 60);
+    } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
+  };
+  if (!src) return <span className="cv-sample"><button className="btn sm" disabled={busy} onClick={() => void load()} aria-label={`Hear ${name}`}><I.Play size={12} /> {busy ? "Loading…" : "Hear"}</button>{err && <span className="error-text" title={err}>!</span>}</span>;
+  return <audio ref={el} controls src={src} aria-label={`Hear ${name}`} />;
+}
+
 type Tab = "library" | "design" | "clone";
 
 /** Choose, design or clone a voice for one person. */
@@ -163,7 +181,7 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: 
             {(voices ?? []).map((v) => (
               <div key={v.voice_id} className="cv-item"><div><b>{v.name}</b> <span className="dim">{v.category}</span>
                 <div className="dim cv-tags">{Object.values(v.labels).slice(0, 4).join(" · ")}{v.description ? ` · ${v.description}` : ""}</div></div>
-                {v.preview_url && <audio controls preload="none" src={v.preview_url} aria-label={`Hear ${v.name}`} />}
+                {v.preview_url && <SamplePlayer dir={dir} url={v.preview_url} name={v.name} />}
                 <button className="btn sm primary" disabled={busy} onClick={() => void use(v)}>Use for {person}</button></div>))}
           </div>
         </div>}

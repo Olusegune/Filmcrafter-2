@@ -290,6 +290,44 @@ def test_a_take_from_another_line_or_a_path_cannot_be_used(film, calls):
             C.use_take(film, sid, "Lila", bad)
 
 
+class Streamed:
+    def __init__(self, status=200, data=b"x" * 5000, headers=None):
+        self.status_code, self.ok, self._d, self.headers = status, status < 400, data, headers or {}
+
+    def iter_content(self, n):
+        for i in range(0, len(self._d), n):
+            yield self._d[i:i + n]
+
+
+def test_a_library_sample_is_fetched_into_the_film_only_from_elevenlabs_links_and_cached(film, monkeypatch):
+    import requests
+    seen = []
+    monkeypatch.setattr(requests, "get", lambda url, **kw: (seen.append((url, kw)), Streamed())[1])
+    ok = "https://storage.googleapis.com/eleven-public-prod/premade/voices/abc/preview.mp3"
+    out = C.sample(film, ok)
+    assert out["file"].startswith("voice/_previews/lib-") and out["cached"] is False and os.path.isfile(os.path.join(film, *out["file"].split("/")))
+    assert "xi-api-key" not in seen[0][1]["headers"] and seen[0][1]["allow_redirects"] is False        # the key goes only to ElevenLabs' own host
+    assert C.sample(film, ok)["cached"] is True and len(seen) == 1
+    C.sample(film, "https://api.us.elevenlabs.io/v1/voices/x/preview")
+    assert seen[1][1]["headers"]["xi-api-key"] == "test-key-not-real"
+
+
+def test_a_sample_link_that_is_not_elevenlabs_is_refused_and_a_redirect_or_a_huge_file_is_not_followed(film, monkeypatch):
+    import requests
+    calls = []
+    monkeypatch.setattr(requests, "get", lambda url, **kw: (calls.append(url), Streamed(302))[1])
+    for bad in ("http://storage.googleapis.com/eleven-x/a.mp3", "https://evil.example/a.mp3", "https://storage.googleapis.com/other-bucket/a.mp3",
+                "https://elevenlabs.io.evil.com/a.mp3", "https://user:pw@elevenlabs.io/a.mp3", "https://elevenlabs.io:8443/a.mp3", "file:///C:/Windows/win.ini", ""):
+        with pytest.raises(SystemExit, match="not an ElevenLabs sample"):
+            C.sample(film, bad)
+    assert calls == []
+    with pytest.raises(SystemExit, match="moved somewhere else"):
+        C.sample(film, "https://storage.googleapis.com/eleven-public-prod/a.mp3")
+    monkeypatch.setattr(requests, "get", lambda url, **kw: Streamed(200, b"x" * (4 * 1024 * 1024)))
+    with pytest.raises(SystemExit, match="larger than expected"):
+        C.sample(film, "https://storage.googleapis.com/eleven-public-prod/big.mp3")
+
+
 def test_the_command_line_only_does_what_the_shell_may_ask(film, capsys):
     with pytest.raises(SystemExit):
         C.main(["format_disk", film])

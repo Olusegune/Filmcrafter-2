@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.22.0 (2026-10-13)
+# QA report: FilmCrafter 0.22.1 (2026-10-13)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,8 +6,8 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,769 passed**, 8 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **496 passed** |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,771 passed**, 8 skipped (optional-dependency tests), 0 failed |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **497 passed** |
 | App shell (`cargo test`) | **8 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |

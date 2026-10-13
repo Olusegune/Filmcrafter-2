@@ -264,7 +264,7 @@ export const api = {
     invoke<T>("film_shots", { action, target, data }),
   voice: <T = VoiceStatus>(action: "status" | "match" | "import" | "remove", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice", { action, target, data }),
   /** Custom voices with ElevenLabs inside a film (filmcrafter_engine.cast_voice). Looking things up is free; the engine refuses to spend without `confirmed: true`, and to clone without `consent: true`. */
-  castVoice: <T = CastStatus>(action: "status" | "library" | "set" | "clear" | "design" | "design_save" | "clone" | "estimate" | "speak" | "preview" | "takes" | "use_take", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cast_voice", { action, target, data }),
+  castVoice: <T = CastStatus>(action: "status" | "library" | "set" | "clear" | "design" | "design_save" | "clone" | "estimate" | "speak" | "preview" | "takes" | "use_take" | "sample", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cast_voice", { action, target, data }),
   /** A take recorded in the app (a 16-bit WAV): saved under ~/.filmcrafter/incoming, the path comes back for `voice("import")`. */
   saveVoiceTake: (wav: Uint8Array) => invoke<string>("save_voice_take", wav),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>

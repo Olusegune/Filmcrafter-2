@@ -156,6 +156,54 @@ def library(query: str = "", page_token: str | None = None) -> dict:
     return {"voices": voices, "next": data.get("next_page_token") if data.get("has_more") else None}
 
 
+def _sample_host_ok(url: str) -> bool:
+    """Only ElevenLabs' own sample links: https, on elevenlabs.io (or a subdomain) or on the public ElevenLabs bucket of Google Storage."""
+    from urllib.parse import urlparse
+    u = urlparse(str(url or ""))
+    host = (u.hostname or "").lower()
+    if u.scheme != "https" or u.username or u.password or (u.port not in (None, 443)):
+        return False
+    if host == "elevenlabs.io" or host.endswith(".elevenlabs.io"):
+        return True
+    return host == "storage.googleapis.com" and u.path.startswith("/eleven-")
+
+
+def sample(d: str, url: str) -> dict:
+    """Fetch one library voice's sample into the film (voice/_previews) so it can be played here: the app's security policy only plays local audio. Free: nothing is made or paid for.
+    Only ElevenLabs' own links are fetched, over https, never redirected elsewhere, at most 3 MB; the ElevenLabs key goes only to elevenlabs.io."""
+    import requests
+    V._film(d)
+    if not _sample_host_ok(url):
+        raise SystemExit("That is not an ElevenLabs sample.")
+    name = "lib-" + hashlib.sha1(str(url).encode("utf-8")).hexdigest()[:16]
+    folder = os.path.join(d, "voice", "_previews")
+    for ext in (".mp3", ".wav"):
+        if os.path.isfile(os.path.join(folder, name + ext)):
+            return {"file": f"voice/_previews/{name}{ext}", "cached": True}
+    from urllib.parse import urlparse
+    host = (urlparse(url).hostname or "").lower()
+    headers = {"Accept": "audio/*"}
+    if host == "elevenlabs.io" or host.endswith(".elevenlabs.io"):
+        headers["xi-api-key"] = _headers()["xi-api-key"]
+    r = requests.get(url, headers=headers, timeout=30, stream=True, allow_redirects=False)
+    if r.status_code in (301, 302, 303, 307, 308):
+        raise SystemExit("That sample moved somewhere else, so it was not fetched.")
+    if not r.ok:
+        raise SystemExit(f"Could not fetch that sample (HTTP {r.status_code}).")
+    data = b""
+    for chunk in r.iter_content(65536):
+        data += chunk
+        if len(data) > 3 * 1024 * 1024:
+            raise SystemExit("That sample is larger than expected, so it was not kept.")
+    if len(data) < 200:
+        raise SystemExit("That sample is empty.")
+    ext = ".wav" if "wav" in str(r.headers.get("Content-Type", "")).lower() or data[:4] == b"RIFF" else ".mp3"
+    os.makedirs(folder, exist_ok=True)
+    with open(os.path.join(folder, name + ext), "wb") as f:
+        f.write(data)
+    return {"file": f"voice/_previews/{name}{ext}", "cached": False}
+
+
 def _person(d: str, who: str) -> tuple[str, str]:
     name = str(who or "").strip()[:60]
     k = V.key_of(name)
@@ -437,7 +485,7 @@ def preview(d: str, who: str, text: str = "", confirmed: bool = False) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take"])
+    ap.add_argument("action", choices=["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -463,6 +511,8 @@ def main(argv: list[str]) -> int:
             res = estimate(d, x.get("items") or [])
         elif a.action == "speak":
             res = speak(d, x.get("shot", ""), x.get("speaker", ""), x.get("text"), x.get("confirmed") is True)
+        elif a.action == "sample":
+            res = sample(d, x.get("url", ""))
         elif a.action == "takes":
             res = takes(d, x.get("shot", ""), x.get("speaker", ""))
         elif a.action == "use_take":

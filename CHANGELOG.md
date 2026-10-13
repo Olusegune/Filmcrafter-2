@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.22.1 (2026-10-13)
+
+- **Fixed: library voices could not be played.** In *Give a voice… From your library*, the sample players showed 0:00 and did nothing (reported with a screenshot). The app only plays local audio, and ElevenLabs' samples are remote links. Each sample is now fetched into the film (free, nothing is made or paid for) when you press **Hear**, then played from there. Only ElevenLabs' own links are fetched (https, on elevenlabs.io or its public sample bucket), never followed to another address, at most 3 MB, and your key is sent only to elevenlabs.io. The app's security policy was **not** loosened. Checked for real: four of your library's samples fetched and decoded (4 to 40 seconds).
+
 ## 0.22.0 (2026-10-13)
 
 - **Voice lanes on the timeline.** Under the shots, one lane for each person who speaks, with a clip in every shot where they do: filled (real waveform, to scale) when recorded, dashed amber with the words when not, marked *spoken* when ElevenLabs made it. Drop an audio file on a clip to give it to that person; click a name to choose, design or clone their voice. Hidden in the Compact timeline.

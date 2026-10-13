@@ -164,6 +164,17 @@ describe("voices on the timeline and the line studio", () => {
   it("can be opened from the timeline, a shot card and the Voiceover rows, and the shell lets takes through", () => {
     for (const f of ["src/VoiceLanes.tsx", "src/VoiceChip.tsx", "src/VoiceoverPanel.tsx"]) expect(readFileSync(f, "utf8")).toContain("<LineStudio");
     const rust = readFileSync("src-tauri/src/lib.rs", "utf8");
-    expect(rust).toMatch(/ACTIONS: \[&str; \d+\] = \["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take"\]/);
+    expect(rust).toMatch(/ACTIONS: \[&str; \d+\] = \["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample"\]/);
+  });
+});
+
+describe("library voice samples play", () => {
+  it("are fetched into the film first and played locally (the app's policy only plays local audio), never from a remote link", () => {
+    const src = readFileSync("src/CastVoices.tsx", "utf8");
+    expect(src).toContain("function SamplePlayer");
+    expect(src).toContain('castVoice<{ file: string }>("sample"');
+    expect(src).not.toMatch(/<audio[^>]*src=\{v\.preview_url\}/);
+    const csp = JSON.parse(readFileSync("src-tauri/tauri.conf.json", "utf8")).app.security.csp["media-src"] as string;
+    expect(csp).not.toMatch(/https?:\/\/(?!asset\.localhost)/);       // no remote audio was let in to fix it
   });
 });
