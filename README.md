@@ -16,7 +16,7 @@ Your story is kept exactly as given; suggestions never edit it. Every generation
 - **Quality:** a Production Supervisor shot by shot, a hands and faces check, a continuity check.
 - **Hand-off:** EDL, OpenTimelineIO and Final Cut Pro XML (verified in DaVinci Resolve Studio), manifest, subtitles.
 
-See `docs/GETTING_STARTED.md` (also the in-app guide, F1) for a walk through with pictures, `docs/QA.md` for what has been tested and what has not, and `docs/architecture/STATUS.md` for the honest state of each phase.
+See `docs/GOLDEN_PATH.md` (the order that makes a film cheapest and calmest), `docs/GETTING_STARTED.md` (also the in-app guide, F1) for a walk through with pictures, `docs/QA.md` for what has been tested and what has not, and `docs/architecture/STATUS.md` for the honest state of each phase.
 
 ## Develop
 

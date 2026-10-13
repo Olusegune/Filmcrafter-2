@@ -227,8 +227,14 @@ def match(d: str, files: list[str], hint: str | None = None) -> list[dict]:
 
 
 def _tokens_in(needle: list[str], hay: list[str]) -> bool:
+    """The person's name as a run of words in the file name; also when the words are run together or split differently (Friend1, friend_1, FRIEND 1 all mean Friend #1)."""
     n = len(needle)
-    return n > 0 and any(hay[i:i + n] == needle for i in range(len(hay) - n + 1))
+    if n == 0:
+        return False
+    if any(hay[i:i + n] == needle for i in range(len(hay) - n + 1)):
+        return True
+    squashed = "".join(needle)
+    return any("".join(hay[i:j]) == squashed for i in range(len(hay)) for j in range(i + 1, min(len(hay), i + 4) + 1))
 
 
 # ---------------------------------------------------------------- attaching
@@ -290,6 +296,37 @@ def _archive(d: str, rel: str) -> None:
             dst = os.path.join(d, "voice", "_removed", f"{int(time.time())}-{stem}-{n}{ext}")
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.move(src, dst)
+
+
+def shot_gone(d: str, sid: str, into: str | None = None) -> int:
+    """A shot was taken out (or joined into another). Its recordings never stay filed under an id that may be used again by a different shot: with `into`, a person's recording moves to
+    that shot unless that person already has one there; everything else goes to voice/_removed. Returns how many recordings were moved or kept aside. Nothing is deleted."""
+    meta = _meta(d)
+    entries = meta["shots"].pop(sid, [])
+    if not entries:
+        return 0
+    cons = _contracts(d)
+    kept = 0
+    target = meta["shots"].setdefault(into, []) if into and into in cons else None
+    have = {e["key"] for e in target} if target is not None else set()
+    for e in entries:
+        src = inside(d, e.get("file"))
+        if target is not None and e["key"] not in have and src and os.path.isfile(src):
+            rel = f"voice/{into}/{file_name(e['key'] + os.path.splitext(src)[1].lower(), 60)}"
+            dst = os.path.join(d, *rel.split("/"))
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.move(src, dst)
+            target.append({**e, "file": rel})
+            have.add(e["key"])
+        else:
+            _archive(d, e.get("file"))
+        kept += 1
+    if target is not None:
+        target.sort(key=lambda e: _order(cons[into], e["key"]))
+        if not target:
+            meta["shots"].pop(into, None)
+    _write(os.path.join(d, "voice", "voice.json"), meta)
+    return kept
 
 
 def import_files(d: str, items: list[dict], fit: bool = True) -> dict:

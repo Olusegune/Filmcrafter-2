@@ -4,6 +4,7 @@ import { api, errorText, type AssistKind, type BibleCharacter, type BibleEnviron
 import { AssistSheet, askForHelp } from "./AssistSheet";
 import { ask } from "./ask";
 import { askText } from "./askText";
+import { PrincipleIcon } from "./principleIcons";
 import * as I from "./icons";
 
 type Kind = "character" | "environment" | "prop";
@@ -142,7 +143,7 @@ function RulesStyle({ b, onSave, onHelp, helping }: { b: BibleView; onSave: (d: 
           <summary>Animation principles <span className="dim">{custom ? `${princ.length} of 12 on` : "the style's own choice"}</span></summary>
           <p className="dim">The twelve principles the great animation studios work by. For each shot, the few that fit what happens in it are added to the prompt, so a jump gets anticipation and a flowing coat gets follow-through. Photorealistic films use only the ones that are also good acting and camera craft.</p>
           <div className="cw-pr">{b.principles.map((p) => <button key={p.id} className={`cw-prc ${princ.includes(p.id) ? "on" : ""} ${p.fits ? "" : "off"}`} aria-pressed={princ.includes(p.id)} onClick={() => toggle(p.id)} title={p.plain}>
-            <b>{p.name}</b><span>{p.plain}</span></button>)}</div>
+            <span className="cw-prc-top"><PrincipleIcon id={p.id} /><b>{p.name}</b></span><span>{p.plain}</span></button>)}</div>
           {custom && <button className="link" onClick={() => { setCustom(false); setPrinc(b.principles.filter((p) => p.default).map((p) => p.id)); }}>Use the style's own choice</button>}
         </details>
         <label className="field"><span>What defines this look</span><textarea className="text-input" rows={2} value={style.traits} onChange={(e) => setStyle({ ...style, traits: e.target.value })} placeholder="Materials, textures, how things move" /></label>

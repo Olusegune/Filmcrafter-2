@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "FilmCrafter",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "identifier": "com.filmcrafter.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -79,27 +79,18 @@
           "filmcrafter"
         ],
         "name": "FilmCrafter.Project",
-        "description": "FilmCrafter music video project",
+        "description": "FilmCrafter film",
         "role": "Editor",
         "mimeType": "application/x-filmcrafter"
       },
       {
         "ext": [
-          "pulse"
+          "filmpack"
         ],
         "name": "FilmCrafter.Package",
-        "description": "FilmCrafter project in one file",
+        "description": "FilmCrafter film in one file",
         "role": "Editor",
         "mimeType": "application/x-filmcrafter-package"
-      },
-      {
-        "ext": [
-          "pfproducer"
-        ],
-        "name": "FilmCrafter.Producer",
-        "description": "FilmCrafter Producer package",
-        "role": "Viewer",
-        "mimeType": "application/x-filmcrafter-producer"
       }
     ],
     "resources": {
@@ -115,10 +106,10 @@
       },
       "signCommand": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sign.ps1 -File %1"
     },
-    "shortDescription": "Direct music into motion.",
+    "shortDescription": "Craft stories into cinema.",
     "publisher": "FilmCrafter",
     "copyright": "Copyright (c) 2026 FilmCrafter. All rights reserved.",
-    "longDescription": "FilmCrafter turns a song into a directed music video: it listens, plans every shot on the beat, renders with the AI models you choose (or free on your own ComfyUI), and exports the finished video.",
+    "longDescription": "FilmCrafter turns a story into a film: it reads your screenplay, builds the cast and world, plans every shot, makes the pictures and video with the AI models you choose (or free on your own ComfyUI), lip-syncs your own recorded voices, and exports the finished film or a hand-off to your editor.",
     "licenseFile": "../LICENSE.txt"
   }
 }

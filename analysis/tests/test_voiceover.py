@@ -367,3 +367,86 @@ def test_the_lip_sync_pass_follows_your_recording_when_the_shot_has_one(voiced, 
     audio = p[man["roles"]["src_audio"]]
     assert audio.startswith("project:cache/voice/") and audio.endswith(".mp3")                 # the recording, cut to the take's length, not the song
     assert p.get("separate_vocal") in (False, None)
+
+
+# ---------------------------------------------------------------- a shot with a line but no recording sends no "voice" (it used to send the film's silent soundtrack)
+
+def test_a_spoken_line_without_a_recording_sends_no_audio_and_no_quoted_line(film):
+    rd = os.path.join(film, "render")
+    make.sync(film)
+    sid = first_shot_with(film, "Lila")
+    plan = json.load(open(os.path.join(rd, "production.json"), encoding="utf-8"))
+    shot, _ = render._shot(plan, sid)
+    assert render.singing(rd, shot, plan) is None
+    r = render.preview(rd, sid, "kie", "bytedance/seedance-2", {}, "video")
+    man = r["manifest"]
+    assert not r["payload"].get(man["roles"]["ref_audio"])                                  # nothing to follow
+    prompt = r["payload"][man["roles"]["prompt"]]
+    assert "reference audio" not in prompt and "It looked weird" not in prompt              # no "speaks along to" a silent clip, no words for a model to draw as captions
+    assert "Lila" in prompt                                                                 # the mouth is still told who speaks
+
+
+# ---------------------------------------------------------------- the right voice stays with the right person and shot, whatever is done to the shots
+
+def _two_speaker_film(tmp_path):
+    t = "INT. YARD - DAY\n\nA schoolyard.\n\nLILA\nIt looked weird.\n\nCHLOE\nI know.\n\nLILA\nSee?\n\nCHLOE\nYes.\n"
+    d = story.create(str(tmp_path / "films"), "T", "screenplay", t)["dir"]
+    bible.seed(d)
+    shots.breakdown(d)
+    return d
+
+
+def test_joining_two_shots_keeps_the_recording_of_the_shot_that_went(tmp_path):
+    d = _two_speaker_film(tmp_path)
+    V.attach(d, "S01-03", "Chloe", tone(tmp_path, "c.wav", 1.0))
+    V.attach(d, "S01-04", "Lila", tone(tmp_path, "l.wav", 1.0))
+    shots.merge(d, "S01-03")                                                    # S01-04 is joined into S01-03
+    st = V.status(d)
+    joined = next(s for s in st["shots"] if s["id"] == "S01-03")
+    got = {p["name"]: bool(p["recording"]) for p in joined["people"]}
+    assert got == {"Chloe": True, "Lila": True}                                  # Lila's recording moved with her line
+    assert "S01-04" not in V._meta(d)["shots"] and os.path.isfile(os.path.join(d, "voice", "S01-03", "lila.wav"))
+    assert not os.path.exists(os.path.join(d, "voice", "S01-04", "lila.wav"))
+
+
+def test_joining_never_overwrites_a_recording_the_person_already_has(tmp_path):
+    d = _two_speaker_film(tmp_path)
+    V.attach(d, "S01-02", "Lila", tone(tmp_path, "one.wav", 1.0))
+    V.attach(d, "S01-03", "Lila", tone(tmp_path, "two.wav", 1.5), fit=False)       # also recorded in the next shot (not in its dialogue, but in the shot)
+    shots.merge(d, "S01-02")
+    kept = os.listdir(os.path.join(d, "voice", "_removed"))
+    assert len(kept) == 1 and "lila" in kept[0]                                  # the second one was put aside, not lost, not written over the first
+    assert V.status(d)["recorded"] >= 1
+
+
+def test_a_shot_taken_out_takes_its_recordings_out_of_the_shot_ids_that_may_come_back(tmp_path):
+    d = _two_speaker_film(tmp_path)
+    last = shots._index(d)["order"][-1]
+    V.attach(d, last, "Chloe", tone(tmp_path, "c.wav", 1.0))
+    shots.delete(d, last)
+    assert last not in V._meta(d)["shots"] and len(os.listdir(os.path.join(d, "voice", "_removed"))) == 1
+    made = shots.add(d, 1)                                                       # a new shot may be given the same id again
+    new_id = made["id"] if "id" in made else shots._index(d)["order"][-1]
+    assert V.status(d)["recorded"] == 0, new_id                                  # and must not start with the old shot's voice
+
+
+@pytest.mark.parametrize("name", ["FRIEND1_S01-02.wav", "friend_1_S01-02.wav", "Friend-1 S01-02.mp3", "S01-02_friend#1.wav", "S01-02 FRIEND 1.wav"])
+def test_a_numbered_person_is_found_however_the_name_is_typed(tmp_path, name):
+    t = "INT. YARD - DAY\n\nA schoolyard.\n\nFRIEND #1\nHey.\n\nFRIEND #2\nHello.\n"
+    d = story.create(str(tmp_path / "films"), "T", "screenplay", t)["dir"]
+    bible.seed(d)
+    shots.breakdown(d)
+    sid = next(s["id"] for s in V.status(d)["shots"] if any(p["name"] == "Friend #1" for p in s["people"]))
+    f = tone(tmp_path, name.replace("S01-02", sid), 1.0)
+    row = V.match(d, [f])[0]
+    assert row["speaker"] == "Friend #1" and row["shot"] == sid and row["status"] == "ok", row
+
+
+def test_friend_1_and_friend_2_are_never_mixed_up(tmp_path):
+    t = "INT. YARD - DAY\n\nA schoolyard.\n\nFRIEND #1\nHey.\n\nFRIEND #2\nHello.\n\nFRIEND #1\nBye.\n"
+    d = story.create(str(tmp_path / "films"), "T", "screenplay", t)["dir"]
+    bible.seed(d)
+    shots.breakdown(d)
+    s1 = next(s["id"] for s in V.status(d)["shots"] if any(p["name"] == "Friend #1" for p in s["people"]))
+    row2 = V.match(d, [tone(tmp_path, f"friend2_{s1}.wav", 1.0)])[0]
+    assert row2["speaker"] != "Friend #1"                                        # FRIEND2 is not FRIEND1, whatever shot it names

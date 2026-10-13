@@ -20,7 +20,7 @@ describe("what the video model is given, as pictures", () => {
     const html = view([kf, ref, { role: "audio", label: "The song's vocal under this shot, for Beatrice to follow", path: null, sent: true }]);
     expect(html).toContain("2 of 3 used");
     expect(html.indexOf("First frame")).toBeLessThan(html.indexOf("Reference"));
-    expect(html.indexOf("Reference")).toBeLessThan(html.indexOf("Song"));
+    expect(html.indexOf("Reference")).toBeLessThan(html.indexOf("Your recording"));
     expect(html).toContain("assets/kf.png");
     expect(html).toContain("The song&#x27;s vocal under this shot, for Beatrice to follow");
     expect(html).toContain("♪");

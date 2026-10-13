@@ -817,3 +817,20 @@
 .dropcard.story { min-height: 430px; padding: 52px 28px 48px; gap: 16px; }
 .dropcard.story .home-steps { margin-bottom: 2px; }
 @media (max-width: 760px) { .dropcard.story { min-height: 360px; padding: 40px 18px 36px; } }
+
+/* animation principles: a picture beside each name */
+.cw-prc-top { display: flex; align-items: center; gap: 9px; }
+.cw-prc .pr-icon { flex: none; color: var(--text-quiet, #8b97a7); padding: 5px; box-sizing: content-box; width: 24px; height: 24px; border-radius: 4px; background: rgba(255,255,255,0.04); }
+.cw-prc.on .pr-icon { color: #e8b45c; background: rgba(232,180,92,0.12); }
+
+/* cast and places: bigger faces in the list, bigger pictures beside them (asked for in use) */
+.cw-list .thumb { width: 58px; height: 58px; border-radius: 4px !important; }
+.cw-list button { padding: 7px 12px 7px 7px; }
+.cw-media { gap: var(--sp-4, 16px); }
+.cw-media figure, .cw-addpic { width: 200px; }
+.cw-media img, .cw-addpic { width: 200px; height: 266px; }
+
+/* the golden path's two nudges in Make film */
+.mk-golden { display: flex; flex-direction: column; gap: 6px; margin: 0 0 var(--sp-3, 12px); }
+.mk-golden p { margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 8px 12px; border: 1px solid rgba(232, 180, 92, 0.35); border-left: 3px solid #e8b45c; border-radius: 3px; background: rgba(232, 180, 92, 0.06); font-size: 13px; color: var(--frost); }
+.mk-golden svg { color: #e8b45c; align-self: center; flex: none; }

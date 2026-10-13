@@ -9,6 +9,7 @@ import { VoiceoverSheet } from "./VoiceoverSheet";
 import { VoiceChip } from "./VoiceChip";
 import { useVoiceDrop } from "./VoiceDrop";
 import type { VoiceStatus } from "./api";
+import * as I from "./icons";
 
 export type MakeTab = "storyboard" | "keyframe" | "video" | "deliver";
 const TABS: { id: MakeTab; label: string; blurb: string }[] = [
@@ -153,6 +154,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
       {tab !== "deliver" && <FilmStrip dir={dir} rd={rd} shots={st.shots} selected={picked} onChanged={() => void load()}
                  onSelect={(id) => { setPicked(id); document.getElementById(`mk-${id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} />}
       <p className="dim mk-blurb">{t.blurb}</p>
+      {stage && <GoldenNotes stage={stage} shots={st.shots} voices={voices} onVoices={() => setVoiceOpen(true)} />}
       {note && <p className="cw-note" role="status">{note} <button className="link" onClick={() => setNote("")}>OK</button></p>}
       {err && <p className="error-text" role="alert">{err}</p>}
 
@@ -203,6 +205,26 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab:
 }
 
 const done = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage === "video" ? !!s.video.takes.find((x) => x.ok) : !!s[stage].chosen || s[stage].options.some((o) => o.ok || ["queued", "submitting", "submitted"].includes(o.state));
+/** Two nudges that keep the production in order: test one shot before making them all, and attach the voices before the video (the mouth follows a recording only if it is there when the video is made). */
+export function goldenNotes(stage: "storyboard" | "keyframe" | "video", shots: MakeShot[], voices: VoiceStatus | null): { test: MakeShot | null; voices: boolean } {
+  const made = shots.filter((s) => (stage === "video" ? s.video.takes.some((t) => t.ok) : s[stage].options.length > 0 || !!s[stage].chosen)).length;
+  const ok = (s: MakeShot) => (stage === "video" ? !!s.keyframe.chosen : true);
+  const talky = new Set((voices?.shots ?? []).filter((v) => v.people.some((p) => (p.lines ?? []).length > 0)).map((v) => v.id));
+  const test = shots.length >= 4 && made === 0 ? shots.find((s) => ok(s) && talky.has(s.id)) ?? shots.find(ok) ?? null : null;
+  return { test, voices: stage === "video" && !!voices && voices.people > 0 && voices.missing > 0 && shots.some((s) => talky.has(s.id)) };
+}
+
+function GoldenNotes({ stage, shots, voices, onVoices }: { stage: "storyboard" | "keyframe" | "video"; shots: MakeShot[]; voices: VoiceStatus | null; onVoices: () => void }) {
+  const g = goldenNotes(stage, shots, voices);
+  if (stage === "storyboard" || (!g.test && !g.voices)) return null;
+  return (
+    <div className="mk-golden">
+      {g.voices && <p role="note"><I.Mic size={13} /> <b>{voices!.missing} of {voices!.people} voices have no recording yet.</b> Attach them before you make the video, so each mouth follows its voice. <button className="link" onClick={onVoices}>Voiceover…</button></p>}
+      {g.test && <p role="note"><I.Clapper size={13} /> Before you make all {shots.length}, <b>test one shot</b>: {g.test.id}. If it looks right, make the rest. <button className="link" onClick={() => document.getElementById(`mk-${g.test!.id}`)?.scrollIntoView({ block: "center", behavior: "smooth" })}>Show {g.test.id}</button></p>}
+    </div>
+  );
+}
+
 /** A stage is open for a shot once the one before it has a choice. */
 const ready = (s: MakeShot, stage: "storyboard" | "keyframe" | "video") => stage === "video" ? !!s.keyframe.chosen : true;      // a video needs its picture; a picture needs nothing (panels are optional)
 

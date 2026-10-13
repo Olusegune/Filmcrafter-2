@@ -1875,6 +1875,8 @@ def singing(d: str, shot: dict, plan: dict) -> dict | None:
         names = [r["speaker"] for r in mine]
         return {"performer": names[0] if len(names) == 1 else " and ".join(names), "lyrics": [r["line"] for r in mine if r.get("line")] or [""], "spoken": True, "voiceover": True,
                 **({"turns": voiceover.windows(d, shot.get("id", ""))} if len(mine) > 1 else {})}
+    if (_read(os.path.join(d, "project.json"), {}) or {}).get("film"):
+        return None          # a film has no song to follow: without a recording of its own the mouth follows the words in the picture (the old path sent the film's soundtrack, often silence, as "the voice")
     song_map = _read(os.path.join(d, "songmap.json"), {}) or {}
     lines = [l for l in song_map.get("lyrics", []) if l.get("start") is not None
              and l["start"] < shot["end"] and (l.get("end") or l["start"]) > shot["start"]]

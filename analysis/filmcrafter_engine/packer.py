@@ -1,11 +1,12 @@
-""".pulse: a whole project in one file, for sharing, archiving or moving to another computer.
+""".filmpack: a whole film in one file, for sharing, archiving or moving to another computer.
 
-The working project stays a folder (fast, safe while rendering, easy to recover). A .pulse file is a zip of that
-folder: every song, image, video, take and setting, minus caches that are rebuilt on their own. Opening a .pulse
-unpacks it into the FilmCrafter projects folder under a new name, so it never overwrites anything.
+The working film stays a folder (fast, safe while rendering, easy to recover). A .filmpack file is a zip of that
+folder: the story, cast, shots, your recordings, every picture and video made, and the render project, minus caches that
+are rebuilt on their own. Opening one unpacks it into the FilmCrafter projects folder under a new name, so it never
+overwrites anything. (A render project on its own, and files made by earlier versions with the extension .pulse, are read too.)
 
-  python -m filmcrafter_engine.packer pack <project_dir> <dest.pulse>
-  python -m filmcrafter_engine.packer unpack <file.pulse> <projects_root>
+  python -m filmcrafter_engine.packer pack <film_or_project_dir> <dest.filmpack>
+  python -m filmcrafter_engine.packer unpack <file.filmpack> <projects_root>
   python -m filmcrafter_engine.packer backup|backups|restore <project_dir> [name]
 
 Backups are automatic snapshots of the project's decisions (plan, shots, keyframe choices, approvals, library, Bible):
@@ -45,12 +46,16 @@ def looks_like_project(path: str) -> bool:
         names = os.listdir(path)
     except OSError:
         return False
-    if "project.json" in names or any(n.lower().endswith(".filmcrafter") for n in names):
+    if "project.json" in names or "film.json" in names or any(n.lower().endswith(".filmcrafter") for n in names):
         return True
     return sum(1 for n in PROJECT_MARKS if n in names) >= 2
 
 
-def _files(d: str, nested: list | None = None):
+def is_film_dir(d: str) -> bool:
+    return os.path.isfile(os.path.join(d, "film.json"))
+
+
+def _files(d: str, nested: list | None = None, film: bool = False):
     """Every file of the project, except rebuildable caches and any other project that sits inside this one (a copy saved into the project folder by mistake): packing those would
     pack the project many times over, and when the copies contain each other the paths grow past what Windows allows. `nested` collects the folders left out."""
     for root, dirs, files in os.walk(d):
@@ -59,6 +64,9 @@ def _files(d: str, nested: list | None = None):
             if x in SKIP_DIRS:
                 continue
             sub = os.path.join(root, x)
+            if film and root == d and x == "render":                  # a film's own render project is part of the film: its pictures and videos are what was paid for
+                keep.append(x)
+                continue
             if looks_like_project(sub):
                 if nested is not None:
                     nested.append(os.path.relpath(sub, d).replace(os.sep, "/"))
@@ -71,23 +79,24 @@ def _files(d: str, nested: list | None = None):
 
 
 def pack(d: str, dest: str) -> dict:
-    if not os.path.exists(os.path.join(d, "project.json")):
-        raise SystemExit("That isn't a FilmCrafter project.")
-    if not dest.lower().endswith(".pulse"):
-        dest += ".pulse"
+    film = is_film_dir(d)
+    if not film and not os.path.exists(os.path.join(d, "project.json")):
+        raise SystemExit("That isn't a FilmCrafter film.")
+    if not dest.lower().endswith((".filmpack", ".pulse")):
+        dest += ".filmpack"
     left_out: list[str] = []
     files, sizes = [], {}
-    for f in _files(d, left_out):
+    for f in _files(d, left_out, film):
         try:
             sizes[f] = os.path.getsize(f)
         except OSError:
             continue                                 # a file that cannot be read (gone, or a path too long for Windows) is left out, not fatal
         files.append(f)
     total = sum(sizes.values()) or 1
-    title = (json.load(open(os.path.join(d, "project.json"), encoding="utf-8")).get("title") or "Project")
+    title = (json.load(open(os.path.join(d, "film.json" if film else "project.json"), encoding="utf-8")).get("title") or "Film")
     tmp, done = dest + ".part", 0
     with zipfile.ZipFile(tmp, "w", allowZip64=True) as z:
-        z.writestr("pulse.json", json.dumps({"format": FORMAT, "title": title, "packed": int(time.time()), "files": len(files)}))
+        z.writestr("filmpack.json", json.dumps({"format": FORMAT, "kind": "film" if film else "render", "title": title, "packed": int(time.time()), "files": len(files)}))
         for f in files:
             rel = os.path.relpath(f, d).replace(os.sep, "/")
             comp = zipfile.ZIP_STORED if os.path.splitext(f)[1].lower() in STORED else zipfile.ZIP_DEFLATED
@@ -110,17 +119,22 @@ def unpack(path: str, root: str) -> dict:
     try:
         z = zipfile.ZipFile(path)
     except (OSError, zipfile.BadZipFile):
-        raise SystemExit("That file isn't a readable .pulse project.")
+        raise SystemExit("That file isn't a readable film file.")
     with z:
-        try:
-            meta = json.loads(z.read("pulse.json"))
-        except KeyError:
-            raise SystemExit("That file isn't a FilmCrafter .pulse project.")
+        meta = None
+        for meta_name in ("filmpack.json", "pulse.json"):                        # pulse.json: files made by earlier versions
+            try:
+                meta = json.loads(z.read(meta_name))
+                break
+            except KeyError:
+                continue
+        if meta is None:
+            raise SystemExit("That file isn't a FilmCrafter film file.")
         if meta.get("format", 0) > FORMAT:
-            raise SystemExit("This .pulse file was made by a newer FilmCrafter. Update the app to open it.")
+            raise SystemExit("This file was made by a newer FilmCrafter. Update the app to open it.")
         names = [n for n in z.namelist() if n.startswith("project/") and not n.endswith("/")]
-        if "project/project.json" not in names:
-            raise SystemExit("That .pulse file has no project inside.")
+        if "project/film.json" not in names and "project/project.json" not in names:
+            raise SystemExit("That file has no film inside.")
         dest = _unique(root, meta.get("title") or os.path.splitext(os.path.basename(path))[0])
         real = os.path.realpath(dest)
         total = sum(z.getinfo(n).file_size for n in names) or 1
@@ -128,7 +142,7 @@ def unpack(path: str, root: str) -> dict:
         for n in names:
             target = os.path.realpath(os.path.join(dest, n[len("project/"):]))
             if not target.startswith(real + os.sep):   # never write outside the new project folder
-                raise SystemExit("That .pulse file contains an unsafe path and was not opened.")
+                raise SystemExit("That file contains an unsafe path and was not opened.")
             os.makedirs(os.path.dirname(target), exist_ok=True)
             with z.open(n) as src, open(target, "wb") as out:
                 while chunk := src.read(1 << 20):
@@ -137,7 +151,7 @@ def unpack(path: str, root: str) -> dict:
             emit(event="progress", stage="unpacking", progress=round(done / total, 3))
     name = os.path.basename(dest)
     if name != meta.get("title"):   # opened next to an existing copy: give this one its own name
-        pj = os.path.join(dest, "project.json")
+        pj = os.path.join(dest, "film.json" if os.path.isfile(os.path.join(dest, "film.json")) else "project.json")
         p = json.load(open(pj, encoding="utf-8"))
         p["title"] = name
         with open(pj, "w", encoding="utf-8") as f:

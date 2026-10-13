@@ -277,6 +277,7 @@ export const api = {
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "set_aspect" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
+  packFilm: (target: string, dest: string) => invoke<{ path: string; files: number; bytes: number; title: string }>("pack_film", { target, dest }),
   packProject: (dir: string, dest: string) => invoke<{ path: string; files: number; bytes: number }>("pack_project", { dir, dest }),
   openPulse: (path: string) => invoke<string>("open_pulse", { path }),
   listProjects: () => invoke<ProjectSummary[]>("list_projects"),

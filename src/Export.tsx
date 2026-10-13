@@ -8,7 +8,7 @@ import { EXPORT_FORMATS, formatFor } from "./exportFormats";
 
 const PRESETS = EXPORT_FORMATS;
 
-/** PRD §31: simple presets. The song is the clock; every cut lands on its frame. */
+/** Simple presets. The film's timeline is the clock; every cut lands on its frame. */
 export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
   dir: string; projectAspect?: string; shots: number; rendered: number; onClose: () => void;
 }) {
@@ -94,7 +94,7 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
             {result.loudness && <div className="dim" title="Integrated loudness of the whole film in LUFS, its loudness range in LU, and its highest peak">
               Loudness {result.loudness.lufs} LUFS{result.loudness.true_peak_db != null ? `, peak ${result.loudness.true_peak_db} dB` : ""}.
               {result.loudness.lufs > -11 ? " Louder than most streaming sites play (about -14 LUFS), so they will turn it down." : result.loudness.lufs < -20 ? " Quiet next to most films (streaming sites play at about -14 LUFS)." : " Close to what streaming sites play (about -14 LUFS)."}</div>}
-            {!!result.captions && <div className="dim">Lyric captions drawn{result.subtitles ? <>; subtitles file written: <span style={{ wordBreak: "break-all" }}>{result.subtitles}</span></> : "."}</div>}
+            {!!result.captions && <div className="dim">Captions drawn{result.subtitles ? <>; subtitles file written: <span style={{ wordBreak: "break-all" }}>{result.subtitles}</span></> : "."}</div>}
             {!!result.overlays && <div className="dim">{result.overlays} on-screen text{result.overlays === 1 ? "" : "s"} drawn.</div>}
             {result.overlay_error && <div className="error-text">On-screen text wasn't added: {result.overlay_error} The film itself is fine.</div>}
             <div className="editor-send">

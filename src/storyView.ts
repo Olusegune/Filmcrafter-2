@@ -113,8 +113,8 @@ const HINT: Record<string, string> = {
   story: "Lock the story when it is final. Everything else is made from it.",
   cast: "Add the people and places, and choose a visual style. Optional: the writing helper can suggest details.",
   shots: "The story is broken into shots you can change.",
-  make: "Make each shot's picture, choose one, then bring it to life. Switch to Timeline for the full editing studio.",
-  export: "Choose a soundtrack, then export the film or hand it to an editor.",
+  make: "Test one shot first, then make each picture, choose one, attach your voices (Voiceover), and bring it to life. Switch to Timeline for the full editing studio.",
+  export: "Your recordings are laid over their shots. Choose a soundtrack if you want one, then export the film or hand it to an editor.",
 };
 /** The step before and after this one (Simple mode skips Shots), with what to do here. */
 export function neighbours(id: string, studio: boolean): { prev: string | null; next: string | null; hint: string } {

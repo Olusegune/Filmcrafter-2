@@ -1621,7 +1621,7 @@ async fn save_project_as(app: AppHandle, dir: String, dest: String) -> Result<St
     }).await.map_err(err)?
 }
 
-/// A .filmcrafter or .pulse file the app was launched with (double-click in Explorer), if any.
+/// A .filmcrafter or .filmpack file (or a .pulse from an earlier version) the app was launched with (double-click in Explorer), if any.
 #[tauri::command]
 fn launch_path() -> Option<String> {
     std::env::args().skip(1).find(|a| is_project_arg(a) || Path::new(a).join("project.json").exists())
@@ -1629,10 +1629,19 @@ fn launch_path() -> Option<String> {
 
 fn is_project_arg(a: &str) -> bool {
     let l = a.to_lowercase();
-    l.ends_with(&format!(".{DOC_EXT}")) || l.ends_with(".pulse") || l.ends_with(".pfproducer")
+    l.ends_with(&format!(".{DOC_EXT}")) || l.ends_with(".filmpack") || l.ends_with(".pulse")
 }
 
-/// Save the whole project as one .pulse file (a zip of the folder, without rebuildable caches).
+/// Save a whole film as one .filmpack file (a zip of its folder: story, cast, shots, voices, pictures, videos, render project; without rebuildable caches).
+#[tauri::command]
+async fn pack_film(app: AppHandle, target: String, dest: String) -> Result<Value, String> {
+    let d = film_dir(&target)?.to_string_lossy().to_string();
+    tauri::async_runtime::spawn_blocking(move || {
+        run_engine_result(&app, "pack", &["-m".into(), "filmcrafter_engine.packer".into(), "pack".into(), d, dest], &[])
+    }).await.map_err(err)?
+}
+
+/// Save a render project on its own as one file (a zip of the folder, without rebuildable caches).
 #[tauri::command]
 async fn pack_project(app: AppHandle, dir: String, dest: String) -> Result<Value, String> {
     let d = project_dir(&dir)?.to_string_lossy().to_string();
@@ -1653,7 +1662,7 @@ async fn backups(app: AppHandle, dir: String, action: String, name: Option<Strin
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "backup", &args, &[])).await.map_err(err)?
 }
 
-/// Open a .pulse file: unpack it into the projects folder under a new name and return that project folder.
+/// Open a .filmpack file (or a .pulse from an earlier version): unpack it into the projects folder under a new name and return that folder.
 #[tauri::command]
 async fn open_pulse(app: AppHandle, path: String) -> Result<String, String> {
     let root = projects_root(&app)?.to_string_lossy().to_string();
@@ -1935,17 +1944,16 @@ pub fn run() {
                 b.build(app)
             };
             let file = SubmenuBuilder::new(app, "File")
-                .item(&item("new", "New Music Video…", Some("CmdOrCtrl+N"))?)
-                .item(&item("open", "Open Project…", Some("CmdOrCtrl+O"))?)
+                .item(&item("new", "New Film…", Some("CmdOrCtrl+N"))?)
+                .item(&item("open", "Open Film…", Some("CmdOrCtrl+O"))?)
                 .separator()
                 .item(&item("save", "Save", Some("CmdOrCtrl+S"))?)
-                .item(&item("save_as", "Save As…", Some("CmdOrCtrl+Shift+S"))?)
-                .item(&item("save_pulse", "Save as One File (.pulse)…", None)?)
+                .item(&item("save_pulse", "Save a Copy as One File (.filmpack)…", Some("CmdOrCtrl+Shift+S"))?)
                 .item(&item("backups", "Restore from Backup…", None)?)
                 .separator()
                 .item(&item("export", "Export…", Some("CmdOrCtrl+E"))?)
                 .item(&item("reveal", "Show in Explorer", None)?)
-                .item(&item("close", "Close Project", Some("CmdOrCtrl+W"))?)
+                .item(&item("close", "Close Film", Some("CmdOrCtrl+W"))?)
                 .separator()
                 .item(&item("settings", "Settings…", Some("CmdOrCtrl+,"))?)
                 .item(&PredefinedMenuItem::quit(app, Some("Exit"))?)
@@ -2018,7 +2026,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, backups, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, pack_film, backups, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

@@ -5,8 +5,8 @@ import { FontPicker } from "./FontPicker";
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
 /**
- * Lyric captions: the words of the song (or a spoken scene's lines) drawn on the exported film as they are sung, and written to an
- * .srt subtitles file next to it. The lines come from the analysed song; here you change how they look and, line by line, what they say.
+ * Captions: the lines people say drawn on the exported film as they are spoken, and written to an
+ * .srt subtitles file next to it. The lines come from the film's dialogue; here you change how they look and, line by line, what they say.
  */
 export function CaptionsPanel({ dir }: { dir: string }) {
   const [st, setSt] = useState<CaptionsState | null>(null);
@@ -33,12 +33,12 @@ export function CaptionsPanel({ dir }: { dir: string }) {
 
   return (
     <details className="ov-panel">
-      <summary><b>Lyric captions</b> <span className="dim">{st.enabled ? "on" : "off"}{st.available ? ` · ${st.lines.filter((l) => !l.hidden).length} lines` : ""}</span></summary>
-      <p className="dim">The words of the song drawn on the film as they are sung, with a matching subtitles file. Change how they look here, and what any line says under
-        <b> Edit lines</b>. A spoken scene's captions can show who is speaking.</p>
+      <summary><b>Captions</b> <span className="dim">{st.enabled ? "on" : "off"}{st.available ? ` · ${st.lines.filter((l) => !l.hidden).length} lines` : ""}</span></summary>
+      <p className="dim">The lines people say, drawn on the film as they are spoken, with a matching subtitles file. Change how they look here, and what any line says under
+        <b> Edit lines</b>. Captions can show who is speaking.</p>
       {err && <p className="error-text" role="alert">{err}</p>}
       {!st.available ? <p className="dim">{st.reason}</p> : <>
-        <label className="ov-check"><input type="checkbox" checked={st.enabled} onChange={(e) => call("set", { enabled: e.target.checked })} /> Draw lyric captions on the exported film</label>
+        <label className="ov-check"><input type="checkbox" checked={st.enabled} onChange={(e) => call("set", { enabled: e.target.checked })} /> Draw captions on the exported film</label>
         <label className="ov-check"><input type="checkbox" checked={s.srt} onChange={(e) => call("set", { srt: e.target.checked })} /> Also write a subtitles file (.srt) next to the film</label>
         <label className="ov-check"><input type="checkbox" checked={s.names} onChange={(e) => call("set", { names: e.target.checked })} /> Show who is speaking (spoken scenes)</label>
         <label className="ov-check"><input type="checkbox" checked={s.uppercase} onChange={(e) => call("set", { uppercase: e.target.checked })} /> CAPITALS</label>

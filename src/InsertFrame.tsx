@@ -15,7 +15,7 @@ const MOVES = [["zoom_in", "Zoom in"], ["zoom_out", "Zoom out"], ["pan_left", "P
 const clock = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
 /**
- * Insert a frame into the timeline: a new shot of the length you choose, next to a shot you pick. It uses time the song already has (the empty
+ * Insert a frame into the timeline: a new shot of the length you choose, next to a shot you pick. It uses time the film already has (the empty
  * stretch beside that shot first; only what is still missing is cut from the shot, which keeps a second), so nothing after it moves.
  */
 export function InsertFrameSheet({ dir, shot, onClose, onDone }: { dir: string; shot?: string; onClose: () => void; onDone: (id: string) => void }) {
@@ -65,7 +65,7 @@ export function InsertFrameSheet({ dir, shot, onClose, onDone }: { dir: string; 
       <div className="sheet glass insert-frame" role="dialog" aria-label="Insert a frame" onClick={(e) => e.stopPropagation()}>
         <div className="vs-head"><h2>Insert a frame</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-        <p className="sub">A new shot in the film: a card, a held picture, your own clip or something generated. It takes time the song already has, so nothing after it
+        <p className="sub">A new shot in the film: a card, a held picture, your own clip or something generated. It takes time the film already has, so nothing after it
           moves and the film stays in sync. It is an ordinary shot afterwards: edit its prompt, camera and model, render takes and review it like any other.</p>
         <div className="if-row">
           <label className="field"><span>Put it</span>
@@ -77,7 +77,7 @@ export function InsertFrameSheet({ dir, shot, onClose, onDone }: { dir: string; 
           <label className="field"><span>Length (s)</span>
             <input className="text-input" type="number" min={st?.min ?? 0.5} max={st?.max ?? 15} step={0.5} value={length} onChange={(e) => setLength(Number(e.target.value))} /></label>
         </div>
-        {a && <p className="dim">Next to {a.id}, which lasts {(a.end - a.start).toFixed(1)} s. If the song has no empty stretch there, the missing time is cut from {a.id} (it keeps at least a second).</p>}
+        {a && <p className="dim">Next to {a.id}, which lasts {(a.end - a.start).toFixed(1)} s. If the film has no empty stretch there, the missing time is cut from {a.id} (it keeps at least a second).</p>}
         <div className="if-modes" role="tablist" aria-label="What the frame shows">
           {MODES.map((m) => (
             <button key={m.id} role="tab" aria-selected={mode === m.id} className={`if-mode ${mode === m.id ? "on" : ""}`} onClick={() => setMode(m.id)} title={m.hint}>

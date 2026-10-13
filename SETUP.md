@@ -55,7 +55,7 @@ To keep the build files off a synced or slow folder, set `CARGO_TARGET_DIR` firs
 
 ## 5. Bring your own things (they are not in the repository)
 
-- **Your films.** A film is a folder (it has `film.json`), usually in `Documents\FilmCrafter\`. Copy the whole folder across, including `render`, `voice` and `cast`; or open the film's Studio and use **Save as One File (.pulse)…** in the File menu to pack its render project into a single file. Open the folder from Home (or double-click the `.filmcrafter` file inside it).
+- **Your films.** A film is a folder (it has `film.json`), usually in `Documents\FilmCrafter\`. Either copy the whole folder across, or use **File > Save a Copy as One File (.filmpack)…** in the app (from any screen of the film), copy that one file, and open it on the new computer (File > Open Film…, or double-click it): it unpacks as a new film. Everything made is in it, including your recordings and the pictures and videos that were paid for.
 - **API keys.** They live in the computer's own keychain, so enter them again under **Settings** (fal.ai, Kie.ai, OpenAI, Google, ElevenLabs, whichever you use). They are never stored in a project or in this repository.
 - **Your settings and saved items** in `C:\Users\<you>\.filmcrafter`: the directions library (`directions.json`), the language-model settings (`llm.json`), the ComfyUI setup (`comfyui`), and, once you have made them, your saved layer styles (`layer_styles.json`) and templates (`layer_templates.json`). Copy that folder if you want them; the model catalogue cache in it (`manifests`) rebuilds itself.
 

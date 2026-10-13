@@ -45,7 +45,7 @@ describe("how the model has done in this project", () => {
   });
   it("counts takes, failures with their reasons, reviews, sound and spend, in plain words", () => {
     const line = trackLine(m({ takes: 7, failed: 3, failures: { service: 2, credits: 1 }, reviews: { good: 4, needs_attention: 2 }, sung: 5, sound: { in_time: 3, own_audio: 2 }, cost: 4.5 }), "Seedance 2");
-    expect(line).toBe("Seedance 2 in this project: 7 takes; 3 failed (2 provider busy or down, 1 out of credits); 4 of 6 reviewed took as good; sound in time with the song on 3 of 5 sung takes, made its own sound on 2; $4.50 spent.");
+    expect(line).toBe("Seedance 2 in this project: 7 takes; 3 failed (2 provider busy or down, 1 out of credits); 4 of 6 reviewed took as good; sound in time with the voice on 3 of 5 spoken takes, made its own sound on 2; $4.50 spent.");
     expect(trackLine(m({ takes: 1 }), "X")).toBe("X in this project: 1 take.");
   });
   it("shows nothing when no model has been used, and lists the other models folded away", () => {

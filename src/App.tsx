@@ -10,7 +10,7 @@ import { HelpSheet } from "./Help";
 import { BackupsSheet } from "./Backups";
 import { EngineSetup } from "./EngineSetup";
 import { FilmView } from "./FilmView";
-import { filmDirOfDoc, filmDirOfRender, isProducerPackage } from "./filmPaths";
+import { filmDirOfDoc, filmDirOfRender, isProducerPackage, isRenderDir } from "./filmPaths";
 import { NewFilm } from "./NewFilm";
 import type { StoryKind } from "./api";
 import "./styles.css";
@@ -21,7 +21,7 @@ type View =
   | { name: "studio"; project: LoadedProject }
   | { name: "film"; dir: string; stage?: string };
 
-/** FilmCrafter makes films. A music video that was never finished, a show, or a Producer package belongs in PULSEFRAME, which still has the song-first screens. */
+/** FilmCrafter makes films. A music video (or anything else that is not a film) belongs in PULSEFRAME. */
 const LEGACY = "This is not a FilmCrafter film. Music-video projects belong in PULSEFRAME: open it there.";
 
 export default function App() {
@@ -70,12 +70,13 @@ export default function App() {
   }, []);
 
   const chooseProject = useCallback(async () => {
-    const f = await openDialog({ filters: [{ name: "FilmCrafter Project", extensions: ["filmcrafter", "pulse"] }] });
+    const f = await openDialog({ filters: [{ name: "FilmCrafter film", extensions: ["filmcrafter", "filmpack", "pulse"] }] });
     if (typeof f === "string") openProject(f);
   }, [openProject]);
 
-  // Standard File menu (native menu bar + shortcuts).
+  // Standard File menu (native menu bar + shortcuts). It works from the film screens as well as from the Studio.
   const current = view.name === "studio" ? view.project : null;
+  const filmDir = view.name === "film" ? view.dir : current && isRenderDir(current.dir) ? filmDirOfRender(current.dir) : null;       // the film the person is working on, wherever they are in it
   useEffect(() => {
     const un = api.onMenu(async (id) => {
       try {
@@ -86,35 +87,31 @@ export default function App() {
           case "help": setHelp(true); break;
           case "save":
             if (current) { await api.saveProject(current.dir); await api.backups(current.dir, "backup", "saved").catch(() => {}); say("Saved"); }
-            else say("Open a project to save it.");
+            else if (filmDir) say("Your film is saved as you work.");
+            else say("Open a film to save it.");
             break;
-          case "save_as": {
-            if (!current) { say("Open a project first."); break; }
-            const dest = await saveDialog({ defaultPath: `${current.project.title} copy.filmcrafter`,
-                                            filters: [{ name: "FilmCrafter Project", extensions: ["filmcrafter"] }] });
-            if (dest) { const dir = await api.saveProjectAs(current.dir, dest); await openProject(dir); say("Saved a copy"); }
-            break;
-          }
           case "save_pulse": {
-            if (!current) { say("Open a project first."); break; }
-            const dest = await saveDialog({ defaultPath: `${current.project.title}.pulse`, filters: [{ name: "FilmCrafter project in one file", extensions: ["pulse"] }] });
+            if (!filmDir) { say("Open a film first."); break; }
+            const name = filmDir.split(/[\/]/).filter(Boolean).pop() ?? "Film";
+            const dest = await saveDialog({ defaultPath: `${name}.filmpack`, filters: [{ name: "FilmCrafter film in one file", extensions: ["filmpack"] }] });
             if (dest) {
-              setToast("Packing the project into one file…");
-              const r = await api.packProject(current.dir, dest);
-              say(`Saved ${r.files} files as one .pulse (${(r.bytes / 1e6).toFixed(0)} MB)`);
+              setToast("Packing the film into one file…");
+              const r = await api.packFilm(filmDir, dest);
+              setToast("");
+              say(`Saved ${r.files} files as one film file (${(r.bytes / 1e6).toFixed(0)} MB)`);
               await revealItemInDir(r.path).catch(() => {});
             }
             break;
           }
-          case "backups": if (current) setRestoring(true); else say("Open a project first."); break;
-          case "reveal": if (current) await revealItemInDir(current.doc ?? current.dir); break;
+          case "backups": if (current) setRestoring(true); else say(filmDir ? "Backups are made of the timeline: open the Timeline view first." : "Open a film first."); break;
+          case "reveal": if (current) await revealItemInDir(current.doc ?? current.dir); else if (filmDir) await revealItemInDir(filmDir); break;
           case "close": setView({ name: "home" }); break;
-          default: window.dispatchEvent(new CustomEvent("pf-menu", { detail: id })); // studio-level items
+          default: window.dispatchEvent(new CustomEvent("pf-menu", { detail: id })); // screen-level items: Export, Simple and Director mode, the inspector, the Director's command
         }
-      } catch (e) { setError(errorText(e)); }
+      } catch (e) { setToast(""); setError(errorText(e)); }
     });
     return () => { un.then((f) => f()); };
-  }, [current, chooseProject, openProject, say]);
+  }, [current, filmDir, chooseProject, openProject, say]);
 
   return (
     <>

@@ -338,7 +338,9 @@ def breakdown(d: str, scene: int | None = None) -> dict:
     return {**view(d), "made": made}
 
 
-def _archive(d: str, sid: str) -> None:
+def _archive(d: str, sid: str, into: str | None = None) -> None:
+    from . import voiceover
+    voiceover.shot_gone(d, sid, into)                        # its recordings move with it (joined into another shot) or are put aside, never left under an id that may be used again
     src = os.path.join(d, "shots", sid)
     if os.path.isdir(src):
         dst = os.path.join(d, "shots", "_removed", f"{sid}-{int(time.time())}")
@@ -510,7 +512,7 @@ def merge(d: str, sid: str) -> dict:
     a["generation"]["duration"] = round(min(30.0, a["generation"]["duration"] + b["generation"]["duration"]), 1)
     a["edited"] = True
     _write(_cpath(d, sid), a)
-    _archive(d, nxt)
+    _archive(d, nxt, into=sid)
     idx["order"].remove(nxt)
     _save_index(d, idx)
     return view(d)

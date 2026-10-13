@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.20.0 (2026-10-12)
+# QA report: FilmCrafter 0.21.0 (2026-10-12)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -7,8 +7,8 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 | Check | Result |
 |---|---|
 | Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,750 passed**, 8 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **485 passed** |
-| App shell (`cargo test`) | **7 passed** |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **491 passed** |
+| App shell (`cargo test`) | **8 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
 | The guide lists every look the app has (a test reads `styles.json`) | passing |
@@ -61,6 +61,11 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 | Use (user report), real screenplay | An all-capitals title was read as a speaker (shot 1 "Title speaks", scenes off by one); action shots had no people; people with long picture names were never sent; one person could take every picture slot | all four fixed; a test for each |
 | Use (user report) | A shot with no people could not make its picture on GPT Image 2.5 Flare ("Needs an image"): the fallback to a text-to-image twin only covered Nano Banana | every image-to-image model falls back to its text twin; the audit tool checks it |
 | Film audit | A pronoun action shot ("She wrinkles her nose") had no one in it; numbered scene headings were not scenes; a forced @Name was not a speaker | all three fixed; tested |
+| Whole-app pass (0.21.0) | A dialogue shot with no recording sent the film's silent soundtrack to Seedance as "the voice" and told it to speak along to it (probably why the first videos were mute) | films send no audio without a recording; tested |
+| Whole-app pass | The File menu said "New Music Video" and most items did nothing from the film screens; the one-file save packed only the render project (no story, cast, shots or recordings) | a film-aware menu and a `.filmpack` of the whole film; round trip tested |
+| Whole-app pass | Joining two shots lost the joined shot's recording; a deleted shot's recording stayed filed under an id a new shot could be given | recordings move or are put aside; tested |
+| Film audit | Scene blocking kept a ghost character from an old breakdown and put it into prompts | blocking follows the shots; tested |
+| Whole-app pass | Installer and app descriptions said "music video"; FilmCrafter registered `.pulse` and Producer files (PULSEFRAME's) with the old waveform icon | FilmCrafter's own icon, `.filmcrafter` and `.filmpack` only |
 | Use (user report, with pictures) | A friend drawn in another character's clothes: the previous shot's picture was sent as a reference to a shot of other people; "two friends" had no friends in the shot | the reference is sent only for people the shots share; plurals mean the scene's numbered friends; tested |
 | Clean-up | A Word (.docx) screenplay was silently cut after 6,000 characters | read whole; tested |
 | Use (user report) | Choosing 21:9 in the Shape list gave 16:9 again: the shape was saved on the render project only and the next sync rebuilt it from the film | the film's shape is set from every place it can be chosen; tested |

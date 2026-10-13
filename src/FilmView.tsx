@@ -47,6 +47,12 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
     reader.current?.querySelector(`[data-line="${sceneLine(s)}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
   };
 
+  const menuRef = useRef<(id: string) => void>(() => {});
+  useEffect(() => {
+    const on = (e: Event) => menuRef.current((e as CustomEvent<string>).detail);
+    window.addEventListener("pf-menu", on);
+    return () => window.removeEventListener("pf-menu", on);
+  }, []);
   if (!f) return <div className="film"><div className="film-load dim">{err || "Opening the film…"}</div></div>;
   const st = f.story;
   const goStage = (id: string) => {
@@ -54,6 +60,10 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
     if (id === "export") setMakeTab("deliver"); else if (id === "make" && makeTab === "deliver") setMakeTab("keyframe");          // Studio keeps the tab you were on; Export is the last one
   };
   const nb = neighbours(activeId, f.mode === "studio");
+  menuRef.current = (id: string) => {         // the View and File menus work from here too: Export goes to the Export step, Simple and Director mode set the film's mode
+    if (id === "export") goStage("export");
+    else if (id === "mode_simple" || id === "mode_director") { const m = id === "mode_simple" ? "simple" : "studio"; if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }
+  };
   const isScreenplay = f.kind === "screenplay";
   const studio = f.mode === "studio";
   const advice = openAdvice(f.advice);

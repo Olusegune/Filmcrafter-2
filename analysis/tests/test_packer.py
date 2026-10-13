@@ -21,7 +21,7 @@ def _proj(tmp_path):
 def test_pack_and_unpack_round_trip_without_caches(tmp_path):
     d = _proj(tmp_path)
     r = packer.pack(d, str(tmp_path / "out"))
-    assert r["path"].endswith("out.pulse") and r["files"] == 2
+    assert r["path"].endswith("out.filmpack") and r["files"] == 2
     root = tmp_path / "projects"
     root.mkdir()
     u = packer.unpack(r["path"], str(root))

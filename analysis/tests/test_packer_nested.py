@@ -22,7 +22,7 @@ def make_project(root, name="Exit Plan", extra=None):
 
 
 def names(path):
-    return sorted(n for n in zipfile.ZipFile(path).namelist() if n != "pulse.json")
+    return sorted(n for n in zipfile.ZipFile(path).namelist() if n not in ("pulse.json", "filmpack.json"))
 
 
 def test_a_copy_inside_the_project_is_left_out_and_reported(tmp_path):
@@ -74,7 +74,7 @@ def test_a_folder_with_no_project_is_refused_in_plain_words(tmp_path):
     (tmp_path / "x").mkdir()
     with pytest.raises(SystemExit) as e:
         packer.pack(str(tmp_path / "x"), str(tmp_path / "o.pulse"))
-    assert "isn't a FilmCrafter project" in str(e.value)
+    assert "isn't a FilmCrafter film" in str(e.value)
 
 
 def test_a_copy_that_stopped_part_way_without_project_json_is_still_recognised_and_left_out(tmp_path):

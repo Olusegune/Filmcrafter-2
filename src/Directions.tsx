@@ -31,7 +31,7 @@ export function CreativeDirections({ project, onPlanned, onSettings }: {
 
   const imagine = async () => {
     if (!(await api.aiReady())) { onSettings(); return; }
-    setError(""); setBusy("Listening to the song…"); setPick(null);
+    setError(""); setBusy("Reading your story…"); setPick(null);
     try { setConcepts((await api.creativeDirections(project.dir, notes)).concepts); } catch (e) { setError(errorText(e)); }
     finally { setBusy(""); }
   };
@@ -52,7 +52,7 @@ export function CreativeDirections({ project, onPlanned, onSettings }: {
     <div className="directions">
       {concepts.length === 0 ? (
         <div className="dir-intro">
-          <h2>How should this song look?</h2>
+          <h2>How should this film look?</h2>
           <p className="sub">FilmCrafter will propose three different directions for “{project.project.title}”. You choose one, and it
             writes the treatment and plans every shot on the beat.</p>
           <textarea className="text-input" rows={3} placeholder="Optional: anything you want, e.g. “set in Lagos, no dancing, hopeful ending”"

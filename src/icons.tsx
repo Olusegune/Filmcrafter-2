@@ -5,12 +5,13 @@ const S = ({ size = 20, children }: P & { children: React.ReactNode }) => (
        strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
 );
 
-/** FilmCrafter mark: two waveform strokes inside an open frame (PRD §47). */
+/** FilmCrafter mark: an F on a strip of film. */
 export const Mark = ({ size = 22 }: P) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v15A1.5 1.5 0 0 0 4.5 21H8M16 3h3.5A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5H16"
-          stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" />
-    <path d="M10 8v8M14 5.5v13" stroke="#E8B45C" strokeWidth={2.2} strokeLinecap="round" />
+    <rect x="2.5" y="3.5" width="19" height="17" rx="2.2" stroke="currentColor" strokeWidth={1.7} />
+    <path d="M7 3.5v17M17 3.5v17" stroke="currentColor" strokeWidth={1.2} opacity="0.55" />
+    <path d="M4.2 7h1.1M4.2 10.5h1.1M4.2 14h1.1M4.2 17.5h1.1M18.7 7h1.1M18.7 10.5h1.1M18.7 14h1.1M18.7 17.5h1.1" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" />
+    <path d="M10 17V7.2h5M10 11.8h3.6" stroke="#E8B45C" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 export const Home = (p: P) => <S {...p}><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" /></S>;

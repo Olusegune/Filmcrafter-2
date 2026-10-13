@@ -103,6 +103,23 @@ def audit(film: str, provider: str = "kie", kind: str = "image", model: str | No
         sc = c["scene"]
         if not sid.startswith(f"S{sc:02d}-"):
             problems.append(f"{sid}: its id does not match its scene ({sc})")
+    from filmcrafter_engine import voiceover as VO                       # every recording belongs to a person who is in its shot, is a real audio file, and fits
+    vs = VO.status(film)
+    stats["voices"] = f"{vs['recorded']} of {vs['people']} recorded"
+    for sh in vs["shots"]:
+        c = shots._contract(film, sh["id"])
+        inshot = {VO.key_of(n) for n in VO._speakers_of(c)}
+        for pe in sh["people"]:
+            rec = pe["recording"]
+            if not rec:
+                continue
+            if pe["key"] not in inshot:
+                problems.append(f"{sh['id']}: a recording for {pe['name']}, who is not in the shot")
+            full = VO.inside(film, rec["file"])
+            if not full or not os.path.isfile(full):
+                problems.append(f"{sh['id']}: {pe['name']}'s recording file is missing")
+        for note in sh["notes"]:
+            problems.append(f"{sh['id']}: {note}")
     return problems, stats
 
 

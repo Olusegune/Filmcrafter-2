@@ -2,7 +2,7 @@ import type { ChangesSince as Changes } from "./api";
 import "./acting.css";
 
 const LABEL: Record<string, string> = {
-  model: "Model", keyframe: "Keyframe", first_frame: "First frame", audio: "Song", references: "Pictures", length: "Length",
+  model: "Model", keyframe: "Keyframe", first_frame: "First frame", audio: "Your recording", references: "Pictures", length: "Length",
   prompt_added: "Added to the prompt", prompt_removed: "Removed from the prompt", prompt_more: "",
 };
 

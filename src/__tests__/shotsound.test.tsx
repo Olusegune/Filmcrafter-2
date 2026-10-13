@@ -11,7 +11,7 @@ import { SoundPanel, toggleShotSound } from "../ShotSound";
 
 const base: ShotSound = {
   shot: "S01-02", native: false, split: false, changed: false, has_audio: true, silent: false, take: { id: "j1", model: "seedance", output: "generations/a.mp4" },
-  layers: [{ id: "song", label: "Song", on: true, gain: null, removed: false, effective_gain: 1, auto: true },
+  layers: [{ id: "song", label: "Soundtrack", on: true, gain: null, removed: false, effective_gain: 1, auto: true },
            { id: "all", label: "Sound from the video model", on: false, gain: 1, removed: false }],
 };
 const view = (snd: Partial<ShotSound> = {}, extra: { busy?: string; err?: string; level?: Record<string, number>; db?: ShotLevels | null } = {}) =>
@@ -23,7 +23,7 @@ beforeEach(() => invoke.mockReset());
 describe("sound layers panel", () => {
   it("shows the song and the take's own sound, says nothing is rendered again, and offers to split", () => {
     const html = view();
-    expect(html).toContain("Song");
+    expect(html).toContain("Soundtrack");
     expect(html).toContain("Sound from the video model");
     expect(html).toContain("nothing is rendered again");
     expect(html).toContain("Split voices from effects");
@@ -62,8 +62,8 @@ describe("sound layers panel", () => {
     expect(html).not.toContain("<ul");
   });
 
-  it("a spoken scene says the song is not played; every control is disabled while a change is saved", () => {
-    expect(view({ native: true })).toContain("the song is not played");
+  it("a spoken scene says the soundtrack is not played; every control is disabled while a change is saved", () => {
+    expect(view({ native: true })).toContain("the soundtrack is not played");
     expect(view({}, { busy: "all" })).toMatch(/<button[^>]*disabled[^>]*>.*Split voices from effects/);
   });
 

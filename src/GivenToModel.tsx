@@ -2,10 +2,10 @@ import { useState } from "react";
 import { api, type ModelInput } from "./api";
 import "./acting.css";
 
-const ROLE_NAME: Record<string, string> = { first_frame: "First frame", reference: "Reference", end_frame: "End frame", audio: "Song" };
+const ROLE_NAME: Record<string, string> = { first_frame: "First frame", reference: "Reference", end_frame: "End frame", audio: "Your recording" };
 
 /**
- * What the video model is given for this shot, as pictures in the order it gets them: the first frame, each reference picture, the end frame, and the song's vocal.
+ * What the video model is given for this shot, as pictures in the order it gets them: the first frame, each reference picture, the end frame, and your recording of the voice.
  * A picture the model will not take (it refuses references beside a first frame, or takes only so many) is shown dimmed and marked, so nothing is guesswork.
  */
 export function GivenToModel({ dir, inputs }: { dir: string; inputs: ModelInput[] }) {

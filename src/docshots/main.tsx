@@ -22,6 +22,7 @@ import { CreativeDirections } from "../Directions";
 import { LookPicker } from "../Looks";
 import { LightingSheet } from "../Lighting";
 import { CleanupSheet } from "../Cleanup";
+import { ModelPicker } from "../ModelPicker";
 import { ModelChoice } from "../ModelChoice";
 import { ComposeTab } from "../Compose";
 import { TakeCompare } from "../Compare";
@@ -164,6 +165,19 @@ const voiceStatus = {
     { id: "S02-01", scene: 2, title: "Chloe speaks to Ethan.", seconds: 3.4, others: [], people: [{ name: "Chloe", key: "chloe", lines: ["I might."], recording: null }] },
   ],
 };
+
+const pickerCatalog = [
+  { model: "kling/3-0", title: "Kling · Kling 3.0", rec: 1, fresh: true, sees: true },
+  { model: "kling/v3-turbo-image-to-video", title: "Kling · V3 Turbo Image to Video", sees: true },
+  { model: "kling/3-0-omni-image-to-video", title: "Kling · Kling 3.0 Omni Image To Video", sees: true },
+  { model: "bytedance/seedance-2", title: "Bytedance · seedance-2", rec: 2, sees: true },
+  { model: "bytedance/seedance-2-5", title: "Bytedance · Bytedance Seedance 2.5", rec: 3, fresh: true, sees: true },
+  { model: "minimax/h3-image-to-video", title: "MiniMax · MiniMax H3 Image-to-Video", sees: true },
+  { model: "wan/3-0-video", title: "Wan · Wan 3.0 - Video", sees: true },
+  { model: "happyhorse/image-to-video", title: "HappyHorse · HappyHorse-1-1 image-to-video", sees: true },
+  { model: "google/veo3-1", title: "Google · Veo 3.1", rec: 4, sees: true },
+  { model: "runway/gen4", title: "Runway · Gen-4 Turbo", sees: true },
+] as never[];
 const blockingMock = { id: "S01-02", scene: 1, framing: "over the shoulder", plan: blockingPlanMock, suggested: null, has_previous: true, people: ["Sarah", "John"], room: { w: 100, h: 70 },
   text: "Blocking as the camera sees it: John screen-right, facing screen-left. Camera over Sarah's shoulder.",
   scene_shots: [{ id: "S01-01", framing: "wide", plan: { ...blockingPlanMock, camera: { x: 50, y: 66, aim: 270, fov: 65 } } }, { id: "S01-02", framing: "over the shoulder", plan: blockingPlanMock }, { id: "S01-03", framing: "over the shoulder", plan: { ...blockingPlanMock, camera: { x: 90, y: 20, aim: 190, fov: 40 } } }],
@@ -316,7 +330,7 @@ const scenes: Record<string, () => ReactNode> = {
       camera: { framing: "over the shoulder", angle: "low", lens: "portrait (50mm)", movement: "locked off", focus: "shallow", why: "Low and close keeps us with Sarah's silence." }, lighting: { description: "Low window light from the left", why: "Morning light is soft and slow." } }} />,
   shotvoice: () => <div style={{ width: "min(1240px, 100vw)", height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   shots: () => <div style={{ width: "min(1240px, 100vw)", height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
-  cast: () => <div style={{ width: "min(1200px, 100vw)", height: 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
+  cast: () => <div style={{ width: "min(1200px, 100vw)", height: Number(q.get("h")) || 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,
@@ -335,6 +349,7 @@ const scenes: Record<string, () => ReactNode> = {
   looks: () => <LookPicker value={{ style: "auto" }} director={false} onCancel={noop} onSave={noop} />,
   lighting: () => <LightingSheet dir={DIR} onClose={noop} />,
   cleanup: () => <CleanupSheet dir={DIR} onClose={noop} onChanged={noop} />,
+  modelpicker: () => card(<><h2>Choose your video model</h2><p className="sub">Recommended models first, everything else behind All models.</p><div style={{ width: 360 }}><ModelPicker catalog={pickerCatalog} value="bytedance/seedance-2" label="Model" onChange={noop} onRefresh={noop} /></div></>),
   modelchoice: () => card(<><h2>Choose your picture model</h2><p className="sub">Choosing one fixes it for the whole project, which keeps your characters looking the same in every picture.</p><ModelChoice dir={DIR} kind="image" /></>, 560),
   compose: () => card(<ComposeTab dir={DIR} shot="S01-01" keys={keys} />, 460),
 };

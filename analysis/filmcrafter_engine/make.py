@@ -176,6 +176,8 @@ def sync(d: str) -> dict:
         pj.pop("animation", None)
     _write(os.path.join(rd, "project.json"), pj)
     _write(os.path.join(rd, "production.json"), plan)
+    from . import continuity
+    continuity.derive(rd)                  # who stands where in each scene follows the shots as they are now
     # the pictures people brought become the render project's references: characters in the shots they are in, places in their scenes, props everywhere
     refs = os.path.join(rd, "assets", "refs")
     os.makedirs(refs, exist_ok=True)

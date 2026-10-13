@@ -22,3 +22,12 @@ describe("FilmCrafter opens films, and has no way in to the music-video app", ()
     for (const gone of ["async fn analyze_project", "async fn dance", "async fn show(", "async fn voices", "fn is_show"]) expect(rust, gone).not.toContain(gone);
   });
 });
+
+describe("each animation principle has its picture", () => {
+  it("covers every principle the engine has", async () => {
+    const { hasPrincipleIcon } = await import("../principleIcons");
+    const ids = [...read("analysis/filmcrafter_engine/animation_principles.py").matchAll(/^ {4}P\("([a-z-]+)"/gm)].map((m) => m[1]);
+    expect(ids.length).toBe(12);
+    for (const id of ids) expect(hasPrincipleIcon(id), id).toBe(true);
+  });
+});

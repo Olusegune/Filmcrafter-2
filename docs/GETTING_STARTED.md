@@ -8,7 +8,7 @@ FilmCrafter turns a story into a film. You bring a screenplay, a logline or an i
 - **Keys.** Open **Settings** (the gear, or Ctrl+,) and paste the keys for the services you want to use: a picture and video provider (fal or Kie), and optionally an AI brain for the optional writing help and for checking pictures (OpenAI or OpenRouter), or a local one (Ollama, LM Studio, ComfyUI). Keys are stored in the system keychain, never in a film's folder.
 - **Without any key** you can still write and structure a whole film (story, cast, shots), bring your own pictures and videos, edit the timeline and export, all free.
 - **Money.** Pictures and video are billed by the provider. FilmCrafter shows the price of every generation before it starts, and the Plan & budget sheet (Settings) sets a limit.
-- **Where films live.** Each film is a folder in `Documents\FilmCrafter` that you can open, copy and back up like any other. In the Studio, *File > Save As…* makes another copy.
+- **Where films live.** Each film is a folder in `Documents\FilmCrafter` that you can open, copy and back up like any other. To move a whole film to another computer, use **File > Save a Copy as One File (.filmpack)…** (from any screen of the film): one file with the story, cast, shots, your recordings and every picture and video made. Opening a `.filmpack` (double-click it, or File > Open Film…) unpacks it as a new film beside your others and never overwrites one. Saved files show the FilmCrafter film icon.
 
 ## The steps of a film
 
@@ -69,6 +69,8 @@ The look is **written into every picture and video prompt**, with its name first
 ### Animation principles
 
 The twelve principles of animation (squash and stretch, anticipation, staging, pose to pose, follow-through, slow in and out, arcs, secondary action, timing, exaggeration, solid drawing, appeal) are in **Rules & style**. For each shot, the few that fit what happens in it are added to its prompt (a jump gets anticipation and squash and stretch; a coat in the wind gets follow-through), never all twelve. Drawn and 3D looks use most of them, crafts fewer, and photorealistic films keep only the ones that are also good acting and camera craft. Switch any on or off, or press *Use the style's own choice*. A quiet acting profile (Restrained, Natural) leaves exaggeration out unless you chose it.
+
+![The twelve principles, each with its picture; the ones this film uses are lit](img/film/principles.png)
 
 ### A filmmaker's approach, in any look
 
@@ -217,6 +219,8 @@ Designing or cloning keeps the voice in your ElevenLabs library and uses one of 
 ## Which picture model
 
 In **Settings** add a key for Kie.ai, fal, Google or OpenAI; the app lists each one's models and shows the price before anything is made. **Nano Banana 2.1** (Google's image model, October 2026) is the automatic picture model on a Google key (`gemini-nano-banana-2.1`: up to 14 reference pictures, 1K, 2K or 4K, and very wide or tall shapes). On Kie.ai it appears as *Google - Nano Banana 2.1* (10 reference pictures). The older Nano Banana 2 on Google (`gemini-3.1-flash-image`) is marked *retiring*: Google switches it off on 29 October 2026, so choose 2.1 for anything new.
+
+![The model picker: recommended models as cards, everything else under All models with a search](img/film/modelpicker.png)
 
 ## Cards or timeline: the same film two ways
 

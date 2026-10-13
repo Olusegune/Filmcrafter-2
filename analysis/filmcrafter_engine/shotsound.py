@@ -29,7 +29,7 @@ FADE = 0.04                 # seconds: a clip's edges fade so a cut never clicks
 TARGET_RMS = 0.08           # about -22 dBFS: a shot's own sound is brought near the same loudness as the others
 SILENT_RMS = 0.003          # below this a take has no audible sound
 DUCK = 0.4                  # the song's level under a shot whose own sound is playing, when no level has been chosen
-LABELS = {"song": "Song", "all": "Sound from the video model", "voice": "Voices", "other": "Sound effects and music"}
+LABELS = {"song": "Soundtrack", "all": "Sound from the video model", "voice": "Voices", "other": "Sound effects and music"}
 NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
 
 
@@ -374,7 +374,7 @@ def set_layer(d: str, shot_id: str, layer: str, on: bool | None = None, gain: fl
             cur["removed"] = False
     if gain != "keep":
         if gain is None and layer != "song":
-            raise SystemExit("Only the song's level can be automatic.")
+            raise SystemExit("Only the soundtrack's level can be automatic.")
         cur["gain"] = None if gain is None else min(2.0, max(0.0, float(gain)))
     e["layers"][layer] = cur
     save(d, s)

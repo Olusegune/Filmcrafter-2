@@ -16,7 +16,7 @@ export function trackLine(m: ModelTrack | undefined, name: string): string {
   if (m.sung) {
     const ok = m.sound.in_time ?? 0;
     const own = (m.sound.own_audio ?? 0) + (m.sound.loose ?? 0);
-    parts.push(`sound in time with the song on ${ok} of ${m.sung} sung take${m.sung === 1 ? "" : "s"}${own ? `, made its own sound on ${own}` : ""}`);
+    parts.push(`sound in time with the voice on ${ok} of ${m.sung} spoken take${m.sung === 1 ? "" : "s"}${own ? `, made its own sound on ${own}` : ""}`);
   }
   if (m.cost > 0) parts.push(`$${m.cost.toFixed(2)} spent`);
   return `${name} in this project: ${parts.join("; ")}.`;

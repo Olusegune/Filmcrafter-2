@@ -77,7 +77,8 @@ def _default_scene(sc: dict) -> dict:
 
 
 def derive(d: str) -> dict:
-    """Fill in missing scenes (and new performers) from the plan; keeps everything the user has set."""
+    """Fill in missing scenes (and new performers) from the plan; keeps everything the user has set. A scene the person never touched (auto) follows the plan as it is now, and a
+    performer who is no longer in any shot of a scene is dropped from its blocking (a person who left the story must not keep steering the picture of the shots that are left)."""
     _, plan = _plan(d)
     c = load(d)
     for sc in plan.get("scenes", []):
@@ -87,8 +88,13 @@ def derive(d: str) -> dict:
         if not cur:
             c["scenes"][key] = dflt
             continue
+        if cur.get("auto") is True:
+            c["scenes"][key] = {**dflt, "enabled": cur.get("enabled", True)}
+            continue
         for n, b in dflt["blocking"].items():
             cur.setdefault("blocking", {}).setdefault(n, b)
+        for n in [n for n in (cur.get("blocking") or {}) if n not in dflt["blocking"]]:
+            cur["blocking"].pop(n, None)
     return save(d, c)
 
 

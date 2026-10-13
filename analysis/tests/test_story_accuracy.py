@@ -291,3 +291,25 @@ def test_the_previous_shots_picture_is_not_sent_to_a_shot_of_other_people(tmp_pa
     assert CO.previous_keyframe(str(d), "production", plan, "S01-03", shared) is None and shared == []          # nobody in common: nothing to copy from
     assert CO.previous_keyframe(str(d), "production", plan, "S01-03") is not None                              # the older call is unchanged
     assert CO.previous_keyframe(str(d), "production", plan, "S01-04", shared).endswith("kf.png") and shared == ["Chloe"]
+
+
+# ---------------------------------------------------------------- who stands where follows the shots (a person who left the story must not keep steering the picture)
+
+def test_scene_blocking_follows_the_shots_and_forgets_people_who_left(tmp_path):
+    from filmcrafter_engine import continuity as CO
+    d = _film_with_props(tmp_path)
+    make.sync(d)
+    rd = os.path.join(d, "render")
+    c = json.load(open(os.path.join(rd, "continuity.json"), encoding="utf-8"))
+    c["scenes"]["1"]["blocking"]["GHOST: A TITLE"] = {"side": "left", "facing": "right"}              # what a broken breakdown once left behind
+    json.dump(c, open(os.path.join(rd, "continuity.json"), "w", encoding="utf-8"))
+    make.sync(d)
+    again = json.load(open(os.path.join(rd, "continuity.json"), encoding="utf-8"))
+    assert "GHOST: A TITLE" not in again["scenes"]["1"]["blocking"] and again["scenes"]["1"]["blocking"]
+    CO.set_scene(rd, "1", {"wardrobe": "red coat"})                                                     # a scene the person edited keeps what they wrote
+    c = json.load(open(os.path.join(rd, "continuity.json"), encoding="utf-8"))
+    c["scenes"]["1"]["blocking"]["GHOST: A TITLE"] = {"side": "left", "facing": "right"}
+    json.dump(c, open(os.path.join(rd, "continuity.json"), "w", encoding="utf-8"))
+    make.sync(d)
+    kept = json.load(open(os.path.join(rd, "continuity.json"), encoding="utf-8"))["scenes"]["1"]
+    assert kept["wardrobe"] == "red coat" and "GHOST: A TITLE" not in kept["blocking"]

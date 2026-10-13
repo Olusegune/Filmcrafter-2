@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type ShotLevels, type ShotSound as Sound, type SoundLayer } from "./api";
+import { filmDirOfRender, isRenderDir } from "./filmPaths";
+import { useVoiceStatus } from "./voiceHooks";
 import { ask } from "./ask";
 import * as I from "./icons";
 import "./sound.css";
@@ -13,13 +15,13 @@ export async function toggleShotSound(dir: string, shot: string): Promise<string
   const parts = g.layers.filter((l) => l.id !== "song");
   const turnOn = !parts.some((l) => l.on);
   for (const l of parts) await api.shotSound(dir, "set", { shot, layer: l.id, on: turnOn });
-  return turnOn ? `${shot}: the take's own sound is on (the song is turned down under it)` : `${shot}: the take's own sound is off`;
+  return turnOn ? `${shot}: the take's own sound is on (the soundtrack is turned down under it)` : `${shot}: the take's own sound is off`;
 }
 
 const pct = (g: number | null) => Math.round((g ?? 1) * 100);
 
 /**
- * The sound of one shot as layers: the song, and the sound the video model made inside the take (or, after Split, its voices and its effects and music).
+ * The sound of one shot as layers: the soundtrack, and the sound the video model made inside the take (or, after Split, its voices and its effects and music).
  * Each can be switched off, turned down or deleted for this shot, and none of it renders anything again: it is mixed in when the film is exported.
  */
 export function ShotSound({ dir, shotId, onChanged }: { dir: string; shotId: string; onChanged?: () => void }) {
@@ -48,27 +50,31 @@ export function ShotSound({ dir, shotId, onChanged }: { dir: string; shotId: str
   };
   const split = () => act("split", () => api.shotSound(dir, "split", { shot: shotId }));
 
+  const { byShot } = useVoiceStatus(isRenderDir(dir) ? filmDirOfRender(dir) : null);
+  const voices = (byShot[shotId]?.people ?? []).filter((p) => p.recording).map((p) => p.name);          // whose recordings are laid over this shot in the film
   if (!snd) return err ? <p className="error-text" role="alert">{err}</p> : null;
-  return <SoundPanel shotId={shotId} snd={snd} busy={busy} err={err} level={level} setLevel={setLevel} db={db}
+  return <SoundPanel voices={voices} shotId={shotId} snd={snd} busy={busy} err={err} level={level} setLevel={setLevel} db={db}
                      onSet={set} onRemove={remove} onRestore={(l) => act(l.id, () => api.shotSound(dir, "restore", { shot: shotId, layer: l.id }))}
                      onSplit={split} onReset={() => act("reset", () => api.shotSound(dir, "reset", { shot: shotId }))} />;
 }
 
-type PanelProps = { shotId: string; snd: Sound; busy: string; err: string; level: Record<string, number>; setLevel: (l: Record<string, number>) => void; db?: ShotLevels | null;
+type PanelProps = { voices?: string[]; shotId: string; snd: Sound; busy: string; err: string; level: Record<string, number>; setLevel: (l: Record<string, number>) => void; db?: ShotLevels | null;
   onSet: (l: SoundLayer, data: Record<string, unknown>) => void; onRemove: (l: SoundLayer) => void; onRestore: (l: SoundLayer) => void; onSplit: () => void; onReset: () => void };
 
 /** What is drawn: one row per layer, with its tick box, volume, and delete or restore. */
-export function SoundPanel({ shotId, snd, busy, err, level, setLevel, db, onSet, onRemove, onRestore, onSplit, onReset }: PanelProps) {
+export function SoundPanel({ voices, shotId, snd, busy, err, level, setLevel, db, onSet, onRemove, onRestore, onSplit, onReset }: PanelProps) {
   const hasTake = !!snd.take;
   return (
     <section className="shot-sound" aria-label={`Sound of ${shotId}`}>
       <div className="ss-head"><I.Wave size={15} /> <b>Sound</b>
         <span className="dim">{hasTake && !snd.note ? "of the take in the video · free, nothing is rendered again" : ""}</span></div>
       {snd.note && <p className="dim">{snd.note}</p>}
+      {voices && voices.length > 0 && <p className="ss-voice" role="note"><I.Mic size={13} /> Your recording{voices.length > 1 ? "s" : ""} of <b>{voices.join(" and ")}</b> {voices.length > 1 ? "are" : "is"} laid over this shot in the film.
+        {snd.layers.some((l) => l.id !== "song" && l.on && !l.removed) && <> The video model's own sound is on too, and it can add a second voice: switch it off to hear only {voices.length > 1 ? "your recordings" : "yours"}.</>}</p>}
       {hasTake && !snd.note && <>
         {!snd.has_audio && <p className="dim">This take has no audible sound: the model made none, or its sound was switched off when it was rendered. To get the model's own sound,
-          render this shot again with the model's sound option on. The song plays as usual.</p>}
-        {db && db.mix_db !== null && <p className="ss-mix num" title="The mix of the song and the layers that are on, over this shot">
+          render this shot again with the model's sound option on. The soundtrack plays as usual.</p>}
+        {db && db.mix_db !== null && <p className="ss-mix num" title="The mix of the soundtrack and the layers that are on, over this shot">
           In the film under this shot: {db.mix_db} dB{db.peak_db !== null ? ` (peak ${db.peak_db} dB)` : ""}{db.peak_db !== null && db.peak_db > -1 ? ". Close to the top: the export holds it just under so it does not distort." : ""}</p>}
         <ul className="ss-rows">
           {snd.layers.map((l) => {
@@ -93,7 +99,7 @@ export function SoundPanel({ shotId, snd, busy, err, level, setLevel, db, onSet,
                              onPointerUp={commit} onKeyUp={commit} onBlur={commit} />
                       <span className="ss-val num">{shown}%{song && l.auto && !dragging && l.on ? " auto" : ""}</span>
                       {song && !l.auto
-                        ? <button className="btn small ghost" disabled={!!busy} onClick={() => onSet(l, { gain: null })} title="Turn the song down automatically while this take's own sound plays">Auto</button>
+                        ? <button className="btn small ghost" disabled={!!busy} onClick={() => onSet(l, { gain: null })} title="Turn the soundtrack down automatically while this take's own sound plays">Auto</button>
                         : song ? <span className="ss-gap" />
                         : <button className="icon-btn" disabled={!!busy} onClick={() => onRemove(l)} aria-label={`Delete ${l.label}`} title="Delete this layer from the shot"><I.Close size={14} /></button>}
                     </>}
@@ -109,7 +115,7 @@ export function SoundPanel({ shotId, snd, busy, err, level, setLevel, db, onSet,
             onClick={onReset}>Back to how it was</button>}
         </div>
         {snd.split && <p className="dim ss-note">Split with a program made for songs, so a loud effect can leave a faint trace in the voices.</p>}
-        {snd.native && <p className="dim ss-note">This is a spoken scene: the film's sound is each take's own sound, and the song is not played.</p>}
+        {snd.native && <p className="dim ss-note">This is a spoken scene: the film's sound is each take's own sound, and the soundtrack is not played.</p>}
       </>}
       {err && <p className="error-text" role="alert">{err}</p>}
     </section>

@@ -1,15 +1,16 @@
-# Next phase: what to do after 0.20.0
+# Next phase: what to do after 0.21.0
 
 Written 2026-10-12. Read `HANDOVER.md` first (setup, checks, release steps, rules); this note is the plan for what comes next and what was learned recently. Everything here is in GitHub (`Olusegune/FilmCrafter`, branch `main`, commit of 0.18.0 or later).
 
 ## 1. Where things stand
 
-FilmCrafter is at **0.20.0**: a Windows app (Tauri 2 + React/TypeScript + Python engine) that turns a screenplay into a film. Recently done:
+FilmCrafter is at **0.21.0**: a Windows app (Tauri 2 + React/TypeScript + Python engine) that turns a screenplay into a film. Recently done:
 
 - **Voiceover** (0.15 to 0.17): attach your own recordings to people in shots by file name (`CHLOE_S01-04.wav`), from the Studio's bar, the Export screen, a shot's card, the timeline's shot cards (a mic and a bar) and the shot panel; drag a file onto a card or timeline shot; one or two speakers per shot; the recording is the audio a Seedance 2 shot follows (keyframe sent as a reference picture), the sound at export, and per-shot files in the editor hand-off. "Lip-sync this take" uses the recording.
 - **Correctness fixes found by using the app**: a title read as a character, action shots with no people, long picture names dropped, one person using every reference slot, the frame shape reverting to 16:9, the previous shot's picture copying one character onto another, plural "friends", Word screenplays cut at 6,000 characters.
 - **0.19.0**: Nano Banana 2.1 (Google default; Kie checked; fal not), a calm clapperboard Home, a waveform beside each recording, big films skip off-screen cards, window minimum height 660.
 - **0.20.0**: drop a file on a person's name (with Undo); record a line inside the app (teleprompter, level, silence trimmed, retake, next unvoiced line); custom voices with ElevenLabs (library, design, clone, speak a line, price first); a snugger Home card. The microphone has **not** been tried in the installed app, and ElevenLabs has **not** been tried for real (no key was stored here): try both first.
+- **0.21.0** (a whole-app pass): the File menu works for films and the one-file save is a real **`.filmpack`** of the whole film (story, cast, shots, recordings, every picture and video, render project); FilmCrafter's own document icon; three voice bugs fixed (a dialogue shot with no recording used to send the film's silent soundtrack as "the voice"; joining or deleting shots now moves or puts aside recordings; `Friend1`/`friend_1` file names match Friend #1); stale blocking (a ghost character) no longer steers prompts; the golden path is written down (`docs/GOLDEN_PATH.md`) and shown as gold notes in Make film (test one shot first; attach voices before video); a tidy model picker; pictures for the twelve animation principles; bigger faces and pictures in Cast & World; "song" wording replaced by film wording; PULSEFRAME-era docs moved to `docs/legacy`.
 - **Cleanup**: music-video screens, commands and engine modules removed (92 to 81 modules); tag `before-music-removal` marks the old code.
 
 **Not proven**: a real Seedance render with a user recording (nobody has heard the lip-sync); the installed app has not been walked through by a person end to end; no keyboard-only or screen-reader run; Premiere Pro / Final Cut hand-off; macOS; code signing; 125% and 150% display scaling.

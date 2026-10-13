@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.21.0 (2026-10-12)
+
+A pass over the whole app for what was left of PULSEFRAME, for the voices, and for the golden path.
+
+- **The File menu works for films.** It said "New Music Video…", "Open Project…" and most items did nothing from the film screens. Now: New Film…, Open Film…, Save (your film is saved as you work), **Save a Copy as One File (.filmpack)…**, Restore from Backup…, Export… (goes to the Export step), Show in Explorer, Close Film, and Simple/Director mode from the View menu, from any screen of a film.
+- **A film in one file that really contains the film.** The one-file save used to pack only the render project (no story, cast, shots or recordings). `.filmpack` packs the whole film: story, cast, shots, your recordings, every picture and video made, and the render project, without rebuildable caches. Opening one unpacks it as a new film and never overwrites; files from earlier versions (`.pulse`) still open. Tested: a round trip, naming, never writing outside the new folder.
+- **FilmCrafter's own file icon.** Saved films (`.filmcrafter`, `.filmpack`) show the FilmCrafter document icon (your design); the old waveform icon and the `.pulse` and Producer-package registrations are gone, so FilmCrafter no longer claims PULSEFRAME's files. Installer and app descriptions no longer say "music video".
+- **Voices: three real bugs.**
+  - A shot with a spoken line but no recording used to send the film's soundtrack (usually silence) to Seedance as "the voice" and tell it to speak along to it, with the line quoted. It now sends nothing and just says who speaks (probably why your first two videos came out mute).
+  - Joining two shots lost the recording of the shot that went; deleting a shot left its recording filed under an id a new shot could be given again. Recordings now move with a joined shot and are put aside (not deleted) with a deleted one.
+  - File names like `FRIEND1_S01-02.wav`, `friend_1`, `Friend 1` all find Friend #1.
+- **A stale ghost in the continuity.** Scene blocking kept a character from an earlier broken breakdown ("Summit Sprout: …") and put it into the prompts; blocking now follows the shots and forgets people who left (found by the audit tool).
+- **Golden path.** `docs/GOLDEN_PATH.md` states it; the app says it: at the top of Pictures and Video a gold note asks you to **test one shot** before making them all, and on Video reminds you to attach voices first. The step bar's hints say so too.
+- **Sound panel** says Soundtrack (not Song), says whose recording is laid over the shot and warns when the model's own sound could add a second voice.
+- **The model picker is tidy.** Recommended models are cards (name, family, marks); "All models" opens a search and a grouped list; the id box is tucked away.
+- **Animation principles have pictures**, one for each of the twelve.
+- **Bigger faces and pictures** in Cast & World (the list's thumbnails and the pictures of people and places).
+- **Wording.** Captions, lip-sync notes, previews, insert-a-frame, directions and the shot panels say film, voice, speaking and recording instead of song, vocal and singing. The in-app mark is the F on a film strip. Unused music artwork was removed, and PULSEFRAME-era documents moved to `docs/legacy`.
+
 ## 0.20.0 (2026-10-12)
 
 - **Drop a voice on the person.** Dragging a recording over a shot card lights up the people in it; dropping on a name gives the file to that person at once (no match table). Every quick attach shows a note with **Undo** for seven seconds (a voice it replaced is kept in `voice/_removed`).
