@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.23.4 (2026-10-13)
+
+- **Fixed for good: the lower voice lanes were cut off in Edit mode** (reported twice). The cause was not the mouse wheel: the timeline's own vertical scrolling had been switched off by a clash between two stylesheets (`overflow-y: hidden` beat `auto`), so anything below the timeline's height was simply clipped. The Voices area is now a proper **band**: a header row ("VOICES · 12 of 23 lines voiced · Show all 7") and a fixed three-lane area with its own scrolling, a soft fade where there is more below, and a thin gold scrollbar. **Show all** opens it to up to eight lanes (the timeline grows to fit; each film remembers the choice). The names stay in view as you scroll sideways. The timeline itself can scroll vertically again if anything else overflows.
+- **Edit mode, sleeker.** The duplicate "+ Add layer" pill that sat on top of the layer bars is gone (the header's **+ Layer**, **Y**, and a right-click on the row still add one).
+
 ## 0.23.3 (2026-10-13)
 
 - **Fixed: the lower voice lanes could not be reached in Edit mode** (reported: "can't see the lower parts"). The timeline has a fixed height, and the mouse wheel scrolled sideways everywhere, so a film with many speakers showed three or four lanes and hid the rest with no way down. The timeline now makes room for up to five voice lanes, the wheel scrolls the lanes up and down when you are over them and there are more than fit (over the shot cards it still scrolls sideways), and the timeline's scrollbars are thin and gold so you can see them. You can still drag the timeline taller in Edit mode.

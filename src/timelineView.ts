@@ -3,7 +3,7 @@
 type Store = Pick<Storage, "getItem" | "setItem">;
 const local = (): Store | null => { try { return typeof localStorage !== "undefined" ? localStorage : null; } catch { return null; } };
 
-export type TlLayout = { pps?: number; height?: number; compact?: boolean; sized?: boolean; edit?: boolean };   // sized: the person dragged the height themselves, so it is kept however short
+export type TlLayout = { pps?: number; height?: number; compact?: boolean; sized?: boolean; edit?: boolean; voices?: boolean };   // sized: the person dragged the height themselves, so it is kept however short
 
 export const PPS_MIN = 6;
 export const PPS_MAX = 400;
@@ -31,7 +31,8 @@ export function readLayout(dir: string, store: Store | null = local()): TlLayout
   if (height !== undefined) out.height = height;
   if (o.compact === true) out.compact = true;
   if (o.sized === true) out.sized = true;
-  if (o.edit === true) out.edit = true;                  // the full, flexible timeline; the Film strip is the default
+  if (o.edit === true) out.edit = true;
+  if (o.voices === true) out.voices = true;                // the Voices band shows every person, not the first three                  // the full, flexible timeline; the Film strip is the default
   return out;
 }
 

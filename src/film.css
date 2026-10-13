@@ -951,3 +951,16 @@
 .timeline .tl-scroll::-webkit-scrollbar-thumb { background: rgba(232, 180, 92, 0.45); border-radius: 5px; }
 .timeline .tl-scroll::-webkit-scrollbar-thumb:hover { background: rgba(232, 180, 92, 0.75); }
 .timeline .tl-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
+
+/* ---- the Voices band (Edit mode): a header row, and a fixed-height area that scrolls on its own ---- */
+.timeline .tl-scroll { overflow-y: auto; }            /* the timeline's own vertical scrolling had been switched off by the older stylesheet; anything that overflows can be reached */
+.vl { padding-top: 0; }
+.vl-head { position: absolute; top: 0; height: 26px; display: flex; align-items: center; gap: 10px; z-index: 7; font-size: 11.5px; white-space: nowrap; }
+.vl-head b { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); font-weight: 600; }
+.vl-head .link { font-size: 11.5px; }
+.vl-scroll { position: absolute; left: 0; right: 0; top: 26px; overflow-y: auto; overflow-x: clip; scrollbar-width: thin; scrollbar-color: rgba(232, 180, 92, 0.5) transparent; }
+.vl-scroll::-webkit-scrollbar { width: 8px; }
+.vl-scroll::-webkit-scrollbar-thumb { background: rgba(232, 180, 92, 0.45); border-radius: 4px; }
+.vl-scroll.more { -webkit-mask-image: linear-gradient(#000 calc(100% - 16px), transparent); mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
+.vl-lane { position: relative; }
+.vl-name { position: absolute; top: 2px; left: 0; z-index: 6; }

@@ -231,12 +231,31 @@ describe("Edit mode, tidied", () => {
   });
 });
 
-describe("the lower voice lanes can be reached", () => {
-  it("makes room for up to five lanes, and lets the wheel scroll the lanes up and down (it used to scroll sideways everywhere, so a sixth person was out of reach)", () => {
+describe("the Voices band: nobody is out of reach", () => {
+  it("is a header and a fixed-height area that scrolls on its own (the timeline's own vertical scrolling had been switched off by an older stylesheet), with Show all, a fade, and names pinned in view", () => {
     const studio = readFileSync("src/Studio.tsx", "utf8");
-    expect(studio).toContain("Math.min(voiceN, 5) * VLANE_H");
-    expect(studio).toMatch(/closest\?\.\("\.vl, \.tl-lanes"\)\) return;/);
-    expect(studio).toMatch(/overflowY = el\.scrollHeight > el\.clientHeight \+ 2/);
-    expect(readFileSync("src/film.css", "utf8")).toContain(".timeline .tl-scroll::-webkit-scrollbar-thumb");        // and the scrollbar is there to be seen
+    expect(studio).toContain("VOICE_ROWS_MAX");
+    expect(studio).toMatch(/const voiceH = voiceN \? VHEAD_H \+ voiceRows \* VLANE_H \+ 10 : 0/);
+    expect(studio).toMatch(/closest\?\.\("\.vl-scroll"\)/);
+    const lanes = readFileSync("src/VoiceLanes.tsx", "utf8");
+    expect(lanes).toContain("style={{ maxHeight: rows * VLANE_H }}");
+    expect(lanes).toContain("Show all ${people.length}");
+    expect(lanes).toContain("const pin = view[0] + 8");
+    const css = readFileSync("src/film.css", "utf8");
+    expect(css).toContain(".timeline .tl-scroll { overflow-y: auto; }");
+    expect(css).toMatch(/\.vl-scroll \{[^}]*overflow-y: auto;/);
+    expect(css).toContain(".vl-scroll.more { -webkit-mask-image");
+    expect(readFileSync("src/LayerLanes.tsx", "utf8")).not.toContain("{placed.length > 0 && addButton}");       // no pill on top of the layer bars
+  });
+  it("remembers whether the band shows everyone, for each film, and ignores damaged storage", async () => {
+    const { readLayout, writeLayout } = await import("../timelineView");
+    const mem: Record<string, string> = {};
+    const store = { getItem: (k: string) => mem[k] ?? null, setItem: (k: string, v: string) => { mem[k] = v; } };
+    expect(readLayout("a", store).voices).toBeUndefined();
+    writeLayout("a", { voices: true }, store);
+    expect(readLayout("a", store).voices).toBe(true);
+    expect(readLayout("b", store).voices).toBeUndefined();
+    mem["pf-tl:c"] = JSON.stringify({ voices: "yes" });
+    expect(readLayout("c", store).voices).toBeUndefined();
   });
 });

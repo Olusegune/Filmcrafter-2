@@ -52,7 +52,7 @@ import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
 import { VoiceoverSheet } from "./VoiceoverSheet";
-import { speakers, VLANE_H, VoiceLanes } from "./VoiceLanes";
+import { speakers, VHEAD_H, VLANE_H, VOICE_ROWS, VOICE_ROWS_MAX, VoiceLanes } from "./VoiceLanes";
 import { ShotVoice, VoicePointer } from "./ShotVoice";
 import { useVoiceDrop } from "./VoiceDrop";
 import { useVoiceStatus } from "./voiceHooks";
@@ -1049,6 +1049,8 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
   const voiceFilm = isRenderDir(dir) ? filmDirOfRender(dir) : null;
   const { byShot: voiceByShot, st: voiceSt } = useVoiceStatus(voiceFilm);          // a film's recorded voices, shown on the shots
   const [laneN, setLaneN] = useState(0);
+  const [voicesOpen, setVoicesOpenState] = useState(() => !!readLayout(dir).voices);          // the Voices band shows everyone (or the first three), remembered for this film
+  const setVoicesOpen = (v: boolean) => { setVoicesOpenState(v); writeLayout(dir, { voices: v }); };
   const [addMenu, setAddMenu] = useState(false);
   const [addErr, setAddErr] = useState("");
   const scroll = useRef<HTMLDivElement>(null);
@@ -1081,8 +1083,8 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
     const on = (e: WheelEvent) => {
       if (e.ctrlKey) { e.preventDefault(); zoomRef.current(e.deltaY < 0 ? 1.25 : 0.8, e.clientX - el.getBoundingClientRect().left); }
       else if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        const overflowY = el.scrollHeight > el.clientHeight + 2;
-        if (overflowY && (e.target as Element | null)?.closest?.(".vl, .tl-lanes")) return;          // over the voice or layer lanes, and there are more than fit: the wheel scrolls them up and down
+        const vs = (e.target as Element | null)?.closest?.(".vl-scroll") as HTMLElement | null;
+        if (vs && vs.scrollHeight > vs.clientHeight + 1 && ((e.deltaY > 0 && vs.scrollTop + vs.clientHeight < vs.scrollHeight - 1) || (e.deltaY < 0 && vs.scrollTop > 0))) return;          // over the Voices band, with more people below (or above) than fit: the wheel scrolls them
         e.preventDefault(); el.scrollLeft += e.deltaY;
       }
     };
@@ -1160,8 +1162,9 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
 
   if (!map) return <section className="timeline"><div className="tl-head">No timeline yet.</div></section>;
   const voiceN = !edit || compact || !voiceFilm ? 0 : speakers(voiceSt).length;                        // one lane for each person who speaks (not in the compact timeline)
-  const voiceH = voiceN ? voiceN * VLANE_H + 10 : 0;
-  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? Math.min(voiceN, 5) * VLANE_H + 10 : 0) : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
+  const voiceRows = voiceN ? Math.min(voiceN, voicesOpen ? VOICE_ROWS_MAX : VOICE_ROWS) : 0;
+  const voiceH = voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0;
+  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0) : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
   const shown = !edit ? 34 + 136 + reserve + STRIP_CARD_H : Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
   const cardH = !edit ? STRIP_CARD_H : Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
   // top to bottom: sections, waveform, lyrics, the layer lanes (overlay tracks sit above the video, as in an editor), the shots, the transition handles
@@ -1219,7 +1222,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
                         thumbs={thumbs} want={want} onOpen={onOpen} onSelect={(id) => onSelect({ kind: "shot", id })} />
           </div>
           <TransitionHandles dir={dir} shots={board} pps={pps} top={transTop} onChanged={onBoardChanged} />
-          {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={board} pps={pps} top={voiceTop} view={[left, left + width]} />}
+          {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={board} pps={pps} top={voiceTop} view={[left, left + width]} rows={voiceRows} open={voicesOpen} onToggle={() => setVoicesOpen(!voicesOpen)} />}
           {edit && <LayerLanes dir={dir} pps={pps} duration={dur} selected={layerSel} onSelect={onLayerSelect} top={laneTop} onCount={setLaneN} time={time} onSeek={onSeek}
                       snap={snapPoints({ downbeats: map.downbeats, lyrics: map.lyrics, shots: board, playhead: time })} />}
           <div className="playhead" style={{ left: x(time) }} />
