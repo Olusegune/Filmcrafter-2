@@ -15,7 +15,7 @@ import { needsAttention, ReviewSheet } from "./Review";
 import { ComposeTab } from "./Compose";
 import { LightingSheet } from "./Lighting";
 import { readFlag, writeFlag } from "./panelState";
-import { attentionStarts, COMPACT_HEIGHT, HEIGHT_MAX, HEIGHT_MIN, PPS_MAX, PPS_MIN, readLayout, stepAttention, writeLayout } from "./timelineView";
+import { attentionStarts, COMPACT_HEIGHT, HEIGHT_MAX, HEIGHT_MIN, PPS_MAX, PPS_MIN, readLayout, STRIP_CARD_H, stepAttention, writeLayout } from "./timelineView";
 import { QueueChip, RenderQueueSheet, useQueue } from "./RenderQueue";
 import { batchOutcome } from "./queueMath";
 import { KeyframePanel } from "./Keyframe";
@@ -52,8 +52,8 @@ import { DockCtx } from "./Dock";
 import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
 import { VoiceoverSheet } from "./VoiceoverSheet";
-import { VoiceChip } from "./VoiceChip";
 import { speakers, VLANE_H, VoiceLanes } from "./VoiceLanes";
+import { ShotVoice, VoicePointer } from "./ShotVoice";
 import { useVoiceDrop } from "./VoiceDrop";
 import { useVoiceStatus } from "./voiceHooks";
 import { isRenderDir } from "./filmPaths";
@@ -94,6 +94,8 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const needsRef = useRef<ReadonlySet<string>>(new Set());                                  // the shots that need a look, for the key handler
   const [tlCompact, setTlCompactState] = useState(() => !!readLayout(project.dir).compact);     // compact timeline, remembered for this project
   const setTlCompact = (v: boolean | ((x: boolean) => boolean)) => setTlCompactState((cur) => { const n = typeof v === "function" ? v(cur) : v; writeLayout(project.dir, { compact: n }); return n; });
+  const [tlEdit, setTlEditState] = useState(() => !!readLayout(project.dir).edit);               // the full, flexible timeline (Edit) or the calm Film strip (the default), remembered for this project
+  const setTlEdit = (v: boolean) => { setTlEditState(v); writeLayout(project.dir, { edit: v }); };
   const [job, setJob] = useState<{ title: string; detail: string } | null>(null);
   const [error, setError] = useState("");
   const [jobs, setJobs] = useState<Job[]>(project.jobs ?? []);
@@ -624,6 +626,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                       onChanged={() => { reloadBoard(); api.loadProject(project.dir).then((p) => { if (p.keyframes) setKeyframes(p.keyframes); }).catch(() => {}); }}
                                       onQueued={(j) => { mergeJobs(j); go("video"); }} />,
                        video: (go) => <>
+                         {(project.project as { film?: boolean }).film && <ShotVoice dir={filmDirOfRender(project.dir)} shotId={s.id} />}
                          <RenderPanel dir={project.dir} shot={s} jobs={jobs.filter((j) => j.plan === planName)}
                                       director={director} keys={keys} onQueued={mergeJobs} onSettings={onSettings} frame={frame.aspect_ratio} quality={frame.quality}
                                       onBack={() => go("keyframe")} lookId={look.style} keyframeKey={kfRef}
@@ -638,7 +641,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
 
       {tourOpen && plan && <Tour right={(inspector ? inspW : 0) + 28} onClose={() => setTourOpen(false)} />}
       {!timelineOpen && <button className="tl-restore" onClick={() => setTimelineOpen(true)} aria-label="Show the timeline" title="Show the timeline (Ctrl+J)"><I.PanelBottom size={14} /> Show the timeline <span className="dim num">{fmtTime(time)}{map ? ` / ${fmtTime(map.duration)}` : ""}</span></button>}
-      {timelineOpen && <Timeline key={project.dir} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={board?.shots ?? []} thumbs={thumbs} want={want}
+      {timelineOpen && <Timeline key={project.dir} edit={tlEdit} onEdit={setTlEdit} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={board?.shots ?? []} thumbs={thumbs} want={want}
                 layerSel={layerSel} onLayerSelect={(id) => { setLayerSel(id); if (id) setLayersOpen(true); }} onBoardChanged={reloadBoard}
                 onOpen={(id) => setViewing(id)}
                 onSeek={seek} onSelect={(s) => { setSel(s); if (s?.kind === "shot") { const sh = shots.find((x) => x.id === s.id); if (sh) seek(sh.start); } }} />}
@@ -962,7 +965,7 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
           <div className="insp-section"><h4>{s.beats.length > 1 ? `Story beats (${s.beats.length})` : "Action"}</h4>
             {s.beats.length > 1 ? <ol className="beats">{s.beats.map((b, i) => <li key={i}>{b}</li>)}</ol> : <p className="prose">{s.beats[0]}</p>}</div>
           {s.lyrics?.length ? <div className="insp-section"><h4>{project?.project && (project.project as { film?: boolean }).film ? "Dialogue in this shot" : "Lyrics under this shot"}</h4>{s.lyrics.map((l, i) => <p key={i} className="lyric-q">{l}</p>)}</div> : null}
-          {(project.project as { film?: boolean }).film && <div className="insp-section"><h4>Your voice</h4><VoiceChip dir={filmDirOfRender(project.dir)} shotId={s.id} /></div>}
+          {(project.project as { film?: boolean }).film && <VoicePointer dir={filmDirOfRender(project.dir)} shotId={s.id} />}
           {tabs.shot}
           {(s.performance || s.expression || s.movement) && <div className="insp-section"><h4>Performance</h4><div className="kv">
             {row("Acting", s.performance)}{row("Expression", s.expression)}{row("Movement", s.movement)}</div></div>}
@@ -1035,13 +1038,14 @@ const CARD_MIN = 96;
 const TL_MIN_SAVED = 300;                                   // an older, shorter saved height gave pictures too small to read, so it is not kept
 const defaultTimelineHeight = () => Math.max(340, Math.min(480, Math.round(window.innerHeight * 0.42)));
 
-function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thumbs, want, layerSel, onLayerSelect, onBoardChanged, onSeek, onSelect, onOpen }: {
-  compact: boolean; onCompact: () => void;
+function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, sel, flagged, dir, board, thumbs, want, layerSel, onLayerSelect, onBoardChanged, onSeek, onSelect, onOpen }: {
+  edit: boolean; onEdit: (v: boolean) => void; compact: boolean; onCompact: () => void;
   map: SongMap | null; time: number; sel: Selection; flagged: number; dir: string; board: BoardShot[];
   thumbs: Record<string, string | null>; want: (srcs: string[]) => void;
   layerSel: string | null; onLayerSelect: (id: string | null) => void; onBoardChanged: () => void;
   onSeek: (t: number) => void; onSelect: (s: Selection) => void; onOpen: (id: string) => void;
 }) {
+  const compact = edit && compactProp;                                      // the Film strip has one calm size; Compact belongs to Edit
   const voiceFilm = isRenderDir(dir) ? filmDirOfRender(dir) : null;
   const { byShot: voiceByShot, st: voiceSt } = useVoiceStatus(voiceFilm);          // a film's recorded voices, shown on the shots
   const [laneN, setLaneN] = useState(0);
@@ -1151,16 +1155,16 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
   };
 
   if (!map) return <section className="timeline"><div className="tl-head">No timeline yet.</div></section>;
-  const voiceN = compact || !voiceFilm ? 0 : speakers(voiceSt).length;                        // one lane for each person who speaks (not in the compact timeline)
+  const voiceN = !edit || compact || !voiceFilm ? 0 : speakers(voiceSt).length;                        // one lane for each person who speaks (not in the compact timeline)
   const voiceH = voiceN ? voiceN * VLANE_H + 10 : 0;
-  const reserve = 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? Math.min(voiceN, 3) * VLANE_H + 10 : 0);      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
-  const shown = Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
-  const cardH = Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
+  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? Math.min(voiceN, 3) * VLANE_H + 10 : 0) : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
+  const shown = !edit ? 34 + 136 + reserve + STRIP_CARD_H : Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
+  const cardH = !edit ? STRIP_CARD_H : Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
   // top to bottom: sections, waveform, lyrics, the layer lanes (overlay tracks sit above the video, as in an editor), the shots, the transition handles
-  const laneTop = 118, lanesH = Math.max(1, laneN) * LANE_H + 10, shotsTop = laneTop + lanesH, transTop = shotsTop + cardH + 6, voiceTop = transTop + 28;
+  const laneTop = 118, lanesH = edit ? Math.max(1, laneN) * LANE_H + 10 : 6, shotsTop = laneTop + lanesH, transTop = shotsTop + cardH + 6, voiceTop = transTop + 28;
   return (
     <section className="timeline" aria-label="Timeline" style={{ height: shown, ["--card-h" as string]: `${cardH}px` }}>
-      <div className="tl-resize" onPointerDown={drag} title="Drag to resize" />
+      {edit && <div className="tl-resize" onPointerDown={drag} title="Drag to resize" />}
       <div className="tl-head">
         <span>{map.analyzer === "film" ? "Timeline" : "Song Map"}</span>
         <div className="legend">
@@ -1169,7 +1173,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
         </div>
         <div style={{ flex: 1 }} />
         {flagged > 0 && <span style={{ color: "var(--warning)", display: "flex", gap: 6, alignItems: "center" }}><I.Alert size={14} /> {flagged} shots may need attention</span>}
-        <div className="tl-add">
+        {edit && <div className="tl-add">
           <button className="btn small" onClick={() => setAddMenu((v) => !v)} aria-expanded={addMenu} aria-haspopup="menu" title="Add text, a picture, a shape or an icon at the playhead">+ Layer</button>
           {addMenu && <div className="tl-add-menu" role="menu">
             <button role="menuitem" onClick={() => addLayer({ kind: "text", text: "Your text", y: 0.5, anim: "rise" })}>Text</button>
@@ -1179,12 +1183,16 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
             <button role="menuitem" onClick={() => addLayer({ kind: "fill", color: "#000000", opacity: 0.4, anim: "fade" })}>Colour tint</button>
           </div>}
           {addErr && <span role="alert" style={{ color: "var(--warning)", marginLeft: 8 }}>{addErr}</span>}
-        </div>
+        </div>}
         <div className="zoom" role="group" aria-label="Zoom">
           <button className="icon-btn" onClick={() => zoom(1 / 1.5)} aria-label="Zoom out" title="Zoom out (Ctrl + scroll)">−</button>
           <button className="btn ghost small" onClick={() => { const s = scroll.current; if (s && dur) setPps(Math.floor(s.clientWidth / dur)); }}>Fit</button>
           <button className="icon-btn" onClick={() => zoom(1.5)} aria-label="Zoom in" title="Zoom in (Ctrl + scroll)">+</button>
-          <button className={`btn ghost small ${compact ? "on" : ""}`} onClick={onCompact} aria-pressed={compact} title="Compact timeline: just the shots (Ctrl+Shift+J)">Compact</button>
+          {edit && <button className={`btn ghost small ${compact ? "on" : ""}`} onClick={onCompact} aria-pressed={compact} title="Compact timeline: just the shots (Ctrl+Shift+J)">Compact</button>}
+        </div>
+        <div className="tl-mode" role="group" aria-label="Timeline mode">
+          <button className={!edit ? "on" : ""} aria-pressed={!edit} onClick={() => onEdit(false)} title="A calm, fixed view: every shot at one size. Nothing to drag, nothing to squash.">Film strip</button>
+          <button className={edit ? "on" : ""} aria-pressed={edit} onClick={() => onEdit(true)} title="The full timeline: drag its height, add layers, see each person's voice lane">Edit</button>
         </div>
       </div>
       <div className="tl-scroll" ref={scroll} onScroll={(e) => setLeft((e.currentTarget as HTMLElement).scrollLeft)}>
@@ -1208,8 +1216,8 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
           </div>
           <TransitionHandles dir={dir} shots={board} pps={pps} top={transTop} onChanged={onBoardChanged} />
           {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={board} pps={pps} top={voiceTop} view={[left, left + width]} />}
-          <LayerLanes dir={dir} pps={pps} duration={dur} selected={layerSel} onSelect={onLayerSelect} top={laneTop} onCount={setLaneN} time={time} onSeek={onSeek}
-                      snap={snapPoints({ downbeats: map.downbeats, lyrics: map.lyrics, shots: board, playhead: time })} />
+          {edit && <LayerLanes dir={dir} pps={pps} duration={dur} selected={layerSel} onSelect={onLayerSelect} top={laneTop} onCount={setLaneN} time={time} onSeek={onSeek}
+                      snap={snapPoints({ downbeats: map.downbeats, lyrics: map.lyrics, shots: board, playhead: time })} />}
           <div className="playhead" style={{ left: x(time) }} />
         </div>
       </div>

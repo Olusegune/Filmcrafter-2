@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.0 (2026-10-13)
+
+- **A calm timeline: Film strip | Edit.** The timeline could be dragged taller or shorter and zoomed until the pictures were squashed or stretched, which is powerful and easily ugly (reported). The Studio's timeline now has a switch. **Film strip** (the default for every film) has one fixed size: no resize handle, shot cards at one height (112 px) so a picture is never distorted, no layer or voice lanes. **Edit** is the full timeline exactly as before (drag the height, layers, Compact, and the voice lanes). Each film remembers its mode.
+- **Voices moved to the panel, under Video.** The Video tab's top is now **Voices in this shot**: a card for each speaker (voice, voiced or not, length), and opening one puts the whole line editor (hear, record, add a file, speak with feeling, takes) inline; a shot with one speaker opens straight onto them. A name there is a drop target for audio files. The Shot tab shows a one-line summary and a link to it. The line editor is also still a sheet (from a clip in Edit mode, **Direct…** on cards and the Voiceover screen).
+- The voice lanes only appear in Edit mode, so the Film strip stays clean.
+
 ## 0.22.1 (2026-10-13)
 
 - **Fixed: library voices could not be played.** In *Give a voice… From your library*, the sample players showed 0:00 and did nothing (reported with a screenshot). The app only plays local audio, and ElevenLabs' samples are remote links. Each sample is now fetched into the film (free, nothing is made or paid for) when you press **Hear**, then played from there. Only ElevenLabs' own links are fetched (https, on elevenlabs.io or its public sample bucket), never followed to another address, at most 3 MB, and your key is sent only to elevenlabs.io. The app's security policy was **not** loosened. Checked for real: four of your library's samples fetched and decoded (4 to 40 seconds).

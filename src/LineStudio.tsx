@@ -18,8 +18,9 @@ const REACTIONS = ["laughs", "chuckles", "sighs", "gasps", "sobs", "clears throa
 /**
  * Direct one line: hear what is there, record it, add a file, or have it spoken in the person's ElevenLabs voice with the feeling you choose. Every version spoken is kept as a take you can hear
  * and switch between at no cost. The words you type here are only what is spoken: the shot's written dialogue (and so every picture and video prompt) is never changed.
+ * `LineEditor` is the body, to sit inside a panel; `LineStudio` (below) wraps it in a sheet.
  */
-export function LineStudio({ dir, shotId, who, onClose }: { dir: string; shotId: string; who: string; onClose: () => void }) {
+export function LineEditor({ dir, shotId, who }: { dir: string; shotId: string; who: string }) {
   const { st } = useVoiceStatus(dir);
   const { cast } = useCast(dir);
   const shot = st?.shots.find((s) => s.id === shotId);
@@ -38,11 +39,7 @@ export function LineStudio({ dir, shotId, who, onClose }: { dir: string; shotId:
   const audio = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => { if (shot && !seeded) { setText(lineFor(shot, who)); setSeeded(true); } }, [shot, seeded, who]);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !recording && !making) { e.stopImmediatePropagation(); onClose(); } };
-    window.addEventListener("keydown", k, true);
-    return () => { window.removeEventListener("keydown", k, true); audio.current?.pause(); };
-  }, [onClose, recording, making]);
+  useEffect(() => () => { audio.current?.pause(); }, []);
 
   const loadTakes = useCallback(() => {
     api.castVoice<{ takes: CastTake[] }>("takes", dir, { shot: shotId, speaker: who }).then((r) => setTakes(r.takes)).catch(() => setTakes([]));
@@ -106,11 +103,7 @@ export function LineStudio({ dir, shotId, who, onClose }: { dir: string; shotId:
   const price = est && est.rows[0]?.ok ? priceWords(est) : "";
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass ls" role="dialog" aria-label={`${who} in ${shotId}`} onClick={(e) => e.stopPropagation()}>
-        <div className="vs-head"><h2><span className="num">{shotId}</span> · {who}</h2><span className="dim">{shot ? `${shot.seconds}s shot` : ""}</span>
-          <div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
-
+    <div className="ls-body">
         <section className="ls-sec" aria-label="The recording now">
           <h3>Now in the film</h3>
           {rec ? <div className="ls-now">
@@ -154,8 +147,26 @@ export function LineStudio({ dir, shotId, who, onClose }: { dir: string; shotId:
         </section>
         {err && <p className="error-text" role="alert">{err}</p>}
         <p className="dim vr-hint">Nothing is deleted: a take or recording you replace is kept in the film's voice/_removed folder.</p>
-      </div>
       {recording && <VoiceRecorder dir={dir} shotId={shotId} speaker={who} onClose={() => setRecording(false)} />}
       {making && cast && <VoiceMaker dir={dir} person={who} cast={cast} plan={null} onClose={() => setMaking(false)} onDone={() => { setMaking(false); notifyVoice(); }} />}
+    </div>);
+}
+
+/** The line editor in a sheet of its own (opened from a clip on the timeline). */
+export function LineStudio({ dir, shotId, who, onClose }: { dir: string; shotId: string; who: string; onClose: () => void }) {
+  const { st } = useVoiceStatus(dir);
+  const shot = st?.shots.find((x) => x.id === shotId);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.querySelector(".vr, .cv-sheet")) { e.stopImmediatePropagation(); onClose(); } };      // not while the recorder or the voice chooser is open over it
+    window.addEventListener("keydown", k, true);
+    return () => window.removeEventListener("keydown", k, true);
+  }, [onClose]);
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet glass ls" role="dialog" aria-label={`${who} in ${shotId}`} onClick={(e) => e.stopPropagation()}>
+        <div className="vs-head"><h2><span className="num">{shotId}</span> · {who}</h2><span className="dim">{shot ? `${shot.seconds}s shot` : ""}</span>
+          <div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
+        <LineEditor dir={dir} shotId={shotId} who={who} />
+      </div>
     </div>);
 }

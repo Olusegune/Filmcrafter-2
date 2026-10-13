@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.22.1 (2026-10-13)
+# QA report: FilmCrafter 0.23.0 (2026-10-13)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -7,7 +7,7 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 | Check | Result |
 |---|---|
 | Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,771 passed**, 8 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **497 passed** |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **500 passed** |
 | App shell (`cargo test`) | **8 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -105,6 +105,11 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 - **Voice lanes and the line studio:** structure and arithmetic unit tested (who speaks in what order, where two people sit in one shot, the engine's and the screen's list of tag-reading models kept equal, the price asked before the first spoken line); seen in the browser harness (4 lanes, filled and dashed clips; the studio opens; a feeling chip writes `[tired]` into the line; the price shows). **Not tested:** the lanes in the installed app on a long film, and drag-and-drop onto a clip (it only exists in the real window).
 - **Takes:** engine tests with ElevenLabs faked (every version kept; switching sends nothing and archives, not deletes; a take from another line or a path is refused; the shot's written dialogue never gains a tag).
 - **Real ElevenLabs run** (Eleven v4, a library voice, five short lines, voice design): a spoken line was attached and marked; a repeat was free; a directed take (`[sighs]`) and a second take were made; switching back cost nothing; a voice design returned three options. **Not done for real:** cloning, keeping a designed voice, the plan line (the key lacks `user_read`).
+
+## What 0.23.0 changed, and how it was checked
+
+- **Film strip | Edit:** seen in the browser harness (Film strip: no resize handle, no lanes, no layer button, cards at 112 px, timeline 328 px high); the layout memory is unit tested (a film starts in the Film strip, each film keeps its own mode, damaged storage is ignored). **Not tested:** dragging in Edit mode after the change (the code for it is untouched), and a real long film in the Film strip.
+- **Voices in the Video tab:** seen in the harness (two cards for a two-speaker shot, one opens the editor inline); the summary wording and the wiring are unit tested. **Not tested:** the inline editor in the installed app's real panel width.
 
 ## Not tested (be honest about these)
 

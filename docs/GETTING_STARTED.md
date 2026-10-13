@@ -210,9 +210,11 @@ If you have recorded the lines yourself, attach them and the picture speaks them
 
 Designing or cloning keeps the voice in your ElevenLabs library and uses one of your plan's voice slots. A **Model** choice sets the voice's quality: **Eleven v4** (the default, the most expressive: you can put directions such as `[laughs]`, `[whispers]` or `[sad]` in the words), **v4 Turbo** (expressive, half the credits), v3, Multilingual v2 (steady, no tags) or Flash v2.5 (fast, half the credits, no tags).
 
-**Voices on the timeline.** In the Studio's timeline, under the shots, each person who speaks has a **voice lane**. A filled clip is a recording (its real waveform, drawn to scale); a dashed amber clip is a line with no voice yet, with the words in it. A clip marked *spoken* was made by ElevenLabs. Click a name to choose, design or clone that person's voice (a **+** means none yet). **Drop an audio file on a clip** and it becomes that person's voice in that shot. Click a clip to open the **line studio**. The lanes are hidden in the Compact timeline.
+**Voices in the Video tab.** Select a shot in the Studio and open the **Video** tab: at the top, **Voices in this shot** has a card for each person who speaks, showing whether their line has a voice, which voice they have, and how long it is (the **Shot** tab shows a one-line summary and a link here). Open a card to get the line editor right there (below). A shot where one person speaks opens straight onto them. **Drop an audio file on a name** and it becomes that person's voice in the shot.
 
-**The line studio (Direct a line).** Open it from a clip on the timeline, from **Direct…** beside a name on a shot card or the Voiceover screen, or from the shot panel.
+**The timeline's two modes.** The Studio's timeline has a switch, **Film strip | Edit**. **Film strip** is the calm default: every shot at one fixed size (nothing to drag, nothing to stretch or squash), the soundtrack and the dialogue above, the cuts below. **Edit** is the full timeline: drag its height, add layers, and see a **voice lane** for each person who speaks (a filled clip is a recording with its real waveform; a dashed amber clip is a line with no voice yet, with its words; a clip marked *spoken* was made by ElevenLabs). In Edit, click a name to choose a person's voice, drop a file on a clip, or click a clip to open the line editor in a sheet. Each film remembers its mode.
+
+**The line editor (Direct a line).** It is in the Video tab's voice cards, and opens as a sheet from a clip in Edit mode and from **Direct…** beside a name on a shot card or the Voiceover screen.
 
 - **Now in the film:** hear the current voice (with its waveform), **Record** or **Re-record**, **Add a file…**, or **Remove**.
 - **Have it spoken:** the words are editable, and the price shows under the button before anything is spent. With **Eleven v4** (or v4 Turbo or v3) choose a **feeling** (warm, tender, sad, angry, nervous, excited, sarcastic, whispering, shouting, tired, amused...), which starts the line and carries through it, and add **reactions** (laughs, chuckles, sighs, gasps, sobs, clears throat, pauses) where the cursor is. They go into the words as `[tags]`; you can type any feeling in plain words (`[tired but trying to smile]`). Punctuation steers too: *"..."* slows a line, *"—"* cuts it off, *"!"* adds force. The older models (Multilingual v2, Flash) would speak a tag aloud, so the chips are hidden for them.
@@ -448,7 +450,7 @@ The same list is in the Studio: press `?` or `Ctrl+/`.
 | `Ctrl+K` | Director Command |
 | `Ctrl+I` | Show or hide the inspector |
 | `Ctrl+J` | Show or hide the timeline |
-| `Ctrl+Shift+J` | Compact or full-height timeline |
+| `Ctrl+Shift+J` | Compact or full-height timeline (in Edit mode) |
 | `Ctrl+Shift+P` | Command palette: find any action or shot |
 | `?` | This list (also Ctrl+/) |
 | `Ctrl+Z` | Undo the last change to the layers (while the Layers panel is open) |

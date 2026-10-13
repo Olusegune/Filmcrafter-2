@@ -144,7 +144,7 @@ describe("voices on the timeline and the line studio", () => {
   it("puts a lane for each speaker under the shots (not in the compact timeline), and a clip is itself one person's drop target", () => {
     const studio = readFileSync("src/Studio.tsx", "utf8");
     expect(studio).toContain("<VoiceLanes");
-    expect(studio).toMatch(/const voiceN = compact \|\| !voiceFilm \? 0/);
+    expect(studio).toMatch(/const voiceN = !edit \|\| compact \|\| !voiceFilm \? 0/);          // the lanes belong to Edit, not to the calm Film strip
     expect(studio).toMatch(/Math\.max\(transTop \+ 28 \+ voiceH, 0\)/);
     const lanes = readFileSync("src/VoiceLanes.tsx", "utf8");
     expect(lanes).toContain("data-shot-id={s.id} data-voice-person={p.name}");
@@ -176,5 +176,46 @@ describe("library voice samples play", () => {
     expect(src).not.toMatch(/<audio[^>]*src=\{v\.preview_url\}/);
     const csp = JSON.parse(readFileSync("src-tauri/tauri.conf.json", "utf8")).app.security.csp["media-src"] as string;
     expect(csp).not.toMatch(/https?:\/\/(?!asset\.localhost)/);       // no remote audio was let in to fix it
+  });
+});
+
+describe("a calm Film strip, and the voices in the Video tab", () => {
+  it("the Film strip is the default: no resize handle, no layer or voice lanes, cards at one fixed height; Edit keeps the full timeline", async () => {
+    const studio = readFileSync("src/Studio.tsx", "utf8");
+    expect(studio).toContain('className="tl-mode"');
+    expect(studio).toContain("{edit && <div className=\"tl-resize\"");
+    expect(studio).toContain("{edit && <LayerLanes");
+    expect(studio).toMatch(/const cardH = !edit \? STRIP_CARD_H/);
+    expect(studio).toMatch(/const shown = !edit \? 34 \+ 136 \+ reserve \+ STRIP_CARD_H/);
+    const { readLayout, writeLayout, STRIP_CARD_H } = await import("../timelineView");
+    expect(STRIP_CARD_H).toBeGreaterThanOrEqual(96);
+    const mem: Record<string, string> = {};
+    const store = { getItem: (k: string) => mem[k] ?? null, setItem: (k: string, v: string) => { mem[k] = v; } };
+    expect(readLayout("film-a", store).edit).toBeUndefined();            // a film starts in the Film strip
+    writeLayout("film-a", { edit: true }, store);
+    expect(readLayout("film-a", store).edit).toBe(true);
+    expect(readLayout("film-b", store).edit).toBeUndefined();            // and each film remembers its own choice
+    mem["pf-tl:film-c"] = JSON.stringify({ edit: "yes please" });
+    expect(readLayout("film-c", store).edit).toBeUndefined();            // damaged storage is ignored
+  });
+  it("puts the voices at the top of the Video tab, opens the only speaker straight away, and the Shot tab points to it", () => {
+    const studio = readFileSync("src/Studio.tsx", "utf8");
+    expect(studio.indexOf("<ShotVoice")).toBeLessThan(studio.indexOf("<RenderPanel dir={project.dir}"));
+    expect(studio).toContain("<VoicePointer");
+    const sv = readFileSync("src/ShotVoice.tsx", "utf8");
+    expect(sv).toContain("const only = people.length === 1");
+    expect(sv).toContain("<LineEditor");
+    expect(sv).toContain("data-shot-id={shotId} data-voice-person={p.name}");           // a name in the panel is a drop target too
+    expect(readFileSync("src/LineStudio.tsx", "utf8")).toContain("export function LineEditor");
+  });
+  it("says how the voices stand, in words", async () => {
+    const { voiceSummary } = await import("../ShotVoice");
+    const r = { recording: {} };
+    expect(voiceSummary([])).toBe("");
+    expect(voiceSummary([r])).toBe("Voice recorded");
+    expect(voiceSummary([{ recording: null }])).toBe("No voice yet");
+    expect(voiceSummary([r, r, r])).toBe("All 3 voices recorded");
+    expect(voiceSummary([r, { recording: null }])).toBe("1 of 2 voices recorded");
+    expect(voiceSummary([{ recording: null }, { recording: null }])).toBe("2 voices to add");
   });
 });

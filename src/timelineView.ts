@@ -3,7 +3,7 @@
 type Store = Pick<Storage, "getItem" | "setItem">;
 const local = (): Store | null => { try { return typeof localStorage !== "undefined" ? localStorage : null; } catch { return null; } };
 
-export type TlLayout = { pps?: number; height?: number; compact?: boolean; sized?: boolean };   // sized: the person dragged the height themselves, so it is kept however short
+export type TlLayout = { pps?: number; height?: number; compact?: boolean; sized?: boolean; edit?: boolean };   // sized: the person dragged the height themselves, so it is kept however short
 
 export const PPS_MIN = 6;
 export const PPS_MAX = 400;
@@ -11,6 +11,8 @@ export const HEIGHT_MIN = 150;
 export const HEIGHT_MAX = 1200;
 /** The height of the timeline in compact mode: the song map and the shot cards, no more. */
 export const COMPACT_HEIGHT = 170;
+/** The height of a shot card in the Film strip: one size, so a picture is never squashed or stretched. */
+export const STRIP_CARD_H = 112;
 const MAX_KEY = 300;
 
 const keyFor = (dir: string) => `pf-tl:${String(dir).slice(0, MAX_KEY)}`;
@@ -29,6 +31,7 @@ export function readLayout(dir: string, store: Store | null = local()): TlLayout
   if (height !== undefined) out.height = height;
   if (o.compact === true) out.compact = true;
   if (o.sized === true) out.sized = true;
+  if (o.edit === true) out.edit = true;                  // the full, flexible timeline; the Film strip is the default
   return out;
 }
 

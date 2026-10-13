@@ -68,7 +68,7 @@ describe("voice at the card and the timeline", () => {
     expect(board).toContain("data-shot-id={s.id}");
     expect(board).toContain("kc-voice");
     const studio = readFileSync("src/Studio.tsx", "utf8");
-    expect(studio).toContain("<VoiceChip dir={filmDirOfRender(project.dir)} shotId={s.id}");
+    expect(studio).toContain("<ShotVoice dir={filmDirOfRender(project.dir)} shotId={s.id}");          // the voices are made in the Video tab (they were under Shot)
     expect(studio).toContain("useVoiceDrop(");
     expect(readFileSync("src/voiceHooks.ts", "utf8")).toContain('closest("[data-shot-id]")');
   });
