@@ -61,7 +61,7 @@ export function VoiceLanes({ dir, st, shots, pps, top, view }: {
               const gen = person.recording?.source === "elevenlabs";
               return (
                 <button key={s.id} data-shot-id={s.id} data-voice-person={p.name} onClick={(e) => { e.stopPropagation(); setStudio({ shot: s.id, who: p.name }); }}
-                        className={`vl-clip ${person.recording ? "rec" : "gap"} ${gen ? "gen" : ""}`} style={{ left, width: w }}
+                        className={`vl-clip ${person.recording ? "rec" : "gap"} ${gen ? "gen" : ""} ${w <= 56 ? "narrow" : ""}`} style={{ left, width: w }}
                         title={person.recording ? `${p.name} in ${s.id}: ${person.recording.seconds.toFixed(1)}s${gen ? ", spoken by ElevenLabs" : ", your recording"}. Click to direct it, or drop another file here.` : `${p.name} in ${s.id} has no voice yet: “${person.lines.join(" ")}”. Click, or drop a file here.`}
                         aria-label={`${w > 56 ? (person.recording ? (gen ? "spoken. " : "") : `${person.lines.join(" ") || "no line"}. `) : ""}${p.name}, ${s.id}: ${person.recording ? "recorded" : "no voice yet"}`}>
                   {person.recording ? <Waveform src={api.mediaUrl(`${dir}/${person.recording.file}`)} /> : null}

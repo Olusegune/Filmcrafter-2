@@ -166,7 +166,7 @@ export function LayerLanes({ dir, pps, duration, selected, onSelect, snap, top, 
         <LayerBar key={o.id} o={o} lane={lanes[o.id]} pps={pps} selected={o.id === selected} live={live?.id === o.id ? live : undefined}
                   onSelect={() => pick(o)} onToggle={() => save(o.id, { enabled: !o.enabled })} onPointer={(k, e) => begin(o, k, e)} onNudge={(dt) => nudge(o, dt)} onLane={(d) => step(o, d)} />
       ))}
-      {!items.length && <span className="lane-empty"><b>Layers go here.</b> Move the playhead, then press <i>+ Layer</i> above (or <kbd>Y</kbd>) to add text, a picture or an icon. It shows as a bar you can drag. {addButton}</span>}
+      {!items.length && <span className="lane-empty" title="Move the playhead, then press + Layer above (or Y) to add text, a picture or an icon. It shows here as a bar you can drag."><b>Layers go here.</b> Press <kbd>Y</kbd> at the playhead to add text, a picture or an icon. {addButton}</span>}
       {placed.length > 0 && <span className="lane-label" aria-hidden="true">Layers</span>}
       {placed.length > 0 && addButton}
       {hint && <span className="lane-hint" role="status">{hint}</span>}

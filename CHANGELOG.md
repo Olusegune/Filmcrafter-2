@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.23.2 (2026-10-13)
+
+- **Edit mode, tidied** (reported: "the UI of the edit mode is ugly"). The empty Layers lane's hint was a paragraph that spilled over the shot cards; it is now one quiet line inside its lane (the long explanation is its tooltip). The transition handles, one at every cut, were a busy row of buttons; they are faint until you reach for them (set transitions stay gold). The voice lanes have an even rhythm, a soft band behind every other person, rounded name chips, and a slot too narrow for its words shows a clear **+** instead of a stray dashed box.
+
 ## 0.23.1 (2026-10-13)
 
 - **Fixed: a short line would have been refused by Kie.ai's Seedance 2.** Kie takes reference audio of 2 seconds or more, and the app sent your recording as it was, so a 1.5-second line went out as a 1.5-second file. The clip for a shot is now as long as the shot, with quiet after the words (a lip-sync pass also wants audio the length of the take). Tested: a 1.5 s recording becomes a 4 s clip with the voice at the start.

@@ -219,3 +219,14 @@ describe("a calm Film strip, and the voices in the Video tab", () => {
     expect(voiceSummary([{ recording: null }, { recording: null }])).toBe("2 voices to add");
   });
 });
+
+describe("Edit mode, tidied", () => {
+  it("keeps the empty Layers hint on one line inside its lane, calms the transition handles, and shows a narrow voice slot as a +", () => {
+    const css = readFileSync("src/film.css", "utf8");
+    expect(css).toMatch(/\.lane-empty \{[^}]*height: 22px;[^}]*white-space: nowrap;/);
+    expect(css).toMatch(/\.tr-handle:not\(\.set\) \{ opacity: 0\.38; \}/);
+    expect(css).toContain('.vl-clip.gap.narrow::before { content: "+"');
+    expect(readFileSync("src/VoiceLanes.tsx", "utf8")).toContain('${w <= 56 ? "narrow" : ""}');
+    expect(readFileSync("src/LayerLanes.tsx", "utf8")).not.toContain("It shows as a bar you can drag. {addButton}");       // the long sentence is a tooltip now
+  });
+});

@@ -920,3 +920,27 @@
 .sv-body .cv-model select { max-width: 100%; }
 .sv-body .ls-take { grid-template-columns: auto minmax(0, 1fr) auto; }
 .sv-body .ls-model { display: none; }
+
+/* ---- Edit mode, tidied ---- */
+/* the empty Layers lane: one quiet line that fits inside its lane */
+.lane-empty { display: flex; align-items: center; gap: 6px; height: 22px; max-width: min(620px, calc(100vw - 120px)); margin: 5px 0 0 10px; padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border: 1px dashed rgba(244, 247, 250, 0.14); border-radius: 4px; font-size: 11.5px; line-height: 1; color: var(--text-quiet, #8b97a7); }
+.lane-empty b { color: var(--mist, #c8d1dc); font-weight: 600; }
+.lane-empty kbd { margin: 0 2px; padding: 0 5px; border-radius: 3px; font-size: 10.5px; }
+.lane-empty .lane-add { position: static; margin: 0 0 0 auto; flex: none; height: 18px; line-height: 16px; font-size: 11px; }
+/* transitions: calm until you reach for them */
+.tr-handle:not(.set) { opacity: 0.38; }
+.tl-trans:hover .tr-handle, .tr-handle:focus-visible, .tr-handle[aria-expanded="true"] { opacity: 1; }
+.tr-handle { width: 18px; height: 16px; margin-left: -9px; top: 3px; }
+/* the voice lanes: even rhythm, a soft band behind each person, slots that read as slots */
+.vl { padding-top: 4px; }
+.vl-lane { border-top: 0; background: transparent; border-radius: 4px; }
+.vl-lane:nth-child(odd) { background: rgba(244, 247, 250, 0.028); }
+.vl-name { margin-top: 2px; height: 26px; border-radius: 13px; padding: 0 12px 0 9px; font-size: 12px; background: rgba(12, 15, 21, 0.9); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05); }
+.vl-clip { top: 2px; height: 26px; border-radius: 5px; }
+.vl-clip.gap { border: 1px dashed rgba(232, 176, 74, 0.55); background: rgba(232, 176, 74, 0.05); transition: background 0.15s, border-color 0.15s; }
+.vl-clip.gap:hover { background: rgba(232, 176, 74, 0.16); border-color: rgba(232, 176, 74, 0.95); }
+.vl-clip.gap.narrow { padding: 0; justify-content: center; min-width: 18px; }
+.vl-clip.gap.narrow::before { content: "+"; color: rgba(232, 176, 74, 0.9); font-weight: 600; font-size: 13px; line-height: 1; }
+.vl-clip.rec { border-radius: 5px; }
+.vl-lane .vl-text { padding-left: 2px; }
