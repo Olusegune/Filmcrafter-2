@@ -212,7 +212,18 @@ def test_two_people_in_one_shot_become_one_clip_in_speaking_order(film, tmp_path
     assert len(V.for_shot(rd, sid)) == 2
     clip = V.slice_for(rd, sid, 5.0)
     x, rate = sf.read(clip)
-    assert 2.0 < len(x) / rate < 3.2                                                       # two seconds of voice and the gap between them
+    assert 4.9 < len(x) / rate < 5.1                                                       # the clip is as long as the shot...
+    assert abs(x[int(0.1 * rate): int(1.0 * rate)]).max() > 0.2 and abs(x[int(2.4 * rate):]).max() < 0.01          # ...two seconds of voice and the gap between them, then quiet
+
+
+def test_a_short_recording_is_given_to_the_model_as_a_clip_as_long_as_the_shot(voiced):
+    """Kie's Seedance 2 takes reference audio of 2 s or more, and a lip-sync pass wants audio the length of the take: a 1.5 s line must not go out as a 1.5 s file."""
+    film, rd, sid = voiced
+    clip = V.slice_for(rd, sid, 4.0)
+    x, rate = sf.read(clip)
+    assert 3.9 < len(x) / rate < 4.1
+    assert abs(x[int(0.05 * rate): int(0.5 * rate)]).max() > 0.2                          # the voice is at the start
+    assert abs(x[int(3.0 * rate):]).max() < 0.01                                          # and the rest is quiet
 
 
 # ---------------------------------------------------------------- the sound at export

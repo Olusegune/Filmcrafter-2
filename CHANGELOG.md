@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.23.1 (2026-10-13)
+
+- **Fixed: a short line would have been refused by Kie.ai's Seedance 2.** Kie takes reference audio of 2 seconds or more, and the app sent your recording as it was, so a 1.5-second line went out as a 1.5-second file. The clip for a shot is now as long as the shot, with quiet after the words (a lip-sync pass also wants audio the length of the take). Tested: a 1.5 s recording becomes a 4 s clip with the voice at the start.
+- **Honest documentation about lip-sync.** The guide now says what is and is not promised: the request is built the right way (checked on a real film: recording sent as reference audio, the model's own sound off, "speaks along" in the prompt), but Kie's documentation for Seedance 2 does not promise that reference audio moves the mouth, so test one speaking shot first and use *Lip-sync this take…* if it drifts. Not yet seen on a real take.
+
 ## 0.23.0 (2026-10-13)
 
 - **A calm timeline: Film strip | Edit.** The timeline could be dragged taller or shorter and zoomed until the pictures were squashed or stretched, which is powerful and easily ugly (reported). The Studio's timeline now has a switch. **Film strip** (the default for every film) has one fixed size: no resize handle, shot cards at one height (112 px) so a picture is never distorted, no layer or voice lanes. **Edit** is the full timeline exactly as before (drag the height, layers, Compact, and the voice lanes). Each film remembers its mode.

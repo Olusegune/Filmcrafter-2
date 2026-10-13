@@ -225,6 +225,12 @@ Designing or cloning keeps the voice in your ElevenLabs library and uses one of 
 
 **What happens when you render.** For a model that takes reference audio (Seedance 2 on Kie.ai), your recording goes with the shot and the prompt says who speaks along to it; your approved keyframe goes as a reference picture, so the mouth follows your voice. **What you hear in the finished film is your recording**, laid on the film at its shot, not the video model's own sound. The editor hand-off folder gets each recording as its own file, named for the shot and person, in `audio/voice`. Models that cannot take audio are still told the words, and your recording is still the sound at export.
 
+**Will the mouth follow the voice? What is promised, and what is not.** FilmCrafter asks for it in the right way: it sends your recording (made as long as the shot, with quiet after the words) as the reference audio, sends the characters' pictures, turns the video model's own sound off, and writes "…speaks along to the reference audio… mouth shapes follow the voice exactly" in the prompt. **Whether Seedance 2 then moves the mouth in time is the model's doing, and Kie.ai's documentation for it lists only the audio's size and length limits and does not promise lip-sync from reference audio.** So treat it as likely, not guaranteed, until you have seen it on your own film:
+
+1. **Test one speaking shot first** (the Make film screen suggests one: it prefers a shot where someone speaks). Make its keyframe, give it its voice, make the video, and watch the mouth.
+2. **If the mouth follows, make the rest.** If it drifts, open the shot in the Studio and press **Lip-sync this take…**: a dedicated lip-sync model re-times the mouth of the finished take to your exact recording. That is the dependable route, and it shows its price first. It needs a face that is clearly visible, so it suits close and medium shots best.
+3. What you hear in the finished film is always your recording (or the ElevenLabs line), never the video model's sound, whichever way the mouth went.
+
 **Two people in one shot:** attach each person's recording; they are placed one after the other in the shot's audio, and the prompt says who speaks when and that the others listen. **Drag and drop:** drop recordings onto the screen. **If a mouth drifts** in a finished take, open the shot in the Studio and press *Lip-sync this take…*: it re-times the mouth to your recording.
 
 ## Which picture model

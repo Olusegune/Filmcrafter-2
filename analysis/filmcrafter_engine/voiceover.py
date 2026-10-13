@@ -462,12 +462,14 @@ def slice_for(d: str, shot_id: str, seconds: float) -> str:
     cmd = [ffmpeg(), "-hide_banner", "-loglevel", "error", "-y"]
     for f in files:
         cmd += ["-i", f]
+    whole = max(0.5, seconds)
     if len(files) == 1:
-        graph = "[0:a]aresample=44100,aformat=channel_layouts=stereo[a]"
+        graph = f"[0:a]aresample=44100,aformat=channel_layouts=stereo,apad=whole_dur={whole:.3f}[a]"
     else:
         parts = [f"[{i}:a]aresample=44100,aformat=channel_layouts=stereo,apad=pad_dur={GAP}[p{i}]" for i in range(len(files))]
-        graph = ";".join(parts) + ";" + "".join(f"[p{i}]" for i in range(len(files))) + f"concat=n={len(files)}:v=0:a=1[a]"
-    cmd += ["-filter_complex", graph, "-map", "[a]", "-t", f"{max(0.5, seconds):.3f}", "-b:a", "192k", out + ".part.mp3"]
+        graph = ";".join(parts) + ";" + "".join(f"[p{i}]" for i in range(len(files))) + f"concat=n={len(files)}:v=0:a=1,apad=whole_dur={whole:.3f}[a]"
+    # the clip is as long as the shot, with quiet after the words: a video model takes reference audio of 2 s or more (Kie's Seedance 2), and a lip-sync pass wants audio the length of the take
+    cmd += ["-filter_complex", graph, "-map", "[a]", "-t", f"{whole:.3f}", "-b:a", "192k", out + ".part.mp3"]
     subprocess.run(cmd, check=True, creationflags=NO_WINDOW)
     os.replace(out + ".part.mp3", out)
     return out

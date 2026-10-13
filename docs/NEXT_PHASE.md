@@ -26,6 +26,8 @@ FilmCrafter is at **0.21.0**: a Windows app (Tauri 2 + React/TypeScript + Python
 ## 3. The next steps, in order
 
 ### A. The real voiceover test (the most valuable thing left)
+**Status 2026-10-13:** everything up to the paid call has been checked on the real Summit Sprout film (S07-06, Chloe, "I know he does."): the request carries the recording as a 4 s reference clip, the characters' pictures, `generate_audio: false` and the "speaks along" prompt; one Seedance 2 take is estimated at about 164 Kie credits. **Not done:** the take itself, because the film has no approved keyframes yet and Kie spending needs the owner's yes and a cap. Kie's Seedance 2 documentation does not promise lip-sync from reference audio, so this test decides it; if the mouth drifts, the lip-sync pass (*Lip-sync this take…*) is the dependable route.
+
 Goal: hear whether a Seedance 2 mouth follows a recording. Steps:
 1. Ask for permission and a cap. Pick one short shot with one speaker (a Summit Sprout shot with a line; a close-up is best). Have the user name a recording `CHARACTER_SHOT.wav` (3 to 8 seconds).
 2. Attach it (Make film card, or `python -m filmcrafter_engine.voiceover import <film> --data '{"items":[{"file":"...","shot":"S01-04","speaker":"Lila"}]}'`).

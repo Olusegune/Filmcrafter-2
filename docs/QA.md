@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.23.0 (2026-10-13)
+# QA report: FilmCrafter 0.23.1 (2026-10-13)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,7 +6,7 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,771 passed**, 8 skipped (optional-dependency tests), 0 failed |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,772 passed**, 8 skipped (optional-dependency tests), 0 failed |
 | Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **500 passed** |
 | App shell (`cargo test`) | **8 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
@@ -110,6 +110,12 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 
 - **Film strip | Edit:** seen in the browser harness (Film strip: no resize handle, no lanes, no layer button, cards at 112 px, timeline 328 px high); the layout memory is unit tested (a film starts in the Film strip, each film keeps its own mode, damaged storage is ignored). **Not tested:** dragging in Edit mode after the change (the code for it is untouched), and a real long film in the Film strip.
 - **Voices in the Video tab:** seen in the harness (two cards for a two-speaker shot, one opens the editor inline); the summary wording and the wiring are unit tested. **Not tested:** the inline editor in the installed app's real panel width.
+
+## Lip-sync: what was checked and what was not (0.23.1)
+
+- **Checked, free:** on the real Summit Sprout film, for a voiced shot (S07-06), the app builds the Seedance 2 request with the recording as a reference-audio clip (now 4 s, the shot's length, instead of the 1.6 s line, which Kie would refuse: it takes 2 s or more), three character reference pictures, `generate_audio: false` and a prompt that says who speaks along to the audio. The golden path's own rules were kept: one test shot first (the Make film screen prefers a speaking one), voices before video.
+- **Found and fixed:** a recording under 2 s was sent as it was; the clip is now padded to the shot's length (two unit tests).
+- **NOT checked, and cannot be without spending:** whether Seedance 2 moves the mouth in time with reference audio. Kie's documentation does not say it does. The film has no approved keyframes yet. One take is estimated at about 164 Kie credits. The dependable alternative, the lip-sync pass on a finished take, has not been run either.
 
 ## Not tested (be honest about these)
 
