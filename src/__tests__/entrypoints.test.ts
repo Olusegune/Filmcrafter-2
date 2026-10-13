@@ -31,3 +31,15 @@ describe("each animation principle has its picture", () => {
     for (const id of ids) expect(hasPrincipleIcon(id), id).toBe(true);
   });
 });
+
+describe("a film in one file opens", () => {
+  it("unpacks a .filmpack (and an older .pulse) before opening it, however the path is cased or spaced; a .filmpack used to be treated as a folder and refused", () => {
+    const app = read("src/App.tsx");
+    const m = app.match(/if \((\/\\.\(filmpack\|pulse\)\$\/i)\.test\(dir\)\)/);
+    expect(m).not.toBeNull();
+    const rx = /\.(filmpack|pulse)$/i;
+    for (const ok of ["C:\Users\me\Downloads\SUMMIT SPROUT FROM SHAME Final Version 2.filmpack", "D:\old\Exit Plan.PULSE", "/home/a/b.FilmPack"]) expect(rx.test(ok)).toBe(true);
+    for (const no of ["C:\Films\My Film", "C:\Films\My Film\My Film.filmcrafter", "x.filmpack.bak"]) expect(rx.test(no)).toBe(false);
+    expect(app.indexOf("api.openPulse(dir)")).toBeGreaterThan(app.search(/filmpack\|pulse/));
+  });
+});

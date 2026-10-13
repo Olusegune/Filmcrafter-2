@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.21.1 (2026-10-13)
+
+- **Fixed: a `.filmpack` would not open.** Choosing a film file (File, Open, or double-clicking it) said "That isn't a FilmCrafter project." The app only unpacked the older `.pulse` kind, so a `.filmpack` was treated as a folder and refused. It is now unpacked into the projects folder (under a new name if one of that name is there) and opened, from the Open dialog, from Recent and from a double-click. Reported with a real pack (SUMMIT SPROUT ... Final Version 2, 318 files, about 1 GB); the engine's unpack was run on that file and gave a complete film (21:9, every file present). A test keeps the two file kinds together.
+- Known limit: a film unpacked into a folder whose path is very long can reach Windows' 260-character path limit (the longest path in that pack is about 170 characters under `Documents\FilmCrafter`, so it fits).
+
 ## 0.21.0 (2026-10-12)
 
 A pass over the whole app for what was left of PULSEFRAME, for the voices, and for the golden path.

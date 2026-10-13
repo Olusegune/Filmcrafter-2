@@ -43,7 +43,7 @@ export default function App() {
     setError("");
     if (isProducerPackage(dir)) { setError(LEGACY); return; }
     try {
-      if (dir.toLowerCase().endsWith(".pulse")) {   // one-file project: unpack it into the projects folder first, then open what came out
+      if (/\.(filmpack|pulse)$/i.test(dir)) {   // a film in one file (.filmpack, or .pulse from an earlier version): unpack it into the projects folder first, then open what came out
         setToast("Unpacking the project…");
         dir = await api.openPulse(dir);
         setToast("");
