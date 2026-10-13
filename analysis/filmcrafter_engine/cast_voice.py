@@ -27,9 +27,13 @@ from . import voiceover as V
 from .safe import file_name
 
 ELEVEN = "https://api.elevenlabs.io"
-MODELS = [("eleven_multilingual_v2", "Multilingual v2 (steady, best for long lines)"), ("eleven_flash_v2_5", "Flash v2.5 (fast, half the credits)"),
-          ("eleven_v3", "v3 (most expressive; accepts [sad], [laughs]... in the words)")]
-CREDITS = {"eleven_flash_v2_5": 0.5}            # credits per character; other models cost one
+MODELS = [("eleven_v4", "Eleven v4 (most expressive: put [laughs], [whispers], [sad]... in the words)"),
+          ("eleven_v4_turbo", "Eleven v4 Turbo (expressive, half the credits)"),
+          ("eleven_v3", "Eleven v3 (expressive, less steady than v4)"),
+          ("eleven_multilingual_v2", "Multilingual v2 (steady, best for long lines; no tags)"),
+          ("eleven_flash_v2_5", "Flash v2.5 (fast, half the credits; no tags)")]
+TAGGED = {"eleven_v4", "eleven_v4_turbo", "eleven_v3"}     # models that read [tags] in the words as direction (the others would speak them aloud)
+CREDITS = {"eleven_flash_v2_5": 0.5, "eleven_v4_turbo": 0.5}            # credits per character (ElevenLabs' own cost multipliers, read from its model list on 2026-10-13); other models cost one
 VOICE_ID = re.compile(r"[A-Za-z0-9]{8,40}")
 PREVIEW_ID = re.compile(r"[A-Za-z0-9_-]{6,120}")
 MAX_LINE = 1500
@@ -67,6 +71,12 @@ def _error(r) -> str:
 def _check(r, what: str):
     """The reply, or a plain sentence saying why ElevenLabs said no."""
     if r.status_code in (401, 403):
+        try:
+            d = r.json().get("detail")
+        except (ValueError, AttributeError):
+            d = None
+        if isinstance(d, dict) and d.get("status") == "missing_permissions":      # the key is real but this key may not do that: say which permission, so it can be switched on
+            raise SystemExit(f"Your ElevenLabs key is missing a permission: {str(d.get('message') or '')[:200]} Switch it on for this key under API Keys on elevenlabs.io.")
         raise SystemExit("ElevenLabs refused the key, or your plan does not include this. Check the key in Settings and your ElevenLabs plan.")
     if r.status_code == 402 or (not r.ok and "quota" in _error(r).lower()):
         raise SystemExit(f"Your ElevenLabs plan is out of characters: {_error(r)}")

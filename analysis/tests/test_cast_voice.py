@@ -86,6 +86,13 @@ def test_cards_do_not_ask_for_the_plan_only_the_plan_view_does(film, calls):
     assert log == []
 
 
+def test_a_key_that_lacks_one_permission_is_told_which(film, calls):
+    log, replies = calls
+    replies["/v1/user/subscription"] = Reply(401, {"detail": {"status": "missing_permissions", "message": "The API key you used is missing the permission user_read to execute this operation."}})
+    err = C.status(film, with_plan=True)["plan_error"]
+    assert "missing a permission" in err and "user_read" in err and "refused the key" not in err
+
+
 def test_the_plan_shows_characters_left_and_whether_cloning_is_allowed(film, calls):
     log, replies = calls
     replies["/v1/user/subscription"] = Reply(200, {"tier": "starter", "character_count": 1200, "character_limit": 30000, "can_use_instant_voice_cloning": True, "voice_slots_used": 3, "voice_limit": 10})
@@ -193,7 +200,7 @@ def test_a_confirmed_line_is_spoken_attached_marked_and_never_paid_for_twice(fil
     rec = next(p for s in V.status(film)["shots"] if s["id"] == sid for p in s["people"] if p["name"] == "Lila")["recording"]
     assert rec["source"] == "elevenlabs" and "ElevenLabs" in rec["name"]
     sent = next(c for c in log if "text-to-speech" in c[1])[2]["json"]
-    assert sent["text"] == "It looked weird." and sent["model_id"] == "eleven_multilingual_v2"
+    assert sent["text"] == "It looked weird." and sent["model_id"] == "eleven_v4"
     again = C.speak(film, sid, "Lila", confirmed=False)                           # same voice, same words: free, and needs no yes
     assert again["credits"] == 0 and again["cached"] is True
     assert len([c for c in log if "text-to-speech" in c[1]]) == 1
