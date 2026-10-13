@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.23.3 (2026-10-13)
+
+- **Fixed: the lower voice lanes could not be reached in Edit mode** (reported: "can't see the lower parts"). The timeline has a fixed height, and the mouse wheel scrolled sideways everywhere, so a film with many speakers showed three or four lanes and hid the rest with no way down. The timeline now makes room for up to five voice lanes, the wheel scrolls the lanes up and down when you are over them and there are more than fit (over the shot cards it still scrolls sideways), and the timeline's scrollbars are thin and gold so you can see them. You can still drag the timeline taller in Edit mode.
+
 ## 0.23.2 (2026-10-13)
 
 - **Edit mode, tidied** (reported: "the UI of the edit mode is ugly"). The empty Layers lane's hint was a paragraph that spilled over the shot cards; it is now one quiet line inside its lane (the long explanation is its tooltip). The transition handles, one at every cut, were a busy row of buttons; they are faint until you reach for them (set transitions stay gold). The voice lanes have an even rhythm, a soft band behind every other person, rounded name chips, and a slot too narrow for its words shows a clear **+** instead of a stray dashed box.

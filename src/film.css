@@ -944,3 +944,10 @@
 .vl-clip.gap.narrow::before { content: "+"; color: rgba(232, 176, 74, 0.9); font-weight: 600; font-size: 13px; line-height: 1; }
 .vl-clip.rec { border-radius: 5px; }
 .vl-lane .vl-text { padding-left: 2px; }
+
+/* Edit mode: when there are more lanes than fit, the lanes scroll, and you can see that they do */
+.timeline .tl-scroll { scrollbar-width: thin; scrollbar-color: rgba(232, 180, 92, 0.5) transparent; }
+.timeline .tl-scroll::-webkit-scrollbar { height: 9px; width: 9px; }
+.timeline .tl-scroll::-webkit-scrollbar-thumb { background: rgba(232, 180, 92, 0.45); border-radius: 5px; }
+.timeline .tl-scroll::-webkit-scrollbar-thumb:hover { background: rgba(232, 180, 92, 0.75); }
+.timeline .tl-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }

@@ -230,3 +230,13 @@ describe("Edit mode, tidied", () => {
     expect(readFileSync("src/LayerLanes.tsx", "utf8")).not.toContain("It shows as a bar you can drag. {addButton}");       // the long sentence is a tooltip now
   });
 });
+
+describe("the lower voice lanes can be reached", () => {
+  it("makes room for up to five lanes, and lets the wheel scroll the lanes up and down (it used to scroll sideways everywhere, so a sixth person was out of reach)", () => {
+    const studio = readFileSync("src/Studio.tsx", "utf8");
+    expect(studio).toContain("Math.min(voiceN, 5) * VLANE_H");
+    expect(studio).toMatch(/closest\?\.\("\.vl, \.tl-lanes"\)\) return;/);
+    expect(studio).toMatch(/overflowY = el\.scrollHeight > el\.clientHeight \+ 2/);
+    expect(readFileSync("src/film.css", "utf8")).toContain(".timeline .tl-scroll::-webkit-scrollbar-thumb");        // and the scrollbar is there to be seen
+  });
+});

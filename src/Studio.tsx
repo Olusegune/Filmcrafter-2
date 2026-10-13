@@ -1080,7 +1080,11 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
     if (!el) return;
     const on = (e: WheelEvent) => {
       if (e.ctrlKey) { e.preventDefault(); zoomRef.current(e.deltaY < 0 ? 1.25 : 0.8, e.clientX - el.getBoundingClientRect().left); }
-      else if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); el.scrollLeft += e.deltaY; }
+      else if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        const overflowY = el.scrollHeight > el.clientHeight + 2;
+        if (overflowY && (e.target as Element | null)?.closest?.(".vl, .tl-lanes")) return;          // over the voice or layer lanes, and there are more than fit: the wheel scrolls them up and down
+        e.preventDefault(); el.scrollLeft += e.deltaY;
+      }
     };
     el.addEventListener("wheel", on, { passive: false });
     return () => el.removeEventListener("wheel", on);
@@ -1157,7 +1161,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
   if (!map) return <section className="timeline"><div className="tl-head">No timeline yet.</div></section>;
   const voiceN = !edit || compact || !voiceFilm ? 0 : speakers(voiceSt).length;                        // one lane for each person who speaks (not in the compact timeline)
   const voiceH = voiceN ? voiceN * VLANE_H + 10 : 0;
-  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? Math.min(voiceN, 3) * VLANE_H + 10 : 0) : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
+  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? Math.min(voiceN, 5) * VLANE_H + 10 : 0) : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
   const shown = !edit ? 34 + 136 + reserve + STRIP_CARD_H : Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
   const cardH = !edit ? STRIP_CARD_H : Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
   // top to bottom: sections, waveform, lyrics, the layer lanes (overlay tracks sit above the video, as in an editor), the shots, the transition handles
