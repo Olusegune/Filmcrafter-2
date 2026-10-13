@@ -1,6 +1,6 @@
 # Handover: continuing FilmCrafter on another computer
 
-Written 2026-10-12 at version **0.21.1**. Everything described here is in GitHub (`Olusegune/FilmCrafter`, branch `main`); the only things that are not are your **API keys**, your **film folders** and anything on your Desktop. Read this first, then **`docs/NEXT_PHASE.md` (the plan for what to do next and what was learned recently)**, `SETUP.md` (a fresh-clone walk-through), `README.md`, `docs/QA.md` (what has and has not been tested) and `CHANGELOG.md` (what each version did and why).
+Written 2026-10-12 at version **0.22.0**. Everything described here is in GitHub (`Olusegune/FilmCrafter`, branch `main`); the only things that are not are your **API keys**, your **film folders** and anything on your Desktop. Read this first, then **`docs/NEXT_PHASE.md` (the plan for what to do next and what was learned recently)**, `SETUP.md` (a fresh-clone walk-through), `README.md`, `docs/QA.md` (what has and has not been tested) and `CHANGELOG.md` (what each version did and why).
 
 ## 1. What this is
 

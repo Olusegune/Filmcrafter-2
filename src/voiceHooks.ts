@@ -69,7 +69,7 @@ export function useShotDrop(enabled: boolean, onDrop: (shot: string, files: stri
     const chipAt = (card: Element | null, p: { x: number; y: number }): Element | null => {
       if (!card) return null;
       const dpr = window.devicePixelRatio || 1, at = { x: p.x / dpr, y: p.y / dpr };
-      const chips = [...card.querySelectorAll("[data-voice-person]")];
+      const chips = [...(card.matches("[data-voice-person]") ? [card] : []), ...card.querySelectorAll("[data-voice-person]")];       // a clip on the timeline is itself one person's slot
       const who = personAt(chips.map((c) => { const r = c.getBoundingClientRect(); return { who: c.getAttribute("data-voice-person") ?? "", left: r.left, top: r.top, right: r.right, bottom: r.bottom }; }), at);
       return who ? chips.find((c) => c.getAttribute("data-voice-person") === who) ?? null : null;
     };

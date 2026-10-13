@@ -5,6 +5,7 @@ import { FILTERS } from "./voiceLogic";
 import { notifyVoice, useCast, useVoiceStatus } from "./voiceHooks";
 import { speakLine } from "./CastVoices";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { LineStudio } from "./LineStudio";
 import * as I from "./icons";
 
 let playing: HTMLAudioElement | null = null;           // one recording plays at a time
@@ -21,6 +22,7 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
   const [err, setErr] = useState("");
   const [now, setNow] = useState<string | null>(null);
   const [rec, setRec] = useState<string | null>(null);
+  const [direct, setDirect] = useState<string | null>(null);
   const el = useRef<HTMLAudioElement | null>(null);
   useEffect(() => () => { if (el.current && playing === el.current) { el.current.pause(); playing = null; } }, []);
   if (!shot || !(shot.people ?? []).length) return null;
@@ -53,6 +55,7 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
         <div key={p.key} data-voice-person={p.name} className={`vchip-row ${p.recording ? "has" : ""}`}>
           <I.Mic size={13} />
           <span className="vchip-name">{p.name}</span>
+          <button className="link vchip-dir" disabled={busy} onClick={() => setDirect(p.name)} title={`Direct ${p.name}'s line: hear it, record it, have it spoken with feeling, compare takes`}>Direct…</button>
           {p.recording
             ? <>
                 <button className="vchip-play" onClick={() => play(p)} aria-label={`${now === p.key ? "Stop" : "Play"} ${p.name}'s recording in ${shotId}, ${p.recording.seconds.toFixed(1)}s`} title={p.recording.name}>
@@ -69,6 +72,7 @@ export function VoiceChip({ dir, shotId, compact }: { dir: string; shotId: strin
         </div>))}
       {err && <p className="error-text vchip-err" role="alert">{err}</p>}
       {rec && <VoiceRecorder dir={dir} shotId={shotId} speaker={rec} onClose={() => setRec(null)} />}
+      {direct && <LineStudio dir={dir} shotId={shotId} who={direct} onClose={() => setDirect(null)} />}
     </div>
   );
 }

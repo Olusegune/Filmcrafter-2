@@ -246,6 +246,50 @@ def test_a_person_with_no_voice_or_no_line_is_refused_before_anything_is_sent(fi
     assert log == []
 
 
+def test_every_spoken_version_is_kept_as_a_take_and_switching_is_free_and_archives_not_deletes(film, calls):
+    log, replies = calls
+    sid = lila_shot(film)
+    give_voice(film)
+    replies[f"/v1/text-to-speech/{VID}"] = Reply(200, content=wav_bytes(1.5))
+    first = C.speak(film, sid, "Lila", confirmed=True)
+    second = C.speak(film, sid, "Lila", text="[whispers] It looked weird.", confirmed=True)
+    sent = [c[2]["json"]["text"] for c in log if "text-to-speech" in c[1]]
+    assert sent == ["It looked weird.", "[whispers] It looked weird."]                  # the direction rides in the spoken text only
+    got = C.takes(film, sid, "Lila")["takes"]
+    assert [t["text"] for t in got] == ["[whispers] It looked weird.", "It looked weird."] and [t["current"] for t in got] == [True, False]
+    n_calls = len(log)
+    back = C.use_take(film, sid, "Lila", first["take"])
+    assert len(log) == n_calls and back["take"] == first["take"]                          # switching costs nothing and sends nothing
+    assert [t["current"] for t in C.takes(film, sid, "Lila")["takes"]] == [False, True]
+    assert os.listdir(os.path.join(film, "voice", "_removed"))
+    # the shot's written dialogue is untouched, so a picture or video prompt never sees the direction
+    dl = next(c for c in V._contracts(film).values() if c["id"] == sid)["dialogue"]
+    assert all("[" not in (x.get("line") or "") for x in dl)
+
+
+def test_attaching_the_take_that_is_already_attached_changes_nothing(film, calls):
+    log, replies = calls
+    sid = lila_shot(film)
+    give_voice(film)
+    replies[f"/v1/text-to-speech/{VID}"] = Reply(200, content=wav_bytes(1.5))
+    C.speak(film, sid, "Lila", confirmed=True)
+    removed = os.path.join(film, "voice", "_removed")
+    before = os.listdir(removed) if os.path.isdir(removed) else []
+    again = C.speak(film, sid, "Lila")
+    assert again["cached"] and (os.listdir(removed) if os.path.isdir(removed) else []) == before
+
+
+def test_a_take_from_another_line_or_a_path_cannot_be_used(film, calls):
+    log, replies = calls
+    sid = lila_shot(film)
+    give_voice(film)
+    replies[f"/v1/text-to-speech/{VID}"] = Reply(200, content=wav_bytes(1.5))
+    C.speak(film, sid, "Lila", confirmed=True)
+    for bad in ("../../x.mp3", "voice/lila.mp3", "voice/_generated/../voice.json", "voice/_generated/S09-09-abc.mp3", ""):
+        with pytest.raises(SystemExit, match="not one of this line"):
+            C.use_take(film, sid, "Lila", bad)
+
+
 def test_the_command_line_only_does_what_the_shell_may_ask(film, capsys):
     with pytest.raises(SystemExit):
         C.main(["format_disk", film])

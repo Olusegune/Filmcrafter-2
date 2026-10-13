@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 (2026-10-13)
+
+- **Voice lanes on the timeline.** Under the shots, one lane for each person who speaks, with a clip in every shot where they do: filled (real waveform, to scale) when recorded, dashed amber with the words when not, marked *spoken* when ElevenLabs made it. Drop an audio file on a clip to give it to that person; click a name to choose, design or clone their voice. Hidden in the Compact timeline.
+- **The line studio.** Click a clip (or **Direct…** on a card or the Voiceover screen): hear, record, add a file, or have the line spoken in the person's ElevenLabs voice with **feeling and reactions** (`[whispers]`, `[laughs]`, `[sighs]`, any feeling in plain words) on Eleven v4, with the price shown and a yes asked first. **Takes:** every spoken version is kept; hear them and switch for free. The film's written dialogue is never changed, so the direction never reaches a picture or video prompt (tested).
+- **Eleven v4 and v4 Turbo** are in the model list (v4 is the default). A key that lacks a permission now says which one. Attaching the take that is already attached no longer archives anything for no reason.
+- **Tried for real with ElevenLabs** (a library voice, Eleven v4, a handful of short lines, about 100 credits in all): a line spoken, a directed take (`[sighs]`), a second take, switching takes at no cost, and a voice **design** (three options came back; none was kept). **Still not tried for real:** cloning (needs consent and a plan that allows it), keeping a designed voice, the microphone recorder, and the plan line (your key needs the `user_read` permission).
+- Engine: `cast_voice` gained `takes` and `use_take`; 4 new tests (29 in that file) with ElevenLabs faked.
+
 ## 0.21.1 (2026-10-13)
 
 - **Fixed: a `.filmpack` would not open.** Choosing a film file (File, Open, or double-clicking it) said "That isn't a FilmCrafter project." The app only unpacked the older `.pulse` kind, so a `.filmpack` was treated as a folder and refused. It is now unpacked into the projects folder (under a new name if one of that name is there) and opened, from the Open dialog, from Recent and from a double-click. Reported with a real pack (SUMMIT SPROUT ... Final Version 2, 318 files, about 1 GB); the engine's unpack was run on that file and gave a complete film (21:9, every file present). A test keeps the two file kinds together.

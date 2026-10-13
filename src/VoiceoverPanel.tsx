@@ -7,6 +7,7 @@ import { notifyVoice, useCast, VOICE_EVENT } from "./voiceHooks";
 import { Waveform } from "./Waveform";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { CastVoices, speakLine } from "./CastVoices";
+import { LineStudio } from "./LineStudio";
 import * as I from "./icons";
 
 export { MATCH_WORDS, audioFiles, fill, peopleOf, summary, usable } from "./voiceLogic";
@@ -20,6 +21,7 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
   const [rows, setRows] = useState<VoiceMatch[] | null>(initialRows ?? null);
   const [busy, setBusy] = useState(false);
   const [record, setRecord] = useState<{ shot: string; who?: string } | null>(null);
+  const [direct, setDirect] = useState<{ shot: string; who: string } | null>(null);
   const { cast } = useCast(dir);
   const speak = async (shot: string, who: string) => { setErr(""); setBusy(true); try { await speakLine(dir, shot, who); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); } };
   const [err, setErr] = useState("");
@@ -88,6 +90,7 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
         </span>
       </div>
       {record && <VoiceRecorder dir={dir} shotId={record.shot} speaker={record.who} onClose={() => setRecord(null)} />}
+      {direct && <LineStudio dir={dir} shotId={direct.shot} who={direct.who} onClose={() => setDirect(null)} />}
       {over && <div className="vo-drop" aria-hidden="true">Drop your recordings here</div>}
       <p className="dim vo-how">Drag recordings onto this screen, or use the button. Name each file for the person and the shot, like <b className="num">CHLOE_S01-04.wav</b>. Your recording is what the mouth follows, and what the finished film plays. Your files are copied in, never changed.</p>
       <p className="dim vo-how">If a mouth drifts in a finished take, open the shot in the Studio and press <b>Lip-sync this take…</b>: it re-times the mouth to your recording (the price is shown first).</p>
@@ -133,7 +136,7 @@ export function VoiceoverPanel({ dir, only, onChanged, initialRows }: { dir: str
           {(s.notes ?? []).map((n) => <p key={n} className="vo-note"><I.Alert size={12} /> {n}</p>)}
           {(s.people ?? []).map((p) => (
             <div key={p.key} className="vo-person">
-              <div className="vo-who"><b>{p.name}</b>{(p.lines ?? []).length > 0 && <q className="vo-line">{(p.lines ?? []).join(" ")}</q>}</div>
+              <div className="vo-who"><b>{p.name}</b><button className="link" onClick={() => setDirect({ shot: s.id, who: p.name })} title="Direct this line: feeling, reactions, takes">Direct…</button>{(p.lines ?? []).length > 0 && <q className="vo-line">{(p.lines ?? []).join(" ")}</q>}</div>
               {p.recording
                 ? <div className="vo-rec"><Waveform src={api.mediaUrl(`${dir}/${p.recording.file}`)} />
                     <audio controls preload="none" src={api.mediaUrl(`${dir}/${p.recording.file}`)} aria-label={`${p.name} in ${s.id}`} />

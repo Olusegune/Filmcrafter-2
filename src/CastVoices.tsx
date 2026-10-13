@@ -111,7 +111,7 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
 type Tab = "library" | "design" | "clone";
 
 /** Choose, design or clone a voice for one person. */
-function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: string; person: string; cast: NonNullable<ReturnType<typeof useCast>["cast"]>; plan: CastPlan | null; onClose: () => void; onDone: () => void }) {
+export function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: string; person: string; cast: NonNullable<ReturnType<typeof useCast>["cast"]>; plan: CastPlan | null; onClose: () => void; onDone: () => void }) {
   const [tab, setTab] = useState<Tab>("library");
   const [model, setModel] = useState(cast.models[0]?.id ?? "eleven_multilingual_v2");
   const [busy, setBusy] = useState(false);

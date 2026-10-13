@@ -53,6 +53,7 @@ import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
 import { VoiceoverSheet } from "./VoiceoverSheet";
 import { VoiceChip } from "./VoiceChip";
+import { speakers, VLANE_H, VoiceLanes } from "./VoiceLanes";
 import { useVoiceDrop } from "./VoiceDrop";
 import { useVoiceStatus } from "./voiceHooks";
 import { isRenderDir } from "./filmPaths";
@@ -1041,7 +1042,8 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
   layerSel: string | null; onLayerSelect: (id: string | null) => void; onBoardChanged: () => void;
   onSeek: (t: number) => void; onSelect: (s: Selection) => void; onOpen: (id: string) => void;
 }) {
-  const { byShot: voiceByShot } = useVoiceStatus(isRenderDir(dir) ? filmDirOfRender(dir) : null);          // a film's recorded voices, shown on the shots
+  const voiceFilm = isRenderDir(dir) ? filmDirOfRender(dir) : null;
+  const { byShot: voiceByShot, st: voiceSt } = useVoiceStatus(voiceFilm);          // a film's recorded voices, shown on the shots
   const [laneN, setLaneN] = useState(0);
   const [addMenu, setAddMenu] = useState(false);
   const [addErr, setAddErr] = useState("");
@@ -1149,11 +1151,13 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
   };
 
   if (!map) return <section className="timeline"><div className="tl-head">No timeline yet.</div></section>;
-  const reserve = 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
+  const voiceN = compact || !voiceFilm ? 0 : speakers(voiceSt).length;                        // one lane for each person who speaks (not in the compact timeline)
+  const voiceH = voiceN ? voiceN * VLANE_H + 10 : 0;
+  const reserve = 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? Math.min(voiceN, 3) * VLANE_H + 10 : 0);      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
   const shown = Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
   const cardH = Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
   // top to bottom: sections, waveform, lyrics, the layer lanes (overlay tracks sit above the video, as in an editor), the shots, the transition handles
-  const laneTop = 118, lanesH = Math.max(1, laneN) * LANE_H + 10, shotsTop = laneTop + lanesH, transTop = shotsTop + cardH + 6;
+  const laneTop = 118, lanesH = Math.max(1, laneN) * LANE_H + 10, shotsTop = laneTop + lanesH, transTop = shotsTop + cardH + 6, voiceTop = transTop + 28;
   return (
     <section className="timeline" aria-label="Timeline" style={{ height: shown, ["--card-h" as string]: `${cardH}px` }}>
       <div className="tl-resize" onPointerDown={drag} title="Drag to resize" />
@@ -1184,7 +1188,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
         </div>
       </div>
       <div className="tl-scroll" ref={scroll} onScroll={(e) => setLeft((e.currentTarget as HTMLElement).scrollLeft)}>
-        <div className="tl-inner" style={{ width: inner, height: Math.max(transTop + 28, 0) }} onClick={clickSeek}>
+        <div className="tl-inner" style={{ width: inner, height: Math.max(transTop + 28 + voiceH, 0) }} onClick={clickSeek}>
           <div className="tl-sections">
             {map.sections.map((s, i) => (
               <div key={i} className="tl-section" style={{ left: x(s.start), width: x(s.end - s.start) - 2 }}
@@ -1203,6 +1207,7 @@ function Timeline({ compact, onCompact, map, time, sel, flagged, dir, board, thu
                         thumbs={thumbs} want={want} onOpen={onOpen} onSelect={(id) => onSelect({ kind: "shot", id })} />
           </div>
           <TransitionHandles dir={dir} shots={board} pps={pps} top={transTop} onChanged={onBoardChanged} />
+          {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={board} pps={pps} top={voiceTop} view={[left, left + width]} />}
           <LayerLanes dir={dir} pps={pps} duration={dur} selected={layerSel} onSelect={onLayerSelect} top={laneTop} onCount={setLaneN} time={time} onSeek={onSeek}
                       snap={snapPoints({ downbeats: map.downbeats, lyrics: map.lyrics, shots: board, playhead: time })} />
           <div className="playhead" style={{ left: x(time) }} />

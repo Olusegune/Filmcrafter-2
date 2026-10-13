@@ -42,6 +42,9 @@ Facts: Seedance 2 takes up to 3 reference audio files, 9 reference pictures, and
 4. **Next-line flow in the Studio's bar** (N for the next unvoiced line) and a play-through of the film with voices and soundtrack before any video is paid for.
 Also: a first-run sample film, a "film so far" animatic on Home, hover previews on the Make wall.
 
+### A3. Voice: what is built and what is next
+Built (0.22.0): voice lanes on the timeline, the line studio (direction tags, takes), Eleven v4. Tried for real with ElevenLabs: speaking, direction, takes, voice design. **Next, in order:** (1) **Casting**: suggest voices from each character's description in Cast & World, hear several characters read the same line, keep one. (2) **Voice the scene**: one price, one yes, a spending cap, a play-through of the scene with voices and soundtrack before any video is paid for. (3) Per-line stability/style/speed for the non-tagged models. (4) Try cloning and keeping a designed voice for real (needs a plan that allows cloning). (5) The microphone recorder in the installed app. (6) The key needs `user_read` for the plan line.
+
 ### B. A person walks through the installed app
 Install, open Summit Sprout, and try (watch for confusion, not only bugs): New film from a screenplay file (also a Word file), the frame-shape tiles, Cast & World, Shots (Studio mode), Select & review (enlarge, fold scenes), Make film cards (add a voice, drop a file), the Studio timeline mic, Export (formats for every shape), the editor hand-off. Keep a list; fix in small releases. Also try with only the keyboard (Tab, Enter, Esc, arrow keys in the preview) and, if possible, a screen reader.
 

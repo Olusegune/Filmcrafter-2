@@ -264,7 +264,7 @@ export const api = {
     invoke<T>("film_shots", { action, target, data }),
   voice: <T = VoiceStatus>(action: "status" | "match" | "import" | "remove", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice", { action, target, data }),
   /** Custom voices with ElevenLabs inside a film (filmcrafter_engine.cast_voice). Looking things up is free; the engine refuses to spend without `confirmed: true`, and to clone without `consent: true`. */
-  castVoice: <T = CastStatus>(action: "status" | "library" | "set" | "clear" | "design" | "design_save" | "clone" | "estimate" | "speak" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cast_voice", { action, target, data }),
+  castVoice: <T = CastStatus>(action: "status" | "library" | "set" | "clear" | "design" | "design_save" | "clone" | "estimate" | "speak" | "preview" | "takes" | "use_take", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cast_voice", { action, target, data }),
   /** A take recorded in the app (a 16-bit WAV): saved under ~/.filmcrafter/incoming, the path comes back for `voice("import")`. */
   saveVoiceTake: (wav: Uint8Array) => invoke<string>("save_voice_take", wav),
   make: <T = MakeStatus>(action: "sync" | "status" | "tag" | "choose" | "lock" | "reference" | "import" | "soundtrack" | "progress", target: string, data: Record<string, unknown> = {}) =>
@@ -501,3 +501,4 @@ export type CastStatus = { key: boolean; models: { id: string; label: string }[]
 export type ElevenVoice = { voice_id: string; name: string; category: string; description: string; labels: Record<string, string>; preview_url: string };
 export type CastEstimate = { rows: ({ shot: string; speaker: string; ok: true; characters: number; credits: number; cached: boolean; text: string } | { shot: string; speaker: string; ok: false; why: string })[]; characters: number; credits: number; basis: string };
 export type CastPreview = { id: string; file: string; seconds: number };
+export type CastTake = { file: string; text: string; model: string; voice_name: string; at: number; current: boolean };

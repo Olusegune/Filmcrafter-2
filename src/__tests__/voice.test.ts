@@ -130,3 +130,40 @@ describe("the Home card", () => {
     expect(Number(last[2])).toBeLessThanOrEqual(60);
   });
 });
+
+describe("voices on the timeline and the line studio", () => {
+  it("lists who speaks in the order they first do, and lays two people in one shot one after the other", async () => {
+    const { speakers, offsetIn } = await import("../VoiceLanes");
+    const sh = [shot("S01-01", [["Lila", true]]), shot("S01-02", [["Chloe", true], ["Lila", true]]), shot("S01-03", [["Ethan", false]])];
+    expect(speakers({ shots: sh, people: 4, recorded: 3, missing: 1, problems: 0 }).map((p) => p.name)).toEqual(["Lila", "Chloe", "Ethan"]);
+    expect(speakers(null)).toEqual([]);
+    expect(offsetIn(sh[1], "chloe")).toBe(0);
+    expect(offsetIn(sh[1], "lila")).toBeCloseTo(1.25);          // Chloe's 1 s and the engine's quarter-second gap
+    expect(offsetIn(sh[2], "ethan")).toBe(0);
+  });
+  it("puts a lane for each speaker under the shots (not in the compact timeline), and a clip is itself one person's drop target", () => {
+    const studio = readFileSync("src/Studio.tsx", "utf8");
+    expect(studio).toContain("<VoiceLanes");
+    expect(studio).toMatch(/const voiceN = compact \|\| !voiceFilm \? 0/);
+    expect(studio).toMatch(/Math\.max\(transTop \+ 28 \+ voiceH, 0\)/);
+    const lanes = readFileSync("src/VoiceLanes.tsx", "utf8");
+    expect(lanes).toContain("data-shot-id={s.id} data-voice-person={p.name}");
+    expect(readFileSync("src/voiceHooks.ts", "utf8")).toContain('card.matches("[data-voice-person]")');
+  });
+  it("offers [tags] only for the models that read them, matching the engine's list, and never edits the shot's dialogue", () => {
+    const studio = readFileSync("src/LineStudio.tsx", "utf8");
+    const screen = /const TAGGED = new Set\(\[([^\]]+)\]\)/.exec(studio)![1].match(/"(\w+)"/g)!.map((x) => x.replace(/"/g, "")).sort();
+    const engine = readFileSync("analysis/filmcrafter_engine/cast_voice.py", "utf8");
+    const py = /TAGGED = \{([^}]+)\}/.exec(engine)![1].match(/"(\w+)"/g)!.map((x) => x.replace(/"/g, "")).sort();
+    expect(screen).toEqual(py);
+    expect(py).toContain("eleven_v4");
+    expect(studio).toContain("The film's written dialogue is not changed");
+    expect(studio.indexOf("await ask(")).toBeLessThan(studio.indexOf('castVoice("speak"'));       // the yes comes before the first spoken line is sent
+    expect(studio).toContain("switching between them is free");
+  });
+  it("can be opened from the timeline, a shot card and the Voiceover rows, and the shell lets takes through", () => {
+    for (const f of ["src/VoiceLanes.tsx", "src/VoiceChip.tsx", "src/VoiceoverPanel.tsx"]) expect(readFileSync(f, "utf8")).toContain("<LineStudio");
+    const rust = readFileSync("src-tauri/src/lib.rs", "utf8");
+    expect(rust).toMatch(/ACTIONS: \[&str; \d+\] = \["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take"\]/);
+  });
+});

@@ -1249,7 +1249,7 @@ async fn film_voice(app: AppHandle, action: String, target: String, data: Value)
 /// and credits, and cloning is refused without `consent`.
 #[tauri::command]
 async fn film_cast_voice(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 10] = ["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview"];
+    const ACTIONS: [&str; 12] = ["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

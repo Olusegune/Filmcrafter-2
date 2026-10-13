@@ -337,8 +337,32 @@ def _speak_to(path: str, words: str, voice: dict) -> None:
     os.replace(tmp, path)
 
 
+def _sidecar(path: str) -> str:
+    return path[:-4] + ".json"
+
+
+def _attach_generated(d: str, sid: str, name: str, path: str, voice: dict) -> dict:
+    """Attach a spoken line as the person's voice in the shot, marked as spoken by ElevenLabs. Attaching the take that is already attached changes nothing (so nothing is archived for no reason)."""
+    k = V.key_of(name)
+    gen = os.path.basename(path)
+    cur = next((e for e in V._meta(d)["shots"].get(sid, []) if e.get("key") == k), None)
+    if cur and cur.get("gen") == gen and os.path.isfile(os.path.join(d, *str(cur.get("file", "")).split("/"))):
+        return {"shot": sid, "speaker": V.pretty(name), "seconds": cur.get("seconds"), "notes": [], "replaced": False, "unchanged": True}
+    res = V.attach(d, sid, name, path, fit=True)
+    meta = V._meta(d)
+    for e in meta["shots"].get(sid, []):
+        if e.get("key") == k:
+            e["source"] = "elevenlabs"
+            e["gen"] = gen
+            e["name"] = f"{name} (ElevenLabs, {voice.get('voice_name') or 'voice'})"[:120]
+    V._write(os.path.join(d, "voice", "voice.json"), meta)
+    return res
+
+
 def speak(d: str, shot: str, speaker: str, text: str | None = None, confirmed: bool = False) -> dict:
-    """Speak the written line in the person's voice and attach it to the shot as theirs. Only with `confirmed: true`, after the screen has shown the price."""
+    """Speak a line in the person's voice and attach it to the shot as theirs. `text` is what to say (default: their written line); with a model that reads [tags], direction such as
+    [whispers] or [laughs] can sit in it. The shot's own written dialogue is never changed, so the direction never reaches a picture or video prompt. Only with `confirmed: true`,
+    after the screen has shown the price; a line already spoken in the same voice is free. Every spoken version is kept as a take (see `takes`)."""
     sid, name, words, voice = _line(d, shot, speaker, text)
     path = _cache(d, sid, words, voice)
     spent = 0
@@ -347,14 +371,48 @@ def speak(d: str, shot: str, speaker: str, text: str | None = None, confirmed: b
             raise SystemExit("Speaking a line uses your ElevenLabs plan. Confirm the price first.")
         _speak_to(path, words, voice)
         spent = round(len(words) * CREDITS.get(voice.get("model"), 1.0))
-    res = V.attach(d, sid, name, path, fit=True)
-    meta = V._meta(d)
-    for e in meta["shots"].get(sid, []):
-        if e.get("key") == V.key_of(name):
-            e["source"] = "elevenlabs"
-            e["name"] = f"{name} (ElevenLabs, {voice.get('voice_name') or 'voice'})"[:120]
-    V._write(os.path.join(d, "voice", "voice.json"), meta)
-    return {**res, "characters": len(words), "credits": spent, "cached": spent == 0}
+        V._write(_sidecar(path), {"shot": sid, "key": V.key_of(name), "speaker": name, "text": words, "model": voice.get("model"), "voice_id": voice.get("voice_id"),
+                                  "voice_name": voice.get("voice_name"), "at": int(time.time())})
+    res = _attach_generated(d, sid, name, path, voice)
+    return {**res, "characters": len(words), "credits": spent, "cached": spent == 0, "take": os.path.relpath(path, d).replace(os.sep, "/")}
+
+
+def takes(d: str, shot: str, speaker: str) -> dict:
+    """Every version of this line that has been spoken (newest first), and which one is attached now. Free."""
+    from .safe import check_id
+    V._film(d)
+    sid = check_id(shot, "shot")
+    k, name = _person(d, speaker)
+    folder = os.path.join(d, "voice", "_generated")
+    cur = next((e.get("gen") for e in V._meta(d)["shots"].get(sid, []) if e.get("key") == k), None)
+    out = []
+    for f in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+        if not f.endswith(".mp3") or not f.startswith(sid + "-"):
+            continue
+        meta = V._read(_sidecar(os.path.join(folder, f)), None)
+        if not isinstance(meta, dict) or meta.get("key") != k:
+            continue
+        out.append({"file": f"voice/_generated/{f}", "text": str(meta.get("text") or "")[:1500], "model": meta.get("model"), "voice_name": str(meta.get("voice_name") or "")[:80],
+                    "at": int(meta.get("at") or 0), "current": f == cur})
+    out.sort(key=lambda t: -t["at"])
+    return {"takes": out[:30], "person": name, "shot": sid}
+
+
+def use_take(d: str, shot: str, speaker: str, file: str) -> dict:
+    """Switch to one of the takes already spoken (free: nothing is sent). The take it replaces is archived in voice/_removed, never deleted."""
+    from .safe import check_id
+    V._film(d)
+    sid = check_id(shot, "shot")
+    k, name = _person(d, speaker)
+    rel = str(file or "")
+    path = V.inside(d, rel)
+    if not path or not rel.startswith(f"voice/_generated/{sid}-") or not rel.endswith(".mp3") or not os.path.isfile(path):
+        raise SystemExit("That take is not one of this line's.")
+    meta = V._read(_sidecar(path), None)
+    if not isinstance(meta, dict) or meta.get("key") != k:
+        raise SystemExit("That take is not one of this line's.")
+    voice = {"voice_name": meta.get("voice_name")}
+    return {**_attach_generated(d, sid, name, path, voice), "take": rel}
 
 
 def preview(d: str, who: str, text: str = "", confirmed: bool = False) -> dict:
@@ -379,7 +437,7 @@ def preview(d: str, who: str, text: str = "", confirmed: bool = False) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview"])
+    ap.add_argument("action", choices=["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -405,6 +463,10 @@ def main(argv: list[str]) -> int:
             res = estimate(d, x.get("items") or [])
         elif a.action == "speak":
             res = speak(d, x.get("shot", ""), x.get("speaker", ""), x.get("text"), x.get("confirmed") is True)
+        elif a.action == "takes":
+            res = takes(d, x.get("shot", ""), x.get("speaker", ""))
+        elif a.action == "use_take":
+            res = use_take(d, x.get("shot", ""), x.get("speaker", ""), x.get("file", ""))
         else:
             res = preview(d, x.get("person", ""), x.get("text", ""), x.get("confirmed") is True)
         emit(event="result", data=res)
