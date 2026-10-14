@@ -360,3 +360,12 @@ def test_the_engine_says_which_models_read_tags_so_the_screen_keeps_no_list_of_i
     models = {m["id"]: m["tagged"] for m in C.status(film)["models"]}
     assert models["eleven_v4"] and models["eleven_v3"] and not models["eleven_multilingual_v2"]
     assert {i for i, t in models.items() if t} == C.TAGGED
+
+
+def test_a_real_mp3_that_the_bucket_labels_text_plain_is_kept_because_the_bytes_decide(film, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get", lambda url, **kw: Streamed(200, b"ID3" + b"\0" * 5000, {"Content-Type": "text/plain"}))
+    assert C.sample(film, "https://storage.googleapis.com/eleven-public-prod/database/user/x.mp3")["cached"] is False
+    monkeypatch.setattr(requests, "get", lambda url, **kw: Streamed(200, b"<html>" + b"x" * 5000, {"Content-Type": "text/plain"}))
+    with pytest.raises(SystemExit, match="not a playable audio"):
+        C.sample(film, "https://storage.googleapis.com/eleven-public-prod/database/user/y.mp3")

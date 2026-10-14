@@ -306,8 +306,8 @@ def sample(d: str, url: str) -> dict:
     if not r.ok:
         raise SystemExit(f"Could not fetch that sample (HTTP {r.status_code}).")
     ctype = str(r.headers.get("Content-Type", "")).split(";")[0].strip().lower()
-    if ctype and not (ctype.startswith("audio/") or ctype in ("application/octet-stream", "binary/octet-stream", "video/mpeg")):
-        r.close()
+    if ctype in ("text/html", "application/json", "application/xml", "text/xml", "application/javascript") or ctype.startswith(("image/", "video/webm")):
+        r.close()                                                           # (the bucket labels real mp3 files "text/plain", so the bytes below decide, not this)
         raise SystemExit("That link is not an audio sample, so it was not kept.")
     try:
         if int(r.headers.get("Content-Length", 0) or 0) > _SAMPLE_MAX:
