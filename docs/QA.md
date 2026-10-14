@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.24.0 (2026-10-14)
+# QA report: FilmCrafter 0.25.0 (2026-10-14)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -100,7 +100,7 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 - **ElevenLabs voices** (`cast_voice`): 17 engine tests with every ElevenLabs request faked: no key means nothing is asked; the plan is read only when the plan view asks; a library voice is kept; a designed voice is heard before it is kept and a preview id cannot be a path; cloning refuses without consent, a non-audio file or a 30 MB+ file, and sends nothing then; a line is never spoken without a confirmed yes; a repeat is free; a busy service is retried but a refusal or a used-up plan is not; your own recording replaces a spoken one and the spoken one is kept. **Not tested against the real ElevenLabs** (no key stored here): the request shapes follow ElevenLabs' published reference (`/v1/text-to-voice/design`, `/v1/text-to-voice`, `/v1/voices/add`, `/v1/text-to-speech/{id}`, `/v1/user/subscription`, `/v2/voices`).
 - **Home card padding:** seen in the browser harness; a test keeps it from growing back.
 
-## What 0.25.0 (creative production expansion, unreleased) added, and how it was checked
+## What 0.25.0 (creative production expansion) added, and how it was checked
 
 - **Whole-suite results on the branch `stage-a-sound-bible`:** engine **1971 passed, 8 skipped, 0 failed** (6 min 9 s); screens (`vitest`) **548 passed**; `tsc` clean; `cargo test --lib` 9 passed; `rafter secrets` none found; `npm audit --omit=dev` 0 vulnerabilities.
 - **New engine tests (no provider, no network):** `test_audiolib` 12, `test_bible_sound` 5, `test_voicedirect` 25, `test_audiocues` 15, `test_audiogen` 18, `test_audiomix` 14 (real audio and ffmpeg; one through `export.build`; a ten-minute film for memory), `test_outdated` 9, `test_registry` 14, `test_preupdate` 4.

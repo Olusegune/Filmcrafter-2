@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.25.0 — Creative production expansion: Sound & Music, voice direction, audio mixing (unreleased, branch `stage-a-sound-bible`)
+## 0.25.0 (2026-10-14) — Creative production expansion: Sound & Music, voice direction, audio mixing
 
 - **Sound & Music in Cast & World.** A new tab: each character's voice (the voice they have, a profile of how it should sound, an *approved* flag that nothing replaces silently), a library of sound effects and one of music (import, hear, describe, tag, link to places, props, characters and scenes, approve, take out and bring back; nothing is ever deleted), the film's sound style, and **Scene sound**: each scene's planned soundscape. Nothing in the tab costs anything.
 - **Directing voices.** Keep a *spoken version* of a line apart from the screenplay; **Make another take** (a different performance of the same words, priced first, old takes kept); **Make this sound more natural** (optional alternatives from your writing AI, price first); **Suggest voices for this character** (the AI proposes what the voice should be like; matching voices from your own library are found on this computer, free); **Voice a scene** (one price, one yes, a spending cap; a failed line does not undo the others); **Table read** (hear the whole scene before any video).
