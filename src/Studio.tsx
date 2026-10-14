@@ -177,7 +177,8 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
     } catch (e) { say(errorText(e)); }
   };
   useEffect(() => {   // automatic backups: on open, then every 10 minutes (skipped when nothing changed)
-    const snap = () => api.backups(project.dir, "backup", "auto").catch(() => {});
+    const film = (project.project as { film?: boolean }).film ? filmDirOfRender(project.dir) : null;
+    const snap = () => { api.backups(project.dir, "backup", "auto").catch(() => {}); if (film) api.filmBackup(film, "make", "auto").catch(() => {}); };
     snap();
     const t = setInterval(snap, 10 * 60_000);
     return () => clearInterval(t);

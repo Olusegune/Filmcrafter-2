@@ -103,7 +103,7 @@ export default function App() {
             }
             break;
           }
-          case "backups": if (current) setRestoring(true); else say(filmDir ? "Backups are made of the timeline: open the Timeline view first." : "Open a film first."); break;
+          case "backups": if (current || filmDir) setRestoring(true); else say("Open a film first."); break;
           case "reveal": if (current) await revealItemInDir(current.doc ?? current.dir); else if (filmDir) await revealItemInDir(filmDir); break;
           case "close": setView({ name: "home" }); break;
           default: window.dispatchEvent(new CustomEvent("pf-menu", { detail: id })); // screen-level items: Export, Simple and Director mode, the inspector, the Director's command
@@ -125,8 +125,8 @@ export default function App() {
                                          onSettings={() => setSettings(true)} onReload={() => openProject(view.project.dir)} />}
       {settings && <Settings onClose={() => setSettings(false)} onHelp={() => { setSettings(false); setHelp(true); }} />}
       {help && <HelpSheet onClose={() => setHelp(false)} />}
-      {restoring && current && <BackupsSheet dir={current.dir} onClose={() => setRestoring(false)}
-                                             onRestored={() => { setRestoring(false); openProject(current.dir); say("Restored. The state before is kept as a backup."); }} />}
+      {restoring && (current || filmDir) && <BackupsSheet dir={current?.dir ?? null} filmDir={filmDir} onClose={() => setRestoring(false)}
+                                             onRestored={() => { setRestoring(false); if (current) openProject(current.dir); else if (filmDir) window.location.reload(); say("Restored. The state before is kept as a backup."); }} />}
       {error && <div className="toast glass" role="alert"><div className="t" style={{ color: "var(--error)" }}>Could not open</div>
         <div className="s">{error}</div><div style={{ textAlign: "right", marginTop: 10 }}><button className="btn" onClick={() => setError("")}>OK</button></div></div>}
     </>

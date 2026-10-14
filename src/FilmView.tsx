@@ -33,6 +33,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const load = useCallback((version?: number) =>
     api.film<FilmStatus>("status", dir, version ? { version } : {}).then(setF).catch((e) => setErr(errorText(e))), [dir]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { api.film("status", dir).then(() => api.filmBackup(dir, "make", "open")).catch(() => {}); }, [dir]);       // a snapshot of the film's records when it opens (only if it read cleanly; skipped when nothing changed)
   useEffect(() => { api.make<FilmProgress>("progress", dir).then(setProgress).catch(() => {}); }, [dir, stage, makeTab, f?.story.locked, f?.story.current]);          // the small words under each step
 
   const run = async (what: string, fn: () => Promise<FilmStatus>) => {

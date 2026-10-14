@@ -977,3 +977,5 @@
 .vu-st { display: inline-block; min-width: 130px; color: var(--text-quiet, #8b97a7); }
 .vu-st.completed { color: #7fe0b0; } .vu-st.uncertain { color: var(--gold, #e8b45c); }
 .vu-note { margin: 6px 0 0; font-size: 11.5px; }
+
+.bk-h { margin: 14px 0 4px; font-size: 13px; font-weight: 600; color: var(--frost); }
