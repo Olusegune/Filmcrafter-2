@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.24.0 — Phase 0: stability, safety and data protection (not released; branch `phase-0-stability`)
+## 0.24.0 (2026-10-14) — Phase 0: stability, safety and data protection
 
 - **No paid voice call without a yes, enforced by the engine.** Designing a voice, keeping a designed voice, cloning, speaking a line and previewing are refused by the engine unless the request is confirmed (cloning also needs a separate consent; designing also needs you to accept that ElevenLabs does not publish its cost). Every screen asks first and says the provider, the cost (or that it is unknown), and whether a voice slot is taken.
 - **A record of what voice generation used**, `voice/ledger.json`, shown under the voices: what ElevenLabs *reported* and, kept apart and marked *estimated*, FilmCrafter's own count. An optional per-film limit stops a call before it would pass it.

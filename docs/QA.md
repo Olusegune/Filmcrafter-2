@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.23.4 (2026-10-13)
+# QA report: FilmCrafter 0.24.0 (2026-10-14)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,9 +6,9 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,772 passed**, 8 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **503 passed** |
-| App shell (`cargo test`) | **8 passed** |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,855 passed**, 8 skipped (optional-dependency tests), 0 failed |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **514 passed** |
+| App shell (`cargo test`) | **9 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
 | The guide lists every look the app has (a test reads `styles.json`) | passing |
@@ -100,7 +100,7 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 - **ElevenLabs voices** (`cast_voice`): 17 engine tests with every ElevenLabs request faked: no key means nothing is asked; the plan is read only when the plan view asks; a library voice is kept; a designed voice is heard before it is kept and a preview id cannot be a path; cloning refuses without consent, a non-audio file or a 30 MB+ file, and sends nothing then; a line is never spoken without a confirmed yes; a repeat is free; a busy service is retried but a refusal or a used-up plan is not; your own recording replaces a spoken one and the spoken one is kept. **Not tested against the real ElevenLabs** (no key stored here): the request shapes follow ElevenLabs' published reference (`/v1/text-to-voice/design`, `/v1/text-to-voice`, `/v1/voices/add`, `/v1/text-to-speech/{id}`, `/v1/user/subscription`, `/v2/voices`).
 - **Home card padding:** seen in the browser harness; a test keeps it from growing back.
 
-## What 0.24.0 (Phase 0, unreleased) added, and how it was checked
+## What 0.24.0 (Phase 0) added, and how it was checked
 
 - **Paid-voice safety** (`test_voice_paid_safety.py`, 33 tests, every provider call faked, no network): each paid action refused by the engine unless confirmed and sends nothing; consent and spending are separate; design needs the unknown-cost acceptance; cancelled means no request; estimates and reported amounts never added; an ambiguous 5xx / timeout is `uncertain` and never re-sent; creation is never retried; 429 retried a bounded number of times; crash leftovers settled truthfully; identical request blocked until the person resolves it; limits; six processes writing entries at once keep every entry; no credential in the ledger; a film with no ledger works as before.
 - **Safe I/O** (`test_safeio.py`, ~26 tests incl. a six-process hammer and a folder that refuses writes): absent / valid / damaged / unreadable cases kept apart; the damaged bytes are preserved; `.bak` only ever holds a good file; a failed write leaves the old file; `film.json` and the voice files adopted. `test_render_lock.py`: the render queue's lock under contention (the Windows race was reproduced on the old code, 1 run in 8).

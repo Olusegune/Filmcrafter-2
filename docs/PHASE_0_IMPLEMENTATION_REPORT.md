@@ -1,6 +1,6 @@
 # Phase 0 implementation report: stability, safety and data protection
 
-Branch `phase-0-stability` (local only). **Nothing was pushed, released, installed or built into an installer. No paid provider call was made. No real film project was opened or modified** (every test uses temporary folders and faked providers). No API key was printed, logged or committed.
+Branch `phase-0-stability`, released as 0.24.0 on the owner's approval. This report was written before the release: at that point nothing had been pushed or built. Installers were built and the branch pushed afterwards; **nothing was installed**. No paid provider call was made. No real film project was opened or modified (every test uses temporary folders and faked providers). No API key was printed, logged or committed.
 
 Version label in the CHANGELOG: 0.24.0 (unreleased). The version numbers in `package.json`, `Cargo.toml` and `tauri.conf.json` were not changed: bumping is a release step.
 
