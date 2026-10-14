@@ -1,5 +1,4 @@
 /* layer lanes and transition handles on the timeline */
-.tl-scroll { overflow-y: auto; }
 .tl-lanes { position: absolute; left: 0; right: 0; }
 .tl-lanes::after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 1px; background: var(--line); }
 .lane-bar { position: absolute; height: 20px; display: flex; align-items: center; border-radius: 6px; border: 1px solid rgba(232, 180, 92, .55);

@@ -65,6 +65,7 @@ describe("update messages", () => {
   it("says what happened in plain words", () => {
     expect(updateText({ ...base, status: "update", latest: "1.11.0" })).toMatchObject({ tone: "new", text: expect.stringContaining("1.11.0 is available") });
     expect(updateText({ ...base, status: "up_to_date" })).toMatchObject({ tone: "ok", text: expect.stringContaining("latest version (1.10.0)") });
+    expect(updateText({ ...base, status: "disabled" }).text).toMatch(/checks are off/);
     expect(updateText({ ...base, status: "offline" }).text).toMatch(/internet connection/);
     expect(updateText({ ...base, status: "unavailable" }).text).toMatch(/releases page/);
   });

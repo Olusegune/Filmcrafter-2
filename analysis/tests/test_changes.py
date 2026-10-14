@@ -58,7 +58,7 @@ def test_moving_the_keyframe_from_first_frame_to_reference_and_the_vocal_arrivin
     new = {"prompt": "x", "reference_image_urls": ["a"], "reference_audio_urls": ["v.mp3"]}
     r = C.compare(take(old), now(new), MAN)
     assert set(kinds(r)) == {"first_frame", "audio", "references"}
-    assert any("no longer the first frame" in x["text"] for x in r) and any("vocal is now sent" in x["text"] for x in r)
+    assert any("no longer the first frame" in x["text"] for x in r) and any("is now sent for" in x["text"] for x in r)
 
 
 def test_reference_counts_length_and_model_changes_are_reported():

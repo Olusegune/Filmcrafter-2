@@ -235,7 +235,7 @@ def status(d: str, with_plan: bool = False) -> dict:
     """The key, the models, and each person's voice; with `with_plan` also the plan (one free call to ElevenLabs, so cards that only need the voices do not ask for it)."""
     V._film(d)
     has = bool(os.environ.get("ELEVENLABS_KEY"))
-    out = {"key": has, "models": [{"id": i, "label": l} for i, l in MODELS], "people": _cast(d)["people"], "plan": None, "plan_error": ""}
+    out = {"key": has, "models": [{"id": i, "label": l, "tagged": i in TAGGED} for i, l in MODELS], "people": _cast(d)["people"], "plan": None, "plan_error": ""}
     if has and with_plan:
         try:
             out["plan"] = subscription()

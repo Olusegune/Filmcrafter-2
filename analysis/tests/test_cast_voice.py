@@ -354,3 +354,9 @@ def test_the_command_line_only_does_what_the_shell_may_ask(film, capsys):
         C.main(["format_disk", film])
     C.main(["status", film])
     assert '"event": "result"' in capsys.readouterr().out
+
+
+def test_the_engine_says_which_models_read_tags_so_the_screen_keeps_no_list_of_its_own(film):
+    models = {m["id"]: m["tagged"] for m in C.status(film)["models"]}
+    assert models["eleven_v4"] and models["eleven_v3"] and not models["eleven_multilingual_v2"]
+    assert {i for i, t in models.items() if t} == C.TAGGED

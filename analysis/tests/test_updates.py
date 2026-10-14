@@ -11,6 +11,28 @@ from filmcrafter_engine import updates as U
 REL = lambda tag, **kw: {"tag_name": tag, "html_url": f"https://github.com/{U.REPO}/releases/tag/{tag}", "body": "Notes\n\n- one  two", "published_at": "2026-10-04T10:00:00Z", **kw}
 
 
+@pytest.fixture(autouse=True)
+def _checks_on(monkeypatch):
+    monkeypatch.setattr(U, "ENABLED", True)           # the tests exercise the real logic; the shipped switch is tested below
+
+
+def test_while_the_release_list_is_not_public_the_check_is_off_asks_nobody_and_says_so(monkeypatch):
+    monkeypatch.setattr(U, "ENABLED", False)
+    asked = []
+    out = U.check("1.26.0", get=lambda c: asked.append(c) or [])
+    assert out["status"] == "disabled" and asked == []
+
+
+def test_the_shipped_default_is_off_and_matches_the_screen():
+    import importlib
+    import os
+    import re
+    src = open(U.__file__, encoding="utf-8").read()
+    assert re.search(r"^ENABLED = False$", src, re.M)
+    ts = open(os.path.join(os.path.dirname(U.__file__), "..", "..", "src", "Updates.tsx"), encoding="utf-8").read()
+    assert re.search(r"export const UPDATES_ENABLED = false;", ts)
+
+
 def test_versions_are_read_and_compared_as_numbers():
     assert U.parse_version("v1.10.0") == (1, 10, 0) and U.parse_version("1.9.0") == (1, 9, 0) and U.parse_version("1.10.0-beta.1") == (1, 10, 0)
     assert U.parse_version("latest") is None and U.parse_version("") is None and U.parse_version(None) is None

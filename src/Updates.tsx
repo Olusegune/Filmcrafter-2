@@ -8,9 +8,12 @@ const DAY = 24 * 3600 * 1000;
 const get = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
 const put = (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* optional */ } };
 export const autoChecks = () => get(AUTO) === "1";
+/** Mirrors `ENABLED` in updates.py. Off until the release list is public: a check that cannot find a release must not be able to say "you have the latest version". */
+export const UPDATES_ENABLED = false;
 
 /** What a check found, in words. Pure, so it can be tested. */
 export function updateText(u: UpdateInfo): { tone: "ok" | "new" | "warn"; text: string } {
+  if (u.status === "disabled") return { tone: "warn", text: `Update checks are off in this version. You have ${u.current}. New versions are shared with you directly.` };
   if (u.status === "update") return { tone: "new", text: `FilmCrafter ${u.latest} is available (you have ${u.current}).` };
   if (u.status === "up_to_date") return { tone: "ok", text: `You have the latest version (${u.current}).` };
   if (u.status === "offline") return { tone: "warn", text: "Couldn't reach the update list. Check your internet connection and try again." };
@@ -19,6 +22,15 @@ export function updateText(u: UpdateInfo): { tone: "ok" | "new" | "warn"; text: 
 
 /** Settings: the version, a button to check, and a switch for one automatic check a day (off by default: a check tells GitHub this computer asked). */
 export function UpdateRow() {
+  if (!UPDATES_ENABLED) return (
+    <div className="field upd">
+      <label style={{ display: "flex", justifyContent: "space-between" }}><span>Updates <span className="opt">checking is off in this version</span></span></label>
+      <p className="upd-msg warn">FilmCrafter does not check for updates yet, because there is no public release list for it to read. New versions are shared with you directly; nothing here contacts anyone.</p>
+    </div>);
+  return <UpdateRowLive />;
+}
+
+function UpdateRowLive() {
   const [info, setInfo] = useState<UpdateInfo | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -46,6 +58,11 @@ export function UpdateRow() {
 
 /** Home: a small amber pill when a newer version is known (from the daily check, if it is switched on, or a check made in Settings). */
 export function UpdatePill() {
+  if (!UPDATES_ENABLED) return null;
+  return <UpdatePillLive />;
+}
+
+function UpdatePillLive() {
   const [u, setU] = useState<UpdateInfo | null>(() => { try { const v = JSON.parse(get(FOUND) || "null"); return v && v.status === "update" ? v : null; } catch { return null; } });
   useEffect(() => {
     if (!autoChecks()) return;

@@ -1,7 +1,7 @@
 """What would be different if this shot were rendered again: the request that made its last take compared with the request that would be sent now. Free; nothing is sent anywhere.
 
 A video model gives a different take every time, so a re-render is only worth paying for when something it is told or shown has changed. This lists exactly what has: the model, the first frame,
-the pictures and the song's vocal it is given, the length, and each sentence of the prompt that was added or removed.
+the pictures and the sung or spoken audio it is given, the length, and each sentence of the prompt that was added or removed.
 """
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ def compare(take: dict, now: dict, man: dict) -> list[dict]:
         out.append({"kind": "first_frame", "text": "The keyframe is now sent as the first frame." if new.get(first) else "The keyframe is no longer the first frame (it goes as a reference picture)."})
     audio = roles.get("ref_audio")
     if audio and bool(_present(old, audio)) != bool(_present(new, audio)):
-        out.append({"kind": "audio", "text": "The song's vocal is now sent for the mouth to follow." if _present(new, audio) else "The song's vocal is no longer sent."})
+        out.append({"kind": "audio", "text": "The voice or sung line is now sent for the mouth to follow." if _present(new, audio) else "The voice or sung line is no longer sent."})
     imgs = roles.get("ref_images")
     if imgs and _present(old, imgs) != _present(new, imgs):
         out.append({"kind": "references", "text": f"{_present(new, imgs)} reference picture{'s' if _present(new, imgs) != 1 else ''} are sent now, {_present(old, imgs)} before."})

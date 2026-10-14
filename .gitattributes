@@ -1,0 +1,19 @@
+# Let git decide line endings for text (the project is edited on Windows), and never touch media or packed files.
+* text=auto
+*.sh text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.mp4 binary
+*.mov binary
+*.wav binary
+*.mp3 binary
+*.zip binary
+*.filmpack binary
+*.msi binary
+*.exe binary
+*.ttf binary
+*.woff2 binary

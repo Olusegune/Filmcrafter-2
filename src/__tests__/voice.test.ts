@@ -152,10 +152,10 @@ describe("voices on the timeline and the line studio", () => {
   });
   it("offers [tags] only for the models that read them, matching the engine's list, and never edits the shot's dialogue", () => {
     const studio = readFileSync("src/LineStudio.tsx", "utf8");
-    const screen = /const TAGGED = new Set\(\[([^\]]+)\]\)/.exec(studio)![1].match(/"(\w+)"/g)!.map((x) => x.replace(/"/g, "")).sort();
+    expect(studio).not.toMatch(/const TAGGED/);                                                        // one list only: the engine's
+    expect(studio).toContain("?.tagged");
     const engine = readFileSync("analysis/filmcrafter_engine/cast_voice.py", "utf8");
     const py = /TAGGED = \{([^}]+)\}/.exec(engine)![1].match(/"(\w+)"/g)!.map((x) => x.replace(/"/g, "")).sort();
-    expect(screen).toEqual(py);
     expect(py).toContain("eleven_v4");
     expect(studio).toContain("The film's written dialogue is not changed");
     expect(studio.indexOf("await ask(")).toBeLessThan(studio.indexOf('castVoice("speak"'));       // the yes comes before the first spoken line is sent

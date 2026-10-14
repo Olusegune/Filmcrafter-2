@@ -9,8 +9,6 @@ import { notifyVoice, useCast, useVoiceStatus } from "./voiceHooks";
 import { FILTERS, lineFor } from "./voiceLogic";
 import * as I from "./icons";
 
-/** Models that read [tags] in the words as direction (the others would speak them aloud). Kept in step with the engine's TAGGED. */
-const TAGGED = new Set(["eleven_v4", "eleven_v4_turbo", "eleven_v3"]);
 /** Feelings go at the start of a line (they carry through it); reactions go where they happen. */
 const FEELINGS = ["warm", "tender", "sad", "angry", "furious", "nervous", "excited", "sarcastic", "whispering", "shouting", "tired", "amused"];
 const REACTIONS = ["laughs", "chuckles", "sighs", "gasps", "sobs", "clears throat", "pauses"];
@@ -98,7 +96,7 @@ export function LineEditor({ dir, shotId, who }: { dir: string; shotId: string; 
     notifyVoice();
   });
 
-  const tagged = voice ? TAGGED.has(voice.model) : false;
+  const tagged = voice ? !!cast?.models.find((m) => m.id === voice.model)?.tagged : false;       // which models read [tags] as direction comes from the engine (one list, cast_voice.TAGGED)
   const rec = person?.recording;
   const price = est && est.rows[0]?.ok ? priceWords(est) : "";
 

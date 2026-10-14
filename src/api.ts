@@ -364,7 +364,7 @@ export type ProducerPlanView = { stage: "start" | "assets" | "shots" | "built"; 
   counts: { people: number; props: number; places: number; dancers: number; shots: number }; has_renders: boolean; supplied: string[];
   approved: string[]; moves: Record<string, PlanMoveView[]>;
   script: { name: string; characters: number; scenes: number; logline: string } | null };
-export type UpdateInfo = { status: "update" | "up_to_date" | "offline" | "unavailable"; current: string; latest: string | null; url: string; notes: string; published: string | null; prerelease: boolean };
+export type UpdateInfo = { status: "update" | "up_to_date" | "offline" | "unavailable" | "disabled"; current: string; latest: string | null; url: string; notes: string; published: string | null; prerelease: boolean };
 export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
   rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[] };
 export type LayerTemplate = { name: string; layers: number; seconds: number; saved: number };
@@ -498,7 +498,7 @@ export type FilmProgress = { story: { kind: StoryKind; locked: boolean; as_is: b
 
 export type CastPlan = { tier: string; used: number; limit: number; left: number; can_clone: boolean; slots_used: number; slots: number };
 export type CastVoice = { name: string; voice_id: string; voice_name: string; model: string; stability: number; similarity: number; style: number; speed: number; made: "library" | "design" | "clone" };
-export type CastStatus = { key: boolean; models: { id: string; label: string }[]; people: Record<string, CastVoice>; plan: CastPlan | null; plan_error: string };
+export type CastStatus = { key: boolean; models: { id: string; label: string; tagged: boolean }[]; people: Record<string, CastVoice>; plan: CastPlan | null; plan_error: string };
 export type ElevenVoice = { voice_id: string; name: string; category: string; description: string; labels: Record<string, string>; preview_url: string };
 export type CastEstimate = { rows: ({ shot: string; speaker: string; ok: true; characters: number; credits: number; cached: boolean; text: string } | { shot: string; speaker: string; ok: false; why: string })[]; characters: number; credits: number; basis: string };
 export type CastPreview = { id: string; file: string; seconds: number };

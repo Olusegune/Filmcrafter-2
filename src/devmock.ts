@@ -89,7 +89,7 @@ export async function installMock() {
         return a.action === "history" ? { can_undo: false, can_redo: false } : overlays;
       }
       case "golden": if (a.action === "changes") return { has_take: true, same: false, take: { id: "j4", model: "kling", created: 1 }, note: "", changes: [
-        { kind: "first_frame", text: "The keyframe is no longer the first frame (it goes as a reference picture)." }, { kind: "audio", text: "The song's vocal is now sent for the mouth to follow." },
+        { kind: "first_frame", text: "The keyframe is no longer the first frame (it goes as a reference picture)." }, { kind: "audio", text: "The voice or sung line is now sent for the mouth to follow." },
         { kind: "prompt_removed", text: "Sege lifts his head toward the door." }, { kind: "prompt_added", text: "Sege throws the door open, breath held." }] };
         return null;
       case "frames": if (a.action === "get") return { "S01-04": { start: "assets/kf.png", start_mode: "keyframe", end: null, end_mode: "own", end_state: "", next: "S01-05", prev: "S01-03", next_has_start: false } };

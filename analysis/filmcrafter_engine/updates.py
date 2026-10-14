@@ -17,7 +17,10 @@ import sys
 import urllib.error
 import urllib.request
 
-REPO = "Olusegune/FilmCrafter-Music-Video-Maker"
+REPO = "Olusegune/FilmCrafter"
+# The release list is not public yet (an unauthenticated request for it returns 404), so the check could never find anything and "up to date" would have been a guess. Until releases are
+# published somewhere the app can read, the check is off: it asks nobody and says so. Switch to True (and in src/Updates.tsx) when a public releases page exists.
+ENABLED = False
 API = f"https://api.github.com/repos/{REPO}/releases?per_page=10"
 PAGE = f"https://github.com/{REPO}/releases"
 MAX_BYTES = 512 * 1024
@@ -57,8 +60,10 @@ def _clean(text, n: int) -> str:
 
 
 def check(current: str, get=fetch) -> dict:
-    """-> {status: update | up_to_date | offline | unavailable, current, latest, url, notes, published, prerelease}"""
+    """-> {status: update | up_to_date | offline | unavailable | disabled, current, latest, url, notes, published, prerelease}"""
     cur = parse_version(current)
+    if not ENABLED:
+        return {"status": "disabled", "current": str(current), "latest": None, "url": PAGE, "notes": "", "published": None, "prerelease": False}
     out = {"status": "unavailable", "current": str(current), "latest": None, "url": PAGE, "notes": "", "published": None, "prerelease": False}
     if not cur:
         return out
