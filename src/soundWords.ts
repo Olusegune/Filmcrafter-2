@@ -41,3 +41,13 @@ export const PROFILE_FIELDS: [string, string, string][] = [
   ["delivery", "Usual delivery", "Quiet, understated."],
   ["notes", "Notes for a performance", "Never shouts; laughs when nervous."],
 ];
+
+/** What a suggestion from the writing AI will cost, in words (free on a local model). */
+export const aiPriceWords = (e: { usd: number; local: boolean }) => (e.local ? "free (your own model writes it)" : `about $${e.usd.toFixed(e.usd < 0.01 ? 4 : 3)}`);
+
+/** The words of the question asked before anything is sent to the writing AI. */
+export const aiAskWords = (action: string, sends: string, e: { usd: number; local: boolean }) =>
+  `${action}\n\nProvider: your writing AI\nCost: ${aiPriceWords(e)}\nSends: ${sends}\nVoice slot: none is taken\n\nIt only suggests. Nothing is saved or changed until you choose.`;
+
+/** Splits "scene voicing" credits into a calm suggestion for the cap: the price rounded up a little, never below it. */
+export const suggestedCap = (credits: number) => (credits <= 0 ? 0 : Math.ceil((credits * 1.1) / 10) * 10);

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { api, errorText, type CastEstimate, type CastTake } from "./api";
+import { api, errorText, type AiPrice, type CastEstimate, type CastTake, type NaturalSuggestion, type SpokenVersion } from "./api";
 import { ask } from "./ask";
 import { priceWords, VoiceMaker } from "./CastVoices";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { Waveform } from "./Waveform";
 import { notifyVoice, useCast, useVoiceStatus } from "./voiceHooks";
+import { aiAskWords } from "./soundWords";
+import { confirmWords } from "./voiceUsage";
 import { FILTERS, lineFor } from "./voiceLogic";
 import * as I from "./icons";
 
@@ -26,6 +28,8 @@ export function LineEditor({ dir, shotId, who }: { dir: string; shotId: string; 
   const voice = cast?.people[person?.key ?? ""];
   const [text, setText] = useState("");
   const [seeded, setSeeded] = useState(false);
+  const [spoken, setSpoken] = useState<SpokenVersion | null>(null);
+  const [ideas, setIdeas] = useState<NaturalSuggestion[] | null>(null);
   const [takes, setTakes] = useState<CastTake[]>([]);
   const [est, setEst] = useState<CastEstimate | null>(null);
   const [busy, setBusy] = useState("");
@@ -36,7 +40,17 @@ export function LineEditor({ dir, shotId, who }: { dir: string; shotId: string; 
   const box = useRef<HTMLTextAreaElement | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => { if (shot && !seeded) { setText(lineFor(shot, who)); setSeeded(true); } }, [shot, seeded, who]);
+  const loadSpoken = useCallback(() => api.voiceDirect<{ lines: SpokenVersion[] }>("performance", dir).then((r) => {
+    const mine = r.lines.find((l) => l.shot === shotId && l.speaker.toLowerCase() === who.toLowerCase()) ?? null;
+    setSpoken(mine);
+    return mine;
+  }).catch(() => null), [dir, shotId, who]);
+  useEffect(() => {
+    if (!shot || seeded) return;
+    setSeeded(true);
+    void loadSpoken().then((m) => setText(m?.text || lineFor(shot, who)));                       // the person's own spoken version when they made one, else the written line
+  }, [shot, seeded, who, loadSpoken]);
+  const written = shot ? lineFor(shot, who) : "";
   useEffect(() => () => { audio.current?.pause(); }, []);
 
   const loadTakes = useCallback(() => {
@@ -89,6 +103,21 @@ export function LineEditor({ dir, shotId, who }: { dir: string; shotId: string; 
     await api.castVoice("speak", dir, { shot: shotId, speaker: who, text, confirmed: true });
     notifyVoice(); loadTakes();
   });
+  const saveSpoken = () => run("spoken", async () => { await api.voiceDirect("performance_set", dir, { shot: shotId, speaker: who, text }); await loadSpoken(); });
+  const backToWritten = () => run("spoken", async () => { await api.voiceDirect("performance_clear", dir, { shot: shotId, speaker: who }); setSpoken(null); setText(written); });
+  const natural = () => run("natural", async () => {
+    const est = await api.voiceDirect<AiPrice>("natural_estimate", dir, { shot: shotId, speaker: who });
+    if (!(await ask(aiAskWords(`Suggest more natural ways to say ${who}'s line in ${shotId}?`, est.sends, est), { ok: "Suggest" }))) return;
+    setIdeas((await api.voiceDirect<{ suggestions: NaturalSuggestion[] }>("natural_suggest", dir, { shot: shotId, speaker: who })).suggestions);
+  });
+  const anotherTake = () => run("another", async () => {
+    const e = await api.castVoice<CastEstimate>("estimate", dir, { items: [{ shot: shotId, speaker: who, text, new_take: true }] });
+    const row = e.rows[0];
+    if (!row.ok) throw new Error(row.why);
+    if (!(await ask(confirmWords({ action: `Make another take of ${shotId} as ${who}?\n\n“${text}”\n\nSame words, a different performance. Your other takes are kept.`, provider: "ElevenLabs", cost: priceWords({ characters: row.characters, credits: row.credits }) }), { ok: "Make another take" }))) return;
+    await api.castVoice("speak", dir, { shot: shotId, speaker: who, text, new_take: true, confirmed: true });
+    notifyVoice(); loadTakes();
+  });
   const useTake = (t: CastTake) => run("take", async () => { await api.castVoice("use_take", dir, { shot: shotId, speaker: who, file: t.file }); notifyVoice(); loadTakes(); });
   const changeModel = (model: string) => run("model", async () => {
     if (!voice) return;
@@ -126,19 +155,36 @@ export function LineEditor({ dir, shotId, who }: { dir: string; shotId: string; 
               <label className="cv-model">Model <select value={voice.model} disabled={!!busy} onChange={(e) => void changeModel(e.target.value)}>{cast!.models.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               <button className="link" onClick={() => setMaking(true)}>Change voice…</button></div>
             <textarea ref={box} className="ls-text" rows={3} value={text} onChange={(e) => setText(e.target.value)} aria-label="What is spoken" placeholder="What they say…" />
+            <div className="ls-spoken">
+              {spoken?.written_changed && <p className="error-text">The written line has changed since you made this spoken version. The written line now reads: “{written}”</p>}
+              {spoken ? <span className="dim">This is your spoken version{spoken.source === "assistant" ? " (from a suggestion you accepted)" : ""}. The written line stays: “{written}”.</span>
+                : <span className="dim">This is the written line. Change it here and save it as your spoken version; the film's written dialogue is never changed.</span>}
+              <div className="ls-btns">
+                <button className="btn sm" disabled={!!busy || !text.trim() || text.trim() === (spoken?.text ?? written).trim()} onClick={() => void saveSpoken()}>Save as the spoken version</button>
+                {spoken && <button className="link" disabled={!!busy} onClick={() => void backToWritten()}>Go back to the written line</button>}
+                <button className="btn sm ghost" disabled={!!busy || !text.trim()} onClick={() => void natural()}>{busy === "natural" ? "Listening…" : "Make this sound more natural…"}</button>
+              </div>
+              {ideas && <div className="ls-ideas" aria-label="Suggestions">
+                {ideas.length === 0 && <p className="dim">Nothing better to suggest for this line. It already reads naturally.</p>}
+                {ideas.map((s) => <div key={s.text} className="ls-idea"><q>{s.text}</q><span className="dim">{s.why} {s.keeps_meaning_check}</span>
+                  <button className="btn sm" onClick={() => { setText(s.text); setIdeas(null); }}>Try this</button></div>)}
+                {ideas.length > 0 && <button className="link" onClick={() => setIdeas(null)}>Not now</button>}
+              </div>}
+            </div>
             {tagged ? <div className="ls-dir" aria-label="Direction">
               <div><span className="dim">Feeling (starts the line)</span>{FEELINGS.map((f) => <button key={f} className="ls-chip" onClick={() => insert(f, true)}>{f}</button>)}</div>
               <div><span className="dim">Reaction (where the cursor is)</span>{REACTIONS.map((f) => <button key={f} className="ls-chip" onClick={() => insert(f, false)}>{f}</button>)}</div>
               <p className="dim ls-tip">Any feeling works in plain words: type <b>[tired but trying to smile]</b>. “…” slows a line, “—” cuts it off, “!” adds force. The film's written dialogue is not changed.</p>
             </div> : <p className="dim ls-tip">This model speaks the words as written. Choose <b>Eleven v4</b> above to direct feeling and reactions with [tags].</p>}
             <div className="ls-btns"><button className="btn primary" disabled={!!busy || !text.trim()} onClick={() => void speak()}><I.Sparkle size={14} /> {busy === "speak" ? "Speaking…" : "Speak this"}</button>
+              {takes.some((t) => t.text === text.trim()) && <button className="btn" disabled={!!busy} onClick={() => void anotherTake()}>{busy === "another" ? "Making…" : "Make another take"}</button>}
               <span className="dim">{price || "The price is shown first."}</span></div>
           </>}
           {takes.length > 0 && <div className="ls-takes"><h4>Takes <span className="dim">({takes.length}) · switching between them is free</span></h4>
             {takes.map((t) => (
               <div key={t.file} className={`ls-take ${t.current ? "cur" : ""}`}>
                 <button className="vchip-play" onClick={() => play(t.file)} aria-label={`${playing === t.file ? "Stop" : "Hear"} this take`}>{playing === t.file ? <I.Pause size={12} /> : <I.Play size={12} />}</button>
-                <q>{t.text}</q><span className="dim ls-model">{t.model?.replace("eleven_", "").replace("_", " ")}</span>
+                <q>{t.text}</q><span className="dim ls-model">{t.model?.replace("eleven_", "").replace("_", " ")}{t.another_take ? " · another take" : ""}</span>
                 {t.current ? <span className="ls-cur">in the film</span> : <button className="btn sm" disabled={!!busy} onClick={() => void useTake(t)}>Use this take</button>}
               </div>))}
           </div>}

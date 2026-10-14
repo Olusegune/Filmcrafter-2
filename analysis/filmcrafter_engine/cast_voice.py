@@ -343,11 +343,28 @@ def _person(d: str, who: str) -> tuple[str, str]:
     return k, V.pretty(name)
 
 
-def set_voice(d: str, who: str, v: dict, made: str = "library") -> dict:
+def _guard_approved(d: str, who: str, new_voice_id: str | None, replace_approved) -> None:
+    """A voice the person approved (Sound & Music) is never replaced or removed by accident: changing it needs `replace_approved` (the person said so) or the approval taken back first.
+    Changing only the model or the settings of the same voice is not a replacement. Checked before anything is paid for."""
+    from . import bible as B
+    k, name = _person(d, who)
+    cur = _cast(d)["people"].get(k)
+    if not cur or replace_approved is True:
+        return
+    if new_voice_id is not None and new_voice_id == cur.get("voice_id"):
+        return
+    for c in B.load(d)["characters"]:
+        if V.key_of(c["name"]) == k and (c.get("voice_profile") or {}).get("approved") is True:
+            raise SystemExit(f"{name}'s voice is approved, so it was not changed. Take the approval back in Sound & Music first, or confirm that you want to replace it.")
+
+
+def set_voice(d: str, who: str, v: dict, made: str = "library", replace_approved=False) -> dict:
     """Give a person one of your ElevenLabs voices."""
     V._film(d)
     k, name = _person(d, who)
     vid = str(v.get("voice_id") or "")
+    if VOICE_ID.fullmatch(vid):
+        _guard_approved(d, who, vid, replace_approved)
     if not VOICE_ID.fullmatch(vid):
         raise SystemExit("Choose a voice from your ElevenLabs library.")
     entry = {"name": name, "voice_id": vid, "voice_name": str(v.get("voice_name") or "")[:80], "model": _model(v.get("model")),
@@ -363,10 +380,11 @@ def set_voice(d: str, who: str, v: dict, made: str = "library") -> dict:
     return {"person": name, "voice": entry}
 
 
-def clear_voice(d: str, who: str) -> dict:
+def clear_voice(d: str, who: str, replace_approved=False) -> dict:
     """Take a voice off a person. The voice stays in your ElevenLabs library; lines already spoken stay attached."""
     V._film(d)
     k, name = _person(d, who)
+    _guard_approved(d, who, None, replace_approved)
 
     def change(c):
         if isinstance(c.get("people"), dict):
@@ -415,9 +433,10 @@ def design(d: str, description: str, text: str = "", confirmed=False, unknown_co
     return {"previews": previews, "text": str(j.get("text") or sample)[:1000]}
 
 
-def design_save(d: str, who: str, generated_voice_id: str, name: str, description: str, model: str | None = None, confirmed=False) -> dict:
+def design_save(d: str, who: str, generated_voice_id: str, name: str, description: str, model: str | None = None, confirmed=False, replace_approved=False) -> dict:
     """Keep one previewed voice: it becomes a voice in your ElevenLabs library (it takes one voice slot of your plan) and is given to the person. Needs `confirmed`."""
     V._film(d)
+    _guard_approved(d, who, "", replace_approved)                   # before anything is paid for
     pid = str(generated_voice_id or "")
     if not PREVIEW_ID.fullmatch(pid):
         raise SystemExit("Choose one of the voices you heard.")
@@ -426,13 +445,14 @@ def design_save(d: str, who: str, generated_voice_id: str, name: str, descriptio
     r, _ = _paid(d, action="design_save", key=P.op_key("design_save", pid), confirmed=confirmed, what="keep a designed voice", person=V.pretty(who),
                  estimate={"unit": "voice_slot", "amount": 1, "basis": "takes one voice slot of your ElevenLabs plan"},
                  send=lambda: _post("/v1/text-to-voice", json={"voice_name": nm, "voice_description": desc, "generated_voice_id": pid}))
-    return set_voice(d, who, {"voice_id": r.json().get("voice_id"), "voice_name": nm, "model": model}, made="design")
+    return set_voice(d, who, {"voice_id": r.json().get("voice_id"), "voice_name": nm, "model": model}, made="design", replace_approved=replace_approved)
 
 
-def clone(d: str, who: str, name: str, files: list, consent: bool = False, remove_noise: bool = False, model: str | None = None, confirmed=False) -> dict:
+def clone(d: str, who: str, name: str, files: list, consent: bool = False, remove_noise: bool = False, model: str | None = None, confirmed=False, replace_approved=False) -> dict:
     """Make a voice from your own recordings (instant cloning): it takes one voice slot of your plan and is given to the person. Only for a voice you have the right to clone.
     Two separate permissions are needed: `consent` (the voice may be cloned) and `confirmed` (the plan may be used)."""
     V._film(d)
+    _guard_approved(d, who, "", replace_approved)                   # before anything is paid for
     if consent is not True:
         _ledger(d).refused_record(provider=PROVIDER, area="voice", action="clone", reason="No consent to clone this voice.", person=V.pretty(who))
         raise SystemExit("Confirm that you have the right to clone this voice (it is yours, or the speaker has agreed).")
@@ -459,7 +479,7 @@ def clone(d: str, who: str, name: str, files: list, consent: bool = False, remov
     r, _ = _paid(d, action="clone", key=P.op_key("clone", nm, *[(os.path.basename(p), os.path.getsize(p)) for p in paths]), confirmed=confirmed, consent=True,
                  what="clone a voice", person=V.pretty(who), estimate={"unit": "voice_slot", "amount": 1, "basis": "takes one voice slot of your ElevenLabs plan"}, send=send)
     j = r.json()
-    out = set_voice(d, who, {"voice_id": j.get("voice_id"), "voice_name": nm, "model": model}, made="clone")
+    out = set_voice(d, who, {"voice_id": j.get("voice_id"), "voice_name": nm, "model": model}, made="clone", replace_approved=replace_approved)
     out["requires_verification"] = bool(j.get("requires_verification"))
     return out
 
@@ -477,7 +497,11 @@ def _line(d: str, shot: str, speaker: str, text: str | None) -> tuple[str, str, 
         raise SystemExit(f"{name} has no voice yet. Choose, design or clone one first.")
     st = next((s for s in V.status(d)["shots"] if s["id"] == sid), None)
     mine = next((p for p in (st or {}).get("people", []) if p["key"] == k), None)
-    words = " ".join(str(text if text is not None else " ".join((mine or {}).get("lines") or [])).split())
+    if text is None:
+        from . import voicedirect as VD
+        perf = VD.performance_text(d, sid, k)                   # the person's own spoken version, when they made one; the written dialogue is never changed
+        text = perf if perf else " ".join((mine or {}).get("lines") or [])
+    words = " ".join(str(text).split())
     if not words:
         raise SystemExit(f"{name} has no written line in {sid}. Type what they say.")
     if len(words) > MAX_LINE:
@@ -485,8 +509,10 @@ def _line(d: str, shot: str, speaker: str, text: str | None) -> tuple[str, str, 
     return sid, name, words, voice
 
 
-def _cache(d: str, sid: str, words: str, voice: dict) -> str:
-    raw = json.dumps([voice.get("model"), voice.get("voice_id"), words, voice.get("stability"), voice.get("similarity"), voice.get("style"), voice.get("speed")], sort_keys=True)
+def _cache(d: str, sid: str, words: str, voice: dict, seed: int | None = None) -> str:
+    """Where this exact performance is kept. The words, the voice and its settings decide it; a `seed` (only for "another take") makes a different performance of the same words."""
+    parts = [voice.get("model"), voice.get("voice_id"), words, voice.get("stability"), voice.get("similarity"), voice.get("style"), voice.get("speed")]
+    raw = json.dumps(parts + ([seed] if seed is not None else []), sort_keys=True)
     return os.path.join(d, "voice", "_generated", f"{sid}-{hashlib.sha1(raw.encode('utf-8')).hexdigest()[:16]}.mp3")
 
 
@@ -499,7 +525,7 @@ def estimate(d: str, items: list) -> dict:
         except SystemExit as e:
             rows.append({"shot": str(it.get("shot") or ""), "speaker": str(it.get("speaker") or ""), "ok": False, "why": str(e)})
             continue
-        cached = os.path.isfile(_cache(d, sid, words, voice))
+        cached = os.path.isfile(_cache(d, sid, words, voice)) and not it.get("new_take")      # another take is always new, so it is never free
         credits = 0 if cached else round(len(words) * CREDITS.get(voice.get("model"), 1.0))
         rows.append({"shot": sid, "speaker": name, "ok": True, "characters": len(words), "credits": credits, "cached": cached, "text": words})
         total_chars += 0 if cached else len(words)
@@ -508,12 +534,14 @@ def estimate(d: str, items: list) -> dict:
             "basis": f"{total_chars:,} characters, about {total_credits:,} credits of your ElevenLabs plan. Billed by ElevenLabs to your plan, not in dollars here."}
 
 
-def _speak_to(d: str, path: str, words: str, voice: dict, *, action: str, shot: str | None, person: str, confirmed) -> dict:
+def _speak_to(d: str, path: str, words: str, voice: dict, *, action: str, shot: str | None, person: str, confirmed, seed: int | None = None) -> dict:
     """One request to speak `words`. Retried automatically only on evidence it was not accepted (see `_paid`); an ambiguous outcome is recorded as uncertain and raised."""
     body = {"text": words, "model_id": _model(voice.get("model")),
             "voice_settings": {"stability": voice.get("stability", 0.5), "similarity_boost": voice.get("similarity", 0.75), "style": voice.get("style", 0.0),
                                "speed": voice.get("speed", 1.0), "use_speaker_boost": True}}
-    r, op = _paid(d, action=action, key=P.op_key(action, shot or "", V.key_of(person), words, voice.get("voice_id"), voice.get("model")), confirmed=confirmed,
+    if seed is not None:
+        body["seed"] = int(seed)                                  # ElevenLabs: a number from 0 to 4294967295; a different one gives a different performance
+    r, op = _paid(d, action=action, key=P.op_key(action, shot or "", V.key_of(person), words, voice.get("voice_id"), voice.get("model"), *([seed] if seed is not None else [])), confirmed=confirmed,
                   what="speak that line", person=person, shot=shot, retry=True, estimate=_credits(words, voice.get("model")),
                   send=lambda: _post(f"/v1/text-to-speech/{voice['voice_id']}", accept="audio/mpeg", params={"output_format": "mp3_44100_128"}, json=body))
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -547,18 +575,22 @@ def _attach_generated(d: str, sid: str, name: str, path: str, voice: dict) -> di
     return res
 
 
-def speak(d: str, shot: str, speaker: str, text: str | None = None, confirmed: bool = False) -> dict:
+def speak(d: str, shot: str, speaker: str, text: str | None = None, confirmed: bool = False, new_take: bool = False) -> dict:
     """Speak a line in the person's voice and attach it to the shot as theirs. `text` is what to say (default: their written line); with a model that reads [tags], direction such as
     [whispers] or [laughs] can sit in it. The shot's own written dialogue is never changed, so the direction never reaches a picture or video prompt. Spending needs `confirmed: true`
     (after the screen has shown the price); a line already spoken in the same voice is free and makes no request. Every spoken version is kept as a take (see `takes`)."""
     sid, name, words, voice = _line(d, shot, speaker, text)
-    path = _cache(d, sid, words, voice)
+    seed = None
+    if new_take is True:                                            # "Make another take": the same words, a genuinely different performance, a new file; earlier takes stay
+        import random
+        seed = random.SystemRandom().randint(1, 4294967295)
+    path = _cache(d, sid, words, voice, seed)
     spent, op = 0, None
     if not os.path.isfile(path):
-        op = _speak_to(d, path, words, voice, action="speak", shot=sid, person=name, confirmed=confirmed)
+        op = _speak_to(d, path, words, voice, action="speak", shot=sid, person=name, confirmed=confirmed, seed=seed)
         spent = round(len(words) * CREDITS.get(voice.get("model"), 1.0))
         V._write(_sidecar(path), {"shot": sid, "key": V.key_of(name), "speaker": name, "text": words, "model": voice.get("model"), "voice_id": voice.get("voice_id"),
-                                  "voice_name": voice.get("voice_name"), "at": int(time.time())})
+                                  "voice_name": voice.get("voice_name"), "at": int(time.time()), **({"seed": seed, "another_take": True} if seed is not None else {})})
     res = _attach_generated(d, sid, name, path, voice)
     rel = os.path.relpath(path, d).replace(os.sep, "/")
     if op:
@@ -582,7 +614,7 @@ def takes(d: str, shot: str, speaker: str) -> dict:
         if not isinstance(meta, dict) or meta.get("key") != k:
             continue
         out.append({"file": f"voice/_generated/{f}", "text": str(meta.get("text") or "")[:1500], "model": meta.get("model"), "voice_name": str(meta.get("voice_name") or "")[:80],
-                    "at": int(meta.get("at") or 0), "current": f == cur})
+                    "at": int(meta.get("at") or 0), "current": f == cur, "another_take": bool(meta.get("another_take"))})
     out.sort(key=lambda t: -t["at"])
     return {"takes": out[:30], "person": name, "shot": sid}
 
@@ -662,19 +694,19 @@ def main(argv: list[str]) -> int:
         elif a.action == "library":
             res = library(x.get("query", ""), x.get("page"))
         elif a.action == "set":
-            res = set_voice(d, x.get("person", ""), x.get("voice") or {})
+            res = set_voice(d, x.get("person", ""), x.get("voice") or {}, replace_approved=x.get("replace_approved") is True)
         elif a.action == "clear":
-            res = clear_voice(d, x.get("person", ""))
+            res = clear_voice(d, x.get("person", ""), replace_approved=x.get("replace_approved") is True)
         elif a.action == "design":
             res = design(d, x.get("description", ""), x.get("text", ""), x.get("confirmed") is True, x.get("unknown_cost_accepted") is True)
         elif a.action == "design_save":
-            res = design_save(d, x.get("person", ""), x.get("generated_voice_id", ""), x.get("name", ""), x.get("description", ""), x.get("model"), x.get("confirmed") is True)
+            res = design_save(d, x.get("person", ""), x.get("generated_voice_id", ""), x.get("name", ""), x.get("description", ""), x.get("model"), x.get("confirmed") is True, x.get("replace_approved") is True)
         elif a.action == "clone":
-            res = clone(d, x.get("person", ""), x.get("name", ""), x.get("files") or [], x.get("consent") is True, x.get("remove_noise") is True, x.get("model"), x.get("confirmed") is True)
+            res = clone(d, x.get("person", ""), x.get("name", ""), x.get("files") or [], x.get("consent") is True, x.get("remove_noise") is True, x.get("model"), x.get("confirmed") is True, x.get("replace_approved") is True)
         elif a.action == "estimate":
             res = estimate(d, x.get("items") or [])
         elif a.action == "speak":
-            res = speak(d, x.get("shot", ""), x.get("speaker", ""), x.get("text"), x.get("confirmed") is True)
+            res = speak(d, x.get("shot", ""), x.get("speaker", ""), x.get("text"), x.get("confirmed") is True, x.get("new_take") is True)
         elif a.action == "sample":
             res = sample(d, x.get("url", ""))
         elif a.action == "ledger":

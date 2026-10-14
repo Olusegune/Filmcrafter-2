@@ -5,6 +5,7 @@ import { ask } from "./ask";
 import { notifyVoice, useCast } from "./voiceHooks";
 import { COST_UNKNOWN, confirmWords } from "./voiceUsage";
 import { VoiceUsagePanel } from "./VoiceUsagePanel";
+import { VoiceScene } from "./VoiceScene";
 import * as I from "./icons";
 
 const AUDIO = ["wav", "mp3", "m4a", "flac", "aac", "ogg"];
@@ -44,6 +45,7 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [heard, setHeard] = useState<string | null>(null);
+  const [sceneMode, setSceneMode] = useState<"voice" | "read" | null>(null);
 
   const people = useMemo(() => {
     const m = new Map<string, string>();
@@ -104,6 +106,11 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
           </div>);
       })}
       <VoiceUsagePanel dir={dir} />
+      {people.length > 0 && <div className="cv-all">
+        <button className="btn sm" disabled={!!busy} onClick={() => setSceneMode("voice")}><I.Mic size={13} /> Voice a scene…</button>
+        <button className="btn sm ghost" onClick={() => setSceneMode("read")}><I.Play size={13} /> Listen to a scene</button>
+        <span className="dim">A whole scene in one go, with one price and a cap. Or hear it before any video is made.</span></div>}
+      {sceneMode && <VoiceScene dir={dir} mode={sceneMode} onClose={() => setSceneMode(null)} />}
       {todo.length > 0 && <div className="cv-all"><button className="btn primary sm" disabled={!!busy} onClick={() => void speakAll()}><I.Sparkle size={14} /> {busy === "all" ? "Speaking…" : `Speak the ${plural(todo.length, "line")} with no recording`}</button>
         <span className="dim">The price is shown first. Your own recording replaces a spoken line any time.</span></div>}
       {heard && <p className="dim cv-heard">Played a sample ({heard.split("/").pop()}).</p>}
@@ -113,7 +120,7 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
 }
 
 /** Plays a library voice's sample. The app only plays local audio, so the sample is fetched into the film first (free), then played from there. */
-function SamplePlayer({ dir, url, name }: { dir: string; url: string; name: string }) {
+export function SamplePlayer({ dir, url, name }: { dir: string; url: string; name: string }) {
   const [src, setSrc] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -133,7 +140,7 @@ function SamplePlayer({ dir, url, name }: { dir: string; url: string; name: stri
 type Tab = "library" | "design" | "clone";
 
 /** Choose, design or clone a voice for one person. */
-export function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: string; person: string; cast: NonNullable<ReturnType<typeof useCast>["cast"]>; plan: CastPlan | null; onClose: () => void; onDone: () => void }) {
+export function VoiceMaker({ dir, person, cast, plan, onClose, onDone, replaceApproved = false }: { replaceApproved?: boolean; dir: string; person: string; cast: NonNullable<ReturnType<typeof useCast>["cast"]>; plan: CastPlan | null; onClose: () => void; onDone: () => void }) {
   const [tab, setTab] = useState<Tab>("library");
   const [model, setModel] = useState(cast.models[0]?.id ?? "eleven_multilingual_v2");
   const [busy, setBusy] = useState(false);
@@ -156,7 +163,7 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: 
     return () => window.removeEventListener("keydown", k, true);
   }, [onClose]);
 
-  const use = (v: ElevenVoice) => go(async () => { await api.castVoice("set", dir, { person, voice: { voice_id: v.voice_id, voice_name: v.name, model } }); onDone(); });
+  const use = (v: ElevenVoice) => go(async () => { await api.castVoice("set", dir, { person, voice: { voice_id: v.voice_id, voice_name: v.name, model }, ...(replaceApproved ? { replace_approved: true } : {}) }); onDone(); });
   const slotWords = plan?.slots ? `one of your ${plan.slots} (you use ${plan.slots_used} now)` : "one voice slot of your ElevenLabs plan";
   const hearOptions = () => go(async () => {
     if (!(await ask(confirmWords({ action: `Hear a few voices for ${person}?`, provider: "ElevenLabs", cost: COST_UNKNOWN, slot: "none (nothing is kept as a voice until you choose one)" }), { ok: "I accept, hear options" }))) return;
@@ -164,14 +171,14 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: 
   });
   const keep = (p: CastPreview) => go(async () => {
     if (!(await ask(confirmWords({ action: `Keep “${name}” as ${person}'s voice?`, provider: "ElevenLabs", cost: "no characters are used; the voice is saved in your ElevenLabs library", slot: slotWords }), { ok: "Keep this voice" }))) return;
-    await api.castVoice("design_save", dir, { person, generated_voice_id: p.id, name, description: desc, model, confirmed: true });
+    await api.castVoice("design_save", dir, { person, generated_voice_id: p.id, name, description: desc, model, confirmed: true, ...(replaceApproved ? { replace_approved: true } : {}) });
     onDone();
   });
   const pickFiles = async () => { const r = await open({ multiple: true, filters: [{ name: "Recordings of the voice", extensions: AUDIO }] }); if (r) setFiles(Array.isArray(r) ? r : [r]); };
   const makeClone = () => go(async () => {
     if (!(await ask(confirmWords({ action: `Create a voice called “${name}” from ${files.length} recording${files.length === 1 ? "" : "s"}, for ${person}?`, provider: "ElevenLabs", cost: "the recordings are sent to ElevenLabs to make the voice; the amount of plan used is not published",
                                   slot: slotWords, note: "You confirmed this is your own voice, or that the speaker has agreed." }), { ok: "Create the voice" }))) return;
-    await api.castVoice("clone", dir, { person, name, files, consent, confirmed: true, remove_noise: noise, model });
+    await api.castVoice("clone", dir, { person, name, files, consent, confirmed: true, remove_noise: noise, model, ...(replaceApproved ? { replace_approved: true } : {}) });
     onDone();
   });
 

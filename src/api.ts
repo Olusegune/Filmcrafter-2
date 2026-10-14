@@ -276,6 +276,7 @@ export const api = {
     invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "set_aspect" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
+  voiceDirect: <T = unknown>(action: "performance" | "performance_set" | "performance_clear" | "natural_estimate" | "natural_suggest" | "voices_estimate" | "voices_suggest" | "voices_match" | "scene_plan" | "scene_voice" | "table_read", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice_direct", { action, target, data }),
   filmAudio: <T = AudioLibrary>(action: "list" | "import" | "update" | "approve" | "remove" | "restore", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audio", { action, target, data }),
   filmBackup: <T = unknown>(target: string, action: "make" | "list" | "verify" | "restore", name: string | null = null) => invoke<T>("film_backup", { action, target, name }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
@@ -505,7 +506,7 @@ export type CastStatus = { key: boolean; models: { id: string; label: string; ta
 export type ElevenVoice = { voice_id: string; name: string; category: string; description: string; labels: Record<string, string>; preview_url: string };
 export type CastEstimate = { rows: ({ shot: string; speaker: string; ok: true; characters: number; credits: number; cached: boolean; text: string } | { shot: string; speaker: string; ok: false; why: string })[]; characters: number; credits: number; basis: string };
 export type CastPreview = { id: string; file: string; seconds: number };
-export type CastTake = { file: string; text: string; model: string; voice_name: string; at: number; current: boolean };
+export type CastTake = { file: string; text: string; model: string; voice_name: string; at: number; current: boolean; another_take?: boolean };
 export type LedgerEntry = { id: string; at: number; updated: number; action: string; person: string | null; shot: string | null; status: "prepared" | "confirmed" | "submitted" | "completed" | "refused" | "failed_before_submission" | "uncertain";
   estimate: { unit: string; amount: number | null; basis: string }; actual: { unit: string; amount: number | null; reported: boolean; source: string | null }; note: string; resolved?: { outcome: "not_charged" | "charged"; at: number } };
 export type VoiceUsage = { limits: Record<string, number>; count: number; recent: LedgerEntry[]; unresolved: LedgerEntry[];
@@ -515,3 +516,14 @@ export type AudioAsset = { id: string; kind: "sfx" | "music"; name: string; desc
   generation: Record<string, unknown>; licence: { source: string; note: string; commercial: "yes" | "no" | "unknown" }; approval: "pending" | "approved" | "rejected"; added: number; updated: number; exists?: boolean };
 export type AudioLibrary = { assets: AudioAsset[]; removed: number; removed_items: { id: string; kind: "sfx" | "music"; name: string; removed_at: number }[]; categories: Record<"sfx" | "music", { id: string; name: string }[]>; counts: { sfx: number; music: number };
   added?: string[]; skipped?: { file: string; why: string; id?: string }[] };
+export type SpokenVersion = { shot: string; key: string; speaker: string; text: string; note: string; pronunciation: string; written: string; source: "person" | "assistant"; updated: number; written_changed: boolean; line_gone: boolean };
+export type NaturalSuggestion = { text: string; why: string; adds_words: string[]; keeps_meaning_check: string };
+export type AiPrice = { calls: number; usd: number; local: boolean; note: string; sends: string };
+export type VoiceCandidate = { voice: ElevenVoice; score: number; why: string[] };
+export type VoiceSuggestion = { character: string; proposal?: Partial<VoiceProfile>; wanted: { gender: string; age: string; accent: string; descriptors: string[] }; matches: VoiceCandidate[]; searched: number; note: string; approved: boolean };
+export type ScenePlanLine = { shot: string; speaker: string; key: string; text: string; written: string; spoken_version: boolean; state: "missing" | "recorded" | "spoken" | "no_voice"; seconds: number | null;
+  characters?: number; credits?: number; cached?: boolean; why?: string };
+export type ScenePlan = { scene: number; speakers: { name: string; key: string; voice: string | null; has_voice: boolean; approved: boolean; lines: number }[]; lines: ScenePlanLine[]; missing: number; no_voice: string[];
+  estimate: { characters: number; credits: number; basis: string } };
+export type SceneResult = { scene: number; results: { shot: string; speaker: string; ok: boolean; attempted: boolean; credits?: number; take?: string; why?: string }[]; spent_credits: number; cap: number; done: number; failed: number; stopped: string | null; note?: string };
+export type TableRead = { scene: number; lines: { shot: string; speaker: string; key: string; text: string; file: string | null; seconds: number | null; source: string | null }[]; seconds: number; silent: number };

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { api, errorText, type AudioAsset, type AudioLibrary, type BibleCharacter, type BibleView, type CastPlan, type VoiceProfile } from "./api";
+import { api, errorText, type AiPrice, type AudioAsset, type AudioLibrary, type BibleCharacter, type BibleView, type CastPlan, type VoiceProfile, type VoiceSuggestion } from "./api";
 import { ask } from "./ask";
-import { VoiceMaker } from "./CastVoices";
+import { SamplePlayer, VoiceMaker } from "./CastVoices";
 import { notifyVoice, useCast } from "./voiceHooks";
-import { audioFacts, commaList, PROFILE_FIELDS, SOUND_FIELDS, MUSIC_FIELDS, voiceKey } from "./soundWords";
+import { aiAskWords, audioFacts, commaList, PROFILE_FIELDS, SOUND_FIELDS, MUSIC_FIELDS, voiceKey } from "./soundWords";
 
 type Area = "voices" | "sfx" | "music" | "style";
 const AREAS: { id: Area; label: string; hint: string }[] = [
@@ -84,14 +84,14 @@ function Voices({ dir, b, run }: { dir: string; b: BibleView; run: (fn: () => Pr
             <span className="dim">{v ? (c.voice_profile?.approved ? "approved" : "has a voice") : "no voice"}</span></button></li>;
         })}
       </ul>
-      {cur && <VoiceEditor key={cur.id} dir={dir} c={cur} voice={cast?.people[voiceKey(cur.name)]} hasKey={!!cast?.key} run={run} onChoose={() => setMaking(true)} />}
-      {making && cur && cast && <VoiceMaker dir={dir} person={cur.name} cast={cast} plan={plan} onClose={() => setMaking(false)} onDone={() => { setMaking(false); reload(); notifyVoice(); }} />}
+      {cur && <VoiceEditor key={cur.id} dir={dir} c={cur} voice={cast?.people[voiceKey(cur.name)]} hasKey={!!cast?.key} run={run} onChoose={() => setMaking(true)} onChanged={() => { reload(); notifyVoice(); }} />}
+      {making && cur && cast && <VoiceMaker dir={dir} person={cur.name} cast={cast} plan={plan} replaceApproved={!!cur.voice_profile?.approved} onClose={() => setMaking(false)} onDone={() => { setMaking(false); reload(); notifyVoice(); }} />}
     </div>
   );
 }
 
-function VoiceEditor({ dir, c, voice, hasKey, run, onChoose }: { dir: string; c: BibleCharacter; voice: { voice_name: string; model: string; made: string } | undefined; hasKey: boolean;
-  run: (fn: () => Promise<BibleView>) => Promise<BibleView | null>; onChoose: () => void }) {
+function VoiceEditor({ dir, c, voice, hasKey, run, onChoose, onChanged }: { dir: string; c: BibleCharacter; voice: { voice_name: string; model: string; made: string } | undefined; hasKey: boolean;
+  run: (fn: () => Promise<BibleView>) => Promise<BibleView | null>; onChoose: () => void; onChanged: () => void }) {
   const saved: VoiceProfile = useMemo(() => ({ description: "", age_range: "", accent: "", timbre: "", pace: "", emotional_range: "", delivery: "", notes: "", approved: false, ...(c.voice_profile ?? {}) }), [c.voice_profile]);
   const [p, setP] = useState(saved);
   useEffect(() => setP(saved), [saved]);
@@ -108,7 +108,7 @@ function VoiceEditor({ dir, c, voice, hasKey, run, onChoose }: { dir: string; c:
         {voice ? <p className="sm-voice"><b>{voice.voice_name}</b> <span className="dim">from {voice.made === "design" ? "a design" : voice.made === "clone" ? "a recording" : "your library"}</span></p>
           : <p className="dim">{hasKey ? "No voice yet." : "No voice yet. Add your ElevenLabs key in Settings to choose, design or clone one here, or attach your own recordings on the Voiceover screen."}</p>}
         <div className="sm-row">
-          {hasKey && <button className="btn" onClick={onChoose}>{voice ? "Change voice…" : "Give a voice…"}</button>}
+          {hasKey && <button className="btn" onClick={async () => { if (c.voice_profile?.approved && !(await ask(`${c.name}'s voice is approved.\n\nChoosing another voice replaces it. The approval stays on until you take it back, but FilmCrafter will use the voice you pick next.`, { ok: "Choose another voice" }))) return; onChoose(); }}>{voice ? "Change voice…" : "Give a voice…"}</button>}
           {voice && <label className="ov-check"><input type="checkbox" checked={p.approved} disabled={dirty} onChange={(e) => void approve(e.target.checked)} /> Approved</label>}
         </div>
         <p className="dim sm-note">Choosing a voice asks first, and only designing, cloning or speaking uses your ElevenLabs plan. Choosing from your library is free.</p>
@@ -117,10 +117,53 @@ function VoiceEditor({ dir, c, voice, hasKey, run, onChoose }: { dir: string; c:
         <h3>What their voice should be like</h3>
         <div className="cw-fields">{PROFILE_FIELDS.map(([k, name, hint]) => <label key={k} className="field"><span>{name}</span>
           <textarea className="text-input" rows={2} value={(p as unknown as Record<string, string>)[k] ?? ""} placeholder={hint} onChange={(e) => setP({ ...p, [k]: e.target.value })} /></label>)}</div>
-        <p className="dim sm-note">A description for you and, later, for the voice assistant. It does not change the voice they have.</p>
+        <p className="dim sm-note">A description for you and for the voice assistant. It does not change the voice they have.</p>
         <div className="cw-save"><button className="btn" disabled={!dirty} onClick={() => void run(() => api.bible("set_voice_profile", dir, { id: c.id, ...p }))}>Save</button></div>
       </section>
+      <SuggestVoices dir={dir} c={c} hasKey={hasKey} onUse={(s) => setP({ ...p, ...s })} onChanged={onChanged} />
     </div>
+  );
+}
+
+/** "Suggest voices for this character": the writing AI proposes what the voice should be like (price first, you choose what to use); matching voices come from your library on this computer. */
+function SuggestVoices({ dir, c, hasKey, onUse, onChanged }: { dir: string; c: BibleCharacter; hasKey: boolean; onUse: (s: Partial<VoiceProfile>) => void; onChanged: () => void }) {
+  const [r, setR] = useState<VoiceSuggestion | null>(null);
+  const [busy, setBusy] = useState("");
+  const [err, setErr] = useState("");
+  const go = async (what: string, f: () => Promise<void>) => { setErr(""); setBusy(what); try { await f(); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); } };
+  const suggest = () => go("ai", async () => {
+    const est = await api.voiceDirect<AiPrice>("voices_estimate", dir, { id: c.id });
+    if (!(await ask(aiAskWords(`Suggest what ${c.name} should sound like, and look for matching voices?`, est.sends, est), { ok: "Suggest" }))) return;
+    setR(await api.voiceDirect<VoiceSuggestion>("voices_suggest", dir, { id: c.id }));
+  });
+  const match = () => go("match", async () => setR(await api.voiceDirect<VoiceSuggestion>("voices_match", dir, { id: c.id })));
+  const use = (id: string, name: string) => go("use", async () => {
+    if (c.voice_profile?.approved && !(await ask(`${c.name}'s voice is approved. Replace it with ${name}?`, { ok: "Replace it" }))) return;
+    await api.castVoice("set", dir, { person: c.name, voice: { voice_id: id, voice_name: name }, ...(c.voice_profile?.approved ? { replace_approved: true } : {}) });
+    onChanged();
+  });
+  return (
+    <section>
+      <h3>Find a voice <span className="dim">suggestions only: nothing changes until you choose</span></h3>
+      <div className="sm-row">
+        <button className="btn" disabled={!!busy} onClick={() => void suggest()}>{busy === "ai" ? "Thinking…" : "Suggest voices for this character…"}</button>
+        {hasKey && <button className="btn ghost" disabled={!!busy} onClick={() => void match()} title="Looks through your ElevenLabs library using the notes above. Free.">{busy === "match" ? "Looking…" : "Find matches from my notes (free)"}</button>}
+      </div>
+      {!hasKey && <p className="dim sm-note">Add your ElevenLabs key in Settings to look through your voice library. The suggestion of what the voice should be like works without it.</p>}
+      {err && <p className="error-text" role="alert">{err}</p>}
+      {r && <div className="sm-suggest">
+        {r.proposal && <div className="sm-prop"><b>What {c.name} might sound like</b>
+          <ul>{PROFILE_FIELDS.filter(([k]) => (r.proposal as Record<string, string>)[k]).map(([k, name]) => <li key={k}><span className="dim">{name}:</span> {(r.proposal as Record<string, string>)[k]}</li>)}</ul>
+          <button className="btn sm" onClick={() => onUse(Object.fromEntries(PROFILE_FIELDS.map(([k]) => [k, (r.proposal as Record<string, string>)[k]]).filter(([, v]) => v)))}>Put these into the notes above</button>
+          <span className="dim"> (you still press Save)</span></div>}
+        {r.note && <p className="dim">{r.note}</p>}
+        {r.matches.length === 0 && !r.note && <p className="dim">No voice in the {r.searched} looked through fits that clearly. Try describing the voice in the notes, or design one from the casting sheet.</p>}
+        {r.matches.map((m) => <div key={m.voice.voice_id} className="cv-item"><div><b>{m.voice.name}</b> <span className="dim">fits: {m.why.join(", ") || "a little"}</span>
+          <div className="dim cv-tags">{Object.values(m.voice.labels).slice(0, 4).join(" · ")}{m.voice.description ? ` · ${m.voice.description}` : ""}</div></div>
+          {m.voice.preview_url && <SamplePlayer dir={dir} url={m.voice.preview_url} name={m.voice.name} />}
+          <button className="btn sm" disabled={!!busy} onClick={() => void use(m.voice.voice_id, m.voice.name)}>Use for {c.name}</button></div>)}
+      </div>}
+    </section>
   );
 }
 

@@ -252,6 +252,14 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "film_voice_direct": {
+      if (x.action === "scene_plan") return { scene: 1, speakers: [{ name: "Lila", key: "lila", voice: "Warm Northern Woman", has_voice: true, approved: false, lines: 2 }, { name: "Chloe", key: "chloe", voice: null, has_voice: false, approved: false, lines: 1 }],
+        lines: [{ shot: "S01-02", speaker: "Lila", key: "lila", text: "It looked weird.", written: "It looked weird.", spoken_version: false, state: "missing", seconds: null, characters: 16, credits: 16, cached: false },
+          { shot: "S01-03", speaker: "Chloe", key: "chloe", text: "I know.", written: "I know.", spoken_version: false, state: "no_voice", seconds: null }], missing: 1, no_voice: ["Chloe"], estimate: { characters: 16, credits: 16, basis: "" } };
+      if (x.action === "table_read") return { scene: 1, lines: [{ shot: "S01-02", speaker: "Lila", key: "lila", text: "It looked weird.", file: null, seconds: null, source: null }], seconds: 0, silent: 1 };
+      if (x.action === "performance") return { lines: [] };
+      return {};
+    }
     case "film_audio": {
       const a = (id: string, kind: string, name: string, category: string, seconds: number, approval: string, extra: Record<string, unknown> = {}) => ({ id, kind, name, description: "", category, file: `audio/${kind}/${id}.wav`, original_name: `${name}.wav`, sha1: id, bytes: 1000, seconds, source: "imported",
         tags: [], places: [], props: [], characters: [], scenes: [], shots: [], genre: "", mood: "", tempo: "", generation: {}, licence: { source: "", note: "", commercial: "unknown" }, approval, added: now, updated: now, exists: true, ...extra });

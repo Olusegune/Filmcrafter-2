@@ -44,7 +44,7 @@ describe("the tab is wired in and promises only what it does (wiring guard)", ()
     expect(sm).toContain("Nothing on this page costs anything");
     expect(sm).not.toMatch(/castVoice\("(design|design_save|clone|speak|preview)"/);          // choosing a voice goes through the existing VoiceMaker, which asks first
     expect(sm).not.toContain("confirmed: true");
-    expect(sm).toContain("import { VoiceMaker }");
+    expect(sm).toContain("VoiceMaker } from \"./CastVoices\"");
   });
   it("approval is the person's act, asked for, and removing says the file is kept", () => {
     expect(sm).toMatch(/await ask\(`Approve /);
@@ -56,5 +56,56 @@ describe("the tab is wired in and promises only what it does (wiring guard)", ()
     expect(rust).toMatch(/ACTIONS: \[&str; 6\] = \["list", "import", "update", "approve", "remove", "restore"\]/);
     expect(rust).toContain('"update_sound_style", "set_voice_profile"');
     expect(readFileSync("src/api.ts", "utf8")).toContain('invoke<T>("film_audio"');
+  });
+});
+
+import { aiAskWords, aiPriceWords, suggestedCap } from "../soundWords";
+
+describe("Stage B words and wiring", () => {
+  it("shows the price of a suggestion honestly and says it only suggests", () => {
+    expect(aiPriceWords({ usd: 0, local: true })).toMatch(/free/);
+    expect(aiPriceWords({ usd: 0.0042, local: false })).toBe("about $0.0042");
+    expect(aiPriceWords({ usd: 0.031, local: false })).toBe("about $0.031");
+    const t = aiAskWords("Suggest more natural ways?", "this line", { usd: 0.01, local: false });
+    expect(t).toContain("Cost: about $0.010");
+    expect(t).toContain("Voice slot: none is taken");
+    expect(t).toContain("Nothing is saved or changed until you choose");
+  });
+  it("suggests a cap just above the price, rounded up to ten, never below it", () => {
+    expect(suggestedCap(0)).toBe(0);
+    expect(suggestedCap(16)).toBe(20);
+    expect(suggestedCap(100)).toBe(120);
+    for (const c of [1, 7, 29, 333, 1234]) expect(suggestedCap(c)).toBeGreaterThanOrEqual(c);
+  });
+  const rd = (f: string) => readFileSync(f, "utf8");
+  it("the scene sheet asks with the price and the cap before it sends, and needs a cap that covers the price", () => {
+    const v = rd("src/VoiceScene.tsx");
+    expect(v.indexOf("await ask(confirmWords(")).toBeLessThan(v.indexOf('"scene_voice"'));
+    expect(v).toContain("confirmed: true, cap_credits: capN");
+    expect(v).toContain("capN < plan.estimate.credits");
+    expect(v).toContain("Pause between lines");
+    expect(v).toContain("if a charge is unclear nothing more is sent");
+  });
+  it("another take and the natural-delivery suggestions ask first, and the spoken version is kept apart from the written line", () => {
+    const s = rd("src/LineStudio.tsx");
+    expect(s.indexOf("await ask(confirmWords({ action: `Make another take")).toBeLessThan(s.indexOf("new_take: true, confirmed: true"));
+    expect(s.indexOf("await ask(aiAskWords(")).toBeLessThan(s.indexOf('"natural_suggest"'));
+    expect(s).toContain("Save as the spoken version");
+    expect(s).toContain("Go back to the written line");
+    expect(s).toContain("the film's written dialogue is never changed");
+    expect(s).toContain("The written line has changed since");
+  });
+  it("suggesting voices is price-first, never saves by itself and never replaces an approved voice without asking", () => {
+    const m = rd("src/SoundMusic.tsx");
+    expect(m.indexOf("await ask(aiAskWords(")).toBeLessThan(m.indexOf('"voices_suggest"'));
+    expect(m).toContain("Put these into the notes above");
+    expect(m).toContain("(you still press Save)");
+    expect(m).toContain("replace_approved: true");
+    expect(m).toMatch(/voice is approved/);
+  });
+  it("the shell allows exactly the engine's direction actions", () => {
+    const rust = rd("src-tauri/src/lib.rs");
+    expect(rust).toMatch(/ACTIONS: \[&str; 11\] = \["performance", "performance_set", "performance_clear", "natural_estimate", "natural_suggest", "voices_estimate", "voices_suggest", "voices_match", "scene_plan", "scene_voice", "table_read"\]/);
+    expect(rd("src/api.ts")).toContain('invoke<T>("film_voice_direct"');
   });
 });
