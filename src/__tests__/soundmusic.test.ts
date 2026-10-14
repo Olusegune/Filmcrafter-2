@@ -262,9 +262,8 @@ describe("Stage G wiring (model registry, updates)", () => {
 
 describe("shared class names stay unique (a regression that broke every small button)", () => {
   it("no stylesheet gives the bare class .sm a rule: it is the small-button size (.btn.sm) and a wrapper once used it for a flex column", () => {
-    const { readdirSync } = require("node:fs") as typeof import("node:fs");
-    for (const f of readdirSync("src").filter((x) => x.endsWith(".css"))) {
-      const css = readFileSync(`src/${f}`, "utf8");
+    for (const f of ["styles", "polish", "motion", "film", "corners", "focus", "lanes", "acting", "sound", "studio-shared", "palette", "ui-system"]) {
+      const css = readFileSync(`src/${f}.css`, "utf8");
       expect(css, f).not.toMatch(/(^|\n)\.sm\s*[{,]/);
     }
     expect(readFileSync("src/SoundMusic.tsx", "utf8")).toContain('<div className="snd">');

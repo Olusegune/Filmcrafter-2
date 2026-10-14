@@ -66,8 +66,9 @@ export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSe
       {visible.map((s) => {
         const t = s.thumb_src ? thumbs[s.thumb_src] : null;
         const w = Math.max(8, (s.end - s.start) * pps - 3);
+        const fit = w < 44 ? "xs" : w < 96 ? "nr" : "";                       // how much of the card there is room for: the number only, the number and a mic, or everything
         return (
-          <div key={s.id} data-shot-id={s.id} className={`shot-card story ${selected === s.id ? "sel" : ""} st-${s.status}`}
+          <div key={s.id} data-shot-id={s.id} className={`shot-card story ${fit} ${selected === s.id ? "sel" : ""} st-${s.status}`}
                style={{ left: s.start * pps + 1, width: w, backgroundImage: t ? `url("${media(dir, t)}")` : undefined }}
                title={`${s.id} · ${s.framing ?? ""}`}
                onClick={(e) => { e.stopPropagation(); onSelect(s.id); }}
@@ -75,8 +76,8 @@ export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSe
                onMouseEnter={(e) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
                  window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setHover({ id: s.id, x: r.left, top: r.top }), 450); }}
                onMouseLeave={() => { window.clearTimeout(timer.current); setHover(null); }}>
-            {!t && <div className="ph">{w > 70 ? (s.thumb_source === "placeholder" ? "No image yet" : "…") : ""}</div>}
-            <div className="card-top"><span className="id num">{s.id.slice(1)}</span>
+            {!t && <div className="ph">{w >= 150 ? (s.thumb_source === "placeholder" ? "No image yet" : "…") : ""}</div>}
+            <div className="card-top"><span className="id num" title={s.id}>{fit === "xs" ? s.id.slice(-2) : s.id.slice(1)}</span>
               {s.keyframe_check === "fail" && <span className="kf-flag fail" title="The keyframe's hands or body look wrong. Open Keyframe tools to see which." aria-label="Keyframe hands or body look wrong">✋</span>}
               {s.keyframe_check === "look" && <span className="kf-flag look" title="The keyframe passed but its hands are worth a look." aria-label="Keyframe hands worth a look">✋</span>}
               {s.versions.length > 1 && w > 70 && <span className="vers num">v{s.versions.length}</span>}</div>
@@ -89,7 +90,7 @@ export function StoryCards({ dir, shots, pps, view, selected, thumbs, want, onSe
                 {f.total > 0 && <i className={`kc-voicebar ${f.over ? "over" : ""}`} style={{ width: Math.min(w, Math.max(4, f.total * pps)) }} aria-hidden="true" />}
               </>;
             })()}
-            {w > 54 && <div className="card-bot"><i className={`dot-st ${STATUS[s.status].cls}`} />{w > 90 && STATUS[s.status].label}</div>}
+            {w > 54 && <div className="card-bot"><i className={`dot-st ${STATUS[s.status].cls}`} />{w >= 112 && STATUS[s.status].label}</div>}
           </div>
         );
       })}

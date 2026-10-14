@@ -85,3 +85,14 @@ select { max-width: 100%; }
 .cv-search .btn { flex-direction: row; flex: 0 0 auto; padding: 0 14px; }
 .btn > svg { flex: none; }
 .cv-check > span { font-weight: 400; }
+
+/* the Edit timeline's shot cards: always readable, whatever the zoom */
+.shot-card.story { overflow: hidden; }
+.shot-card.story .card-top { min-width: 0; }
+.shot-card.story .id { flex: none; }
+.shot-card.story .ph { place-items: center; padding: 22px 6px 0; }
+.shot-card.story.nr .card-top { padding: 3px 4px; gap: 3px; }
+.shot-card.story.nr .kc-voice, .shot-card.story.xs .kc-voice { top: auto; bottom: 3px; right: 3px; padding: 1px 3px; }
+.shot-card.story.xs .card-top { justify-content: center; padding: 3px 1px; }
+.shot-card.story.xs .kc-voice { right: 50%; transform: translateX(50%); }
+.shot-card.story.xs .kf-flag { display: none; }

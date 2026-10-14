@@ -2,6 +2,7 @@
 
 ## 0.25.2 (2026-10-14)
 
+- **Edit timeline: shot cards stay readable at any zoom.** Narrow cards used to pile their number, a "No image yet" note, the voice mic and the status on top of each other. Now the card shows what fits: only the shot number when it is very narrow (and the full id as a tooltip), the number and a small mic when narrow, and the picture note and status only when there is room.
 - **Fixed: small buttons looked broken in many places** (icon above its text, wrong width, e.g. "Help me write", Search). The cause was my own: the Sound & Music wrapper used the class name `.sm`, which is also the app's small-button size, so every small button in the app became a stacked flex column since 0.25.0. The wrapper is renamed and a test now forbids the collision.
 
 ## 0.25.1 (2026-10-14)
