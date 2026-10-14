@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.2 (2026-10-14)
+
+- **Fixed: small buttons looked broken in many places** (icon above its text, wrong width, e.g. "Help me write", Search). The cause was my own: the Sound & Music wrapper used the class name `.sm`, which is also the app's small-button size, so every small button in the app became a stacked flex column since 0.25.0. The wrapper is renamed and a test now forbids the collision.
+
 ## 0.25.1 (2026-10-14)
 
 - **Fixed: library voices could not be played.** The "Hear" button on a library voice did nothing and showed a red "!" (reported). A safety check added in 0.24.0 refused audio files that the voice library labels as plain text, which is true of about half of its samples. The file's real content now decides, so all of them play again.

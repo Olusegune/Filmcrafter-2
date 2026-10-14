@@ -981,7 +981,7 @@
 .bk-h { margin: 14px 0 4px; font-size: 13px; font-weight: 600; color: var(--frost); }
 
 /* Sound & Music (the audio half of the Bible) */
-.sm { display: flex; flex-direction: column; gap: var(--sp-3, 12px); flex: 1; min-height: 0; }
+.snd { display: flex; flex-direction: column; gap: var(--sp-3, 12px); flex: 1; min-height: 0; }  /* the Sound & Music wrapper (was ".sm", which collided with the small-button class and broke every small button) */
 .sm-areas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .sm-areas button { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--hairline, rgba(244, 247, 250, 0.12)); background: none; color: var(--frost); cursor: pointer; font-size: 13px; }
 .sm-areas button .dim { font-size: 11.5px; }

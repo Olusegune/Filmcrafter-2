@@ -259,3 +259,14 @@ describe("Stage G wiring (model registry, updates)", () => {
     expect(rd("docs/UPDATES.md")).toContain("updates are NOT switched on");
   });
 });
+
+describe("shared class names stay unique (a regression that broke every small button)", () => {
+  it("no stylesheet gives the bare class .sm a rule: it is the small-button size (.btn.sm) and a wrapper once used it for a flex column", () => {
+    const { readdirSync } = require("node:fs") as typeof import("node:fs");
+    for (const f of readdirSync("src").filter((x) => x.endsWith(".css"))) {
+      const css = readFileSync(`src/${f}`, "utf8");
+      expect(css, f).not.toMatch(/(^|\n)\.sm\s*[{,]/);
+    }
+    expect(readFileSync("src/SoundMusic.tsx", "utf8")).toContain('<div className="snd">');
+  });
+});

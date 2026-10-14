@@ -26,7 +26,7 @@ const AUDIO_FILTER = [{ name: "Audio", extensions: ["wav", "mp3", "m4a", "flac",
 export function SoundMusic({ dir, b, run }: { dir: string; b: BibleView; run: (fn: () => Promise<BibleView>) => Promise<BibleView | null> }) {
   const [area, setArea] = useState<Area>("voices");
   return (
-    <div className="sm">
+    <div className="snd">
       <div className="sm-areas" role="tablist" aria-label="Sound and music">
         {AREAS.map((a) => <button key={a.id} role="tab" aria-selected={area === a.id} className={area === a.id ? "on" : ""} onClick={() => setArea(a.id)}><b>{a.label}</b><span className="dim">{a.hint}</span></button>)}
       </div>
