@@ -111,7 +111,8 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 | Voice scene (two short lines, Eleven v4, a premade library voice, cap 60) | Worked: both lines spoken and attached, no failures; the scene's price was shown first (25 characters, about 25 credits); **reported 4 and 2 credits** for 18 and 7 characters. The reported amounts are well below the app's characters-times-multiplier estimate; what ElevenLabs' `character-cost` header measures is not documented, so the app shows it only as "reported" and keeps the estimate apart. |
 | Table read of the scene | Both lines found in order (1.2 s and 0.96 s), none silent. |
 | Model list refresh (free) | ElevenLabs answered with 9 speech models; its stated credit multipliers (v4 1.0, v4 Turbo 0.5, Flash 0.5) matched the app's built-in ones. |
-| Not run | Music (ElevenLabs Music or Suno through Kie.ai), the real lip-sync test, any Kie.ai spending, listening to the files (the owner has not yet judged how they sound). |
+| Lip-sync test (Kie 200 of 300 credits, ElevenLabs 3 of 50) | Run on a throwaway film: Take A (Seedance 2, picture + recording) did **not** follow the voice's timing by a crude mouth-motion measure; Take B (Kie lip-sync pass) moved the mouth toward the words but is not proven good. Full table in `docs/LIPSYNC_VALIDATION.md`. Files for judging are on the owner's Desktop. |
+| Not run | Music (ElevenLabs Music or Suno through Kie.ai) and a person's judgement of any generated audio or video. |
 
 ## What 0.25.0 (creative production expansion) added, and how it was checked
 

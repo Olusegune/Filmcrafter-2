@@ -1,6 +1,6 @@
 # Lip-sync validation: plan, readiness check and results
 
-**Status: the real test has NOT been run.** It spends money, so it needs the owner's separate, explicit authorization and a spending cap (the expansion rules: "Any paid tests require separate authorization and a spending cap"). Nothing below claims that a mouth follows a voice. Until a run is recorded in the table at the end, the app's wording stays: *the request is built the right way; whether the video model honours the audio is unknown.*
+**Status: one real run was made on 2026-10-14** (owner-authorised caps: Kie 300 credits, ElevenLabs 50; spent Kie 200 credits and ElevenLabs 3; see Results). It is **one take of one shot**, judged by a crude measure of mouth movement and by looking at frames, **not by a person watching and listening**; the owner has the files to judge. Until a person has judged, the app's wording stays: *the request is built the right way; whether the video model honours the audio is not proven.*
 
 ## What the app does now (checked by tests, no spending)
 
@@ -36,6 +36,19 @@ Replace the recording on the tested shot, confirm that Voices/Scene sound shows 
 
 ## Results
 
+**Run of 2026-10-14**: a throwaway film, one speaking close-up (a woman, picture made by Nano Banana), a 15-character line spoken by an ElevenLabs premade voice (1.36 s of speech, sent as a 4 s clip: the rest silence). Files for judging: `Desktop\FilmCrafter lip-sync test`.
+
+| Step | What happened | Spent |
+|---|---|---|
+| Free readiness check | The request was built right: the recording as `reference_audio_urls`, the keyframe as a reference picture, `generate_audio` off, 4 s, 0 problems. | 0 |
+| Seedance 2 with only the recording (no picture) | **Refused by Kie.ai, nothing charged**: "Audio cannot be empty in the scene of i2v-reference". Seedance's reference mode needs a reference picture with the audio. (The take record still kept the voice it was sent.) | 0 |
+| Keyframe (Nano Banana) | Made and approved. | 4 Kie credits |
+| **Take A**: Seedance 2, picture + recording | Made (4.04 s). The take's own sound is off by design. **Mouth-region motion was low while the voice spoke (0 to 1.25 s: 0.5) and high in the silent part (1.75 to 3 s: up to 4.9); correlation with the speech energy -0.35.** In the frames the mouth is open in silence. **The mouth did not follow the voice's timing.** | 164 Kie credits |
+| **Take B**: Volcengine lip-sync pass on Take A, same recording | Made (4.04 s, the recording as its sound). Mouth-region motion in the speech window rose to 1.9 (from 0.5) and correlation became +0.35, but there is still movement in the silent part (about 2 to 3.2 s). **Better, not proven good.** | 32 Kie credits |
+
+**Reading it honestly:** the reference-audio route alone (Take A) did not give lip-sync in this one test; the dedicated pass (Take B) moved the mouth toward the words. The measure is a crude proxy (motion in a box around the mouth), the sample is one shot with a mostly-silent clip, and a person has not yet watched it. What this supports: keep saying the reference audio is not a promise, keep the "Lip-sync this take…" pass as the dependable route, and judge a real shot with the real voice length (a clip that is mostly padding silence is a poor test: next time use a line that fills the shot). Things the test also showed: a model can refuse a request for reasons not in its documentation (nothing was charged); the pass costs about a fifth of a take.
+
 | Date | Shot | Route | Spent | Mouth followed the voice? | Notes |
 |---|---|---|---|---|---|
-| (not run) | | | | | Awaiting the owner's authorization and cap. |
+| 2026-10-14 | S01-02 (close-up, 1.4 s line in a 4 s clip) | Seedance 2 reference audio | 164 Kie credits (+4 for the picture, 3 ElevenLabs) | **No** (measured and seen in frames) | The mouth moved mostly in the silent part. |
+| 2026-10-14 | same take | + Kie lip-sync pass (Volcengine) | 32 Kie credits | **Better, not proven** (measured; not yet judged by a person) | Residual movement in the silent part. |

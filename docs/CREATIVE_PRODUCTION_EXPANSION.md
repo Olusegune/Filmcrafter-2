@@ -87,7 +87,7 @@ Baseline: FilmCrafter 0.24.0 (Phase 0 released 2026-10-14, tag `v0.24.0`).
 
 ## First real run (2026-10-14, throwaway film, cap 150 ElevenLabs credits)
 
-One 2 s and one 4 s sound effect, and one voice scene of two short lines, all worked end to end with real ElevenLabs calls (39 credits reported; the app's estimates were 91). Sound effects cost about 5.5 credits per second on this account (the app's 11 credits per second is therefore a safe upper bound), and voice lines were reported at a fraction of the estimated characters. Details are in `docs/QA.md` ("Real runs of 0.25.0"). **Music and the Kie.ai task flow, and the lip-sync test, have not been run.**
+One 2 s and one 4 s sound effect, and one voice scene of two short lines, all worked end to end with real ElevenLabs calls (39 credits reported; the app's estimates were 91). Sound effects cost about 5.5 credits per second on this account (the app's 11 credits per second is therefore a safe upper bound), and voice lines were reported at a fraction of the estimated characters. Details are in `docs/QA.md` ("Real runs of 0.25.0"). **Music and the Kie.ai music task flow have not been run.** The lip-sync test was run afterwards (Kie 200 of 300 credits): the reference-audio route alone did not follow the voice's timing, the Kie lip-sync pass improved it but is not proven; see `docs/LIPSYNC_VALIDATION.md`.
 
 ## Known limitations and remaining risks
 
@@ -98,7 +98,7 @@ One 2 s and one 4 s sound effect, and one voice scene of two short lines, all wo
 - Solo and the lane mute buttons in the timeline: mute leaves a lane out of the film, solo is for the preview only.
 - The Edit timeline lanes and the new screens were checked in the browser harness with mocked data; not walked through in the installed app.
 - Takes made before this version carry no voice record, so a later voice change cannot be detected for them.
-- The speech-adapted picture check and the real lip-sync test are not done.
+- The speech-adapted picture check is not done, and the lip-sync result rests on one take judged by a crude measure (no person has watched it yet).
 - Pricing figures for ElevenLabs credits come from help-centre text and may differ by plan; the app always labels them as estimates.
 
 ## Decisions for the owner
