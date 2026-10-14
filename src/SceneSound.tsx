@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, errorText, type AiPrice, type AudioLibrary, type CueList, type MixPreview, type MixSettings, type RightsReport, type SoundIdea, type SoundIdeas, type Cue } from "./api";
 import { notifyCues } from "./CueLanes";
+import { OutdatedPanel } from "./OutdatedPanel";
 import { ask } from "./ask";
 import { aiAskWords, audioFacts } from "./soundWords";
 
@@ -56,6 +57,7 @@ export function SceneSound({ dir }: { dir: string }) {
       <div className="ss-scenes" role="tablist" aria-label="Scenes">{scenes.map((n) => <button key={n} role="tab" aria-selected={n === scene} className={n === scene ? "on" : ""} onClick={() => { setScene(n); setIdeas(null); }}>Scene {n}</button>)}</div>
       <p className="dim ss-lead">{info.shots.length} shot{info.shots.length === 1 ? "" : "s"}, {info.seconds.toFixed(1)} s. {dialogue.length ? `${dialogue.length} spoken line${dialogue.length === 1 ? "" : "s"} already have a voice and stay as they are.` : "No voice recorded in this scene yet."} Plans only: nothing here makes sound or costs anything.</p>
 
+      <OutdatedPanel dir={dir} />
       {rights && !rights.ok && <p className="ss-warn" role="status">Before you release the film: {rights.blocking.length === 1 ? "one sound in the plan has" : `${rights.blocking.length} sounds in the plan have`} rights you have not confirmed ({rights.blocking.map((r) => r.name).slice(0, 3).join(", ")}). Open it in the library and set “commercial use”.</p>}
       <section>
         <h3>The soundscape <span className="dim">{cues.length} cue{cues.length === 1 ? "" : "s"}{list.counts.needs_sound ? ` · ${list.counts.needs_sound} still need a sound` : ""}</span></h3>

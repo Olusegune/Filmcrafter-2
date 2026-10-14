@@ -252,6 +252,7 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "film_outdated": return { takes: [{ shot: "S01-03", take: "v1", kind: "voice_changed", why: "The voice was replaced after this take was made, so the mouth may not match it.", speakers: ["Lila"], kept: false, options: ["lipsync_pass", "new_take"], note: "" }], cues: [], film: null, unchecked_takes: 2, clean: false };
     case "film_mix": {
       if (x.action === "preview") return { file: "cache/audio-preview/scene1.wav", seconds: 14.5, cues: 1, skipped: [], ducked: true, solo: (x.data as { solo?: string } | undefined)?.solo ?? null, voices: true };
       return { schema: 1, ducking_db: -12, duck_attack: 0.15, duck_release: 0.6, target_lufs: null, peak_db: -1, mute_lanes: [], solo: null };

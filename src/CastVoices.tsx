@@ -6,6 +6,7 @@ import { notifyVoice, useCast } from "./voiceHooks";
 import { COST_UNKNOWN, confirmWords } from "./voiceUsage";
 import { VoiceUsagePanel } from "./VoiceUsagePanel";
 import { VoiceScene } from "./VoiceScene";
+import { OutdatedPanel } from "./OutdatedPanel";
 import * as I from "./icons";
 
 const AUDIO = ["wav", "mp3", "m4a", "flac", "aac", "ogg"];
@@ -106,6 +107,7 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
           </div>);
       })}
       <VoiceUsagePanel dir={dir} />
+      <OutdatedPanel dir={dir} />
       {people.length > 0 && <div className="cv-all">
         <button className="btn sm" disabled={!!busy} onClick={() => setSceneMode("voice")}><I.Mic size={13} /> Voice a scene…</button>
         <button className="btn sm ghost" onClick={() => setSceneMode("read")}><I.Play size={13} /> Listen to a scene</button>

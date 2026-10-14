@@ -214,3 +214,24 @@ describe("Stage E (lanes and mixing)", () => {
     expect(rd("src/api.ts")).toContain('invoke<T>("film_mix"');
   });
 });
+
+describe("Stage F wiring (what may be out of date)", () => {
+  const rd = (f: string) => readFileSync(f, "utf8");
+  it("the panel says nothing was changed, offers the options with their price first, and shows nothing when all is current", () => {
+    const p = rd("src/OutdatedPanel.tsx");
+    expect(p).toContain("nothing was changed");
+    expect(p).toContain("Lip-sync this take…");
+    expect(p).toContain("show their price first");
+    expect(p).toContain("an approved take is never replaced by itself");
+    expect(p).toContain("if (!r || r.clean) return null;");
+    expect(rd("src/CastVoices.tsx")).toContain("<OutdatedPanel dir={dir} />");
+    expect(rd("src/SceneSound.tsx")).toContain("<OutdatedPanel dir={dir} />");
+  });
+  it("the shell exposes the read-only report and the validation doc does not claim a result", () => {
+    expect(rd("src-tauri/src/lib.rs")).toContain("filmcrafter_engine.outdated");
+    expect(rd("src/api.ts")).toContain('invoke<OutdatedReport>("film_outdated"');
+    const doc = rd("docs/LIPSYNC_VALIDATION.md");
+    expect(doc).toContain("has NOT been run");
+    expect(doc).toContain("| (not run) |");
+  });
+});

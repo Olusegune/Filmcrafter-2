@@ -1336,6 +1336,14 @@ async fn film_mix(app: AppHandle, action: String, target: String, data: Value) -
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "mix", &args, &[])).await.map_err(err)?
 }
 
+/// What may be out of date because a voice or the planned sound changed after it was made (filmcrafter_engine.outdated). Free, local and read-only: it never changes, deletes or re-makes anything.
+#[tauri::command]
+async fn film_outdated(app: AppHandle, target: String) -> Result<Value, String> {
+    let dir = film_dir(&target)?;
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.outdated".into(), "report".into(), dir.to_string_lossy().into()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "outdated", &args, &[])).await.map_err(err)?
+}
+
 /// Making the film (filmcrafter_engine.make): builds the render project from the shots, tracks storyboard panels, keyframes and takes, locks and chooses. It never spends money:
 /// pictures and video are queued with the render commands, after the app has shown the price and the person has confirmed it.
 #[tauri::command]
@@ -2121,7 +2129,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_outdated, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

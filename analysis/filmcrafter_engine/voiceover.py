@@ -463,6 +463,22 @@ def for_shot(d: str, shot_id: str) -> list[dict]:
     return [r for r in rows if isinstance(r, dict) and (lambda p: bool(p) and os.path.isfile(p))(inside(d, r.get("path")))]
 
 
+def clip_record(d: str, shot_id: str) -> dict | None:
+    """The exact voice a shot has right now, as a small record to keep with a take made from it: each recording (its file, a fingerprint of the bytes, its length, who made it) and one
+    fingerprint for them all. Used to tell later whether the voice changed after the take was made. None when the shot has no recording. Reads files; changes nothing."""
+    rows = for_shot(d, shot_id)
+    if not rows:
+        return None
+    recs, h = [], hashlib.sha1(usedforsecurity=False)
+    for r in rows:
+        p = inside(d, r["path"])
+        with open(p, "rb") as f:
+            fp = hashlib.sha1(f.read(), usedforsecurity=False).hexdigest()
+        h.update(fp.encode())
+        recs.append({"path": r["path"], "sha1": fp, "seconds": float(r.get("seconds") or 0), "speaker": r.get("speaker"), "source": r.get("source") or "recording"})
+    return {"digest": h.hexdigest(), "recordings": recs, "seconds": round(sum(x["seconds"] for x in recs), 2), "at": int(time.time())}
+
+
 def windows(d: str, shot_id: str) -> list[dict]:
     """When each person speaks inside the shot's one audio clip (see slice_for): [{speaker, start, end, line}] in seconds, in speaking order."""
     out, at = [], 0.0

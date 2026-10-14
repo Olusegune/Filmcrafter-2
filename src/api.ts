@@ -280,6 +280,7 @@ export const api = {
   filmCues: <T = CueList>(action: "list" | "add" | "update" | "approve" | "remove" | "restore" | "refresh" | "quick" | "director_estimate" | "director_suggest", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cues", { action, target, data }),
   audioGen: <T = unknown>(action: "providers" | "estimate" | "generate" | "pending" | "check" | "rights", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audiogen", { action, target, data }),
   audioMix: <T = MixSettings>(action: "settings" | "set_settings" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_mix", { action, target, data }),
+  filmOutdated: (target: string) => invoke<OutdatedReport>("film_outdated", { target }),
   filmAudio: <T = AudioLibrary>(action: "list" | "import" | "update" | "approve" | "remove" | "restore", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audio", { action, target, data }),
   filmBackup: <T = unknown>(target: string, action: "make" | "list" | "verify" | "restore", name: string | null = null) => invoke<T>("film_backup", { action, target, name }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
@@ -547,3 +548,5 @@ export type GenResult = { asset?: AudioAsset; assets?: AudioAsset[]; cached: boo
 export type RightsReport = { assets: { id: string; name: string; kind: string; commercial: string; in_plan: boolean; source: string; why: string }[]; blocking: { id: string; name: string; why: string }[]; ok: boolean };
 export type MixSettings = { schema: number; ducking_db: number; duck_attack: number; duck_release: number; target_lufs: number | null; peak_db: number; mute_lanes: ("dialogue" | "sfx" | "ambience" | "music")[]; solo: string | null };
 export type MixPreview = { file: string; seconds: number; cues: number; skipped: { cue: string; why: string }[]; ducked?: boolean; solo: string | null; voices: boolean };
+export type OutdatedReport = { takes: { shot: string; take: string; kind: "voice_changed" | "voice_removed" | "voice_added"; why: string; speakers: string[]; kept: boolean; options: string[]; note: string }[];
+  cues: { id: string; scene: number; shot: string | null; name: string; why: string; codes: string[] }[]; film: { export: string; changed: string[]; why: string } | null; unchecked_takes: number; clean: boolean };

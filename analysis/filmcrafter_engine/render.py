@@ -2379,7 +2379,14 @@ def _submit(d: str, store: Store, project: dict, p, j: dict) -> None:
     except Exception:
         est = {"usd": None}
     kf_used = approved_keyframe(d, j["plan"], j["shot_id"]) if j.get("kind", "video") == "video" and not j.get("refs_only") else None
-    store.update(j, state="submitting", payload=payload, attempts=j["attempts"] + 1, estimate_usd=est.get("usd"), keyframe_ref=kf_used)
+    voice_ref = None
+    if j.get("kind") == "lipsync" or (sung and sung.get("voiceover")):
+        try:
+            from . import voiceover as _vo
+            voice_ref = _vo.clip_record(d, j["shot_id"])                         # which voice the mouth was made to follow, so a later change to it is noticed
+        except (OSError, SystemExit):
+            voice_ref = None
+    store.update(j, state="submitting", payload=payload, attempts=j["attempts"] + 1, estimate_usd=est.get("usd"), keyframe_ref=kf_used, voice_ref=voice_ref)
     emit(event="progress", stage=f"sending {j['shot_id']} to {j['provider']}")
     sub = p.submit(j["model"], payload)
     store.update(j, state="submitted", provider_job_id=sub.pop("id"), provider_meta=sub, submitted=int(time.time()))
