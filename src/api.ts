@@ -505,4 +505,4 @@ export type CastTake = { file: string; text: string; model: string; voice_name: 
 export type LedgerEntry = { id: string; at: number; updated: number; action: string; person: string | null; shot: string | null; status: "prepared" | "confirmed" | "submitted" | "completed" | "refused" | "failed_before_submission" | "uncertain";
   estimate: { unit: string; amount: number | null; basis: string }; actual: { unit: string; amount: number | null; reported: boolean; source: string | null }; note: string; resolved?: { outcome: "not_charged" | "charged"; at: number } };
 export type VoiceUsage = { limits: Record<string, number>; count: number; recent: LedgerEntry[]; unresolved: LedgerEntry[];
-  by_unit: Record<string, { operations: number; estimated: number; reported: number; unreported_operations: number }> };
+  by_unit: Record<string, { operations: number; estimated: number; reported: number; unreported_operations: number; estimated_unreported: number }> };

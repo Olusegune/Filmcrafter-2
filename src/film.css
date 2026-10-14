@@ -964,3 +964,16 @@
 .vl-scroll.more { -webkit-mask-image: linear-gradient(#000 calc(100% - 16px), transparent); mask-image: linear-gradient(#000 calc(100% - 16px), transparent); }
 .vl-lane { position: relative; }
 .vl-name { position: absolute; top: 2px; left: 0; z-index: 6; }
+
+/* voice usage (what voice generation has used, and what is not known) */
+.vu { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--hair); }
+.vu-line { margin: 0; font-size: 12.5px; color: var(--frost); }
+.vu-unsure { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border: 1px solid rgba(232, 176, 74, 0.55); border-radius: 4px; background: rgba(232, 176, 74, 0.07); font-size: 12px; }
+.vu-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.vu-more > summary { cursor: pointer; font-size: 12px; color: var(--text-quiet, #8b97a7); }
+.vu-limit { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; font-size: 12.5px; }
+.vu-limit input { width: 90px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--hair); border-radius: 3px; color: var(--frost); padding: 3px 6px; font: inherit; }
+.vu-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.vu-st { display: inline-block; min-width: 130px; color: var(--text-quiet, #8b97a7); }
+.vu-st.completed { color: #7fe0b0; } .vu-st.uncertain { color: var(--gold, #e8b45c); }
+.vu-note { margin: 6px 0 0; font-size: 11.5px; }

@@ -255,12 +255,13 @@ class Ledger:
         by_unit: dict = {}
         for e in done:
             u = e["estimate"].get("unit", "unknown")
-            slot = by_unit.setdefault(u, {"operations": 0, "estimated": 0.0, "reported": 0.0, "unreported_operations": 0})
+            slot = by_unit.setdefault(u, {"operations": 0, "estimated": 0.0, "reported": 0.0, "unreported_operations": 0, "estimated_unreported": 0.0})
             slot["operations"] += 1
             slot["estimated"] += e["estimate"].get("amount") or 0
             if e["actual"].get("reported") and e["actual"].get("amount") is not None:
                 slot["reported"] += e["actual"]["amount"]
             else:
                 slot["unreported_operations"] += 1
+                slot["estimated_unreported"] += e["estimate"].get("amount") or 0
         unresolved = [e for e in rows if e["status"] == UNCERTAIN and not e.get("resolved")]
         return {"limits": d["limits"], "by_unit": by_unit, "unresolved": unresolved, "recent": rows[-25:][::-1], "count": len(rows)}

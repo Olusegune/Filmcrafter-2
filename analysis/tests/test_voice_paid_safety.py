@@ -131,6 +131,7 @@ def test_the_summary_never_adds_an_estimate_to_a_reported_amount(film, calls):
     C.speak(film, sid, "Lila", confirmed=True)
     s = C.usage(film)["by_unit"]["elevenlabs_credits"]
     assert s["operations"] == 1 and s["reported"] == 0 and s["unreported_operations"] == 1 and s["estimated"] > 0           # estimate and actual stay apart
+    assert s["estimated_unreported"] == s["estimated"]                                                                        # and the estimate is offered only for what had no reported amount
 
 
 def test_a_line_already_spoken_is_free_makes_no_request_and_adds_no_ledger_entry(film, calls):

@@ -3,6 +3,8 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type CastEstimate, type CastPlan, type CastPreview, type CastVoice, type ElevenVoice, type VoiceShot } from "./api";
 import { ask } from "./ask";
 import { notifyVoice, useCast } from "./voiceHooks";
+import { COST_UNKNOWN, confirmWords } from "./voiceUsage";
+import { VoiceUsagePanel } from "./VoiceUsagePanel";
 import * as I from "./icons";
 
 const AUDIO = ["wav", "mp3", "m4a", "flac", "aac", "ogg"];
@@ -24,7 +26,7 @@ export async function speakLine(dir: string, shot: string, who: string): Promise
   const est = await api.castVoice<CastEstimate>("estimate", dir, { items: [{ shot, speaker: who }] });
   const row = est.rows[0];
   if (!row.ok) throw new Error(row.why);
-  if (!row.cached && !(await ask(`Speak ${row.shot} as ${row.speaker}?\n\n“${row.text}”\n\n${priceWords(est)}`, { ok: "Speak it" }))) return false;
+  if (!row.cached && !(await ask(confirmWords({ action: `Speak ${row.shot} as ${row.speaker}?\n\n“${row.text}”`, provider: "ElevenLabs", cost: priceWords(est) }), { ok: "Speak it" }))) return false;
   await api.castVoice("speak", dir, { shot, speaker: who, confirmed: true });
   notifyVoice();
   return true;
@@ -60,7 +62,7 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
 
   const hear = (name: string) => run("hear", async () => {
     const words = `Hello, I'm ${name}. This is how I sound.`;
-    if (!(await ask(`Hear ${name}'s voice say a short sentence?\n\n“${words}”\n\nThis uses ${plural(words.length, "character")} of your ElevenLabs plan (a sentence you have heard before is free).`, { ok: "Hear it" }))) return;
+    if (!(await ask(confirmWords({ action: `Hear ${name}'s voice say a short sentence?\n\n“${words}”`, provider: "ElevenLabs", cost: `${plural(words.length, "character")} of your plan (a sentence you have heard before is free).` }), { ok: "Hear it" }))) return;
     const r = await api.castVoice<{ file: string }>("preview", dir, { person: name, text: words, confirmed: true });
     setHeard(r.file);
     new Audio(api.mediaUrl(`${dir}/${r.file}`)).play().catch(() => {});
@@ -70,7 +72,8 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
     const est = await api.castVoice<CastEstimate>("estimate", dir, { items: todo });
     const good = est.rows.filter((r) => r.ok);
     if (!good.length) throw new Error("Nothing can be spoken yet: " + (est.rows.find((r) => !r.ok) as { why: string } | undefined)?.why);
-    if (!(await ask(`Speak ${plural(good.length, "line")} that have no recording yet, each in its person's voice?\n\n${priceWords(est)}\n\nYour own recordings replace these any time (the spoken ones are kept in the film's voice/_removed folder).`, { ok: "Speak them" }))) return;
+    if (!(await ask(confirmWords({ action: `Speak ${plural(good.length, "line")} that have no recording yet, each in its person's voice?`, provider: "ElevenLabs", cost: priceWords(est),
+                                  note: "Your own recordings replace these any time (the spoken ones are kept in the film's voice/_removed folder)." }), { ok: "Speak them" }))) return;
     for (const r of good) { await api.castVoice("speak", dir, { shot: r.shot, speaker: r.speaker, confirmed: true }); notifyVoice(); }
   });
 
@@ -100,6 +103,7 @@ export function CastVoices({ dir, shots }: { dir: string; shots: VoiceShot[] }) 
             </span>
           </div>);
       })}
+      <VoiceUsagePanel dir={dir} />
       {todo.length > 0 && <div className="cv-all"><button className="btn primary sm" disabled={!!busy} onClick={() => void speakAll()}><I.Sparkle size={14} /> {busy === "all" ? "Speaking…" : `Speak the ${plural(todo.length, "line")} with no recording`}</button>
         <span className="dim">The price is shown first. Your own recording replaces a spoken line any time.</span></div>}
       {heard && <p className="dim cv-heard">Played a sample ({heard.split("/").pop()}).</p>}
@@ -153,13 +157,23 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone }: { dir: 
   }, [onClose]);
 
   const use = (v: ElevenVoice) => go(async () => { await api.castVoice("set", dir, { person, voice: { voice_id: v.voice_id, voice_name: v.name, model } }); onDone(); });
+  const slotWords = plan?.slots ? `one of your ${plan.slots} (you use ${plan.slots_used} now)` : "one voice slot of your ElevenLabs plan";
   const hearOptions = () => go(async () => {
-    if (!(await ask(`Hear a few voices for ${person}?\n\nElevenLabs uses a small number of your plan's characters to make the samples (it does not say how many beforehand). Nothing is kept as a voice until you choose one.`, { ok: "Hear options" }))) return;
-    setPreviews((await api.castVoice<{ previews: CastPreview[] }>("design", dir, { description: desc })).previews);
+    if (!(await ask(confirmWords({ action: `Hear a few voices for ${person}?`, provider: "ElevenLabs", cost: COST_UNKNOWN, slot: "none (nothing is kept as a voice until you choose one)" }), { ok: "I accept, hear options" }))) return;
+    setPreviews((await api.castVoice<{ previews: CastPreview[] }>("design", dir, { description: desc, confirmed: true, unknown_cost_accepted: true })).previews);
   });
-  const keep = (p: CastPreview) => go(async () => { await api.castVoice("design_save", dir, { person, generated_voice_id: p.id, name, description: desc, model }); onDone(); });
+  const keep = (p: CastPreview) => go(async () => {
+    if (!(await ask(confirmWords({ action: `Keep “${name}” as ${person}'s voice?`, provider: "ElevenLabs", cost: "no characters are used; the voice is saved in your ElevenLabs library", slot: slotWords }), { ok: "Keep this voice" }))) return;
+    await api.castVoice("design_save", dir, { person, generated_voice_id: p.id, name, description: desc, model, confirmed: true });
+    onDone();
+  });
   const pickFiles = async () => { const r = await open({ multiple: true, filters: [{ name: "Recordings of the voice", extensions: AUDIO }] }); if (r) setFiles(Array.isArray(r) ? r : [r]); };
-  const makeClone = () => go(async () => { await api.castVoice("clone", dir, { person, name, files, consent, remove_noise: noise, model }); onDone(); });
+  const makeClone = () => go(async () => {
+    if (!(await ask(confirmWords({ action: `Create a voice called “${name}” from ${files.length} recording${files.length === 1 ? "" : "s"}, for ${person}?`, provider: "ElevenLabs", cost: "the recordings are sent to ElevenLabs to make the voice; the amount of plan used is not published",
+                                  slot: slotWords, note: "You confirmed this is your own voice, or that the speaker has agreed." }), { ok: "Create the voice" }))) return;
+    await api.castVoice("clone", dir, { person, name, files, consent, confirmed: true, remove_noise: noise, model });
+    onDone();
+  });
 
   return (
     <div className="overlay" onClick={onClose}>

@@ -107,7 +107,7 @@ describe("custom voices with ElevenLabs", () => {
     expect(src.indexOf("await ask(")).toBeGreaterThan(-1);
     expect(src.indexOf("await ask(")).toBeLessThan(src.indexOf('castVoice("speak"'));          // the yes is asked before the first spoken line is sent
     expect(src).toContain("confirmed: true");
-    expect(src).toContain("Hear options");
+    expect(src).toContain("hear options");
     expect(src).toMatch(/disabled=\{[^}]*!consent/);
     expect(src).toContain("consent,");
     expect(readFileSync("src/VoiceoverPanel.tsx", "utf8")).toContain("<CastVoices");
@@ -164,7 +164,7 @@ describe("voices on the timeline and the line studio", () => {
   it("can be opened from the timeline, a shot card and the Voiceover rows, and the shell lets takes through", () => {
     for (const f of ["src/VoiceLanes.tsx", "src/VoiceChip.tsx", "src/VoiceoverPanel.tsx"]) expect(readFileSync(f, "utf8")).toContain("<LineStudio");
     const rust = readFileSync("src-tauri/src/lib.rs", "utf8");
-    expect(rust).toMatch(/ACTIONS: \[&str; \d+\] = \["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample"\]/);
+    expect(rust).toMatch(/ACTIONS: \[&str; \d+\] = \["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample", "ledger", "ledger_resolve", "set_limit"]/);
   });
 });
 
