@@ -57,8 +57,9 @@
       "assetProtocol": {
         "enable": true,
         "scope": [
-          "$DOCUMENT/**",
-          "$HOME/**"
+          "$DOCUMENT/FilmCrafter/**",
+          "$APPDATA/**",
+          "$APPLOCALDATA/**"
         ]
       }
     }

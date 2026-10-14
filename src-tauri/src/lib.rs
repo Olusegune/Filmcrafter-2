@@ -436,7 +436,17 @@ fn recent_path(app: &AppHandle) -> Option<PathBuf> {
     Some(d.join("recent.json"))
 }
 
+/// The webview may read pictures, video and audio only from the folders FilmCrafter is working in (the configured scope covers the projects folder and the app's own data). A film opened from
+/// anywhere else (another drive, the Desktop) is added here, for this run, when it is opened; so is every film in the recent list at start-up. Files the person picks in a dialog are
+/// allowed by the dialog plugin itself. A folder that does not exist (a disconnected drive) is simply not added.
+fn allow_media(app: &AppHandle, dir: &Path) {
+    if dir.is_dir() {
+        let _ = app.asset_protocol_scope().allow_directory(dir, true);
+    }
+}
+
 fn remember(app: &AppHandle, dir: &Path) {
+    allow_media(app, dir);
     let Some(p) = recent_path(app) else { return };
     let mut list: Vec<String> = read_json(&p).and_then(|v| serde_json::from_value(v).ok()).unwrap_or_default();
     let s = dir.to_string_lossy().to_string();
@@ -2022,6 +2032,10 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             init_engine(app.handle());
+            if let Ok(root) = projects_root(app.handle()) { allow_media(app.handle(), &root); }
+            if let Some(p) = recent_path(app.handle()) {
+                for d in read_json(&p).and_then(|v| serde_json::from_value::<Vec<String>>(v).ok()).unwrap_or_default() { allow_media(app.handle(), Path::new(&d)); }
+            }
             // Safety net: never leave the user staring at the splash if the UI fails to report ready.
             let handle = app.handle().clone();
             std::thread::spawn(move || {
@@ -2071,6 +2085,16 @@ mod tests {
         assert!(wav_ok(&w));
         assert!(!wav_ok(b"RIFF"));
         assert!(!wav_ok(&[0u8; 100]));
+    }
+
+    #[test]
+    fn the_webview_may_read_only_the_projects_folder_and_the_apps_own_data_not_the_whole_home_folder() {
+        let conf: Value = serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
+        let scope: Vec<String> = conf["app"]["security"]["assetProtocol"]["scope"].as_array().unwrap().iter().map(|v| v.as_str().unwrap().to_string()).collect();
+        for s in &scope {
+            assert!(!matches!(s.as_str(), "$HOME/**" | "$DOCUMENT/**" | "**" | "/**" | "$DESKTOP/**" | "$DOWNLOAD/**"), "too wide: {s}");
+        }
+        assert!(scope.iter().any(|s| s == "$DOCUMENT/FilmCrafter/**"), "the projects folder must stay readable");
     }
 
     #[test]
