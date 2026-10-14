@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api, errorText, type AiPrice, type AudioLibrary, type CueList, type RightsReport, type SoundIdea, type SoundIdeas, type Cue } from "./api";
+import { api, errorText, type AiPrice, type AudioLibrary, type CueList, type MixPreview, type MixSettings, type RightsReport, type SoundIdea, type SoundIdeas, type Cue } from "./api";
+import { notifyCues } from "./CueLanes";
 import { ask } from "./ask";
 import { aiAskWords, audioFacts } from "./soundWords";
 
@@ -20,8 +21,10 @@ export function SceneSound({ dir }: { dir: string }) {
   const [err, setErr] = useState("");
   const [adding, setAdding] = useState(false);
   const [rights, setRights] = useState<RightsReport | null>(null);
+  const [mix, setMix] = useState<MixSettings | null>(null);
+  const [heard, setHeard] = useState<MixPreview | null>(null);
   const reload = useCallback(async () => {
-    try { const [l, a] = await Promise.all([api.filmCues("list", dir), api.filmAudio("list", dir)]); setList(l); setLib(a); api.audioGen<RightsReport>("rights", dir).then(setRights).catch(() => {}); } catch (e) { setErr(errorText(e)); }
+    try { const [l, a] = await Promise.all([api.filmCues("list", dir), api.filmAudio("list", dir)]); setList(l); setLib(a); api.audioGen<RightsReport>("rights", dir).then(setRights).catch(() => {}); api.audioMix<MixSettings>("settings", dir).then(setMix).catch(() => {}); } catch (e) { setErr(errorText(e)); }
   }, [dir]);
   useEffect(() => { void reload(); }, [reload]);
   const scenes = useMemo(() => Object.keys(list?.scenes ?? {}).map(Number).sort((a, b) => a - b), [list]);
@@ -46,7 +49,7 @@ export function SceneSound({ dir }: { dir: string }) {
       source: ideas?.source === "director" ? "director" : "quick", approval: "approved" });
     void r; await reload();
   });
-  const act = (what: string, f: () => Promise<unknown>) => go(what, async () => { await f(); await reload(); });
+  const act = (what: string, f: () => Promise<unknown>) => go(what, async () => { await f(); await reload(); notifyCues(); });
 
   return (
     <div className="ss">
@@ -71,6 +74,31 @@ export function SceneSound({ dir }: { dir: string }) {
 
       {dialogue.length > 0 && <section><h3>Dialogue <span className="dim">your voice files, shown here so you see the whole scene</span></h3>
         <ul className="ss-cues dlg">{dialogue.map((x) => <li key={x.id}><b>{x.speaker}</b> <span className="dim">{x.shot} · {x.source === "elevenlabs" ? "spoken by ElevenLabs" : "your recording"}</span> <q>{x.text}</q></li>)}</ul></section>}
+
+      <section>
+        <h3>How it is mixed <span className="dim">for the whole film</span></h3>
+        {mix && <div className="ss-mix">
+          <label className="field"><span>Music and ambience dip under voices: {mix.ducking_db === 0 ? "not at all" : `${mix.ducking_db} dB`}</span>
+            <input type="range" min={-24} max={0} step={1} value={mix.ducking_db} aria-label="How far music dips under voices" onChange={(e) => setMix({ ...mix, ducking_db: Number(e.target.value) })}
+                   onMouseUp={() => void act("mix", () => api.audioMix("set_settings", dir, { ducking_db: mix.ducking_db }))} onKeyUp={() => void act("mix", () => api.audioMix("set_settings", dir, { ducking_db: mix.ducking_db }))} /></label>
+          <label className="field"><span>Loudness of the finished film</span>
+            <select className="text-input" value={mix.target_lufs === null ? "" : String(mix.target_lufs)} onChange={(e) => void act("mix", () => api.audioMix("set_settings", dir, { target_lufs: e.target.value === "" ? null : Number(e.target.value) }))}>
+              <option value="">Leave as it is</option><option value="-23">Broadcast (-23 LUFS)</option><option value="-16">Online video (-16 LUFS)</option><option value="-14">Loud streaming (-14 LUFS)</option></select></label>
+          <label className="field"><span>Never louder than</span>
+            <select className="text-input" value={String(mix.peak_db)} onChange={(e) => void act("mix", () => api.audioMix("set_settings", dir, { peak_db: Number(e.target.value) }))}>
+              <option value="-1">-1 dB (safe)</option><option value="-2">-2 dB</option><option value="-3">-3 dB</option><option value="-6">-6 dB</option></select></label>
+          <div className="field"><span>Leave out of the film</span>
+            <div className="sm-row">{(["sfx", "ambience", "music"] as const).map((k) => <label key={k} className="ov-check"><input type="checkbox" checked={mix.mute_lanes.includes(k)}
+              onChange={(e) => void act("mix", () => api.audioMix("set_settings", dir, { mute_lanes: e.target.checked ? [...mix.mute_lanes, k] : mix.mute_lanes.filter((x) => x !== k) }))} /> {k === "sfx" ? "Effects" : k === "ambience" ? "Ambience" : "Music"}</label>)}</div></div>
+        </div>}
+        <div className="sm-row"><span className="dim">Hear this scene:</span>
+          {([[null, "Everything"], ["dialogue", "Voices only"], ["sfx", "Effects only"], ["ambience", "Ambience only"], ["music", "Music only"]] as [string | null, string][]).map(([k, label]) =>
+            <button key={label} className="btn sm ghost" disabled={!!busy} onClick={() => void go("hear", async () => setHeard(await api.audioMix<MixPreview>("preview", dir, { scene, solo: k })))}>{label}</button>)}</div>
+        {heard && <div className="ss-heard"><audio controls autoPlay src={`${api.mediaUrl(`${dir}/${heard.file}`)}?v=${Date.now()}`} aria-label="The scene's mix" />
+          <span className="dim">{heard.cues} cue{heard.cues === 1 ? "" : "s"} · {heard.seconds.toFixed(1)} s{heard.ducked ? " · music dips under the voices" : ""}{heard.solo ? ` · ${heard.solo} only (a preview: the film is not changed)` : ""}</span>
+          {heard.skipped.map((s) => <span key={s.cue} className="ss-warn">One cue was left out: {s.why}</span>)}</div>}
+        <p className="dim sm-note">The finished film is mixed when you export it: approved cues only, the voices on top, a limiter so nothing clips. Muting here leaves a lane out of the film; the previews only help you listen.</p>
+      </section>
 
       <section>
         <h3>The shots' sound notes</h3>

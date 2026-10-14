@@ -252,6 +252,10 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "film_mix": {
+      if (x.action === "preview") return { file: "cache/audio-preview/scene1.wav", seconds: 14.5, cues: 1, skipped: [], ducked: true, solo: (x.data as { solo?: string } | undefined)?.solo ?? null, voices: true };
+      return { schema: 1, ducking_db: -12, duck_attack: 0.15, duck_release: 0.6, target_lufs: null, peak_db: -1, mute_lanes: [], solo: null };
+    }
     case "film_audiogen": {
       if (x.action === "providers") return { providers: [{ id: "elevenlabs_sfx", label: "ElevenLabs sound effects", kind: "sfx", cost_known: true, cost_words: "about 11 credits per second you ask for", duration: [0.5, 30], loop: true, instrumental: false, has_key: true, rights: "not_established", rights_note: "Commercial rights for sound made this way were not established.", checked: "2026-10-14" },
         { id: "elevenlabs_music", label: "ElevenLabs Music", kind: "music", cost_known: false, cost_words: "ElevenLabs does not publish what a piece of music uses of your plan", duration: [3, 600], loop: false, instrumental: true, has_key: true, rights: "not_established", rights_note: "Commercial rights for sound made this way were not established.", checked: "2026-10-14" }] };

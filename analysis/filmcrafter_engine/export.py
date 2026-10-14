@@ -353,6 +353,17 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     voiced = voiceover.mix_into(d, song, vo_items, duration, os.path.join(work, "voiced.wav"))
     if voiced:
         song = voiced["path"]
+    planned = None
+    try:                                                      # the planned soundscape (approved audio cues) is laid on top; a film with none is not touched
+        from . import audiomix
+        emit(event="progress", stage="adding the planned sound", progress=0.945)
+        planned = audiomix.mix_cues(d, song, {it["shot"]: (it["start"], it["end"]) for it in vo_items}, duration, os.path.join(work, "cues.wav"))
+        if planned and planned.get("path"):
+            song = planned["path"]
+    except SystemExit:
+        raise
+    except Exception as e:                                    # never lose the film over its extra sound: say so and carry on with the soundtrack as it was
+        planned = {"error": f"The planned sound could not be mixed ({type(e).__name__}); the film was made without it."}
     length = sum(s[3] for s in segments) / FPS if win else duration
     _run(["-f", "concat", "-safe", "0", "-i", listfile] + (["-ss", f"{base / FPS:.4f}"] if win else []) + ["-i", song,
           "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
@@ -379,6 +390,8 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     return {"path": out_path, "preset": preset["label"], "width": w, "height": h, "fps": FPS,
             "duration": duration, "shots": shot_count, "rendered": rendered, "draft": rendered < shot_count, "loudness": loud,
             **({"voiceovers": voiced["recordings"]} if voiced else {}),
+            **({"audio_cues": planned["cues"], "audio_cues_skipped": planned.get("skipped", []), "audio_ducked": planned.get("ducked", False)} if planned and planned.get("path") else {}),
+            **({"audio_cues_error": planned["error"]} if planned and planned.get("error") else {}),
             **({"native_sound": sound["with_sound"], "native_silent": sound["silent"]} if sound and native else {}),
             **({"shot_sound": sound["with_sound"], "sound_layers": sound["layers"]} if sound and not native else {}),
             "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": srt,

@@ -145,7 +145,7 @@ describe("voices on the timeline and the line studio", () => {
     const studio = readFileSync("src/Studio.tsx", "utf8");
     expect(studio).toContain("<VoiceLanes");
     expect(studio).toMatch(/const voiceN = !edit \|\| compact \|\| !voiceFilm \? 0/);          // the lanes belong to Edit, not to the calm Film strip
-    expect(studio).toMatch(/Math\.max\(transTop \+ 28 \+ voiceH, 0\)/);
+    expect(studio).toMatch(/Math\.max\(transTop \+ 28 \+ voiceH \+ cueH, 0\)/);
     const lanes = readFileSync("src/VoiceLanes.tsx", "utf8");
     expect(lanes).toContain("data-shot-id={s.id} data-voice-person={p.name}");
     expect(readFileSync("src/voiceHooks.ts", "utf8")).toContain('card.matches("[data-voice-person]")');

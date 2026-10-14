@@ -1048,3 +1048,21 @@
 .ms-price { padding: 10px 12px; border: 1px solid var(--hairline, rgba(244, 247, 250, 0.14)); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
 .ms-price p { margin: 0; }
 .ms-rights { align-items: flex-start; font-size: 12.5px; }
+
+/* Planned sound under the shots (Edit mode) */
+.cl { position: absolute; left: 0; right: 0; }
+.cl-lane.muted { opacity: 0.45; }
+.cl-name { gap: 6px; }
+.cl-m { border: 1px solid var(--hair); background: none; color: var(--text-quiet, #8b97a7); border-radius: 3px; font-size: 10px; padding: 0 4px; cursor: pointer; }
+.cl-m.on { color: #0b0f17; background: var(--gold, #e8b45c); border-color: var(--gold, #e8b45c); }
+.cl-clip.off { opacity: 0.4; text-decoration: line-through; }
+.cl-clip.stale { box-shadow: inset 0 0 0 1px #e8b45c; }
+.cl-clip { touch-action: none; }
+.cl-pop { position: absolute; z-index: 20; top: 30px; width: 280px; padding: 10px 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.cl-pop audio { width: 100%; height: 28px; }
+.cl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.cl-grid label { display: flex; flex-direction: column; gap: 2px; color: var(--text-quiet, #8b97a7); }
+.cl-grid input { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--hair); border-radius: 3px; color: var(--frost); padding: 3px 6px; font: inherit; }
+.cl-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ss-mix { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 10px; }
+.ss-heard { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; } .ss-heard audio { width: 100%; max-width: 560px; }

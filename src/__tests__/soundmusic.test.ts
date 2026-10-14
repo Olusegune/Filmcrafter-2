@@ -174,3 +174,43 @@ describe("Stage D wiring (making sound and music)", () => {
     expect(usageWords({ kie_credits: u({ operations: 2, reported: 12 }) })).toBe("Kie.ai music: 12 credits reported");
   });
 });
+
+import { cueLaneKinds, cueSeconds } from "../CueLanes";
+describe("Stage E (lanes and mixing)", () => {
+  const rd = (f: string) => readFileSync(f, "utf8");
+  const cue = (o: object) => ({ id: "q-1", kind: "sfx", asset_id: "a", asset_name: "x", asset_file: "f", asset_seconds: 3, scene: 1, shot: "S01-01", start: 1, duration: null, gain_db: 0, fade_in: 0, fade_out: 0,
+    loop: false, ducking: "auto", approval: "approved", note: "", source: "manual", fresh: [], needs_sound: false, created: 0, updated: 0, ...o }) as never;
+  it("a cue is heard for what was set, else its whole sound, else (a loop) until its shot ends", () => {
+    expect(cueSeconds(cue({ duration: 2 }), 10, 4)).toBe(2);
+    expect(cueSeconds(cue({}), 10, 4)).toBe(3);
+    expect(cueSeconds(cue({ loop: true }), 10, 4)).toBe(5);                              // 4 + 1 = 5; the shot ends at 10
+    expect(cueSeconds(cue({ loop: true }), 4.5, 4)).toBeGreaterThanOrEqual(0.2);
+  });
+  it("only the lanes that have something in them are shown, and rejected cues do not count", () => {
+    const list = { cues: [cue({ kind: "music" }), cue({ kind: "sfx", approval: "rejected" })] } as never;
+    expect(cueLaneKinds(list)).toEqual(["music"]);
+    expect(cueLaneKinds(null)).toEqual([]);
+  });
+  it("the timeline reserves room for the lanes only in Edit mode and the Film strip stays as it was", () => {
+    const s = rd("src/Studio.tsx");
+    expect(s).toContain("const cueKinds = !edit || compact || !voiceFilm ? [] : cueLaneKinds(cueData.list);");
+    expect(s).toContain("<CueLanes dir={voiceFilm}");
+    expect(s).toContain("+ cueH : 28 + 18");
+  });
+  it("a clip is moved or adjusted without touching the sound file, and a muted cue is only left out of the film", () => {
+    const c = rd("src/CueLanes.tsx");
+    expect(c).toContain("Nothing here changes the sound file.");
+    expect(c).toContain("Leave it out of the film");
+    expect(c).toContain("never before the start of its shot");
+    expect(c).toContain('api.filmCues("update"');
+    expect(c).not.toMatch(/filmAudio\("(remove|import)"/);
+  });
+  it("the mix controls are plain, say that previews do not change the film, and the shell allows exactly the mix actions", () => {
+    const s = rd("src/SceneSound.tsx");
+    expect(s).toContain("a preview: the film is not changed");
+    expect(s).toContain("a limiter so nothing clips");
+    expect(s).toContain("Online video (-16 LUFS)");
+    expect(rd("src-tauri/src/lib.rs")).toMatch(/ACTIONS: \[&str; 3\] = \["settings", "set_settings", "preview"\]/);
+    expect(rd("src/api.ts")).toContain('invoke<T>("film_mix"');
+  });
+});

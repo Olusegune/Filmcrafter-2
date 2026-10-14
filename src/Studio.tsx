@@ -53,6 +53,7 @@ import { ASPECTS, aspectCss, PROJECT_EVENT, QUALITY, saveFrame } from "./frame";
 import { filmDirOfRender } from "./filmPaths";
 import { VoiceoverSheet } from "./VoiceoverSheet";
 import { speakers, VHEAD_H, VLANE_H, VOICE_ROWS, VOICE_ROWS_MAX, VoiceLanes } from "./VoiceLanes";
+import { CHEAD_H, CLANE_H, CueLanes, cueLaneKinds, useCues } from "./CueLanes";
 import { ShotVoice, VoicePointer } from "./ShotVoice";
 import { useVoiceDrop } from "./VoiceDrop";
 import { useVoiceStatus } from "./voiceHooks";
@@ -1049,6 +1050,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
   const compact = edit && compactProp;                                      // the Film strip has one calm size; Compact belongs to Edit
   const voiceFilm = isRenderDir(dir) ? filmDirOfRender(dir) : null;
   const { byShot: voiceByShot, st: voiceSt } = useVoiceStatus(voiceFilm);          // a film's recorded voices, shown on the shots
+  const cueData = useCues(edit ? voiceFilm : null);                                 // the film's planned sound, shown under the voices in Edit mode
   const [laneN, setLaneN] = useState(0);
   const [voicesOpen, setVoicesOpenState] = useState(() => !!readLayout(dir).voices);          // the Voices band shows everyone (or the first three), remembered for this film
   const setVoicesOpen = (v: boolean) => { setVoicesOpenState(v); writeLayout(dir, { voices: v }); };
@@ -1163,9 +1165,11 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
 
   if (!map) return <section className="timeline"><div className="tl-head">No timeline yet.</div></section>;
   const voiceN = !edit || compact || !voiceFilm ? 0 : speakers(voiceSt).length;                        // one lane for each person who speaks (not in the compact timeline)
+  const cueKinds = !edit || compact || !voiceFilm ? [] : cueLaneKinds(cueData.list);                   // the planned sound: one lane each for effects, ambience and music, only the ones with something in them
+  const cueH = cueKinds.length ? CHEAD_H + cueKinds.length * CLANE_H + 10 : 0;
   const voiceRows = voiceN ? Math.min(voiceN, voicesOpen ? VOICE_ROWS_MAX : VOICE_ROWS) : 0;
   const voiceH = voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0;
-  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0) : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
+  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0) + cueH : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
   const shown = !edit ? 34 + 136 + reserve + STRIP_CARD_H : Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
   const cardH = !edit ? STRIP_CARD_H : Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
   // top to bottom: sections, waveform, lyrics, the layer lanes (overlay tracks sit above the video, as in an editor), the shots, the transition handles
@@ -1204,7 +1208,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
         </div>
       </div>
       <div className="tl-scroll" ref={scroll} onScroll={(e) => setLeft((e.currentTarget as HTMLElement).scrollLeft)}>
-        <div className="tl-inner" style={{ width: inner, height: Math.max(transTop + 28 + voiceH, 0) }} onClick={clickSeek}>
+        <div className="tl-inner" style={{ width: inner, height: Math.max(transTop + 28 + voiceH + cueH, 0) }} onClick={clickSeek}>
           <div className="tl-sections">
             {map.sections.map((s, i) => (
               <div key={i} className="tl-section" style={{ left: x(s.start), width: x(s.end - s.start) - 2 }}
@@ -1224,6 +1228,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
           </div>
           <TransitionHandles dir={dir} shots={board} pps={pps} top={transTop} onChanged={onBoardChanged} />
           {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={board} pps={pps} top={voiceTop} view={[left, left + width]} rows={voiceRows} open={voicesOpen} onToggle={() => setVoicesOpen(!voicesOpen)} />}
+          {cueKinds.length > 0 && voiceFilm && cueData.list && <CueLanes dir={voiceFilm} list={cueData.list} mix={cueData.mix} shots={board} pps={pps} top={voiceTop + voiceH} view={[left, left + width]} onChanged={cueData.reload} />}
           {edit && <LayerLanes dir={dir} pps={pps} duration={dur} selected={layerSel} onSelect={onLayerSelect} top={laneTop} onCount={setLaneN} time={time} onSeek={onSeek}
                       snap={snapPoints({ downbeats: map.downbeats, lyrics: map.lyrics, shots: board, playhead: time })} />}
           <div className="playhead" style={{ left: x(time) }} />

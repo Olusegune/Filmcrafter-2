@@ -203,6 +203,8 @@ def _clean_fields(c: dict, data: dict, shots: dict) -> None:
             c[k] = round(_num(data[k], 0, FADE_MAX, 0.0, "The fade"), 2)
     if "loop" in data:
         c["loop"] = bool(data["loop"])
+    if "muted" in data:
+        c["muted"] = bool(data["muted"])                   # left out of the film and the preview until switched back on; the cue and its sound are untouched
     if "ducking" in data:
         if data["ducking"] not in DUCKING:
             raise SystemExit("Ducking is auto, on or off.")
@@ -249,7 +251,7 @@ def add(d: str, data: dict) -> dict:
             cid = f"q-{uuid.uuid4().hex[:8]}"
         now = int(time.time())
         c = {"id": cid, "kind": kind, "asset_id": asset["id"] if asset else None, "scene": 0, "shot": None, "start": 0.0, "duration": None, "gain_db": 0.0, "fade_in": 0.0, "fade_out": 0.0,
-             "loop": bool(asset and asset.get("category") == "ambience"), "ducking": "auto", "approval": approval, "note": "", "source": src, "created": now, "updated": now}
+             "loop": bool(asset and asset.get("category") == "ambience"), "ducking": "auto", "muted": False, "approval": approval, "note": "", "source": src, "created": now, "updated": now}
         if "scene" not in data and "shot" not in data:
             raise SystemExit("Choose the scene or the shot this belongs to.")
         _clean_fields(c, data, shots)
