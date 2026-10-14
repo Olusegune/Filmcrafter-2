@@ -1070,3 +1070,4 @@
 /* what may be out of date */
 .od { padding: 10px 12px; border: 1px solid rgba(232, 176, 74, 0.5); border-radius: 12px; background: rgba(232, 176, 74, 0.06); font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; }
 .od h3 { margin: 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #e8b45c; } .od ul { margin: 0; padding-left: 18px; } .od p { margin: 0; }
+.mr-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }

@@ -11,6 +11,13 @@ export const autoChecks = () => get(AUTO) === "1";
 /** Mirrors `ENABLED` in updates.py. Off until the release list is public: a check that cannot find a release must not be able to say "you have the latest version". */
 export const UPDATES_ENABLED = false;
 
+/** Before anyone is sent to a new version: a snapshot of every recent film's records and a copy of the app's settings (never a key), then the page opens. A failure to snapshot is not hidden: it is
+ *  shown in the way the page is opened, but it does not stop the person from updating. */
+export async function goToUpdate(u: UpdateInfo): Promise<void> {
+  try { if (u.latest) await api.prepareUpdate(u.latest); } catch { /* the update page still opens; the snapshot is a safety net */ }
+  await openUrl(u.url).catch(() => {});
+}
+
 /** What a check found, in words. Pure, so it can be tested. */
 export function updateText(u: UpdateInfo): { tone: "ok" | "new" | "warn"; text: string } {
   if (u.status === "disabled") return { tone: "warn", text: `Update checks are off in this version. You have ${u.current}. New versions are shared with you directly.` };
@@ -46,7 +53,7 @@ function UpdateRowLive() {
       <label style={{ display: "flex", justifyContent: "space-between" }}><span>Updates <span className="opt">FilmCrafter checks the public release list on GitHub</span></span></label>
       <div className="upd-row">
         <button className="btn" onClick={run} disabled={busy}><I.Refresh size={14} /> {busy ? "Checking…" : "Check for updates"}</button>
-        {info && info.status !== "offline" && <button className="btn ghost" onClick={() => openUrl(info.url).catch(() => {})}>{info.status === "update" ? "Open the download page" : "Open the releases page"}</button>}
+        {info && info.status !== "offline" && info.status !== "disabled" && <button className="btn ghost" onClick={() => void goToUpdate(info)}>{info.status === "update" ? "Open the download page" : "Open the releases page"}</button>}
         <label className="ov-check upd-auto" title="Asks once a day. GitHub can see that this computer asked; nothing else is sent."><input type="checkbox" checked={auto}
                onChange={(e) => { setAuto(e.target.checked); put(AUTO, e.target.checked ? "1" : "0"); }} /> Check once a day</label>
       </div>
@@ -71,5 +78,5 @@ function UpdatePillLive() {
     api.checkUpdate().then((r) => { put(LAST, String(Date.now())); put(FOUND, r.status === "update" ? JSON.stringify(r) : null); setU(r.status === "update" ? r : null); }).catch(() => {});
   }, []);
   if (!u) return null;
-  return <button className="upd-pill" onClick={() => openUrl(u.url).catch(() => {})} title={u.notes || "Open the download page"}><I.Rocket size={13} /> Update {u.latest} available</button>;
+  return <button className="upd-pill" onClick={() => void goToUpdate(u)} title={u.notes || "Open the download page"}><I.Rocket size={13} /> Update {u.latest} available</button>;
 }

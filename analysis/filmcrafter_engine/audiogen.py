@@ -330,6 +330,14 @@ def _save(d: str, spec: dict, c: dict, key: str, data: bytes, ext: str, op: dict
     return asset
 
 
+def _guard(provider: str, model: str, params: dict) -> None:
+    """Never send a parameter the model is not known to take (the registry lists each one's inputs)."""
+    from . import registry
+    probs = registry.check_params(provider, model, params)
+    if probs:
+        raise SystemExit("Not sent (nothing was charged). " + " ".join(probs))
+
+
 def generate(d: str, params: dict, confirmed=False, unknown_cost_accepted=False, rights_ack=False) -> dict:
     """Make a sound or music with a provider and keep it in the film's library. Free (and instant) when the same thing was made before. Otherwise it needs `confirmed`, `rights_ack`, and, when the
     cost is unknown, `unknown_cost_accepted`; it is recorded in the ledger before anything is sent; it is never retried when the outcome is unclear."""
@@ -350,6 +358,7 @@ def generate(d: str, params: dict, confirmed=False, unknown_cost_accepted=False,
             body["prompt_influence"] = c["influence"]
         if c.get("loop"):
             body["loop"] = True
+        _guard("elevenlabs", spec["model"], body)
         r, op = _paid(d, spec, action="sfx", area="sound", key=P.op_key("sfx", key), estimate=est, confirmed=confirmed, unknown_ok=unknown_cost_accepted, rights_ok=rights_ack,
                       what="make that sound", send=lambda: _eleven_post("/v1/sound-generation", accept="audio/mpeg", params={"output_format": "mp3_44100_128"}, json=body))
         return _finish_audio(d, spec, c, key, r, op, name, category or "foley", links, est)
@@ -357,10 +366,12 @@ def generate(d: str, params: dict, confirmed=False, unknown_cost_accepted=False,
         body = {"prompt": c["prompt"], "model_id": c["model"], "force_instrumental": bool(c.get("instrumental"))}
         if c.get("duration"):
             body["music_length_ms"] = int(c["duration"] * 1000)
+        _guard("elevenlabs", c["model"], body)
         r, op = _paid(d, spec, action="music", area="music", key=P.op_key("music", key), estimate=est, confirmed=confirmed, unknown_ok=unknown_cost_accepted, rights_ok=rights_ack,
                       what="make that music", send=lambda: _eleven_post("/v1/music", accept="audio/mpeg", timeout=600, params={"output_format": "mp3_44100_128"}, json=body))
         return _finish_audio(d, spec, c, key, r, op, name, category or "cue", links, est)
     body = {"model": "ai-music-api/generate", "input": {"custom_mode": False, "instrumental": bool(c.get("instrumental")), "model": c["model"], "prompt": c["prompt"]}}
+    _guard("kie", "ai-music-api/generate", body["input"])
     r, op = _paid(d, spec, action="music", area="music", key=P.op_key("music", key), estimate=est, confirmed=confirmed, unknown_ok=unknown_cost_accepted, rights_ok=rights_ack,
                   what="make that music", send=lambda: _kie_reply(_kie_post("/api/v1/jobs/createTask", json=body)))
     task = str(((r.json() or {}).get("data") or {}).get("taskId") or "")

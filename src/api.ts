@@ -281,6 +281,8 @@ export const api = {
   audioGen: <T = unknown>(action: "providers" | "estimate" | "generate" | "pending" | "check" | "rights", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audiogen", { action, target, data }),
   audioMix: <T = MixSettings>(action: "settings" | "set_settings" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_mix", { action, target, data }),
   filmOutdated: (target: string) => invoke<OutdatedReport>("film_outdated", { target }),
+  registry: <T = RegistryStatus>(action: "status" | "list" | "refresh" | "in_use" = "status", target: string | null = null, data: Record<string, unknown> = {}) => invoke<T>("model_registry", { action, target, data }),
+  prepareUpdate: (version: string) => invoke<{ version: string; films: { film: string; ok: boolean; why: string }[]; settings: string[]; summary: string }>("prepare_update", { version }),
   filmAudio: <T = AudioLibrary>(action: "list" | "import" | "update" | "approve" | "remove" | "restore", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audio", { action, target, data }),
   filmBackup: <T = unknown>(target: string, action: "make" | "list" | "verify" | "restore", name: string | null = null) => invoke<T>("film_backup", { action, target, name }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
@@ -550,3 +552,7 @@ export type MixSettings = { schema: number; ducking_db: number; duck_attack: num
 export type MixPreview = { file: string; seconds: number; cues: number; skipped: { cue: string; why: string }[]; ducked?: boolean; solo: string | null; voices: boolean };
 export type OutdatedReport = { takes: { shot: string; take: string; kind: "voice_changed" | "voice_removed" | "voice_added"; why: string; speakers: string[]; kept: boolean; options: string[]; note: string }[];
   cues: { id: string; scene: number; shot: string | null; name: string; why: string; codes: string[] }[]; film: { export: string; changed: string[]; why: string } | null; unchecked_takes: number; clean: boolean };
+export type RegistryStatus = { models: number; providers: Record<string, { refreshed: number | null; stale: boolean; last_error: string | null }>; note: string };
+export type RegistryRefresh = { results: Record<string, { ok: boolean; models?: number; error?: string }>; kept: string };
+export type ModelWarnings = { models: { provider: string; model: string; name: string; used_for: string[]; approved: boolean; deprecation: string; availability: string; known: boolean }[];
+  warnings: { provider: string; model: string; name: string; used_for: string[]; approved: boolean; why: string; note: string }[] };

@@ -1,4 +1,5 @@
 import { UpdateRow } from "./Updates";
+import { ModelsRow } from "./ModelsRow";
 import { useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, type Diagnosis, errorText, type Brain, type KeyStatus, type ProviderStatus } from "./api";
@@ -72,6 +73,7 @@ export function Settings({ onClose, onHelp }: { onClose: () => void; onHelp?: ()
         <Diagnostics keys={status} />
         <LocalModelsPanel />
         <UpdateRow />
+        <ModelsRow />
       </div>
     </div>
   );

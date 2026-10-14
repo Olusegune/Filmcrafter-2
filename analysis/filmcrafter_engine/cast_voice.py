@@ -116,8 +116,18 @@ def _ledger(d: str) -> P.Ledger:
     return P.Ledger(os.path.join(d, "voice", "ledger.json"), film=os.path.basename(os.path.normpath(d)))
 
 
+def _mult(model: str | None) -> float:
+    """Credits per character for a speech model: what ElevenLabs last said in its model list (kept in the registry, apart from the app), else what is written into the app, else one."""
+    try:
+        from . import registry
+        m = registry.credit_multiplier(str(model or ""))
+    except Exception:
+        m = None
+    return m if m is not None else CREDITS.get(model, 1.0)
+
+
 def _credits(words: str, model: str | None) -> dict:
-    mult = CREDITS.get(model, 1.0)
+    mult = _mult(model)
     return {"unit": CREDIT_UNIT, "amount": round(len(words) * mult), "basis": f"{len(words)} characters x {mult:g} for this model"}
 
 
@@ -526,7 +536,7 @@ def estimate(d: str, items: list) -> dict:
             rows.append({"shot": str(it.get("shot") or ""), "speaker": str(it.get("speaker") or ""), "ok": False, "why": str(e)})
             continue
         cached = os.path.isfile(_cache(d, sid, words, voice)) and not it.get("new_take")      # another take is always new, so it is never free
-        credits = 0 if cached else round(len(words) * CREDITS.get(voice.get("model"), 1.0))
+        credits = 0 if cached else round(len(words) * _mult(voice.get("model")))
         rows.append({"shot": sid, "speaker": name, "ok": True, "characters": len(words), "credits": credits, "cached": cached, "text": words})
         total_chars += 0 if cached else len(words)
         total_credits += credits
@@ -588,7 +598,7 @@ def speak(d: str, shot: str, speaker: str, text: str | None = None, confirmed: b
     spent, op = 0, None
     if not os.path.isfile(path):
         op = _speak_to(d, path, words, voice, action="speak", shot=sid, person=name, confirmed=confirmed, seed=seed)
-        spent = round(len(words) * CREDITS.get(voice.get("model"), 1.0))
+        spent = round(len(words) * _mult(voice.get("model")))
         V._write(_sidecar(path), {"shot": sid, "key": V.key_of(name), "speaker": name, "text": words, "model": voice.get("model"), "voice_id": voice.get("voice_id"),
                                   "voice_name": voice.get("voice_name"), "at": int(time.time()), **({"seed": seed, "another_take": True} if seed is not None else {})})
     res = _attach_generated(d, sid, name, path, voice)
@@ -649,7 +659,7 @@ def preview(d: str, who: str, text: str = "", confirmed: bool = False) -> dict:
     if not os.path.isfile(path):
         op = _speak_to(d, path, words, voice, action="preview", shot=None, person=name, confirmed=confirmed)
         _ledger(d).mark(op["id"], P.COMPLETED, asset=os.path.relpath(path, d).replace(os.sep, "/"))
-        spent = round(len(words) * CREDITS.get(voice.get("model"), 1.0))
+        spent = round(len(words) * _mult(voice.get("model")))
     return {"file": os.path.relpath(path, d).replace(os.sep, "/"), "text": words, "characters": len(words), "credits": spent}
 
 

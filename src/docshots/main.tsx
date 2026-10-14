@@ -252,6 +252,8 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "model_registry": return x.action === "in_use" ? { models: [], warnings: [] } : x.action === "refresh" ? { results: { elevenlabs: { ok: true, models: 6 }, kie: { ok: false, error: "no network" } }, kept: "Anything that could not be refreshed keeps what it had." }
+      : { models: 32, providers: { elevenlabs: { refreshed: now - 86400, stale: false, last_error: null }, kie: { refreshed: null, stale: true, last_error: null }, openrouter: { refreshed: null, stale: true, last_error: null } }, note: "" };
     case "film_outdated": return { takes: [{ shot: "S01-03", take: "v1", kind: "voice_changed", why: "The voice was replaced after this take was made, so the mouth may not match it.", speakers: ["Lila"], kept: false, options: ["lipsync_pass", "new_take"], note: "" }], cues: [], film: null, unchecked_takes: 2, clean: false };
     case "film_mix": {
       if (x.action === "preview") return { file: "cache/audio-preview/scene1.wav", seconds: 14.5, cues: 1, skipped: [], ducked: true, solo: (x.data as { solo?: string } | undefined)?.solo ?? null, voices: true };

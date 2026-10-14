@@ -223,7 +223,7 @@ describe("Stage F wiring (what may be out of date)", () => {
     expect(p).toContain("Lip-sync this take…");
     expect(p).toContain("show their price first");
     expect(p).toContain("an approved take is never replaced by itself");
-    expect(p).toContain("if (!r || r.clean) return null;");
+    expect(p).toContain("if (!r || (r.clean && !models.length)) return null;");
     expect(rd("src/CastVoices.tsx")).toContain("<OutdatedPanel dir={dir} />");
     expect(rd("src/SceneSound.tsx")).toContain("<OutdatedPanel dir={dir} />");
   });
@@ -233,5 +233,29 @@ describe("Stage F wiring (what may be out of date)", () => {
     const doc = rd("docs/LIPSYNC_VALIDATION.md");
     expect(doc).toContain("has NOT been run");
     expect(doc).toContain("| (not run) |");
+  });
+});
+
+describe("Stage G wiring (model registry, updates)", () => {
+  const rd = (f: string) => readFileSync(f, "utf8");
+  it("Settings shows when each provider's model list was read and refreshes only on request, saying that nothing is changed when a list cannot be read", () => {
+    const m = rd("src/ModelsRow.tsx");
+    expect(rd("src/Settings.tsx")).toContain("<ModelsRow />");
+    expect(m).toContain("Refresh the model lists");
+    expect(m).toContain("not changed (");
+    expect(m).toContain("apart from the app and from every film");
+    expect(rd("src-tauri/src/lib.rs")).toMatch(/ACTIONS: \[&str; 4\] = \["status", "list", "refresh", "in_use"\]/);
+  });
+  it("models behind a film that went away are reported, never replaced", () => {
+    const p = rd("src/OutdatedPanel.tsx");
+    expect(p).toContain("Nothing was replaced, and nothing will be swapped for approved work");
+    expect(p).toContain('api.registry<ModelWarnings>("in_use", dir)');
+  });
+  it("before the person is sent to a new version the films' records are snapshotted, and the update stays off until it can be verified", () => {
+    const u = rd("src/Updates.tsx");
+    expect(u).toContain("await api.prepareUpdate(u.latest)");
+    expect(u).toContain("export const UPDATES_ENABLED = false;");
+    expect(rd("src-tauri/src/lib.rs")).toContain("filmcrafter_engine.preupdate");
+    expect(rd("docs/UPDATES.md")).toContain("updates are NOT switched on");
   });
 });

@@ -3,6 +3,15 @@ Run one kind with `python -m pytest -m security` (or unit, integration, e2e, reg
 @pytest.mark.x); the lists below only add the type for the older modules, by what the module does."""
 import pytest
 
+
+@pytest.fixture(autouse=True, scope="session")
+def _registry_in_a_temp_file(tmp_path_factory):
+    """The AI model registry lives in the user's own folder; tests must never read or change the real one."""
+    import os
+    os.environ["FILMCRAFTER_REGISTRY"] = str(tmp_path_factory.mktemp("registry") / "registry.json")
+    yield
+    os.environ.pop("FILMCRAFTER_REGISTRY", None)
+
 # several parts together: real ffmpeg, files on disk, fake providers and local servers
 INTEGRATION = {
     "test_captions", "test_cleanup", "test_comfy", "test_comfy_setup", "test_local_ai", "test_chaining", "test_promptwriter", "test_compose", "test_comfy_install", "test_midjourney", "test_lighting", "test_extend", "test_render_queue", "test_customframe", "test_editor_export", "test_keyframes", "test_layerkit", "test_llm", "test_media",

@@ -1344,6 +1344,38 @@ async fn film_outdated(app: AppHandle, target: String) -> Result<Value, String> 
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "outdated", &args, &[])).await.map_err(err)?
 }
 
+/// The AI model registry (filmcrafter_engine.registry): `status`, `list` and `in_use` are free and read-only; `refresh` asks the providers' own model lists (free reads, the keys only reach their own
+/// provider) and keeps the answer on this computer, apart from the app and from every film. It never changes a film.
+#[tauri::command]
+async fn model_registry(app: AppHandle, action: String, target: Option<String>, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 4] = ["status", "list", "refresh", "in_use"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let mut args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.registry".into(), action.clone()];
+    if action == "in_use" {
+        args.push(film_dir(target.as_deref().unwrap_or(""))?.to_string_lossy().into());
+    }
+    args.push("--data".into());
+    args.push(data.to_string());
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "registry", &args, &provider_env())).await.map_err(err)?
+}
+
+/// Before the app is updated: keep a snapshot of every recent film's own records and a copy of the app's settings (filmcrafter_engine.preupdate). Free and local; it only adds copies and
+/// never touches a film, a key or the program. To be called by the update flow before anything is installed.
+#[tauri::command]
+async fn prepare_update(app: AppHandle, version: String) -> Result<Value, String> {
+    let films: Vec<String> = recent_path(&app).and_then(|p| read_json(&p)).and_then(|v| serde_json::from_value(v).ok()).unwrap_or_default();
+    let mut settings: Vec<String> = vec![];
+    if let Some(p) = recent_path(&app) {
+        settings.push(p.to_string_lossy().to_string());
+        settings.push(p.with_file_name("hidden.json").to_string_lossy().to_string());
+    }
+    let data = json!({"version": version, "films": films, "settings": settings});
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.preupdate".into(), "snapshot".into(), "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "preupdate", &args, &[])).await.map_err(err)?
+}
+
 /// Making the film (filmcrafter_engine.make): builds the render project from the shots, tracks storyboard panels, keyframes and takes, locks and chooses. It never spends money:
 /// pictures and video are queued with the render commands, after the app has shown the price and the person has confirmed it.
 #[tauri::command]
@@ -2129,7 +2161,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_outdated, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

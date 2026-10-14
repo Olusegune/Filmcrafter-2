@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type OutdatedReport } from "./api";
+import { api, type ModelWarnings, type OutdatedReport } from "./api";
 import { VOICE_EVENT } from "./voiceHooks";
 import { CUE_EVENT } from "./CueLanes";
 
@@ -9,9 +9,11 @@ import { CUE_EVENT } from "./CueLanes";
  */
 export function OutdatedPanel({ dir }: { dir: string }) {
   const [r, setR] = useState<OutdatedReport | null>(null);
-  const load = useCallback(() => { api.filmOutdated(dir).then(setR).catch(() => setR(null)); }, [dir]);
+  const [m, setM] = useState<ModelWarnings | null>(null);
+  const load = useCallback(() => { api.filmOutdated(dir).then(setR).catch(() => setR(null)); api.registry<ModelWarnings>("in_use", dir).then(setM).catch(() => setM(null)); }, [dir]);
   useEffect(() => { load(); window.addEventListener(VOICE_EVENT, load); window.addEventListener(CUE_EVENT, load); return () => { window.removeEventListener(VOICE_EVENT, load); window.removeEventListener(CUE_EVENT, load); }; }, [load]);
-  if (!r || r.clean) return null;
+  const models = m?.warnings ?? [];
+  if (!r || (r.clean && !models.length)) return null;
   return (
     <section className="od" aria-label="May be out of date" role="status">
       <h3>May be out of date <span className="dim">nothing was changed</span></h3>
@@ -21,6 +23,8 @@ export function OutdatedPanel({ dir }: { dir: string }) {
       {r.cues.length > 0 && <><p className="dim">Planned sounds to look at again (Sound & Music, Scene sound):</p>
         <ul>{r.cues.map((c) => <li key={c.id}><b>{c.name}</b>{c.shot ? ` (${c.shot})` : ` (scene ${c.scene})`}: {c.why}</li>)}</ul></>}
       {r.film && <p>{r.film.why}</p>}
+      {models.length > 0 && <><p className="dim">Models behind this film that their provider no longer lists, or that FilmCrafter has no record of. Nothing was replaced, and nothing will be swapped for approved work:</p>
+        <ul>{models.map((w) => <li key={`${w.provider}/${w.model}`}><b>{w.name}</b> ({w.provider}): {w.why} <span className="dim">Used for {w.used_for.slice(0, 2).join(", ")}{w.used_for.length > 2 ? "…" : ""}.</span></li>)}</ul></>}
     </section>
   );
 }
