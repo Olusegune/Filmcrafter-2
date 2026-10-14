@@ -83,4 +83,12 @@ Ready to start Phase 1 once you have (a) read this report, (b) done checklist st
 Needs your decision: (1) approve a push of `phase-0-stability` and a version bump/release (I did neither); (2) whether to run the small paid steps 10–12; (3) when to create a public releases page so update checking can be turned on.
 
 ## Final regression
-(see below; filled in when the last run finished)
+
+Run on the final code of this branch (Windows 11, project `.venv`):
+
+- Engine (`pytest`, whole suite): **1855 passed, 8 skipped**, 0 failed (6 min 43 s). The skipped ones are the existing platform/optional-tool skips. (An earlier run found one failure, a repository rule against a temp-file naming pattern that my new `filmbackup.py` tripped; fixed and re-run.)
+- Screens (`vitest`): **514 passed**, 61 files. `tsc --noEmit`: clean.
+- Shell (`cargo test --lib`): **9 passed**.
+- `rafter secrets .`: no secrets detected.
+- `npm audit`: **0 vulnerabilities in what ships** (`--omit=dev`). The full audit lists 4 in development tools only (vitest/tinypool/source-map-js); fixing them needs a major test-tool upgrade, which is outside Phase 0 and was not done.
+- Not run: the screenshot sweep (`docshots`) and any installer build, because nothing was to be released. Edit mode is not in the sweep.

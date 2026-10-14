@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 import zipfile
@@ -27,6 +28,7 @@ KEEP = 30
 MAX_FILE = 8 * 1024 * 1024
 SKIP_DIRS = {"cache", "thumbnails", "__pycache__", "backups", "render", "_previews", "_generated", "_removed", "_takes", "node_modules"}
 KINDS = (".json", ".md", ".filmcrafter")
+_TEMP = re.compile(r"\.tmp(\.|$)")
 NEVER_RESTORED = {"voice/ledger.json"}           # the record of what was spent
 
 
@@ -47,7 +49,7 @@ def _files(d: str) -> list[str]:
         dirs[:] = keep
         for f in files:
             low = f.lower()
-            if not low.endswith(KINDS) or ".tmp" in low or low.endswith(".lock") or ".corrupt-" in low:
+            if not low.endswith(KINDS) or _TEMP.search(low) or low.endswith(".lock") or ".corrupt-" in low:
                 continue
             p = os.path.join(root, f)
             try:
