@@ -85,6 +85,10 @@ Baseline: FilmCrafter 0.24.0 (Phase 0 released 2026-10-14, tag `v0.24.0`).
 7. Settings → **Refresh the model lists** (free reads). Settings → Updates says checking is off.
 8. **[spends]** only with your yes: Make with AI… for one short sound effect (about 22 credits for 2 s) after reading the price and the rights note; one voice scene with a small cap. Do not run a music generation until you accept the unknown-price and rights statements.
 
+## First real run (2026-10-14, throwaway film, cap 150 ElevenLabs credits)
+
+One 2 s and one 4 s sound effect, and one voice scene of two short lines, all worked end to end with real ElevenLabs calls (39 credits reported; the app's estimates were 91). Sound effects cost about 5.5 credits per second on this account (the app's 11 credits per second is therefore a safe upper bound), and voice lines were reported at a fraction of the estimated characters. Details are in `docs/QA.md` ("Real runs of 0.25.0"). **Music and the Kie.ai task flow, and the lip-sync test, have not been run.**
+
 ## Known limitations and remaining risks
 
 - No provider call was made for real: the ElevenLabs sound-effect and music requests, the Kie task flow and the new seed parameter follow the documentation only. First real runs should be tiny.

@@ -100,6 +100,19 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 - **ElevenLabs voices** (`cast_voice`): 17 engine tests with every ElevenLabs request faked: no key means nothing is asked; the plan is read only when the plan view asks; a library voice is kept; a designed voice is heard before it is kept and a preview id cannot be a path; cloning refuses without consent, a non-audio file or a 30 MB+ file, and sends nothing then; a line is never spoken without a confirmed yes; a repeat is free; a busy service is retried but a refusal or a used-up plan is not; your own recording replaces a spoken one and the spoken one is kept. **Not tested against the real ElevenLabs** (no key stored here): the request shapes follow ElevenLabs' published reference (`/v1/text-to-voice/design`, `/v1/text-to-voice`, `/v1/voices/add`, `/v1/text-to-speech/{id}`, `/v1/user/subscription`, `/v2/voices`).
 - **Home card padding:** seen in the browser harness; a test keeps it from growing back.
 
+## Real runs of 0.25.0 (2026-10-14, the owner's ElevenLabs credits, a throwaway film, cap 150 credits)
+
+Done with the engine from the released code on a **throwaway film** (not a real project), the key read from the Windows Credential Manager and never printed. Total ElevenLabs credits **reported** by ElevenLabs: **39** (our estimates added up to 91).
+
+| What | Result |
+|---|---|
+| Sound effect, 2 s ("a kettle clicking off in a quiet kitchen") | Worked: a 2.04 s file was saved to the library as *generated*, pending approval, `commercial use: not known`; ledger entry completed; **ElevenLabs reported 11 credits** (estimate 22). Asking again was free and sent nothing. |
+| Sound effect, 4 s, same words | Worked: 4.05 s; **reported 22 credits** (estimate 44). So on this account a sound effect cost about **5.5 credits per second**, half of the help-centre figure the app uses. The app keeps the higher figure as a safe upper bound and always calls it an estimate; it is not changed from two data points. |
+| Voice scene (two short lines, Eleven v4, a premade library voice, cap 60) | Worked: both lines spoken and attached, no failures; the scene's price was shown first (25 characters, about 25 credits); **reported 4 and 2 credits** for 18 and 7 characters. The reported amounts are well below the app's characters-times-multiplier estimate; what ElevenLabs' `character-cost` header measures is not documented, so the app shows it only as "reported" and keeps the estimate apart. |
+| Table read of the scene | Both lines found in order (1.2 s and 0.96 s), none silent. |
+| Model list refresh (free) | ElevenLabs answered with 9 speech models; its stated credit multipliers (v4 1.0, v4 Turbo 0.5, Flash 0.5) matched the app's built-in ones. |
+| Not run | Music (ElevenLabs Music or Suno through Kie.ai), the real lip-sync test, any Kie.ai spending, listening to the files (the owner has not yet judged how they sound). |
+
 ## What 0.25.0 (creative production expansion) added, and how it was checked
 
 - **Whole-suite results on the branch `stage-a-sound-bible`:** engine **1971 passed, 8 skipped, 0 failed** (6 min 9 s); screens (`vitest`) **548 passed**; `tsc` clean; `cargo test --lib` 9 passed; `rafter secrets` none found; `npm audit --omit=dev` 0 vulnerabilities.
