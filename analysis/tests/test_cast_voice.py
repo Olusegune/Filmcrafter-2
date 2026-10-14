@@ -291,8 +291,11 @@ def test_a_take_from_another_line_or_a_path_cannot_be_used(film, calls):
 
 
 class Streamed:
-    def __init__(self, status=200, data=b"x" * 5000, headers=None):
+    def __init__(self, status=200, data=b"ID3" + b"\0" * 5000, headers=None):
         self.status_code, self.ok, self._d, self.headers = status, status < 400, data, headers or {}
+
+    def close(self):
+        pass
 
     def iter_content(self, n):
         for i in range(0, len(self._d), n):
@@ -326,6 +329,24 @@ def test_a_sample_link_that_is_not_elevenlabs_is_refused_and_a_redirect_or_a_hug
     monkeypatch.setattr(requests, "get", lambda url, **kw: Streamed(200, b"x" * (4 * 1024 * 1024)))
     with pytest.raises(SystemExit, match="larger than expected"):
         C.sample(film, "https://storage.googleapis.com/eleven-public-prod/big.mp3")
+
+
+def test_a_sample_must_really_be_audio_and_is_written_whole(film, monkeypatch):
+    import requests
+    url = "https://storage.googleapis.com/eleven-public-prod/a.mp3"
+    folder = os.path.join(film, "voice", "_previews")
+    cases = [(Streamed(data=b"<html>" + b"x" * 5000), "not a playable audio"),                        # a web page dressed as a sample
+             (Streamed(data=b"MZ" + b"\0" * 5000), "not a playable audio"),                           # a program
+             (Streamed(headers={"Content-Type": "text/html"}), "not an audio sample"),
+             (Streamed(headers={"Content-Length": str(10 * 1024 * 1024)}), "larger than expected")]
+    for reply, why in cases:
+        monkeypatch.setattr(requests, "get", lambda u, _r=reply, **kw: _r)
+        with pytest.raises(SystemExit, match=why):
+            C.sample(film, url)
+        assert not os.path.isdir(folder) or os.listdir(folder) == []                                   # nothing kept, no half file
+    monkeypatch.setattr(requests, "get", lambda u, **kw: Streamed(data=wav_bytes(1.0), headers={"Content-Type": "audio/wav"}))
+    out = C.sample(film, url)
+    assert out["file"].endswith(".wav") and os.listdir(folder) == [os.path.basename(out["file"])]
 
 
 def test_the_command_line_only_does_what_the_shell_may_ask(film, capsys):

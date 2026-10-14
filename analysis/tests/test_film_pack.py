@@ -92,3 +92,83 @@ def test_a_file_that_is_not_a_film_or_climbs_out_of_its_folder_is_refused(tmp_pa
         packer.unpack(str(junk), str(root))
     with pytest.raises(SystemExit, match="isn't a FilmCrafter film"):
         packer.pack(str(tmp_path), str(tmp_path / "z"))
+
+
+# ---------------------------------------------------------------- opening a file that is not what it claims (Phase 0 limits)
+
+def _hostile(path, extra):
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("filmpack.json", json.dumps({"format": 1, "title": "Evil"}))
+        z.writestr("project/film.json", json.dumps({"story": {}, "title": "Evil"}))
+        for name, data in extra:
+            z.writestr(name, data)
+    return str(path)
+
+
+@pytest.mark.parametrize("name,why", [("project/../../outside.txt", "unsafe path"), ("project/C:/x.txt", "unsafe path"),
+                                      ("project/voice/./x.wav", "unsafe path"), ("project/bad. /x.txt", "unsafe path"), ("project//x", "unsafe path")])
+def test_hostile_paths_are_refused_before_anything_is_written(tmp_path, name, why):
+    pack = _hostile(tmp_path / "e.filmpack", [(name, b"x")])
+    root = tmp_path / "root"
+    root.mkdir()
+    with pytest.raises(SystemExit, match=why):
+        packer.unpack(pack, str(root))
+    assert os.listdir(root) == [] and not (tmp_path / "outside.txt").exists()
+
+
+def test_a_link_inside_a_film_file_is_refused(tmp_path):
+    p = str(tmp_path / "l.filmpack")
+    with zipfile.ZipFile(p, "w") as z:
+        z.writestr("filmpack.json", json.dumps({"format": 1, "title": "L"}))
+        z.writestr("project/film.json", "{}")
+        info = zipfile.ZipInfo("project/link")
+        info.external_attr = (0o120777) << 16
+        z.writestr(info, "C:/Windows")
+    root = tmp_path / "r"
+    root.mkdir()
+    with pytest.raises(SystemExit, match="link"):
+        packer.unpack(p, str(root))
+    assert os.listdir(root) == []
+
+
+def test_too_many_items_and_an_expansion_bomb_and_too_little_disk_are_refused(tmp_path, monkeypatch):
+    root = tmp_path / "r"
+    root.mkdir()
+    monkeypatch.setattr(packer, "MAX_ENTRIES", 5)
+    pack = _hostile(tmp_path / "m.filmpack", [(f"project/f{i}.txt", b"x") for i in range(10)])
+    with pytest.raises(SystemExit, match="more than 5 items"):
+        packer.unpack(pack, str(root))
+    monkeypatch.setattr(packer, "MAX_ENTRIES", 200_000)
+    monkeypatch.setattr(packer, "RATIO_FLOOR", 1000)
+    pack = _hostile(tmp_path / "b.filmpack", [("project/zeros.bin", b"\0" * 5_000_000)])                 # compresses to a few KB
+    with pytest.raises(SystemExit, match="expands far more"):
+        packer.unpack(pack, str(root))
+    monkeypatch.setattr(packer, "RATIO_FLOOR", 10**12)
+    monkeypatch.setattr(packer, "DISK_MARGIN", 10**18)                                                  # pretend the disk is nearly full
+    with pytest.raises(SystemExit, match="is free here"):
+        packer.unpack(pack, str(root))
+    assert os.listdir(root) == []
+
+
+def test_a_file_that_lies_about_its_size_is_stopped_and_what_was_written_is_removed(tmp_path, monkeypatch):
+    pack = _hostile(tmp_path / "s.filmpack", [("project/big.bin", b"abc" * 1000)])
+    real = zipfile.ZipFile.getinfo
+
+    def lying(self, name):
+        i = real(self, name)
+        if name == "project/big.bin":
+            i.file_size = 10                                             # claims 10 bytes, holds 3000
+        return i
+    monkeypatch.setattr(zipfile.ZipFile, "getinfo", lying)
+    root = tmp_path / "r"
+    root.mkdir()
+    with pytest.raises(SystemExit, match="do not match|is damaged"):
+        packer.unpack(pack, str(root))
+    assert os.listdir(root) == []                                         # the half-made folder is gone; nothing of the user's was touched
+
+
+def test_a_real_film_still_opens_after_the_limits(film, tmp_path):
+    out = packer.pack(film, str(tmp_path / "ok"))
+    root = tmp_path / "r2"
+    root.mkdir()
+    assert os.path.isfile(os.path.join(packer.unpack(out["path"], str(root))["dir"], "film.json"))

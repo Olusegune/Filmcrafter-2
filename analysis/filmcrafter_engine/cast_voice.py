@@ -295,18 +295,44 @@ def sample(d: str, url: str) -> dict:
         raise SystemExit("That sample moved somewhere else, so it was not fetched.")
     if not r.ok:
         raise SystemExit(f"Could not fetch that sample (HTTP {r.status_code}).")
+    ctype = str(r.headers.get("Content-Type", "")).split(";")[0].strip().lower()
+    if ctype and not (ctype.startswith("audio/") or ctype in ("application/octet-stream", "binary/octet-stream", "video/mpeg")):
+        r.close()
+        raise SystemExit("That link is not an audio sample, so it was not kept.")
+    try:
+        if int(r.headers.get("Content-Length", 0) or 0) > _SAMPLE_MAX:
+            r.close()
+            raise SystemExit("That sample is larger than expected, so it was not kept.")
+    except ValueError:
+        pass
     data = b""
     for chunk in r.iter_content(65536):
         data += chunk
-        if len(data) > 3 * 1024 * 1024:
+        if len(data) > _SAMPLE_MAX:
+            r.close()
             raise SystemExit("That sample is larger than expected, so it was not kept.")
+    r.close()
     if len(data) < 200:
         raise SystemExit("That sample is empty.")
-    ext = ".wav" if "wav" in str(r.headers.get("Content-Type", "")).lower() or data[:4] == b"RIFF" else ".mp3"
-    os.makedirs(folder, exist_ok=True)
-    with open(os.path.join(folder, name + ext), "wb") as f:
-        f.write(data)
+    kind = _audio_kind(data)
+    if not kind:
+        raise SystemExit("That sample is not a playable audio file, so it was not kept.")
+    ext = ".wav" if kind == "wav" else ".mp3"
+    from . import safeio
+    safeio._swap_in(os.path.join(folder, name + ext), data)                                    # never a half-written sample
     return {"file": f"voice/_previews/{name}{ext}", "cached": False}
+
+
+_SAMPLE_MAX = 3 * 1024 * 1024
+
+
+def _audio_kind(b: bytes) -> str:
+    """What the bytes really are (not what the server says): 'wav', 'mp3' (ID3 tag or an MPEG audio frame), or '' for anything else."""
+    if b[:4] == b"RIFF" and b[8:12] == b"WAVE":
+        return "wav"
+    if b[:3] == b"ID3" or (len(b) > 2 and b[0] == 0xFF and (b[1] & 0xE0) == 0xE0 and (b[1] & 0x18) != 0x08):
+        return "mp3"
+    return ""
 
 
 def _person(d: str, who: str) -> tuple[str, str]:

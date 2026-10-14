@@ -115,6 +115,53 @@ def _unique(root: str, name: str) -> str:
     return cand
 
 
+MAX_ENTRIES = 200_000                  # a film with thousands of takes is well under this
+MAX_RATIO = 500                        # media is already compressed (deflate itself cannot exceed ~1000:1); beyond this a big file is a zip bomb, not a film
+RATIO_FLOOR = 512 * 1024 * 1024        # ... judged only when it is big enough to matter
+DISK_MARGIN = 512 * 1024 * 1024        # always leave this much free
+
+
+def _check_archive(z: zipfile.ZipFile, names: list[str], root: str) -> None:
+    """Refuse an archive that is not a film before writing anything: too many entries, entries that expand absurdly, links, odd names, or more than the disk can hold."""
+    import shutil
+    import stat
+    if len(names) > MAX_ENTRIES:
+        raise SystemExit(f"That file has more than {MAX_ENTRIES:,} items, which is not a film file, so it was not opened.")
+    seen = set()
+    total = 0
+    for n in names:
+        info = z.getinfo(n)
+        rel = n[len("project/"):]
+        parts = rel.split("/")
+        if "\\" in rel or ":" in rel or rel.startswith("/") or ".." in parts or any(p in ("", ".") for p in parts) or any(p.rstrip(" .") != p for p in parts):
+            raise SystemExit("That file contains an unsafe path and was not opened.")
+        mode = info.external_attr >> 16
+        if stat.S_ISLNK(mode):
+            raise SystemExit("That file contains a link, which a film never does, so it was not opened.")
+        low = rel.lower()
+        if low in seen:
+            raise SystemExit("That file lists the same item twice, so it was not opened.")
+        seen.add(low)
+        if info.file_size > RATIO_FLOOR and info.compress_size and info.file_size / info.compress_size > MAX_RATIO:
+            raise SystemExit("That file expands far more than a film does (it may be unsafe), so it was not opened.")
+        total += info.file_size
+    try:
+        free = shutil.disk_usage(root if os.path.isdir(root) else os.path.dirname(root) or ".").free
+    except OSError:
+        free = None
+    if free is not None and total + DISK_MARGIN > free:
+        gb = lambda x: f"{x / 1e9:.1f} GB"
+        raise SystemExit(f"This film needs {gb(total)} and only {gb(free)} is free here, so it was not opened. Free some space and try again.")
+
+
+def _discard(dest: str) -> None:
+    import shutil
+    try:
+        shutil.rmtree(dest)
+    except OSError:
+        pass
+
+
 def unpack(path: str, root: str) -> dict:
     try:
         z = zipfile.ZipFile(path)
@@ -135,20 +182,33 @@ def unpack(path: str, root: str) -> dict:
         names = [n for n in z.namelist() if n.startswith("project/") and not n.endswith("/")]
         if "project/film.json" not in names and "project/project.json" not in names:
             raise SystemExit("That file has no film inside.")
+        _check_archive(z, names, root)
         dest = _unique(root, meta.get("title") or os.path.splitext(os.path.basename(path))[0])
         real = os.path.realpath(dest)
         total = sum(z.getinfo(n).file_size for n in names) or 1
         done = 0
-        for n in names:
-            target = os.path.realpath(os.path.join(dest, n[len("project/"):]))
-            if not target.startswith(real + os.sep):   # never write outside the new project folder
-                raise SystemExit("That file contains an unsafe path and was not opened.")
-            os.makedirs(os.path.dirname(target), exist_ok=True)
-            with z.open(n) as src, open(target, "wb") as out:
-                while chunk := src.read(1 << 20):
-                    out.write(chunk)
-            done += z.getinfo(n).file_size
-            emit(event="progress", stage="unpacking", progress=round(done / total, 3))
+        try:
+            for n in names:
+                target = os.path.realpath(os.path.join(dest, n[len("project/"):]))
+                if not target.startswith(real + os.sep):   # never write outside the new project folder
+                    raise SystemExit("That file contains an unsafe path and was not opened.")
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                allowed = z.getinfo(n).file_size
+                wrote = 0
+                with z.open(n) as src, open(target, "wb") as out:
+                    while chunk := src.read(1 << 20):
+                        wrote += len(chunk)
+                        if wrote > allowed:                  # the file says it is smaller than it is
+                            raise SystemExit("That file is not a valid FilmCrafter film file (its contents do not match what it says), so it was not opened.")
+                        out.write(chunk)
+                done += allowed
+                emit(event="progress", stage="unpacking", progress=round(done / total, 3))
+        except zipfile.BadZipFile:
+            _discard(dest)
+            raise SystemExit("That film file is damaged (part of it does not match what it says), so it was not opened.")
+        except BaseException:
+            _discard(dest)                                   # the folder was made by this call and holds only what this call wrote
+            raise
     name = os.path.basename(dest)
     if name != meta.get("title"):   # opened next to an existing copy: give this one its own name
         pj = os.path.join(dest, "film.json" if os.path.isfile(os.path.join(dest, "film.json")) else "project.json")
