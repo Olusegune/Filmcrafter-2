@@ -243,7 +243,7 @@ describe("Stage G wiring (model registry, updates)", () => {
     expect(rd("src/Settings.tsx")).toContain("<ModelsRow />");
     expect(m).toContain("Refresh the model lists");
     expect(m).toContain("not changed (");
-    expect(m).toContain("apart from the app and from every film");
+    expect(m).toContain("kept apart from the app");
     expect(rd("src-tauri/src/lib.rs")).toMatch(/ACTIONS: \[&str; 4\] = \["status", "list", "refresh", "in_use"\]/);
   });
   it("models behind a film that went away are reported, never replaced", () => {
