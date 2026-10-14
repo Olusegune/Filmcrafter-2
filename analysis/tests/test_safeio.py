@@ -2,6 +2,7 @@
 import json
 import multiprocessing as mp
 import os
+import time
 
 import pytest
 
@@ -244,3 +245,29 @@ def test_update_json_refuses_to_build_on_a_damaged_file(tmp_path):
     with pytest.raises(safeio.SafeIOError):
         safeio.update_json(p, lambda d: d["entries"].append(1), {"entries": []})
     assert open(p, "rb").read() == b'{"entries": ['                           # not replaced by {"entries": [1]}
+
+
+def test_many_processes_hammering_one_lock_never_fail_or_lose_a_record(tmp_path):
+    """Regression: on Windows a lock file being deleted at that instant refuses to be re-created with 'permission denied'; that used to surface as an error."""
+    p = str(tmp_path / "ledger.json")
+    jobs = [(p, f"q{n}", 30) for n in range(6)]
+    with mp.get_context("spawn").Pool(6) as pool:
+        pool.map(_bump, jobs)
+    got = safeio.read_json(p)["records"]
+    assert len(got) == 180 and len(set(got)) == 180
+
+
+def test_a_folder_that_can_never_be_written_is_reported_not_waited_on_forever(tmp_path, monkeypatch):
+    p = str(tmp_path / "v.json")
+    real = os.open
+
+    def deny(path, flags, *a, **k):
+        if str(path).endswith(".lock"):
+            raise PermissionError(13, "Permission denied")
+        return real(path, flags, *a, **k)
+
+    monkeypatch.setattr(os, "open", deny)
+    t0 = time.time()
+    with pytest.raises(safeio.SafeIOError) as e:
+        safeio.write_json(p, {"a": 1})
+    assert e.value.kind == "unreadable" and time.time() - t0 < 6

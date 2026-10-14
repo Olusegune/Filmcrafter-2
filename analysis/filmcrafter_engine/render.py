@@ -1617,7 +1617,13 @@ class _FileLock:
                 self.fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
                 os.write(self.fd, str(os.getpid()).encode())
                 return self
-            except FileExistsError:
+            except (FileExistsError, PermissionError) as e:
+                if isinstance(e, PermissionError) and not os.path.exists(self.path):
+                    # Windows: a lock file being deleted by its owner at this very instant refuses to be re-created with "permission denied" (the same "someone holds it" case).
+                    if time.time() - start > self.timeout:
+                        raise
+                    time.sleep(0.03)
+                    continue
                 try:  # a lock left by a crashed process
                     if time.time() - os.path.getmtime(self.path) > 30:
                         os.remove(self.path)

@@ -143,12 +143,21 @@ def locked(path: str, timeout: float = 15.0):
     """A lock between processes for one file: `<path>.lock`, made with O_EXCL. A lock older than 30 seconds belongs to a process that died and is removed."""
     lock = path + ".lock"
     os.makedirs(os.path.dirname(lock) or ".", exist_ok=True)
-    start, fd = time.time(), None
+    start, fd, denied = time.time(), None, None
     while fd is None:
         try:
             fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             os.write(fd, str(os.getpid()).encode())
-        except FileExistsError:
+        except (FileExistsError, PermissionError) as e:
+            # On Windows, making a lock file in the instant its previous owner is deleting it fails with "permission denied" rather than "exists": it is the same "someone holds it" case.
+            # A real permission problem (a read-only folder) looks different: there is no lock file at all, and it keeps failing.
+            if isinstance(e, PermissionError) and not os.path.exists(lock):
+                denied = denied or time.time()
+                if time.time() - denied > 2.0:
+                    raise SafeIOError(f"{_name(path)} can't be saved here ({e.strerror or e}). Nothing was changed.", "unreadable", path)
+                time.sleep(0.02)
+                continue
+            denied = None
             try:
                 if time.time() - os.path.getmtime(lock) > 30:
                     os.remove(lock)
