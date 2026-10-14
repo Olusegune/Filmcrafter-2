@@ -21,6 +21,7 @@ import shutil
 import sys
 import time
 
+from . import safeio
 from .safe import check_id
 
 SCHEMA = 1
@@ -42,19 +43,12 @@ def emit(**kw) -> None:
 
 
 def _read(path, default=None):
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return default
+    """Absent -> default. A damaged file is never mistaken for an absent one (see safeio): its bytes are kept and the last good copy is used, or the person is told."""
+    return safeio.read_json(path, default)
 
 
 def _write(path, data) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + f".{os.getpid()}.tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, path)
+    safeio.write_json(path, data)
 
 
 def _text(v, limit: int = LIMIT) -> str:

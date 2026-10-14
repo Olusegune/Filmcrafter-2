@@ -22,6 +22,7 @@ import shutil
 import sys
 import time
 
+from . import safeio
 from .safe import check_id, file_name, file_part
 
 LOOK_FOR_LANE = {"photoreal cinematic": "live-action", "photoreal CGI": "photoreal-cgi", "feature 3D": "feature-3d", "low-poly 3D": "low-poly", "hand-drawn 2D": "hand-drawn-2d",
@@ -41,19 +42,12 @@ def emit(**kw) -> None:
 
 
 def _read(path, default=None):
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return default
+    """Absent -> default. A damaged file is never mistaken for an absent one (see safeio): its bytes are kept and the last good copy is used, or the person is told."""
+    return safeio.read_json(path, default)
 
 
 def _write(path, data) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + f".{os.getpid()}.tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, path)
+    safeio.write_json(path, data)
 
 
 def render_dir(d: str) -> str:
