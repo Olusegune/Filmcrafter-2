@@ -2,6 +2,10 @@
 
 Written 2026-10-12. Read `HANDOVER.md` first (setup, checks, release steps, rules); this note is the plan for what comes next and what was learned recently. Everything here is in GitHub (`Olusegune/FilmCrafter`, branch `main`, commit of 0.18.0 or later).
 
+## 0. Update after Phase 0 (branch `phase-0-stability`, unreleased)
+
+Phase 0 (stability, safety and data protection) is implemented on a local branch and waiting for the owner's review: see `docs/PHASE_0_IMPLEMENTATION_REPORT.md` (what was done, what was not verified, a Windows smoke-test checklist) and `docs/PAID_OPERATIONS.md` (the shared paid-operation rules; read before adding any feature that spends money, including the planned Sound & Music Bible). New since this note was written: engine-level confirmation and a ledger for every paid voice call, no automatic retry of an unclear charge, one safe JSON layer (`safeio.py`) used for film.json / voice.json / cast.json, film-level backups (`filmbackup.py`), `.filmpack` opening limits, a narrower media scope, an honest (disabled) update check. **Do not push, release or build installers from that branch without the owner's go-ahead.** Phase 1 should start with: adopting `safeio` in the remaining record-keepers (`bible`, `shots`, `planio`, the render `Store`), then the Sound & Music Bible (reuse the ledger and the backup as they are).
+
 ## 1. Where things stand
 
 FilmCrafter is at **0.21.0**: a Windows app (Tauri 2 + React/TypeScript + Python engine) that turns a screenplay into a film. Recently done:

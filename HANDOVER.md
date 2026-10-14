@@ -74,7 +74,7 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 - Windows console: use `python -X utf8`. Git warns about LF→CRLF: harmless.
 - Background node sweeps get killed: run them in the foreground, in chunks.
 - DaVinci Resolve scripting needs Preferences > System > General > External scripting = Local, and the Preferences window closed. Two test projects named "FilmCrafter hand-off check…" are still in the user's Resolve; **do not delete anything of theirs** (a project called "wEN" is theirs).
-- API keys: an ElevenLabs key was **not** stored on the development computer, so `cast_voice` has only been tested with faked replies; do a real run (a short line, a small cap) before trusting it. The Kie.ai key was read from Credential Manager entry `kie.filmcrafter` only for the authorised real run. Never print, save or commit a key.
+- API keys: `cast_voice` is tested with faked replies, and a small real run was made in 0.22 (library voice, five short lines, voice design; cloning and keeping a designed voice were not). Since Phase 0 every paid voice call needs `confirmed` at the engine, is written to `voice/ledger.json`, and an unclear outcome is never retried: see `docs/PAID_OPERATIONS.md`. The Kie.ai key was read from Credential Manager entry `kie.filmcrafter` only for the authorised real run. Never print, save or commit a key.
 
 ## 8. Where things stand
 

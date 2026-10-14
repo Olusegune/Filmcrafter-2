@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.24.0 — Phase 0: stability, safety and data protection (not released; branch `phase-0-stability`)
+
+- **No paid voice call without a yes, enforced by the engine.** Designing a voice, keeping a designed voice, cloning, speaking a line and previewing are refused by the engine unless the request is confirmed (cloning also needs a separate consent; designing also needs you to accept that ElevenLabs does not publish its cost). Every screen asks first and says the provider, the cost (or that it is unknown), and whether a voice slot is taken.
+- **A record of what voice generation used**, `voice/ledger.json`, shown under the voices: what ElevenLabs *reported* and, kept apart and marked *estimated*, FilmCrafter's own count. An optional per-film limit stops a call before it would pass it.
+- **No double charging.** A request that was sent and never answered is *not* sent again: FilmCrafter says it is not sure whether you were charged, and you say *charged* or *not charged* after looking at ElevenLabs' usage history. Retries only happen when the provider never took the request (a slow-down reply, or no connection at all).
+- **Damaged files are never turned into empty ones.** The film's own records (film.json, voice.json, cast.json, the ledger) are read and written through one safe layer: a damaged file is kept as `…corrupt-<time>`, the last good copy (`.bak`) is used if there is one, otherwise you are told and nothing is overwritten. Writes are atomic and locked, so two things saving at once no longer lose a record.
+- **Backups of the film's records** (script versions, Bible, cast, voices, notes) when a film opens and whenever they change, 30 kept, checked before a restore, restorable from the Backups sheet (never deletes anything; never rolls back the spending record).
+- **Safer opening of other people's files.** A `.filmpack` is checked before anything is written (number of items, absurd expansion, links, odd names, free disk space) and a half-written folder is removed. Library voice samples must really be audio. The app's media access is narrowed from the whole home folder to the projects folder plus the film folders you open.
+- **Honest update check:** it was pointed at a release list that is not public, so it could never find anything. It is now off (nothing is asked, and Settings says so) until releases are public.
+- Small: one list of which voice models read `[tags]` (the engine's); the "song's vocal" wording on a shot's changes is now "voice or sung line"; a dead timeline CSS rule is gone; `.gitattributes` added.
+- Fixed on the way: on Windows a lock file could be refused for an instant while another process removed it, which could fail a save (found by a six-process test, one run in eight; fixed in the new layer and in the render queue's own lock).
+- Not done here, on purpose: nothing was pushed, released or installed, and no paid call was made; the installed app has not been walked through.
+
 ## 0.23.4 (2026-10-13)
 
 - **Fixed for good: the lower voice lanes were cut off in Edit mode** (reported twice). The cause was not the mouse wheel: the timeline's own vertical scrolling had been switched off by a clash between two stylesheets (`overflow-y: hidden` beat `auto`), so anything below the timeline's height was simply clipped. The Voices area is now a proper **band**: a header row ("VOICES · 12 of 23 lines voiced · Show all 7") and a fixed three-lane area with its own scrolling, a soft fade where there is more below, and a thin gold scrollbar. **Show all** opens it to up to eight lanes (the timeline grows to fit; each film remembers the choice). The names stay in view as you scroll sideways. The timeline itself can scroll vertically again if anything else overflows.
