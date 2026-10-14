@@ -2,15 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type AiPrice, type AudioAsset, type AudioLibrary, type BibleCharacter, type BibleView, type CastPlan, type VoiceProfile, type VoiceSuggestion } from "./api";
 import { ask } from "./ask";
+import { SceneSound } from "./SceneSound";
 import { SamplePlayer, VoiceMaker } from "./CastVoices";
 import { notifyVoice, useCast } from "./voiceHooks";
 import { aiAskWords, audioFacts, commaList, PROFILE_FIELDS, SOUND_FIELDS, MUSIC_FIELDS, voiceKey } from "./soundWords";
 
-type Area = "voices" | "sfx" | "music" | "style";
+type Area = "voices" | "sfx" | "music" | "scenes" | "style";
 const AREAS: { id: Area; label: string; hint: string }[] = [
   { id: "voices", label: "Voices", hint: "Who each character should sound like" },
   { id: "sfx", label: "Sound effects", hint: "The sounds of this world" },
   { id: "music", label: "Music", hint: "Scores, themes and songs" },
+  { id: "scenes", label: "Scene sound", hint: "Plan each scene's soundscape" },
   { id: "style", label: "Sound style", hint: "How the film should sound" },
 ];
 const AUDIO_FILTER = [{ name: "Audio", extensions: ["wav", "mp3", "m4a", "flac", "ogg", "aac"] }];
@@ -31,6 +33,7 @@ export function SoundMusic({ dir, b, run }: { dir: string; b: BibleView; run: (f
       {area === "voices" && <Voices dir={dir} b={b} run={run} />}
       {area === "sfx" && <Library dir={dir} kind="sfx" b={b} />}
       {area === "music" && <Library dir={dir} kind="music" b={b} />}
+      {area === "scenes" && <SceneSound dir={dir} />}
       {area === "style" && <Style b={b} run={run} dir={dir} />}
     </div>
   );

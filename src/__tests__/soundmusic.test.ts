@@ -109,3 +109,34 @@ describe("Stage B words and wiring", () => {
     expect(rd("src/api.ts")).toContain('invoke<T>("film_voice_direct"');
   });
 });
+
+describe("Stage C wiring (scene sound)", () => {
+  const rd = (f: string) => readFileSync(f, "utf8");
+  it("is a fifth area of Sound & Music, and says it only plans", () => {
+    const m = rd("src/SoundMusic.tsx");
+    expect(m).toContain('label: "Scene sound"');
+    expect(m).toContain("<SceneSound dir={dir} />");
+    const s = rd("src/SceneSound.tsx");
+    expect(s).toContain("Plans only: nothing here makes sound or costs anything");
+    expect(s).toContain("Adjusting a cue never changes the sound file");
+    expect(s).toContain("never changed behind your back");
+  });
+  it("asks the price before the sound director sends anything and offers a free local alternative", () => {
+    const s = rd("src/SceneSound.tsx");
+    expect(s.indexOf("await ask(aiAskWords(")).toBeLessThan(s.indexOf('"director_suggest"'));
+    expect(s).toContain("Quick ideas (free)");
+    expect(s).toContain("Nothing in your library fits yet.");              // the library is looked in first, then a plan is offered
+    expect(s).toContain("Plan it (needs a sound)");
+  });
+  it("flags out-of-date cues in words and lets the person confirm instead of changing them", () => {
+    const s = rd("src/SceneSound.tsx");
+    for (const w of ["sound replaced", "shot length changed", "shot gone", "sound taken out"]) expect(s).toContain(w);
+    expect(s).toContain("It is fine");
+    expect(s).toContain("Bring it back");
+  });
+  it("the shell allows exactly the engine's cue actions", () => {
+    const rust = rd("src-tauri/src/lib.rs");
+    expect(rust).toMatch(/ACTIONS: \[&str; 10\] = \["list", "add", "update", "approve", "remove", "restore", "refresh", "quick", "director_estimate", "director_suggest"\]/);
+    expect(rd("src/api.ts")).toContain('invoke<T>("film_cues"');
+  });
+});

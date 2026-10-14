@@ -252,6 +252,18 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "film_cues": {
+      const base = { cues: [{ id: "q-1a2b3c4d", kind: "ambience", asset_id: "a-sfx-1a2b3c4d", asset_name: "Rain on the roof", asset_file: "audio/sfx/a-sfx-1a2b3c4d.wav", asset_seconds: 42.5, scene: 1, shot: null, start: 0, duration: null, gain_db: -14, fade_in: 1, fade_out: 2,
+          loop: true, ducking: "auto", approval: "approved", note: "", source: "manual", fresh: [], needs_sound: false, created: now, updated: now },
+        { id: "q-5e6f7a8b", kind: "sfx", asset_id: null, asset_name: null, asset_file: null, asset_seconds: null, plan: { description: "A kettle clicking off", search: "kettle" }, scene: 1, shot: "S01-02", start: 1.2, duration: null, gain_db: 0, fade_in: 0, fade_out: 0,
+          loop: false, ducking: "auto", approval: "approved", note: "", source: "quick", fresh: [], needs_sound: true, created: now, updated: now }],
+        dialogue: [{ id: "voice:S01-02:lila", kind: "dialogue", derived: true, scene: 1, shot: "S01-02", speaker: "Lila", file: "voice/lila.wav", duration: 3.4, start: 0, source: "recording", text: "It looked weird." }], removed: [],
+        scenes: { "1": { seconds: 14.5, shots: [{ id: "S01-01", seconds: 4, sound: "" }, { id: "S01-02", seconds: 4.5, sound: "A kettle clicks off, quietly" }] }, "2": { seconds: 7, shots: [{ id: "S02-01", seconds: 4, sound: "" }] } }, counts: { cues: 2, needs_sound: 1, suggested: 0 } };
+      if (x.action === "quick" || x.action === "director_suggest") return { scene: 1, source: x.action === "quick" ? "quick" : "director", ideas: [{ kind: "ambience", what: "Rain falling", why: "The scene mentions rain.", search: "rain", shot: null, loop: true, matches: [{ asset_id: "a-sfx-1a2b3c4d", name: "Rain on the roof", score: 5, why: ["rain"], approved: true, seconds: 42.5 }] },
+        { kind: "sfx", what: "Pencil on paper", why: "She draws.", search: "pencil", shot: "S01-02", loop: false, matches: [] }] };
+      if (x.action === "director_estimate") return { calls: 1, usd: 0.004, local: false, note: "", sends: "this scene's shots" };
+      return base;
+    }
     case "film_voice_direct": {
       if (x.action === "scene_plan") return { scene: 1, speakers: [{ name: "Lila", key: "lila", voice: "Warm Northern Woman", has_voice: true, approved: false, lines: 2 }, { name: "Chloe", key: "chloe", voice: null, has_voice: false, approved: false, lines: 1 }],
         lines: [{ shot: "S01-02", speaker: "Lila", key: "lila", text: "It looked weird.", written: "It looked weird.", spoken_version: false, state: "missing", seconds: null, characters: 16, credits: 16, cached: false },

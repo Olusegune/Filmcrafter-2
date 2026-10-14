@@ -277,6 +277,7 @@ export const api = {
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "set_aspect" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
   voiceDirect: <T = unknown>(action: "performance" | "performance_set" | "performance_clear" | "natural_estimate" | "natural_suggest" | "voices_estimate" | "voices_suggest" | "voices_match" | "scene_plan" | "scene_voice" | "table_read", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice_direct", { action, target, data }),
+  filmCues: <T = CueList>(action: "list" | "add" | "update" | "approve" | "remove" | "restore" | "refresh" | "quick" | "director_estimate" | "director_suggest", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cues", { action, target, data }),
   filmAudio: <T = AudioLibrary>(action: "list" | "import" | "update" | "approve" | "remove" | "restore", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audio", { action, target, data }),
   filmBackup: <T = unknown>(target: string, action: "make" | "list" | "verify" | "restore", name: string | null = null) => invoke<T>("film_backup", { action, target, name }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
@@ -527,3 +528,12 @@ export type ScenePlan = { scene: number; speakers: { name: string; key: string; 
   estimate: { characters: number; credits: number; basis: string } };
 export type SceneResult = { scene: number; results: { shot: string; speaker: string; ok: boolean; attempted: boolean; credits?: number; take?: string; why?: string }[]; spent_credits: number; cap: number; done: number; failed: number; stopped: string | null; note?: string };
 export type TableRead = { scene: number; lines: { shot: string; speaker: string; key: string; text: string; file: string | null; seconds: number | null; source: string | null }[]; seconds: number; silent: number };
+export type CueFresh = { code: "asset_removed" | "asset_changed" | "asset_missing" | "shot_gone" | "timing_changed" | "after_shot"; why: string };
+export type Cue = { id: string; kind: "dialogue" | "sfx" | "ambience" | "music"; asset_id: string | null; asset_name: string | null; asset_file: string | null; asset_seconds: number | null; plan?: { description: string; search: string };
+  scene: number; shot: string | null; start: number; duration: number | null; gain_db: number; fade_in: number; fade_out: number; loop: boolean; ducking: "auto" | "on" | "off";
+  approval: "suggested" | "approved" | "rejected"; note: string; source: "manual" | "director" | "quick"; fresh: CueFresh[]; needs_sound: boolean; created: number; updated: number };
+export type CueDialogue = { id: string; kind: "dialogue"; derived: true; scene: number; shot: string; speaker: string; file: string; duration: number | null; start: number; source: string; text: string };
+export type CueList = { cues: Cue[]; dialogue: CueDialogue[]; removed: { id: string; kind: string; scene: number | null }[]; id?: string;
+  scenes: Record<string, { shots: { id: string; seconds: number; sound: string }[]; seconds: number }>; counts: { cues: number; needs_sound: number; suggested: number } };
+export type SoundIdea = { kind: "ambience" | "sfx" | "music"; what: string; why: string; search: string; shot: string | null; loop: boolean; matches: { asset_id: string; name: string; score: number; why: string[]; approved: boolean; seconds: number }[] };
+export type SoundIdeas = { scene: number; ideas: SoundIdea[]; source: "quick" | "director" };
