@@ -73,7 +73,8 @@ describe("the screens ask first, and send the engine its flags only after a yes 
     const f = between("const makeClone", "return (\n    <div className=\"overlay\"");
     expect(f.indexOf("await ask(")).toBeLessThan(f.indexOf('castVoice("clone"'));
     expect(f).toContain("consent, confirmed: true");
-    expect(src).toMatch(/disabled=\{[^}]*!consent/);                              // the button stays off until the consent box is ticked
+    expect(src).toContain('!consent && "tick the box that says the voice may be cloned"');       // no consent: the reason is shown
+    expect(src).toContain("disabled={busy || missing.length > 0}");                                  // and the button stays off until nothing is missing
   });
   it("every confirmation names the provider", () => {
     expect((src.match(/confirmWords\(/g) ?? []).length).toBeGreaterThanOrEqual(6);

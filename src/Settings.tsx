@@ -60,7 +60,7 @@ export function Settings({ onClose, onHelp }: { onClose: () => void; onHelp?: ()
                      placeholder={status[p.id] ? "Replace key…" : "Paste your API key"}
                      value={draft[p.id] ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [p.id]: e.target.value }))}
                      onKeyDown={(e) => e.key === "Enter" && save(p.id)} />
-              <button className="btn primary" onClick={() => save(p.id)} disabled={!(draft[p.id] ?? "").trim()}>Save</button>
+              <button className="btn sel" onClick={() => save(p.id)} disabled={!(draft[p.id] ?? "").trim()}>Save</button>
               {status[p.id] && <button className="btn ghost" onClick={() => remove(p.id)}>Remove</button>}
             </div>
             {msg[p.id] && <div className="error-text">{msg[p.id]}</div>}

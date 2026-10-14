@@ -55,6 +55,7 @@ import "../focus.css";
 import "../polish.css";
 import "../film.css";
 import "../corners.css";
+import "../ui-system.css";            // after everything: one set of controls, one focus ring
 
 const DIR = "/src/docshots/img";
 (window as unknown as { __PF_MOCK__: boolean }).__PF_MOCK__ = true;

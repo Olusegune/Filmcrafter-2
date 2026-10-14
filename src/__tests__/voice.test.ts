@@ -108,7 +108,8 @@ describe("custom voices with ElevenLabs", () => {
     expect(src.indexOf("await ask(")).toBeLessThan(src.indexOf('castVoice("speak"'));          // the yes is asked before the first spoken line is sent
     expect(src).toContain("confirmed: true");
     expect(src).toContain("hear options");
-    expect(src).toMatch(/disabled=\{[^}]*!consent/);
+    expect(src).toContain('!consent && "tick the box that says the voice may be cloned"');       // no consent: the reason is shown
+    expect(src).toContain("disabled={busy || missing.length > 0}");                                  // and the button stays off until nothing is missing
     expect(src).toContain("consent,");
     expect(readFileSync("src/VoiceoverPanel.tsx", "utf8")).toContain("<CastVoices");
     expect(readFileSync("src/VoiceChip.tsx", "utf8")).toContain("speakLine(");

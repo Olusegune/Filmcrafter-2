@@ -1,0 +1,87 @@
+/* UI system: one small set of controls and rules, loaded last so it has the final word on how controls look.
+   Tokens: control heights, the amber line and wash, the focus ring. Variants:
+     .btn.primary   the ONE main action of a view (amber gradient)
+     .btn           secondary: a plain outlined control
+     .btn.sel       the quiet choice repeated down a list ("Use this voice", "Keep this one"): amber outline, no fill
+     .btn.quiet     a tertiary control that reads as text until hovered ("Hear", "Try again")
+     .btn.danger / .btn.ghost.danger   destructive actions, always red-toned
+     .why           the reason a control is off, or a price/consent note beside it
+     .dlg-sec       a titled group inside a dialog;  .dropzone  a file chooser that looks like one                                              */
+:root {
+  --ctl-h: 34px; --ctl-h-sm: 28px; --ctl-pad: 14px;
+  --amber: var(--gold, #e8b45c); --amber-wash: rgba(232, 180, 92, 0.12); --amber-line: rgba(232, 180, 92, 0.5);
+  --focus-ring: 0 0 0 2px rgba(9, 11, 15, 1), 0 0 0 4px rgba(232, 180, 92, 0.8);
+}
+
+/* every button the same height rhythm, centred label, never wrapping or squeezed */
+.btn.sm, .btn.small { height: var(--ctl-h-sm); min-height: var(--ctl-h-sm); padding: 0 12px; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; flex: 0 0 auto; }
+.btn:not(.sm):not(.small):not(.hero):not(.ls-gold) { min-height: var(--ctl-h); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* the quiet repeated choice, and the text-like control */
+.btn.sel { background: transparent; color: var(--amber); border: 1px solid var(--amber-line); box-shadow: none; font-weight: 550; }
+.btn.sel:hover:not(:disabled) { background: var(--amber-wash); border-color: var(--amber); transform: none; }
+.btn.quiet { background: transparent; border-color: transparent; box-shadow: none; color: var(--text-quiet, #8b97a7); }
+.btn.quiet:hover:not(:disabled) { color: var(--frost); background: var(--surface-hover, rgba(244, 247, 250, 0.07)); transform: none; }
+
+/* a control that is off says so, and does not look like a button that failed */
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.42; cursor: not-allowed; box-shadow: none; transform: none; filter: saturate(0.6); }
+.why { margin: 0; font-size: 12px; color: var(--text-quiet, #8b97a7); line-height: 1.45; }
+
+/* keyboard focus is visible on every kind of control, in the same amber ring */
+input:focus-visible, select:focus-visible, textarea:focus-visible, audio:focus-visible, [role="tab"]:focus-visible, summary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+button:focus-visible, .btn:focus-visible, .icon-btn:focus-visible, .link:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; box-shadow: none; }
+select, input[type="text"], input[type="number"], input:not([type]), textarea { text-overflow: ellipsis; }
+select { max-width: 100%; }
+
+/* dialogs: sections, a drop area, no clipped controls */
+.cv-sheet { width: min(760px, calc(100vw - 32px)); }
+.cv-sheet .vr-who { align-items: center; gap: 8px; }
+.cv-sheet .vr-who button { height: var(--ctl-h-sm); padding: 0 14px; }
+.cv-model { min-width: 0; flex: 0 1 auto; }
+.cv-model select { width: min(220px, 100%); height: var(--ctl-h-sm); min-width: 0; text-overflow: ellipsis; }
+.cv-note { margin: 0; font-size: 12px; line-height: 1.5; }
+.cv-search input { height: var(--ctl-h); }
+.cv-search .btn { align-self: stretch; height: auto; min-height: var(--ctl-h); }
+.dlg-sec { border: 1px solid var(--hair); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; background: rgba(255, 255, 255, 0.015); }
+.dlg-sec > h4 { margin: 0; font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
+.dropzone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 78px; padding: 12px; border: 1px dashed rgba(244, 247, 250, 0.28); background: rgba(255, 255, 255, 0.02); color: var(--frost); cursor: pointer; font: inherit; }
+.dropzone:hover:not(:disabled) { border-color: var(--amber); background: var(--amber-wash); }
+.dropzone.has { border-style: solid; border-color: var(--amber-line); }
+.dz-main { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 550; }
+.dz-sub { font-size: 12px; }
+.dz-files { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.dz-files li { max-width: 100%; padding: 2px 8px; border: 1px solid var(--hair); border-radius: 4px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-name > span, .cv-check > span { font-size: 12.5px; }
+.cv-name input { height: var(--ctl-h); }
+.cv-check { align-items: flex-start; line-height: 1.45; }
+.cv-check input { margin-top: 3px; }
+
+/* a list of voices you can scan: name and kind on one line, the labels clamped to two, a quiet Hear and a quiet Use */
+.cv-item { grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding: 10px 12px; }
+.cv-item:hover { background: rgba(255, 255, 255, 0.03); }
+.cv-who { min-width: 0; }
+.cv-nm { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.cv-nm b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-pill { flex: none; font-size: 11px; padding: 0 7px; border: 1px solid var(--hair); border-radius: 999px !important; color: var(--text-quiet, #8b97a7); }
+.cv-tags { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+.cv-act { display: inline-flex; align-items: center; gap: 8px; }
+.cv-act audio, .cv-opt audio { height: 30px; width: 190px; }
+.cv-opt { grid-template-columns: auto minmax(0, 1fr) auto; }
+.cv-opt audio { width: 100%; max-width: 360px; }
+.cv-sample { display: inline-flex; align-items: center; gap: 6px; }
+.cv-sample-err { font-size: 11.5px; color: var(--error, #ef6b73); }
+@media (max-width: 720px) { .cv-item, .cv-opt { grid-template-columns: 1fr; } .cv-act { justify-content: flex-start; flex-wrap: wrap; } }
+
+/* the screens' bottom navigation: a calm bar, the forward step visible but not a billboard */
+.film-foot { padding: 8px var(--sp-5, 20px); }
+.film-foot > .btn { flex: 0 0 auto; width: auto; min-width: 0; }
+.film-foot .film-hint { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.film-foot .btn.primary { padding: 0 16px; }
+
+/* the Voiceover screen's rows survive a narrow window */
+.cv-row { grid-template-columns: minmax(90px, 130px) minmax(0, 1fr) auto; }
+.cv-voice { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 900px) { .cv-row { grid-template-columns: 1fr; gap: 6px; } .cv-btns { justify-content: flex-start; } }
+.cv-search .btn { flex-direction: row; flex: 0 0 auto; padding: 0 14px; }
+.btn > svg { flex: none; }
+.cv-check > span { font-weight: 400; }

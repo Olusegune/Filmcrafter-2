@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25.1 (2026-10-14)
+
+- **Fixed: library voices could not be played.** The "Hear" button on a library voice did nothing and showed a red "!" (reported). A safety check added in 0.24.0 refused audio files that the voice library labels as plain text, which is true of about half of its samples. The file's real content now decides, so all of them play again.
+- **Voice dialogs, tidier.** The voice library, Design one and Clone my own: a quiet "Use this voice" / "Keep this one" instead of a loud button on every row, a calm "Hear" control with a plain "Could not play it / Try again", short model names with the description underneath (nothing clipped), and a clone dialog in three clear groups (recordings, the voice, permission) whose button says exactly what is still missing. Consent and every price question are unchanged.
+- **One set of controls.** A shared rule file (`src/ui-system.css`) gives buttons one height rhythm and a few clear kinds (main action, secondary, quiet choice, text-like, destructive), one focus ring on every control, one look for disabled controls, and a note pattern for "why is this off". The big amber bar at the bottom of each film stage is now a compact amber-outline button; Settings' per-provider Save is quiet. See `docs/UI_REFINEMENT.md`.
+
 ## 0.25.0 (2026-10-14) — Creative production expansion: Sound & Music, voice direction, audio mixing
 
 - **Sound & Music in Cast & World.** A new tab: each character's voice (the voice they have, a profile of how it should sound, an *approved* flag that nothing replaces silently), a library of sound effects and one of music (import, hear, describe, tag, link to places, props, characters and scenes, approve, take out and bring back; nothing is ever deleted), the film's sound style, and **Scene sound**: each scene's planned soundscape. Nothing in the tab costs anything.

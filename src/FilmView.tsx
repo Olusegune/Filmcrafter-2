@@ -199,7 +199,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
       <footer className="film-foot">
         {nb.prev ? <button className="btn ghost sm" onClick={() => goStage(nb.prev!)}>‹ {stageLabel(nb.prev)}</button> : <span />}
         <span className="film-hint dim">{nb.hint}</span>
-        {nb.next ? <button className="btn primary sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
+        {nb.next ? <button className="btn sel sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
       </footer>
       {writing && <NewVersion from={f} initial={suggested} onClose={() => { setWriting(false); setSuggested(null); }} onSaved={(s) => { setF(s); setWriting(false); setScene(null); }} dir={dir} />}
     </div>

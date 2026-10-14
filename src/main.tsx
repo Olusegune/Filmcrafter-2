@@ -6,7 +6,8 @@ import { applyScale } from "./uiScale";
 import "./focus.css";
 import "./polish.css";             // the rhythm of every sheet: space, quiet status, one loud action
 import "./film.css";               // the story-first Home, New film and the story workspace
-import "./corners.css";            // last, so that it has the final word on corners
+import "./corners.css";
+import "./ui-system.css";            // after everything: one set of controls, one focus ring            // last, so that it has the final word on corners
 
 async function boot() {
   if (import.meta.env.DEV && new URLSearchParams(location.search).has("mock")) {

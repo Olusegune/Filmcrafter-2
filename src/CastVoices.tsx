@@ -135,9 +135,17 @@ export function SamplePlayer({ dir, url, name }: { dir: string; url: string; nam
       setTimeout(() => void el.current?.play().catch(() => {}), 60);
     } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
   };
-  if (!src) return <span className="cv-sample"><button className="btn sm" disabled={busy} onClick={() => void load()} aria-label={`Hear ${name}`}><I.Play size={12} /> {busy ? "Loading…" : "Hear"}</button>{err && <span className="error-text" title={err}>!</span>}</span>;
+  if (!src) return (
+    <span className="cv-sample">
+      <button className="btn sm quiet" disabled={busy} onClick={() => void load()} aria-label={`Hear ${name}`} aria-busy={busy}>{busy ? <span className="spin sm" aria-hidden="true" /> : <I.Play size={12} />} {busy ? "Loading" : err ? "Try again" : "Hear"}</button>
+      {err && <span className="cv-sample-err" role="alert" title={err}>Could not play it</span>}
+    </span>);
   return <audio ref={el} controls src={src} aria-label={`Hear ${name}`} />;
 }
+
+/** The model's name without its long description ("Eleven v4 (most expressive: put [laughs]...)" -> "Eleven v4"). The description is shown under the tabs. */
+export const modelName = (label: string) => label.split(" (")[0];
+export const modelHint = (label: string) => { const t = label.includes(" (") ? label.slice(label.indexOf(" (") + 2).replace(/\)$/, "") : ""; return t ? t[0].toUpperCase() + t.slice(1) : ""; };
 
 type Tab = "library" | "design" | "clone";
 
@@ -192,8 +200,9 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone, replaceAp
           {([["library", "From your library"], ["design", "Design one"], ["clone", "Clone my own"]] as [Tab, string][]).map(([t, l]) =>
             <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "on" : ""} onClick={() => setTab(t)}>{l}</button>)}
           <span style={{ flex: 1 }} />
-          <label className="cv-model">Model <select value={model} onChange={(e) => setModel(e.target.value)}>{cast.models.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
+          <label className="cv-model"><span>Model</span> <select value={model} onChange={(e) => setModel(e.target.value)} aria-describedby="cv-model-hint">{cast.models.map((m) => <option key={m.id} value={m.id} title={m.label}>{modelName(m.label)}</option>)}</select></label>
         </div>
+        {modelHint(cast.models.find((m) => m.id === model)?.label ?? "") && <p id="cv-model-hint" className="dim cv-note">{modelHint(cast.models.find((m) => m.id === model)?.label ?? "")}</p>}
 
         {tab === "library" && <div className="cv-pane">
           <form className="cv-search" onSubmit={(e) => { e.preventDefault(); void search(); }}>
@@ -202,10 +211,10 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone, replaceAp
           <div className="cv-list">
             {voices?.length === 0 && <p className="dim">No voices found. Design one, or clone your own.</p>}
             {(voices ?? []).map((v) => (
-              <div key={v.voice_id} className="cv-item"><div><b>{v.name}</b> <span className="dim">{v.category}</span>
+              <div key={v.voice_id} className="cv-item"><div className="cv-who"><div className="cv-nm"><b title={v.name}>{v.name}</b>{v.category && <span className="cv-pill">{v.category}</span>}</div>
                 <div className="dim cv-tags">{Object.values(v.labels).slice(0, 4).join(" · ")}{v.description ? ` · ${v.description}` : ""}</div></div>
-                {v.preview_url && <SamplePlayer dir={dir} url={v.preview_url} name={v.name} />}
-                <button className="btn sm primary" disabled={busy} onClick={() => void use(v)}>Use for {person}</button></div>))}
+                <div className="cv-act">{v.preview_url ? <SamplePlayer dir={dir} url={v.preview_url} name={v.name} /> : <span />}
+                  <button className="btn sm sel" disabled={busy} onClick={() => void use(v)} aria-label={`Use ${v.name} for ${person}`}>Use this voice</button></div></div>))}
           </div>
         </div>}
 
@@ -213,25 +222,44 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone, replaceAp
           <p className="dim">Describe the voice: age, sound, accent, mood. ElevenLabs makes a few to listen to; you keep the one you like.</p>
           <textarea rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="A warm, tired woman in her sixties with a gentle northern accent…" aria-label="Describe the voice" />
           <div className="cv-ex">{EXAMPLES.map((x) => <button key={x} className="link" onClick={() => setDesc(x)}>{x.split(",")[0]}</button>)}</div>
-          <div className="cv-actions"><button className="btn primary" disabled={busy || desc.trim().length < 20} onClick={() => void hearOptions()}>{busy ? "Working…" : "Hear a few options…"}</button>
-            <span className="dim">{desc.trim().length < 20 ? "A sentence or two, at least 20 characters." : "Uses a little of your plan; you are asked first."}</span></div>
-          {previews.length > 0 && <div className="cv-list">
-            <label className="cv-name">Name it <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></label>
-            {previews.map((p, i) => <div key={p.id} className="cv-item"><b>Option {i + 1}</b><audio controls src={api.mediaUrl(`${dir}/${p.file}`)} aria-label={`Option ${i + 1}`} />
-              <button className="btn sm primary" disabled={busy} onClick={() => void keep(p)}>Keep this voice</button></div>)}
-            <p className="dim">Keeping one saves it in your ElevenLabs library (it uses one of your plan's voice slots) and gives it to {person}.</p></div>}
+          <div className="cv-actions"><button className={`btn ${previews.length ? "" : "primary"}`} disabled={busy || desc.trim().length < 20} onClick={() => void hearOptions()}>{busy ? "Working…" : previews.length ? "Hear different options…" : "Hear a few options…"}</button>
+            <span className="why">{desc.trim().length < 20 ? `Describe the voice in a sentence or two to continue (${desc.trim().length} of 20 characters).` : "Uses some of your ElevenLabs plan; you are asked first."}</span></div>
+          {previews.length > 0 && <section className="dlg-sec" aria-label="The options">
+            <h4>Pick the one you like</h4>
+            <label className="cv-name"><span>Name it</span> <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></label>
+            <div className="cv-list">{previews.map((p, i) => <div key={p.id} className="cv-item cv-opt"><b>Option {i + 1}</b><audio controls src={api.mediaUrl(`${dir}/${p.file}`)} aria-label={`Option ${i + 1}`} />
+              <button className="btn sm sel" disabled={busy} onClick={() => void keep(p)} aria-label={`Keep option ${i + 1} as ${person}'s voice`}>Keep this one</button></div>)}</div>
+            <p className="why">Keeping one saves it in your ElevenLabs library (it uses one of your plan's voice slots) and gives it to {person}. You are asked before it is saved.</p></section>}
         </div>}
 
-        {tab === "clone" && <div className="cv-pane">
-          <p className="dim">Make a voice from recordings of a real voice: yours, or someone who has agreed. A minute or two of clean, steady speech is plenty. {plan && !plan.can_clone ? <b>Your ElevenLabs plan does not include cloning.</b> : null}</p>
-          <div className="cv-actions"><button className="btn sm" disabled={busy} onClick={() => void pickFiles()}><I.Upload size={13} /> Choose recordings…</button>
-            <span className="dim">{files.length ? `${files.length} chosen: ${files.map((f) => f.split(/[\\/]/).pop()).join(", ")}` : "Up to 5 files, 30 MB each."}</span></div>
-          <label className="cv-name">Name it <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></label>
-          <label className="cv-check"><input type="checkbox" checked={noise} onChange={(e) => setNoise(e.target.checked)} /> Remove background noise (only if the recording is noisy)</label>
-          <label className="cv-check"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /> This is my own voice, or the speaker has agreed to it being cloned.</label>
-          <div className="cv-actions"><button className="btn primary" disabled={busy || !files.length || !consent || (!!plan && !plan.can_clone)} onClick={() => void makeClone()}>{busy ? "Creating…" : "Create the voice"}</button>
-            <span className="dim">Takes one of your plan's voice slots.</span></div>
-        </div>}
+        {tab === "clone" && (() => {
+          const nameOk = name.trim().length > 0;
+          const noClone = !!plan && !plan.can_clone;
+          const missing = [!files.length && "choose at least one recording", !nameOk && "name the voice", !consent && "tick the box that says the voice may be cloned", noClone && "use an ElevenLabs plan that includes cloning"].filter(Boolean) as string[];
+          return <div className="cv-pane">
+            <p className="dim cv-note">Make a voice from recordings of a real voice: yours, or someone who has agreed. A minute or two of clean, steady speech is plenty.</p>
+            {noClone && <p className="error-text" role="alert">Your ElevenLabs plan does not include cloning.</p>}
+            <section className="dlg-sec" aria-label="Recordings">
+              <h4>1 · The recordings</h4>
+              <button type="button" className={`dropzone ${files.length ? "has" : ""}`} onClick={() => void pickFiles()} disabled={busy}>
+                <span className="dz-main"><I.Upload size={15} /> {files.length ? "Choose different recordings…" : "Choose recordings…"}</span>
+                <span className="dim dz-sub">{files.length ? `${files.length} chosen` : "Up to 5 files, 30 MB each (WAV, MP3, M4A, FLAC)"}</span>
+              </button>
+              {files.length > 0 && <ul className="dz-files">{files.map((f) => <li key={f} title={f}>{f.split(/[\\/]/).pop()}</li>)}</ul>}
+            </section>
+            <section className="dlg-sec" aria-label="Voice details">
+              <h4>2 · The voice</h4>
+              <label className="cv-name"><span>Name</span> <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></label>
+              <label className="cv-check"><input type="checkbox" checked={noise} onChange={(e) => setNoise(e.target.checked)} /> <span>Remove background noise <span className="dim">(only if the recording is noisy)</span></span></label>
+            </section>
+            <section className="dlg-sec" aria-label="Consent">
+              <h4>3 · Permission</h4>
+              <label className="cv-check"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /> <span>This is my own voice, or the speaker has agreed to it being cloned.</span></label>
+            </section>
+            <div className="cv-actions"><button className="btn primary" disabled={busy || missing.length > 0} onClick={() => void makeClone()} aria-describedby="cv-clone-why">{busy ? "Creating…" : "Create the voice…"}</button>
+              <span id="cv-clone-why" className="why">{missing.length ? `To continue: ${missing.join(", ")}.` : "Takes one of your plan's voice slots. You are asked once more before anything is sent."}</span></div>
+          </div>;
+        })()}
         {err && <p className="error-text" role="alert">{err}</p>}
       </div>
     </div>);

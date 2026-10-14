@@ -231,8 +231,8 @@ describe("Stage F wiring (what may be out of date)", () => {
     expect(rd("src-tauri/src/lib.rs")).toContain("filmcrafter_engine.outdated");
     expect(rd("src/api.ts")).toContain('invoke<OutdatedReport>("film_outdated"');
     const doc = rd("docs/LIPSYNC_VALIDATION.md");
-    expect(doc).toContain("has NOT been run");
-    expect(doc).toContain("| (not run) |");
+    expect(doc).toContain("one real run was made");
+    expect(doc).toContain("not by a person watching and listening");
   });
 });
 
