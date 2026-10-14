@@ -1245,11 +1245,12 @@ async fn film_voice(app: AppHandle, action: String, target: String, data: Value)
 }
 
 /// Custom voices with ElevenLabs (filmcrafter_engine.cast_voice): choose, design or clone a person's voice, and speak a written line in it. Only the ElevenLabs key is given to the engine here.
-/// Looking things up is free; anything that uses the person's plan (a designed voice, a spoken line) is refused by the engine unless the screen says `confirmed` after showing the characters
-/// and credits, and cloning is refused without `consent`.
+/// Looking things up is free; anything that uses the person's plan (speaking, previewing, designing a voice, keeping a designed voice, cloning) is refused by the engine itself unless the
+/// call says `confirmed` (designing also needs `unknown_cost_accepted`, since its cost is not published), and cloning is refused without `consent` as well. Every such call is written to the
+/// film's voice ledger; `ledger`, `ledger_resolve` and `set_limit` read and annotate that record.
 #[tauri::command]
 async fn film_cast_voice(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 13] = ["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample"];
+    const ACTIONS: [&str; 16] = ["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample", "ledger", "ledger_resolve", "set_limit"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

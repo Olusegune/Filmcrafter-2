@@ -226,9 +226,13 @@ def dumps(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=1)
 
 
-def write_json(path: str, data: Any, *, backup: bool = True) -> None:
-    """Atomic, locked save. The text is made before anything is touched, so unserialisable data never harms the file that is there."""
+def write_json(path: str, data: Any, *, backup: bool = True, already_locked: bool = False) -> None:
+    """Atomic, locked save. The text is made before anything is touched, so unserialisable data never harms the file that is there.
+    `already_locked=True` is for a caller that holds `locked(path)` itself around a read-modify-write (the lock is not re-entrant)."""
     text = dumps(data)
+    if already_locked:
+        _write_locked(path, text, backup)
+        return
     with locked(path):
         _write_locked(path, text, backup)
 

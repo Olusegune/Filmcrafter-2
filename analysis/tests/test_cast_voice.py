@@ -135,12 +135,12 @@ def test_a_designed_voice_is_heard_first_and_only_then_kept(film, calls):
     log, replies = calls
     replies["/v1/text-to-voice/design"] = Reply(200, {"previews": [{"generated_voice_id": "prev_abc123", "audio_base_64": base64.b64encode(wav_bytes()).decode(), "media_type": "audio/mpeg", "duration_secs": 1.5},
                                                                    {"generated_voice_id": "../evil", "audio_base_64": "AAAA", "media_type": "audio/mpeg"}], "text": "Sample"})
-    out = C.design(film, "A warm older woman with a gentle northern accent, kind and a little tired.")
+    out = C.design(film, "A warm older woman with a gentle northern accent, kind and a little tired.", confirmed=True, unknown_cost_accepted=True)
     assert [p["id"] for p in out["previews"]] == ["prev_abc123"] and os.path.isfile(os.path.join(film, *out["previews"][0]["file"].split("/")))
     assert log[0][2]["json"]["auto_generate_text"] is True
     assert not os.path.exists(C._path(film))                                      # hearing it makes no voice
     replies["/v1/text-to-voice"] = Reply(200, {"voice_id": VID})
-    saved = C.design_save(film, "Lila", "prev_abc123", "Lila's voice", "warm")
+    saved = C.design_save(film, "Lila", "prev_abc123", "Lila's voice", "warm", confirmed=True)
     assert saved["voice"]["made"] == "design" and C.status(film)["people"]["lila"]["voice_id"] == VID
     assert next(c for c in log if c[1] == "/v1/text-to-voice")[2]["json"]["generated_voice_id"] == "prev_abc123"
 
@@ -157,16 +157,16 @@ def test_cloning_needs_consent_and_a_real_audio_file_and_sends_nothing_otherwise
     sample = tmp_path / "me.wav"
     sample.write_bytes(wav_bytes())
     with pytest.raises(SystemExit, match="right to clone"):
-        C.clone(film, "Lila", "Me", [str(sample)], consent=False)
+        C.clone(film, "Lila", "Me", [str(sample)], consent=False, confirmed=True)
     with pytest.raises(SystemExit, match="WAV, MP3"):
-        C.clone(film, "Lila", "Me", [str(tmp_path / "notes.txt")], consent=True)
+        C.clone(film, "Lila", "Me", [str(tmp_path / "notes.txt")], consent=True, confirmed=True)
     big = tmp_path / "big.wav"
     big.write_bytes(b"0" * (C.MAX_SAMPLE_BYTES + 1))
     with pytest.raises(SystemExit, match="30 MB"):
-        C.clone(film, "Lila", "Me", [str(big)], consent=True)
+        C.clone(film, "Lila", "Me", [str(big)], consent=True, confirmed=True)
     assert log == []
     replies["/v1/voices/add"] = Reply(200, {"voice_id": VID, "requires_verification": False})
-    out = C.clone(film, "Lila", "Me", [str(sample)], consent=True)
+    out = C.clone(film, "Lila", "Me", [str(sample)], consent=True, confirmed=True)
     assert out["voice"]["made"] == "clone" and log[0][1] == "/v1/voices/add" and log[0][2]["data"]["name"] == "Me"
 
 
@@ -220,11 +220,11 @@ def test_your_own_recording_can_replace_a_spoken_one_and_the_spoken_one_is_kept(
     assert os.listdir(os.path.join(film, "voice", "_removed"))
 
 
-def test_a_busy_service_is_tried_again_but_a_refusal_is_not(film, calls):
+def test_a_slow_down_is_tried_again_but_an_ambiguous_failure_and_a_refusal_are_not(film, calls):
     log, replies = calls
     sid = lila_shot(film)
     give_voice(film)
-    seq = [Reply(503, {"detail": "busy"}), Reply(200, content=wav_bytes())]
+    seq = [Reply(429, {"detail": "slow down"}), Reply(200, content=wav_bytes())]            # 429: ElevenLabs did not accept it, so trying again is safe
     replies[f"/v1/text-to-speech/{VID}"] = lambda: seq.pop(0)
     C.speak(film, sid, "Lila", confirmed=True)
     assert len([c for c in log if "text-to-speech" in c[1]]) == 2

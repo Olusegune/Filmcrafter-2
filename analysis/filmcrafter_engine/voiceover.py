@@ -26,6 +26,7 @@ import subprocess
 import sys
 import time
 
+from . import safeio
 from .safe import check_id, file_name, file_part
 
 AUDIO_EXT = (".wav", ".mp3", ".m4a", ".flac", ".aac", ".ogg")
@@ -89,9 +90,24 @@ def _film(d: str) -> None:
         raise SystemExit("That isn't a FilmCrafter film.")
 
 
+def _meta_path(d: str) -> str:
+    return os.path.join(d, "voice", "voice.json")
+
+
+def _meta_ok(m: object) -> bool:
+    """voice.json is a record with a `shots` table (an empty record is fine: it was just started). Anything else is not something this version made."""
+    return isinstance(m, dict) and (not m or isinstance(m.get("shots", {}), dict))
+
+
 def _meta(d: str) -> dict:
-    m = _read(os.path.join(d, "voice", "voice.json"), None)
+    """The recordings of the film. A damaged voice.json is never read as an empty one (that would lose every recording on the next save): safeio keeps the damaged bytes, puts back
+    the backup beside it if that is good, and otherwise stops with a plain message."""
+    m = safeio.read_json(_meta_path(d), None, check=_meta_ok)
     return m if isinstance(m, dict) and isinstance(m.get("shots"), dict) else {"schema": 1, "shots": {}}
+
+
+def _save_meta(d: str, meta: dict, locked: bool = False) -> None:
+    safeio.write_json(_meta_path(d), meta, already_locked=locked)
 
 
 def _contracts(d: str) -> dict[str, dict]:
@@ -255,21 +271,22 @@ def attach(d: str, shot: str, speaker: str, file: str, fit: bool = True) -> dict
     info = probe(src)
     if not info["ok"]:
         raise SystemExit(info["why"])
-    meta = _meta(d)
-    entries = meta["shots"].setdefault(sid, [])
-    ext = os.path.splitext(src)[1].lower()
-    rel = f"voice/{sid}/{file_name(k + ext, 60)}"
-    dst = os.path.join(d, *rel.split("/"))
-    old = next((e for e in entries if e["key"] == k), None)
-    if old:
-        _archive(d, old["file"])
-        entries.remove(old)
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-    shutil.copyfile(src, dst)
-    entry = {"key": k, "speaker": pretty(who), "file": rel, "name": os.path.basename(src), "seconds": info["seconds"], "rms_db": info["rms_db"], "peak_db": info["peak_db"], "added": int(time.time())}
-    entries.append(entry)
-    entries.sort(key=lambda e: _order(cons[sid], e["key"]))
-    _write(os.path.join(d, "voice", "voice.json"), meta)
+    with safeio.locked(_meta_path(d)):                          # no other part of the app can change the records between this read and this save
+        meta = _meta(d)
+        entries = meta["shots"].setdefault(sid, [])
+        ext = os.path.splitext(src)[1].lower()
+        rel = f"voice/{sid}/{file_name(k + ext, 60)}"
+        dst = os.path.join(d, *rel.split("/"))
+        old = next((e for e in entries if e["key"] == k), None)
+        if old:
+            _archive(d, old["file"])
+            entries.remove(old)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copyfile(src, dst)
+        entry = {"key": k, "speaker": pretty(who), "file": rel, "name": os.path.basename(src), "seconds": info["seconds"], "rms_db": info["rms_db"], "peak_db": info["peak_db"], "added": int(time.time())}
+        entries.append(entry)
+        entries.sort(key=lambda e: _order(cons[sid], e["key"]))
+        _save_meta(d, meta, locked=True)
     out = {"shot": sid, "speaker": entry["speaker"], "seconds": info["seconds"], "notes": _notes(info["seconds"], info["peak_db"], float(cons[sid]["generation"].get("duration") or 3.0)), "replaced": bool(old)}
     if fit:
         need = round(-(-(sum(e["seconds"] for e in entries) + GAP * (len(entries) - 1) + FIT_MARGIN) * 2 // 1) / 2, 1)
@@ -299,6 +316,11 @@ def _archive(d: str, rel: str) -> None:
 
 
 def shot_gone(d: str, sid: str, into: str | None = None) -> int:
+    with safeio.locked(_meta_path(d)):
+        return _shot_gone(d, sid, into)
+
+
+def _shot_gone(d: str, sid: str, into: str | None = None) -> int:
     """A shot was taken out (or joined into another). Its recordings never stay filed under an id that may be used again by a different shot: with `into`, a person's recording moves to
     that shot unless that person already has one there; everything else goes to voice/_removed. Returns how many recordings were moved or kept aside. Nothing is deleted."""
     meta = _meta(d)
@@ -325,7 +347,7 @@ def shot_gone(d: str, sid: str, into: str | None = None) -> int:
         target.sort(key=lambda e: _order(cons[into], e["key"]))
         if not target:
             meta["shots"].pop(into, None)
-    _write(os.path.join(d, "voice", "voice.json"), meta)
+    _save_meta(d, meta, locked=True)
     return kept
 
 
@@ -349,15 +371,19 @@ def remove(d: str, shot: str, speaker: str) -> dict:
     _film(d)
     sid = check_id(shot, "shot")
     k = key_of(speaker)
-    meta = _meta(d)
-    entries = meta["shots"].get(sid, [])
-    hit = next((e for e in entries if e["key"] == k), None)
-    if hit:
-        _archive(d, hit["file"])
-        entries.remove(hit)
-        if not entries:
-            meta["shots"].pop(sid, None)
-        _write(os.path.join(d, "voice", "voice.json"), meta)
+    removed = False
+    with safeio.locked(_meta_path(d)):
+        meta = _meta(d)
+        entries = meta["shots"].get(sid, [])
+        hit = next((e for e in entries if e["key"] == k), None)
+        if hit:
+            _archive(d, hit["file"])
+            entries.remove(hit)
+            if not entries:
+                meta["shots"].pop(sid, None)
+            _save_meta(d, meta, locked=True)
+            removed = True
+    if removed:
         from . import make
         try:
             make.sync(d)

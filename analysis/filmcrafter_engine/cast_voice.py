@@ -5,10 +5,18 @@ your own recording) and have the app speak a written line in it as that person's
   voice/_previews/  the audio of designed-voice previews (so you can hear them)
   voice/_generated/ lines already spoken (the same voice, model and words are never paid for twice)
 
-Nothing is spent unless the call says `confirmed: true`, which the screen sends only after showing the characters and credits and getting a yes. ElevenLabs bills your own plan by the
-character, so it is shown as characters and credits, never as a dollar price this app cannot know. A spoken line is attached through `voiceover.attach` like any recording (so the shot
-is lengthened to hold it, a recording it replaces is archived, never deleted) and is marked `source: elevenlabs` so it can be told from your own voice and replaced by it later.
-Cloning needs a plan with instant voice cloning and the speaker's consent: the call refuses without `consent: true`.
+What can spend, and the rules (see `paidops.py`, which every provider's paid calls are meant to share):
+  - These actions can use your ElevenLabs plan and are refused by the engine unless the call says `confirmed: true`: `speak`, `preview` (characters and credits, shown first),
+    `design` (an amount ElevenLabs does not publish, so the call must also say `unknown_cost_accepted: true`), `design_save` and `clone` (each takes one voice slot).
+    The screen asks first; the engine does not trust that. `clone` also needs `consent: true`: permission to use a voice and permission to spend are separate and never merged.
+  - Free: `status`, `library`, `set`, `clear`, `estimate`, `takes`, `use_take`, `sample`, `ledger`, `ledger_resolve`, `set_limit`.
+  - Every spending call is written to `voice/ledger.json` before it is sent (prepared, confirmed, submitted) and settled after (completed, refused, failed before submission, uncertain).
+    An estimate is never recorded as an actual: the actual amount is filled in only if ElevenLabs' own reply carries it.
+  - A request is retried automatically only when ElevenLabs said "slow down" (429) or the connection was never made. A timeout after sending, or a 5xx, is recorded as *uncertain*,
+    explained, and never repeated by FilmCrafter on its own; the person checks ElevenLabs' usage page and marks it "not charged" or "charged".
+  - A line already spoken in the same voice is a file on disk: it is free and makes no request.
+A spoken line is attached through `voiceover.attach` like any recording (so the shot is lengthened to hold it, a recording it replaces is archived, never deleted) and is marked
+`source: elevenlabs` so it can be told from your own voice and replaced by it later. Cloning needs a plan with instant voice cloning.
 
   python -m filmcrafter_engine.cast_voice <action> <film_dir> --data '{...}'
 """
@@ -23,6 +31,8 @@ import re
 import sys
 import time
 
+from . import paidops as P
+from . import safeio
 from . import voiceover as V
 from .safe import file_name
 
@@ -95,14 +105,109 @@ def _post(path: str, accept: str = "application/json", timeout: int = 180, **kw)
     return requests.post(f"{ELEVEN}{path}", headers=_headers(accept), timeout=timeout, **kw)
 
 
+# ---------------------------------------------------------------- paying for things (the rules live in paidops.py)
+
+PROVIDER = "elevenlabs"
+CREDIT_UNIT = "elevenlabs_credits"
+LIMIT_UNITS = (CREDIT_UNIT, "voice_slot")
+
+
+def _ledger(d: str) -> P.Ledger:
+    return P.Ledger(os.path.join(d, "voice", "ledger.json"), film=os.path.basename(os.path.normpath(d)))
+
+
+def _credits(words: str, model: str | None) -> dict:
+    mult = CREDITS.get(model, 1.0)
+    return {"unit": CREDIT_UNIT, "amount": round(len(words) * mult), "basis": f"{len(words)} characters x {mult:g} for this model"}
+
+
+def _reported(r) -> tuple[str | None, float | None]:
+    """What ElevenLabs itself said about this request: its request id, and the amount it charged if (and only if) the reply carries it."""
+    h = getattr(r, "headers", None) or {}
+    rid = next((str(h.get(k)) for k in ("request-id", "x-request-id", "x-trace-id") if h.get(k)), None)
+    raw = h.get("character-cost")
+    try:
+        return rid, (float(raw) if raw not in (None, "") else None)
+    except (TypeError, ValueError):
+        return rid, None
+
+
+def _uncertain_words(what: str, code: int | None = None) -> str:
+    return (f"ElevenLabs did not say whether it completed the request to {what}{f' (it answered {code})' if code else ''}. It may or may not have used your plan. "
+            "FilmCrafter has NOT sent it again, so it cannot be charged twice by FilmCrafter. Check your ElevenLabs usage history, then mark it 'not charged' or 'charged' "
+            "in Voice usage, and try again if you like.")
+
+
+def _paid(d: str, *, action: str, key: str, estimate: dict, confirmed, send, what: str, person: str | None = None, shot: str | None = None,
+          consent: bool | None = None, retry: bool = False, unknown_ok=None):
+    """Run one request that can use the ElevenLabs plan, under the rules in paidops. Returns (response, ledger entry) on success; otherwise raises SystemExit with a plain sentence
+    and leaves the ledger saying exactly how far it got. `send()` makes the request and returns the response."""
+    L = _ledger(d)
+    try:
+        P.require_authorised(confirmed, what)
+        if unknown_ok is not None:
+            P.require_accepted_unknown_cost(unknown_ok, what)
+    except SystemExit as e:
+        L.refused_record(provider=PROVIDER, area="voice", action=action, reason=str(e), key=key, person=person, shot=shot)
+        raise
+    L.reconcile()
+    op = L.begin(key=key, provider=PROVIDER, area="voice", action=action, estimate=estimate, person=person, shot=shot, consent=consent)
+    tries = 0
+    while True:
+        tries += 1
+        L.mark(op["id"], P.SUBMITTED)
+        try:
+            r = send()
+        except SystemExit:                                                       # for example no key: nothing left this computer
+            L.mark(op["id"], P.FAILED_BEFORE, note="Stopped before anything was sent.")
+            raise
+        except Exception as e:
+            if P.classify_transport(e) == P.NOT_SENT:
+                if retry and tries <= 2:
+                    L.mark(op["id"], P.CONFIRMED, note="Could not connect; trying again.")
+                    time.sleep(2 * tries)
+                    continue
+                L.mark(op["id"], P.FAILED_BEFORE, note=f"Could not connect ({type(e).__name__}). Nothing was sent.")
+                raise SystemExit("Could not reach ElevenLabs. Nothing was sent, so nothing was charged. Check your connection and try again.")
+            L.mark(op["id"], P.UNCERTAIN, note=f"{type(e).__name__} while waiting for ElevenLabs' answer.")
+            raise SystemExit(_uncertain_words(what))
+        code = r.status_code
+        rid, reported = _reported(r)
+        if r.ok:
+            L.complete(op["id"], request_id=rid, actual_amount=reported, source="ElevenLabs response header" if reported is not None else None)
+            return r, op
+        if code == 429:
+            if retry and tries <= 2:
+                L.mark(op["id"], P.CONFIRMED, note="ElevenLabs asked us to slow down; trying again shortly.")
+                time.sleep(2 * tries)
+                continue
+            L.mark(op["id"], P.REFUSED, provider_request_id=rid, note="ElevenLabs is busy (too many requests).")
+            raise SystemExit("ElevenLabs says it is too busy right now. Nothing was charged. Try again in a minute.")
+        if 400 <= code < 500 and code != 408:                                    # the provider said no: it did not do the work
+            try:
+                _check(r, what)
+                said = f"ElevenLabs refused the request (HTTP {code})."
+            except SystemExit as e:
+                said = str(e)
+            L.mark(op["id"], P.REFUSED, provider_request_id=rid, note=said[:300])
+            raise SystemExit(said)
+        L.mark(op["id"], P.UNCERTAIN, provider_request_id=rid, note=f"ElevenLabs answered HTTP {code}; it may or may not have done the work.")
+        raise SystemExit(_uncertain_words(what, code))
+
+
 # ---------------------------------------------------------------- what a film has
 
 def _path(d: str) -> str:
     return os.path.join(d, "voice", "cast.json")
 
 
+def _cast_ok(c) -> bool:
+    return isinstance(c, dict) and (not c or isinstance(c.get("people", {}), dict))
+
+
 def _cast(d: str) -> dict:
-    c = V._read(_path(d), None)
+    """Who has which voice. A damaged cast.json stops with a plain message (and keeps its bytes) instead of reading as 'nobody has a voice' and being overwritten."""
+    c = safeio.read_json(_path(d), None, check=_cast_ok)
     return c if isinstance(c, dict) and isinstance(c.get("people"), dict) else {"schema": 1, "people": {}}
 
 
@@ -219,29 +324,37 @@ def set_voice(d: str, who: str, v: dict, made: str = "library") -> dict:
     vid = str(v.get("voice_id") or "")
     if not VOICE_ID.fullmatch(vid):
         raise SystemExit("Choose a voice from your ElevenLabs library.")
-    cast = _cast(d)
-    cast["people"][k] = {"name": name, "voice_id": vid, "voice_name": str(v.get("voice_name") or "")[:80], "model": _model(v.get("model")),
-                         "stability": _num(v.get("stability"), 0, 1, 0.5), "similarity": _num(v.get("similarity"), 0, 1, 0.75), "style": _num(v.get("style"), 0, 1, 0.0),
-                         "speed": _num(v.get("speed"), 0.7, 1.2, 1.0), "made": made if made in ("library", "design", "clone") else "library"}
-    os.makedirs(os.path.join(d, "voice"), exist_ok=True)
-    V._write(_path(d), cast)
-    return {"person": name, "voice": cast["people"][k]}
+    entry = {"name": name, "voice_id": vid, "voice_name": str(v.get("voice_name") or "")[:80], "model": _model(v.get("model")),
+             "stability": _num(v.get("stability"), 0, 1, 0.5), "similarity": _num(v.get("similarity"), 0, 1, 0.75), "style": _num(v.get("style"), 0, 1, 0.0),
+             "speed": _num(v.get("speed"), 0.7, 1.2, 1.0), "made": made if made in ("library", "design", "clone") else "library"}
+
+    def change(c):
+        if not isinstance(c.get("people"), dict):
+            c["people"] = {}
+        c.setdefault("schema", 1)
+        c["people"][k] = entry
+    safeio.update_json(_path(d), change, {"schema": 1, "people": {}}, check=_cast_ok)
+    return {"person": name, "voice": entry}
 
 
 def clear_voice(d: str, who: str) -> dict:
     """Take a voice off a person. The voice stays in your ElevenLabs library; lines already spoken stay attached."""
     V._film(d)
     k, name = _person(d, who)
-    cast = _cast(d)
-    cast["people"].pop(k, None)
-    V._write(_path(d), cast)
+
+    def change(c):
+        if isinstance(c.get("people"), dict):
+            c["people"].pop(k, None)
+    if os.path.isfile(_path(d)):
+        safeio.update_json(_path(d), change, {"schema": 1, "people": {}}, check=_cast_ok)
     return {"person": name}
 
 
 # ---------------------------------------------------------------- making a new voice
 
-def design(d: str, description: str, text: str = "") -> dict:
-    """Ask ElevenLabs for a few voices that fit a description, as audio you can listen to. Uses a little of your plan's characters (the screen asks first). Saves nothing as a voice yet."""
+def design(d: str, description: str, text: str = "", confirmed=False, unknown_cost_accepted=False) -> dict:
+    """Ask ElevenLabs for a few voices that fit a description, as audio you can listen to. It uses some of your plan's characters (ElevenLabs does not say how many in advance), so the
+    call must say `confirmed` and `unknown_cost_accepted`. Saves nothing as a voice yet."""
     V._film(d)
     desc = " ".join(str(description or "").split())[:1000]
     if len(desc) < 20:
@@ -252,7 +365,10 @@ def design(d: str, description: str, text: str = "") -> dict:
         body["text"] = sample
     else:
         body["auto_generate_text"] = True
-    j = _check(_post("/v1/text-to-voice/design", json=body), "design that voice").json()
+    r, _ = _paid(d, action="design", key=P.op_key("design", desc, sample), confirmed=confirmed, unknown_ok=unknown_cost_accepted, what="design a voice",
+                 estimate={"unit": "unknown", "amount": None, "basis": "ElevenLabs does not publish how many characters a designed voice uses"},
+                 send=lambda: _post("/v1/text-to-voice/design", json=body))
+    j = r.json()
     folder = os.path.join(d, "voice", "_previews")
     os.makedirs(folder, exist_ok=True)
     previews = []
@@ -273,22 +389,26 @@ def design(d: str, description: str, text: str = "") -> dict:
     return {"previews": previews, "text": str(j.get("text") or sample)[:1000]}
 
 
-def design_save(d: str, who: str, generated_voice_id: str, name: str, description: str, model: str | None = None) -> dict:
-    """Keep one previewed voice: it becomes a voice in your ElevenLabs library (it takes one voice slot of your plan) and is given to the person."""
+def design_save(d: str, who: str, generated_voice_id: str, name: str, description: str, model: str | None = None, confirmed=False) -> dict:
+    """Keep one previewed voice: it becomes a voice in your ElevenLabs library (it takes one voice slot of your plan) and is given to the person. Needs `confirmed`."""
     V._film(d)
     pid = str(generated_voice_id or "")
     if not PREVIEW_ID.fullmatch(pid):
         raise SystemExit("Choose one of the voices you heard.")
     nm = str(name or "").strip()[:80] or f"{_person(d, who)[1]} (FilmCrafter)"
     desc = " ".join(str(description or "").split())[:1000] or "A voice made in FilmCrafter."
-    j = _check(_post("/v1/text-to-voice", json={"voice_name": nm, "voice_description": desc, "generated_voice_id": pid}), "keep that voice").json()
-    return set_voice(d, who, {"voice_id": j.get("voice_id"), "voice_name": nm, "model": model}, made="design")
+    r, _ = _paid(d, action="design_save", key=P.op_key("design_save", pid), confirmed=confirmed, what="keep a designed voice", person=V.pretty(who),
+                 estimate={"unit": "voice_slot", "amount": 1, "basis": "takes one voice slot of your ElevenLabs plan"},
+                 send=lambda: _post("/v1/text-to-voice", json={"voice_name": nm, "voice_description": desc, "generated_voice_id": pid}))
+    return set_voice(d, who, {"voice_id": r.json().get("voice_id"), "voice_name": nm, "model": model}, made="design")
 
 
-def clone(d: str, who: str, name: str, files: list, consent: bool = False, remove_noise: bool = False, model: str | None = None) -> dict:
-    """Make a voice from your own recordings (instant cloning): it takes one voice slot of your plan and is given to the person. Only for a voice you have the right to clone."""
+def clone(d: str, who: str, name: str, files: list, consent: bool = False, remove_noise: bool = False, model: str | None = None, confirmed=False) -> dict:
+    """Make a voice from your own recordings (instant cloning): it takes one voice slot of your plan and is given to the person. Only for a voice you have the right to clone.
+    Two separate permissions are needed: `consent` (the voice may be cloned) and `confirmed` (the plan may be used)."""
     V._film(d)
     if consent is not True:
+        _ledger(d).refused_record(provider=PROVIDER, area="voice", action="clone", reason="No consent to clone this voice.", person=V.pretty(who))
         raise SystemExit("Confirm that you have the right to clone this voice (it is yours, or the speaker has agreed).")
     paths = []
     for f in list(files or [])[:MAX_SAMPLES]:
@@ -301,14 +421,18 @@ def clone(d: str, who: str, name: str, files: list, consent: bool = False, remov
     if not paths:
         raise SystemExit("Choose one or more recordings of the voice (a minute or two of clean speech works best).")
     nm = str(name or "").strip()[:80] or f"{_person(d, who)[1]} (cloned in FilmCrafter)"
-    handles = [open(p, "rb") for p in paths]
-    try:
-        r = _post("/v1/voices/add", data={"name": nm, "remove_background_noise": "true" if remove_noise else "false", "description": "Cloned in FilmCrafter from the owner's recordings."},
-                  files=[("files", (os.path.basename(p), h)) for p, h in zip(paths, handles)])
-    finally:
-        for h in handles:
-            h.close()
-    j = _check(r, "clone that voice").json()
+
+    def send():
+        handles = [open(p, "rb") for p in paths]
+        try:
+            return _post("/v1/voices/add", data={"name": nm, "remove_background_noise": "true" if remove_noise else "false", "description": "Cloned in FilmCrafter from the owner's recordings."},
+                         files=[("files", (os.path.basename(p), h)) for p, h in zip(paths, handles)])
+        finally:
+            for h in handles:
+                h.close()
+    r, _ = _paid(d, action="clone", key=P.op_key("clone", nm, *[(os.path.basename(p), os.path.getsize(p)) for p in paths]), confirmed=confirmed, consent=True,
+                 what="clone a voice", person=V.pretty(who), estimate={"unit": "voice_slot", "amount": 1, "basis": "takes one voice slot of your ElevenLabs plan"}, send=send)
+    j = r.json()
     out = set_voice(d, who, {"voice_id": j.get("voice_id"), "voice_name": nm, "model": model}, made="clone")
     out["requires_verification"] = bool(j.get("requires_verification"))
     return out
@@ -358,31 +482,20 @@ def estimate(d: str, items: list) -> dict:
             "basis": f"{total_chars:,} characters, about {total_credits:,} credits of your ElevenLabs plan. Billed by ElevenLabs to your plan, not in dollars here."}
 
 
-def _speak_to(path: str, words: str, voice: dict) -> None:
+def _speak_to(d: str, path: str, words: str, voice: dict, *, action: str, shot: str | None, person: str, confirmed) -> dict:
+    """One request to speak `words`. Retried automatically only on evidence it was not accepted (see `_paid`); an ambiguous outcome is recorded as uncertain and raised."""
     body = {"text": words, "model_id": _model(voice.get("model")),
             "voice_settings": {"stability": voice.get("stability", 0.5), "similarity_boost": voice.get("similarity", 0.75), "style": voice.get("style", 0.0),
                                "speed": voice.get("speed", 1.0), "use_speaker_boost": True}}
-    r = None
-    for attempt in range(3):                                   # a dropped connection or a busy service is tried twice more; a refusal is not
-        try:
-            r = _post(f"/v1/text-to-speech/{voice['voice_id']}", accept="audio/mpeg", params={"output_format": "mp3_44100_128"}, json=body)
-        except SystemExit:
-            raise
-        except Exception:
-            if attempt == 2:
-                raise SystemExit("Could not reach ElevenLabs. Check your connection and try again; nothing was attached.")
-            time.sleep(2 * (attempt + 1))
-            continue
-        if r.status_code in (429, 500, 502, 503) and attempt < 2:
-            time.sleep(2 * (attempt + 1))
-            continue
-        break
-    _check(r, "speak that line")
+    r, op = _paid(d, action=action, key=P.op_key(action, shot or "", V.key_of(person), words, voice.get("voice_id"), voice.get("model")), confirmed=confirmed,
+                  what="speak that line", person=person, shot=shot, retry=True, estimate=_credits(words, voice.get("model")),
+                  send=lambda: _post(f"/v1/text-to-speech/{voice['voice_id']}", accept="audio/mpeg", params={"output_format": "mp3_44100_128"}, json=body))
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".part"
     with open(tmp, "wb") as f:
         f.write(r.content)
     os.replace(tmp, path)
+    return op
 
 
 def _sidecar(path: str) -> str:
@@ -397,32 +510,34 @@ def _attach_generated(d: str, sid: str, name: str, path: str, voice: dict) -> di
     if cur and cur.get("gen") == gen and os.path.isfile(os.path.join(d, *str(cur.get("file", "")).split("/"))):
         return {"shot": sid, "speaker": V.pretty(name), "seconds": cur.get("seconds"), "notes": [], "replaced": False, "unchanged": True}
     res = V.attach(d, sid, name, path, fit=True)
-    meta = V._meta(d)
-    for e in meta["shots"].get(sid, []):
-        if e.get("key") == k:
-            e["source"] = "elevenlabs"
-            e["gen"] = gen
-            e["name"] = f"{name} (ElevenLabs, {voice.get('voice_name') or 'voice'})"[:120]
-    V._write(os.path.join(d, "voice", "voice.json"), meta)
+
+    def mark(meta):
+        for e in meta["shots"].get(sid, []):
+            if e.get("key") == k:
+                e["source"] = "elevenlabs"
+                e["gen"] = gen
+                e["name"] = f"{name} (ElevenLabs, {voice.get('voice_name') or 'voice'})"[:120]
+    safeio.update_json(V._meta_path(d), mark, {"schema": 1, "shots": {}}, check=V._meta_ok)
     return res
 
 
 def speak(d: str, shot: str, speaker: str, text: str | None = None, confirmed: bool = False) -> dict:
     """Speak a line in the person's voice and attach it to the shot as theirs. `text` is what to say (default: their written line); with a model that reads [tags], direction such as
-    [whispers] or [laughs] can sit in it. The shot's own written dialogue is never changed, so the direction never reaches a picture or video prompt. Only with `confirmed: true`,
-    after the screen has shown the price; a line already spoken in the same voice is free. Every spoken version is kept as a take (see `takes`)."""
+    [whispers] or [laughs] can sit in it. The shot's own written dialogue is never changed, so the direction never reaches a picture or video prompt. Spending needs `confirmed: true`
+    (after the screen has shown the price); a line already spoken in the same voice is free and makes no request. Every spoken version is kept as a take (see `takes`)."""
     sid, name, words, voice = _line(d, shot, speaker, text)
     path = _cache(d, sid, words, voice)
-    spent = 0
+    spent, op = 0, None
     if not os.path.isfile(path):
-        if confirmed is not True:
-            raise SystemExit("Speaking a line uses your ElevenLabs plan. Confirm the price first.")
-        _speak_to(path, words, voice)
+        op = _speak_to(d, path, words, voice, action="speak", shot=sid, person=name, confirmed=confirmed)
         spent = round(len(words) * CREDITS.get(voice.get("model"), 1.0))
         V._write(_sidecar(path), {"shot": sid, "key": V.key_of(name), "speaker": name, "text": words, "model": voice.get("model"), "voice_id": voice.get("voice_id"),
                                   "voice_name": voice.get("voice_name"), "at": int(time.time())})
     res = _attach_generated(d, sid, name, path, voice)
-    return {**res, "characters": len(words), "credits": spent, "cached": spent == 0, "take": os.path.relpath(path, d).replace(os.sep, "/")}
+    rel = os.path.relpath(path, d).replace(os.sep, "/")
+    if op:
+        _ledger(d).mark(op["id"], P.COMPLETED, asset=rel)
+    return {**res, "characters": len(words), "credits": spent, "cached": spent == 0, "take": rel}
 
 
 def takes(d: str, shot: str, speaker: str) -> dict:
@@ -464,7 +579,7 @@ def use_take(d: str, shot: str, speaker: str, file: str) -> dict:
 
 
 def preview(d: str, who: str, text: str = "", confirmed: bool = False) -> dict:
-    """Hear a person's voice say a few words (not attached to any shot). Uses a few characters of your plan; only with `confirmed: true`."""
+    """Hear a person's voice say a few words (not attached to any shot). Uses a few characters of your plan; needs `confirmed: true` unless it was already spoken."""
     V._film(d)
     k, name = _person(d, who)
     voice = _cast(d)["people"].get(k)
@@ -474,18 +589,41 @@ def preview(d: str, who: str, text: str = "", confirmed: bool = False) -> dict:
     path = _cache(d, "preview", words, voice)
     spent = 0
     if not os.path.isfile(path):
-        if confirmed is not True:
-            raise SystemExit("A sample uses a few characters of your ElevenLabs plan. Confirm first.")
-        _speak_to(path, words, voice)
+        op = _speak_to(d, path, words, voice, action="preview", shot=None, person=name, confirmed=confirmed)
+        _ledger(d).mark(op["id"], P.COMPLETED, asset=os.path.relpath(path, d).replace(os.sep, "/"))
         spent = round(len(words) * CREDITS.get(voice.get("model"), 1.0))
     return {"file": os.path.relpath(path, d).replace(os.sep, "/"), "text": words, "characters": len(words), "credits": spent}
+
+
+# ---------------------------------------------------------------- the usage record
+
+def usage(d: str) -> dict:
+    """What voice generation has done in this film, and what it cost where ElevenLabs said so. Free. Settles anything a crash left half-way first."""
+    V._film(d)
+    L = _ledger(d)
+    L.reconcile()
+    return L.summary(PROVIDER)
+
+
+def ledger_resolve(d: str, op_id: str, outcome: str) -> dict:
+    """The person checked ElevenLabs' own usage page: an operation whose outcome was unknown was 'not_charged' or 'charged'. Free; it only annotates the record."""
+    V._film(d)
+    return _ledger(d).resolve(str(op_id or ""), str(outcome or ""))
+
+
+def set_limit(d: str, unit: str, value) -> dict:
+    """An optional ceiling for this film, in a provider unit (`elevenlabs_credits`, `voice_slot`). Operations that might pass it are refused before anything is sent. Empty clears it."""
+    V._film(d)
+    if unit not in LIMIT_UNITS:
+        raise SystemExit("Choose a unit that ElevenLabs uses: credits or voice slots.")
+    return {"limits": _ledger(d).set_limit(unit, value)}
 
 
 # ---------------------------------------------------------------- command line
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample"])
+    ap.add_argument("action", choices=["status", "library", "set", "clear", "design", "design_save", "clone", "estimate", "speak", "preview", "takes", "use_take", "sample", "ledger", "ledger_resolve", "set_limit"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -502,17 +640,23 @@ def main(argv: list[str]) -> int:
         elif a.action == "clear":
             res = clear_voice(d, x.get("person", ""))
         elif a.action == "design":
-            res = design(d, x.get("description", ""), x.get("text", ""))
+            res = design(d, x.get("description", ""), x.get("text", ""), x.get("confirmed") is True, x.get("unknown_cost_accepted") is True)
         elif a.action == "design_save":
-            res = design_save(d, x.get("person", ""), x.get("generated_voice_id", ""), x.get("name", ""), x.get("description", ""), x.get("model"))
+            res = design_save(d, x.get("person", ""), x.get("generated_voice_id", ""), x.get("name", ""), x.get("description", ""), x.get("model"), x.get("confirmed") is True)
         elif a.action == "clone":
-            res = clone(d, x.get("person", ""), x.get("name", ""), x.get("files") or [], x.get("consent") is True, x.get("remove_noise") is True, x.get("model"))
+            res = clone(d, x.get("person", ""), x.get("name", ""), x.get("files") or [], x.get("consent") is True, x.get("remove_noise") is True, x.get("model"), x.get("confirmed") is True)
         elif a.action == "estimate":
             res = estimate(d, x.get("items") or [])
         elif a.action == "speak":
             res = speak(d, x.get("shot", ""), x.get("speaker", ""), x.get("text"), x.get("confirmed") is True)
         elif a.action == "sample":
             res = sample(d, x.get("url", ""))
+        elif a.action == "ledger":
+            res = usage(d)
+        elif a.action == "ledger_resolve":
+            res = ledger_resolve(d, x.get("id", ""), x.get("outcome", ""))
+        elif a.action == "set_limit":
+            res = set_limit(d, x.get("unit", ""), x.get("value"))
         elif a.action == "takes":
             res = takes(d, x.get("shot", ""), x.get("speaker", ""))
         elif a.action == "use_take":
