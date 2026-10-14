@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25.3 (2026-10-14)
+
+- **Shot, production and continuity records are now saved the safe way** (atomic, locked, a damaged record is kept and reported instead of being mistaken for a missing one, the last good copy is used when there is one). This is the same layer the film, voice, cast, Bible and audio records already use.
+- **The sound-effect price learns from what your account really paid.** ElevenLabs charged about half of its published rate in the first real runs, so after two sounds the price shown is your own rate (still an estimate, with the safe upper figure beside it). A spending limit is still checked against the safe figure.
+- Documentation: the handover, README, QA report and the lessons from the real runs are up to date.
+
 ## 0.25.2 (2026-10-14)
 
 - **Edit timeline: shot cards stay readable at any zoom.** Narrow cards used to pile their number, a "No image yet" note, the voice mic and the status on top of each other. Now the card shows what fits: only the shot number when it is very narrow (and the full id as a tooltip), the number and a small mic when narrow, and the picture note and status only when there is room.

@@ -1,4 +1,4 @@
-# QA report: FilmCrafter 0.25.0 (2026-10-14)
+# QA report: FilmCrafter 0.25.3 (2026-10-14)
 
 What has been tested, how, what it found, and what has **not** been tested. It is written to be re-run: every number below comes from a command in the last section.
 
@@ -6,8 +6,8 @@ What has been tested, how, what it found, and what has **not** been tested. It i
 
 | Check | Result |
 |---|---|
-| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,855 passed**, 8 skipped (optional-dependency tests), 0 failed |
-| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **514 passed** |
+| Engine tests (Python, `pytest`): story, bible, shots, make, blocking, looks, principles, render with a mock provider, interchange, security, golden film, end-to-end | **1,976 passed**, 8 skipped (optional-dependency tests), 0 failed |
+| Screen tests and logic (`vitest`): every screen's markup and arithmetic, the guide, the shortcuts, the looks | **549 passed** |
 | App shell (`cargo test`) | **9 passed** |
 | The shell's allow-lists match the engine's actions and the frame shapes (a test across Rust, Python and TypeScript) | passing |
 | Secrets scan (`rafter secrets .`) | none found |
@@ -99,6 +99,10 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 - **Drop on a person, Undo, the recorder** (structure, WAV encoding, silence trimming, next-unvoiced-line, who is under the pointer): unit tested; the recorder's layout and the blocked-microphone message were seen in the browser harness. **Not tested:** a real microphone, Windows' microphone permission in the installed app, the drag-over highlight and drop-on-a-name (they only exist in the real window).
 - **ElevenLabs voices** (`cast_voice`): 17 engine tests with every ElevenLabs request faked: no key means nothing is asked; the plan is read only when the plan view asks; a library voice is kept; a designed voice is heard before it is kept and a preview id cannot be a path; cloning refuses without consent, a non-audio file or a 30 MB+ file, and sends nothing then; a line is never spoken without a confirmed yes; a repeat is free; a busy service is retried but a refusal or a used-up plan is not; your own recording replaces a spoken one and the spoken one is kept. **Not tested against the real ElevenLabs** (no key stored here): the request shapes follow ElevenLabs' published reference (`/v1/text-to-voice/design`, `/v1/text-to-voice`, `/v1/voices/add`, `/v1/text-to-speech/{id}`, `/v1/user/subscription`, `/v2/voices`).
 - **Home card padding:** seen in the browser harness; a test keeps it from growing back.
+
+## Release checks for 0.25.3 (2026-10-14, the last whole runs on the release code)
+
+Engine 1975 passed, 8 skipped, 0 failed in the last whole run (6 min 15 s), plus one test added afterwards (the learned sound-effect price: 1976); screens 549 passed; `cargo test --lib` 9 passed; `rafter secrets` none; `npm audit --omit=dev` 0 vulnerabilities. New since 0.25.0: `test_damage_records` (a damaged shot record is reported and kept, a good backup is used, no temp files or locks left), the learned-price test in `test_audiogen`, the class-name collision guard in the screen tests, and the corrected clone and lip-sync-document wiring tests. Not re-checked by a person: the installed app, the new Edit shot cards and the voice dialogs at 125% and 150% Windows scaling.
 
 ## Real runs of 0.25.0 (2026-10-14, the owner's ElevenLabs credits, a throwaway film, cap 150 credits)
 

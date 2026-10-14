@@ -78,7 +78,7 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 
 ## 8. Where things stand
 
-- **Version 0.25.2** (`main`, tag `v0.25.2`; the GitHub Release has the two installers and the source zip; the repository is private; the installers are not code-signed). Earlier tags: `v0.24.0` (Phase 0), `v0.25.0`, `v0.25.1`. Rebuild with section 4.
+- **Version 0.25.3** (`main`, tag `v0.25.3`; the GitHub Release has the two installers and the source zip; the repository is private; the installers are not code-signed). Earlier tags: `v0.24.0` (Phase 0), `v0.25.0`, `v0.25.1`, `v0.25.2`. Rebuild with section 4.
 - **Read these first:** `docs/PHASE_0_IMPLEMENTATION_REPORT.md` (safety and data protection), `docs/CREATIVE_PRODUCTION_EXPANSION.md` (Sound & Music, voice direction, audio cues and mixing, generation, "may be out of date", the model registry: what was verified, what was not), `docs/PAID_OPERATIONS.md` (the one set of rules for anything that spends), `docs/LIPSYNC_VALIDATION.md` (the real lip-sync run and what it showed), `docs/UI_REFINEMENT.md` (the shared control rules in `src/ui-system.css`), `docs/UPDATES.md` (why in-app updates are off and what they need), `docs/QA.md`.
 - **Built since 0.21:** engine-level confirmation, a ledger and no-retry-when-unclear for paid voice calls; safe JSON records (`safeio.py`) in film.json, voice, cast, bible, shots, make, continuity, the audio library and cues; film-level backups with verified restore; a narrower media scope; the Sound & Music tab; spoken versions, another take, natural-delivery and voice suggestions, voice a scene, table read; audio cues and the sound director; sound-effect and music generation (ElevenLabs, Suno through Kie.ai); audio lanes and a mixer in the exporter (ducking, limiter, loudness target); takes that remember the voice they followed and a report of what may be out of date; the model registry (`~/.filmcrafter/registry.json`); pre-update snapshots.
 - **Real runs so far (small, on throwaway films):** two sound effects and a two-line voice scene on ElevenLabs (39 credits reported), a lip-sync test on Kie (200 credits: reference audio alone did not follow the voice's timing, the Kie lip-sync pass improved it, not proven; nobody has judged the files by eye and ear yet). **Never run for real:** music generation (ElevenLabs Music, Suno through Kie), the cue lanes and the export mix on a real film in the installed app.
@@ -88,7 +88,7 @@ python scripts/audit_film.py "<film folder>" [--kind video --model bytedance/see
 
 ## 9. Next steps, in order
 
-1. **The owner's walk-through of 0.25.2** (checklists in `docs/PHASE_0_IMPLEMENTATION_REPORT.md`, `docs/CREATIVE_PRODUCTION_EXPANSION.md` and `docs/UI_REFINEMENT.md`), and a person judging the lip-sync files from the test.
+1. **The owner's walk-through of 0.25.3** (checklists in `docs/PHASE_0_IMPLEMENTATION_REPORT.md`, `docs/CREATIVE_PRODUCTION_EXPANSION.md` and `docs/UI_REFINEMENT.md`), and a person judging the lip-sync files from the test.
 2. A better lip-sync retest (a line that fills the shot; about 100 Kie credits of the earlier cap were left, but a new go-ahead and cap are needed), and adapting the picture check's prompts for speech.
 3. A first tiny music generation, only with the owner's go-ahead (unknown price and unestablished rights: see `docs/PAID_OPERATIONS.md`).
 4. The 125%/150% scaling sweep of the Studio timeline, Board, Compose and Export screens; keyboard-only and screen-reader passes.
