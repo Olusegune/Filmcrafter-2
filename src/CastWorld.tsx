@@ -5,13 +5,14 @@ import { AssistSheet, askForHelp } from "./AssistSheet";
 import { ask } from "./ask";
 import { askText } from "./askText";
 import { PrincipleIcon } from "./principleIcons";
+import { SoundMusic } from "./SoundMusic";
 import * as I from "./icons";
 
 type Kind = "character" | "environment" | "prop";
 type Entry = BibleCharacter | BibleEnvironment | BibleProp;
-type Tab = "bible" | Kind;
+type Tab = "bible" | Kind | "sound";
 
-const TABS: { id: Tab; label: string }[] = [{ id: "bible", label: "Rules & style" }, { id: "character", label: "Characters" }, { id: "environment", label: "Places" }, { id: "prop", label: "Props" }];
+const TABS: { id: Tab; label: string }[] = [{ id: "bible", label: "Rules & style" }, { id: "character", label: "Characters" }, { id: "environment", label: "Places" }, { id: "prop", label: "Props" }, { id: "sound", label: "Sound & Music" }];
 const RULES: [string, string, string][] = [["world", "The world", "What is always true here: the place, the era, how things work."], ["tone", "Tone", "How it should feel to watch."],
   ["rules", "Rules the film keeps", "Anything that must never change (a character never takes off her ring)."], ["avoid", "Avoid", "What should never appear."]];
 const PHILOSOPHY: [string, string][] = [["visual", "Visual"], ["cinematography", "Cinematography"], ["lighting", "Lighting"], ["acting", "Acting"], ["colour", "Colour"], ["continuity", "Continuity"]];
@@ -75,7 +76,7 @@ export function CastWorld({ dir }: { dir: string }) {
       <div className="cw-head">
         <div className="cw-tabs" role="tablist">
           {TABS.map((t) => <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => { setTab(t.id); setSel(null); }}>
-            {t.label}{t.id !== "bible" && <span className="dim"> {t.id === "character" ? b.counts.characters : t.id === "environment" ? b.counts.environments : b.counts.props}</span>}</button>)}
+            {t.label}{t.id !== "bible" && t.id !== "sound" && <span className="dim"> {t.id === "character" ? b.counts.characters : t.id === "environment" ? b.counts.environments : b.counts.props}</span>}</button>)}
         </div>
         <div style={{ flex: 1 }} />
         <button className="btn ghost sm" onClick={refresh} title="Add anything new from the story. Nothing you wrote is changed.">Add from the story</button>
@@ -84,7 +85,7 @@ export function CastWorld({ dir }: { dir: string }) {
       {b.need.length > 0 && tab === "bible" && <ul className="cw-need">{b.need.map((n) => <li key={n}>{n}</li>)}</ul>}
       {err && <p className="error-text" role="alert">{err}</p>}
 
-      {tab === "bible" ? <RulesStyle b={b} onSave={(d) => run(() => api.bible("update_rules", dir, d))} helping={helping === "world:null"} onHelp={() => help("world", null, "your world and style")} /> : (
+      {tab === "sound" ? <SoundMusic dir={dir} b={b} run={run} /> : tab === "bible" ? <RulesStyle b={b} onSave={(d) => run(() => api.bible("update_rules", dir, d))} helping={helping === "world:null"} onHelp={() => help("world", null, "your world and style")} /> : (
         <div className="cw-body">
           <ul className="cw-list" aria-label={label(tab)}>
             {list.map((x) => {

@@ -123,7 +123,7 @@ const filmStatus = { title: "Last Train", aspect_ratio: "16:9", mode: "simple", 
   versions: [{ version: 1, kind: "screenplay", note: "As supplied", parent: null, origin: "imported", created: now - 3600, fingerprint: "a1", locked: false, words: 58 }, { version: 2, kind: "screenplay", note: "Sharper ending", parent: 1, origin: "written", created: now, fingerprint: "b2", locked: false, words: 61 }] };
 
 const spatialEmpty = { entrances: "", exits: "", doors: "One door, left of the stove", windows: "Large window over the sink, morning light", landmarks: "A radio on the shelf", furniture: "Round table, four chairs", blocking: "", camera_zones: "", lighting: "", day_night: "" };
-const bibleView = { rev: 4, updated: now, rules: { world: "A coastal town where it rains most evenings.", tone: "Quiet, restrained, a little sad.", rules: "Sarah never takes off her ring.", avoid: "Slapstick, bright neon." },
+const bibleView = { sound_style: { sound: { philosophy: "Quiet and close, like being in the room.", realism: "", ambience: "Rain, always, low.", dialogue: "Voices stay clear above everything.", silence: "After the letter." }, music: { genre: "Chamber", instrumentation: "Solo piano, a music box", mood: "Tender", tempo: "", influences: "", palette: "", motifs: "A music box for Lila", intensity: "", silence: "" } }, rev: 4, updated: now, rules: { world: "A coastal town where it rains most evenings.", tone: "Quiet, restrained, a little sad.", rules: "Sarah never takes off her ring.", avoid: "Slapstick, bright neon." },
   philosophy: { visual: "Muted, lived-in.", cinematography: "Mostly locked-off, slow pushes.", lighting: "Motivated, low key, practical lamps.", acting: "Restraint: the feeling shows in the eyes.", colour: "Teal shadows, amber practicals.", continuity: "Sarah's coat is torn after scene 2." },
   style: { lane: "painterly animation", notes: "", traits: "Oil paint texture, soft edges, visible brush marks.", references: ["Quiet domestic painting", "Overcast seaside light"] },
   characters: [
@@ -252,6 +252,13 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "film_audio": {
+      const a = (id: string, kind: string, name: string, category: string, seconds: number, approval: string, extra: Record<string, unknown> = {}) => ({ id, kind, name, description: "", category, file: `audio/${kind}/${id}.wav`, original_name: `${name}.wav`, sha1: id, bytes: 1000, seconds, source: "imported",
+        tags: [], places: [], props: [], characters: [], scenes: [], shots: [], genre: "", mood: "", tempo: "", generation: {}, licence: { source: "", note: "", commercial: "unknown" }, approval, added: now, updated: now, exists: true, ...extra });
+      const all = [a("a-sfx-1a2b3c4d", "sfx", "Rain on the roof", "weather", 42.5, "approved", { places: ["Kitchen"], tags: ["rain", "night"] }), a("a-sfx-5e6f7a8b", "sfx", "Kettle click", "foley", 1.4, "pending", { props: ["Kettle"] }),
+        a("a-music-9c0d1e2f", "music", "Lila's music box", "theme", 96, "pending", { genre: "Chamber", mood: "Tender", characters: ["Lila"] })];
+      return { assets: all, removed: 0, removed_items: [], categories: { sfx: [{ id: "foley", name: "Foley" }, { id: "ambience", name: "Environmental ambience" }, { id: "weather", name: "Weather" }, { id: "custom", name: "Custom" }], music: [{ id: "score", name: "Background score" }, { id: "theme", name: "Character or recurring theme" }, { id: "custom", name: "Custom" }] }, counts: { sfx: 2, music: 1 } };
+    }
     case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : N > 8 ? { ...makeStatus, shots: grow(makeStatus.shots as never[]), counts: { ...(makeStatus as { counts: object }).counts, shots: N } } : makeStatus;
     case "film_check": return continuityMock;
     case "film_voice": return voiceStatus;

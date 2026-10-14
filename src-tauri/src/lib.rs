@@ -1186,7 +1186,7 @@ async fn film(app: AppHandle, action: String, target: Option<String>, data: Valu
 /// The Production Bible, Cast and World of a film (filmcrafter_engine.bible). Free and local: nothing is sent anywhere. Pictures are copied into the film from files the person chose.
 #[tauri::command]
 async fn film_bible(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 10] = ["get", "seed", "update_rules", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"];
+    const ACTIONS: [&str; 12] = ["get", "seed", "update_rules", "update_sound_style", "set_voice_profile", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }
@@ -1268,6 +1268,19 @@ async fn film_cast_voice(app: AppHandle, action: String, target: String, data: V
     let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.cast_voice".into(), action, dir.to_string_lossy().into(), "--data".into(), data.to_string()];
     let envs: Vec<(&str, String)> = keyring::Entry::new(KEY_SERVICE, "elevenlabs").and_then(|e| e.get_password()).ok().map(|k| vec![("ELEVENLABS_KEY", k)]).unwrap_or_default();
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "cast_voice", &args, &envs)).await.map_err(err)?
+}
+
+/// The film's sound effects and music libraries (filmcrafter_engine.audiolib): list, import (copies the chosen files into the film), describe and link, approve, remove (moves aside, never deletes) and
+/// restore. Free and local: nothing is sent anywhere.
+#[tauri::command]
+async fn film_audio(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 6] = ["list", "import", "update", "approve", "remove", "restore"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown audio action.".into());
+    }
+    let dir = film_dir(&target)?;
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.audiolib".into(), action, dir.to_string_lossy().into(), "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "audio", &args, &[])).await.map_err(err)?
 }
 
 /// Making the film (filmcrafter_engine.make): builds the render project from the shots, tracks storyboard panels, keyframes and takes, locks and chooses. It never spends money:
@@ -2055,7 +2068,7 @@ pub fn run() {
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_audio, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

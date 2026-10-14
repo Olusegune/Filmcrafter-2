@@ -22,6 +22,7 @@ import sys
 import time
 
 from . import animation_principles as AP
+from . import safeio
 from .safe import check_id, file_part
 
 SCHEMA = 1
@@ -41,6 +42,11 @@ KEEP_HISTORY = 30
 
 RULE_FIELDS = ("world", "tone", "rules", "avoid")
 PHILOSOPHY_FIELDS = ("visual", "cinematography", "lighting", "acting", "colour", "continuity")
+# Sound & Music (additive: older films simply lack these keys). The film's sound and music style is film-wide; a voice profile belongs to one character. The assigned ElevenLabs voice
+# stays in voice/cast.json (cast_voice.py): the profile describes the voice the character should have, it never replaces that record.
+SOUND_STYLE_FIELDS = {"sound": ("philosophy", "realism", "ambience", "dialogue", "silence"),
+                      "music": ("genre", "instrumentation", "mood", "tempo", "influences", "palette", "motifs", "intensity", "silence")}
+VOICE_PROFILE_FIELDS = ("description", "age_range", "accent", "timbre", "pace", "emotional_range", "delivery", "notes")
 CHARACTER_FIELDS = ("name", "role", "age", "physical", "relationships", "arc", "voice", "notes")
 SPATIAL_FIELDS = ("entrances", "exits", "doors", "windows", "landmarks", "furniture", "blocking", "camera_zones", "lighting", "day_night")
 ENV_FIELDS = ("name", "description", "notes")
@@ -56,19 +62,12 @@ def emit(**kw) -> None:
 
 
 def _read(path, default=None):
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return default
+    """Absent -> default. A damaged file is never mistaken for an empty Bible (see safeio): its bytes are kept and the last good copy is used, or the person is told."""
+    return safeio.read_json(path, default)
 
 
 def _write(path, data) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + f".{os.getpid()}.tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, path)
+    safeio.write_json(path, data)
 
 
 def _text(v, limit: int = LIMIT) -> str:
@@ -79,7 +78,8 @@ def _empty() -> dict:
     return {"schema": SCHEMA, "rev": 0, "updated": 0,
             "rules": {k: "" for k in RULE_FIELDS}, "philosophy": {k: "" for k in PHILOSOPHY_FIELDS},
             "style": {"lane": "", "notes": "", "traits": "", "references": []},
-            "characters": [], "environments": [], "props": []}
+            "characters": [], "environments": [], "props": [],
+            "sound_style": {sec: {k: "" for k in fs} for sec, fs in SOUND_STYLE_FIELDS.items()}}
 
 
 def _path(d: str) -> str:
@@ -100,6 +100,8 @@ def load(d: str) -> dict:
         return base
     for k, v in base.items():
         b.setdefault(k, v)
+    ss = b["sound_style"] if isinstance(b.get("sound_style"), dict) else {}
+    b["sound_style"] = {sec: {k: str((ss.get(sec) or {}).get(k, "")) for k in fs} for sec, fs in SOUND_STYLE_FIELDS.items()}
     return b
 
 
@@ -230,6 +232,39 @@ def update_rules(d: str, data: dict) -> dict:
     if b != before:
         _save(d, b, before)
     return view(d)
+
+
+def update_sound_style(d: str, data: dict) -> dict:
+    """The film's sound and music style. Only the known fields are taken, each trimmed; nothing else in the Bible changes."""
+    b = load(d)
+    before = json.loads(json.dumps(b))
+    src = data.get("sound_style") if isinstance(data.get("sound_style"), dict) else data
+    for sec, fields in SOUND_STYLE_FIELDS.items():
+        part = src.get(sec) if isinstance(src.get(sec), dict) else {}
+        for k, v in part.items():
+            if k in fields:
+                b["sound_style"][sec][k] = _text(v)
+    if b != before:
+        _save(d, b, before)
+    return view(d)
+
+
+def set_voice_profile(d: str, id_: str, data: dict) -> dict:
+    """What a character's voice should be like (description, age range, accent, timbre, pace, emotional range, delivery, notes) and whether the voice chosen for them is approved.
+    Approving is only ever the person's own act; nothing here chooses, changes or generates a voice."""
+    b = load(d)
+    before = json.loads(json.dumps(b))
+    cur = _find(b, "character", check_id(id_, "character"))
+    prof = dict(cur.get("voice_profile") or {})
+    for k in VOICE_PROFILE_FIELDS:
+        if k in data:
+            prof[k] = _text(data[k])
+    if "approved" in data:
+        prof["approved"] = bool(data["approved"])
+    cur["voice_profile"] = {**{k: "" for k in VOICE_PROFILE_FIELDS}, "approved": False, **prof}
+    if b != before:
+        _save(d, b, before)
+    return {**view(d), "id": cur["id"]}
 
 
 def upsert(d: str, kind: str, item: dict) -> dict:
@@ -408,7 +443,7 @@ def view(d: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-bible")
-    ap.add_argument("action", choices=["get", "seed", "update_rules", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"])
+    ap.add_argument("action", choices=["get", "seed", "update_rules", "update_sound_style", "set_voice_profile", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -421,6 +456,10 @@ def main(argv: list[str]) -> int:
             res = seed(d)
         elif a.action == "update_rules":
             res = update_rules(d, x)
+        elif a.action == "update_sound_style":
+            res = update_sound_style(d, x)
+        elif a.action == "set_voice_profile":
+            res = set_voice_profile(d, x.get("id", ""), x)
         elif a.action == "upsert":
             res = upsert(d, x.get("kind", ""), x.get("item") or {})
         elif a.action == "remove":

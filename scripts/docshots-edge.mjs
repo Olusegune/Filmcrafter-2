@@ -49,6 +49,7 @@ const SCENES = {
   newfilmwrite: ["newfilm-story.png", "scene=newfilmwrite"],
   film: ["film.png", "scene=film"],
   cast: ["cast.png", "scene=cast"],
+  castsound: ["cast-sound.png", "scene=cast&clickcss=.cw-tabs button:nth-child(5)"],
   shots: ["shots.png", "scene=shots"],
   make: ["make.png", "scene=make"],
   studio: ["studio.png", "scene=studio&click=zzz&click=OK"],

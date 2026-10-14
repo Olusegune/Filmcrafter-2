@@ -272,10 +272,11 @@ export const api = {
   assist: <T = AssistResult>(action: "estimate" | "suggest", target: string, data: Record<string, unknown>) => invoke<T>("film_assist", { action, target, data }),
   interchange: (target: string) => invoke<InterchangeResult>("film_interchange", { target }),
   filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
-  bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
+  bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "update_sound_style" | "set_voice_profile" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "set_aspect" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),
+  filmAudio: <T = AudioLibrary>(action: "list" | "import" | "update" | "approve" | "remove" | "restore", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audio", { action, target, data }),
   filmBackup: <T = unknown>(target: string, action: "make" | "list" | "verify" | "restore", name: string | null = null) => invoke<T>("film_backup", { action, target, name }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
   packFilm: (target: string, dest: string) => invoke<{ path: string; files: number; bytes: number; title: string }>("pack_film", { target, dest }),
@@ -437,11 +438,13 @@ export type StoryPreview = { kind: StoryKind; words: number; scenes: number; cha
 // ---------------------------------------------------------------- the Production Bible, Cast and World
 export type BibleMedia = { path: string; kind: string; label: string };
 export type BibleState = { id: string; label: string; notes: string; wardrobe?: string; age?: string };
-export type BibleCharacter = { id: string; name: string; role: string; age: string; physical: string; relationships: string; arc: string; voice: string; notes: string;
+export type VoiceProfile = { description: string; age_range: string; accent: string; timbre: string; pace: string; emotional_range: string; delivery: string; notes: string; approved: boolean };
+export type BibleCharacter = { id: string; name: string; role: string; age: string; physical: string; relationships: string; arc: string; voice: string; notes: string; voice_profile?: VoiceProfile;
   wardrobe: { id: string; name: string; notes: string }[]; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
 export type BibleEnvironment = { id: string; name: string; description: string; notes: string; spatial: Record<string, string>; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
 export type BibleProp = { id: string; name: string; notes: string; states: BibleState[]; media: BibleMedia[]; scenes: number[]; source: string };
-export type BibleView = { rev: number; updated: number; rules: Record<string, string>; philosophy: Record<string, string>; style: { lane: string; notes: string; traits: string; references: string[]; principles?: string[]; look?: string; genre?: string };
+export type SoundStyle = { sound: Record<string, string>; music: Record<string, string> };
+export type BibleView = { sound_style: SoundStyle; rev: number; updated: number; rules: Record<string, string>; philosophy: Record<string, string>; style: { lane: string; notes: string; traits: string; references: string[]; principles?: string[]; look?: string; genre?: string };
   characters: BibleCharacter[]; environments: BibleEnvironment[]; props: BibleProp[]; lanes: string[];
   families: { id: string; name: string; blurb: string; lanes: string[]; looks: { id: string; name: string; description: string }[] }[]; family: string;
   genres: { id: string; name: string; description: string }[]; look: string; genre: string;
@@ -507,3 +510,8 @@ export type LedgerEntry = { id: string; at: number; updated: number; action: str
   estimate: { unit: string; amount: number | null; basis: string }; actual: { unit: string; amount: number | null; reported: boolean; source: string | null }; note: string; resolved?: { outcome: "not_charged" | "charged"; at: number } };
 export type VoiceUsage = { limits: Record<string, number>; count: number; recent: LedgerEntry[]; unresolved: LedgerEntry[];
   by_unit: Record<string, { operations: number; estimated: number; reported: number; unreported_operations: number; estimated_unreported: number }> };
+export type AudioAsset = { id: string; kind: "sfx" | "music"; name: string; description: string; category: string; file: string; original_name: string; sha1: string; bytes: number; seconds: number;
+  source: "imported" | "generated"; tags: string[]; places: string[]; props: string[]; characters: string[]; scenes: string[]; shots: string[]; genre: string; mood: string; tempo: string;
+  generation: Record<string, unknown>; licence: { source: string; note: string; commercial: "yes" | "no" | "unknown" }; approval: "pending" | "approved" | "rejected"; added: number; updated: number; exists?: boolean };
+export type AudioLibrary = { assets: AudioAsset[]; removed: number; removed_items: { id: string; kind: "sfx" | "music"; name: string; removed_at: number }[]; categories: Record<"sfx" | "music", { id: string; name: string }[]>; counts: { sfx: number; music: number };
+  added?: string[]; skipped?: { file: string; why: string; id?: string }[] };
