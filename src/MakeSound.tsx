@@ -93,7 +93,7 @@ export function MakeSound({ dir, kind, onClose, onMade }: { dir: string; kind: "
             <input className="text-input" inputMode="decimal" value={influence} placeholder="0.3" onChange={(e) => { setInfluence(e.target.value); setVariation(0); }} /></label></details>}
 
           {est && <section className="ms-price" aria-label="Price">
-            <p><b>{free ? "Already in your library: free." : est.cost_known ? `About ${est.amount?.toLocaleString()} credits (an estimate).` : "The price is not published."}</b> <span className="dim">{est.basis}</span></p>
+            <p><b>{free ? "Already in your library: free." : est.cost_known ? `About ${(est.expected ?? est.amount)?.toLocaleString()} credits (an estimate).` : "The price is not published."}</b> <span className="dim">{est.basis}</span></p>
             {!free && <>
               {est.needs_unknown_cost_accepted && <label className="ov-check"><input type="checkbox" checked={unknown} onChange={(e) => setUnknown(e.target.checked)} /> I accept that the price is unknown until the provider reports it.</label>}
               <label className="ov-check ms-rights"><input type="checkbox" checked={rights} onChange={(e) => setRights(e.target.checked)} /> <span>{est.rights_note} I understand it is saved as “commercial use: not known”.</span></label>

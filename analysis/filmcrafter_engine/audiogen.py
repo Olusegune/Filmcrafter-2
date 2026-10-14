@@ -286,9 +286,16 @@ def find_made(d: str, key: str) -> dict | None:
 
 
 def _estimate_of(spec: dict, c: dict) -> dict:
+    """`amount` is the safe upper figure (the one a spending limit is checked against); `expected` is what earlier sounds really cost on this account, when that is known."""
     if c["provider"] == "elevenlabs_sfx":
         if c.get("duration"):
-            return {"unit": ELEVEN_UNIT, "amount": round(c["duration"] * 11), "basis": f"about 11 credits per second x {c['duration']:g} s (ElevenLabs' figure for API use; an estimate)"}
+            top = round(c["duration"] * 11)
+            from . import registry
+            seen = registry.observed("elevenlabs_sfx_per_second")
+            if seen and seen[0] < 11 * 0.9:
+                exp = round(c["duration"] * seen[0])
+                return {"unit": ELEVEN_UNIT, "amount": top, "expected": exp, "basis": f"about {exp} credits: your last {seen[1]} sounds cost about {seen[0]:g} credits per second (ElevenLabs' own figure is 11, so at most {top}). An estimate"}
+            return {"unit": ELEVEN_UNIT, "amount": top, "basis": f"about 11 credits per second x {c['duration']:g} s (ElevenLabs' figure for API use; an estimate)"}
         return {"unit": ELEVEN_UNIT, "amount": 100, "basis": "about 100 credits when the model chooses the length (ElevenLabs' figure for API use; an estimate)"}
     return {"unit": spec["unit"], "amount": None, "basis": spec["cost_words"]}
 
@@ -301,6 +308,7 @@ def estimate(d: str, params: dict) -> dict:
     made = find_made(d, key)
     est = _estimate_of(spec, c)
     return {"provider": c["provider"], "label": spec["label"], "kind": spec["kind"], "key": key, "cached": made["id"] if made else None, "unit": est["unit"], "amount": 0 if made else est["amount"],
+            "expected": None if made else est.get("expected"),
             "basis": "Already in the library: free." if made else est["basis"], "cost_known": spec["cost_known"], "needs_unknown_cost_accepted": (not spec["cost_known"]) and not made,
             "needs_rights_ack": not made, "rights_note": RIGHTS_NOTE, "has_key": bool(os.environ.get(spec["key"])), "params": c}
 
@@ -395,7 +403,10 @@ def _finish_audio(d: str, spec: dict, c: dict, key: str, r, op: dict, name, cate
         L.mark(op["id"], P.COMPLETED, note="The provider answered but what it sent was not usable audio. It was not kept; the request may still have been charged.")
         raise
     L.complete(op["id"], request_id=rid, actual_amount=reported, source="ElevenLabs response header" if reported is not None else None, asset=asset["file"])
-    return {"asset": asset, "cached": False, "cost": {"unit": est["unit"], "estimate": est["amount"], "reported": reported, "basis": est["basis"]}, "note": "Saved to the library, waiting for your approval."}
+    if reported and c.get("duration") and c["provider"] == "elevenlabs_sfx":
+        from . import registry
+        registry.observe("elevenlabs_sfx_per_second", reported / c["duration"])             # what this account really pays per second, so the next price shown is closer
+    return {"asset": asset, "cached": False, "cost": {"unit": est["unit"], "estimate": est.get("expected") or est["amount"], "reported": reported, "basis": est["basis"]}, "note": "Saved to the library, waiting for your approval."}
 
 
 # ---------------------------------------------------------------- a music task that is still being made (Kie.ai)

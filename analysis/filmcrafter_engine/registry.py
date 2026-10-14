@@ -242,6 +242,31 @@ def refresh(providers: list[str] | None = None, fetchers: dict | None = None, pa
     return {"results": results, "kept": "Anything that could not be refreshed keeps what it had; the built-in models are always available."}
 
 
+def observe(kind: str, value: float, path: str | None = None) -> None:
+    """Remember what something really cost, as the provider reported it (for example credits per second of a sound effect). The last ten are kept, on this computer, apart from every film."""
+    if not isinstance(value, (int, float)) or value <= 0:
+        return
+
+    def change(data):
+        data = {**_empty(), **data}
+        obs = data.setdefault("observed", {})
+        obs[kind] = (obs.get(kind, []) + [round(float(value), 4)])[-10:]
+        return data
+    try:
+        _save(change, path)
+    except SystemExit:
+        pass
+
+
+def observed(kind: str, path: str | None = None) -> tuple[float, int] | None:
+    """(the middle of what it really cost, how many times that was seen) once there are at least two sightings, else None."""
+    vals = sorted((load(path).get("observed") or {}).get(kind, []))
+    if len(vals) < 2:
+        return None
+    mid = vals[len(vals) // 2] if len(vals) % 2 else (vals[len(vals) // 2 - 1] + vals[len(vals) // 2]) / 2
+    return round(mid, 3), len(vals)
+
+
 def status(path: str | None = None) -> dict:
     data = load(path)
     now = time.time()

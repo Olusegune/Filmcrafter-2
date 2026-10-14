@@ -313,3 +313,22 @@ def test_the_command_line_speaks_the_engine_format_and_only_knows_its_actions(fi
         AG.main(["format_disk", film])
     assert AG.main(["generate", film, "--data", json.dumps(SFX)]) == 1
     assert "only goes ahead after you confirm" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- the price shown learns what this account really pays
+
+def test_the_sound_effect_price_learns_from_what_elevenlabs_really_charged_and_the_limit_still_uses_the_safe_figure(film, net, tmp_path, monkeypatch):
+    from filmcrafter_engine import registry as R
+    monkeypatch.setenv(R.ENV, str(tmp_path / "reg.json"))
+    log, rep = net
+    assert AG.estimate(film, SFX)["expected"] is None                                                            # nothing seen yet: only ElevenLabs' own figure
+    for secs in (2, 3):
+        rep["eleven"] = lambda s=secs: _with(Reply(200, content=wav_bytes(1.5)), {"character-cost": str(s * 5.5)})
+        AG.generate(film, {**SFX, "duration": secs, "prompt": f"a kettle {secs}"}, **YES)
+    e = AG.estimate(film, {**SFX, "duration": 4, "prompt": "a different kettle"})
+    assert e["expected"] == 22 and e["amount"] == 44 and "your last 2 sounds cost about 5.5 credits per second" in e["basis"] and "at most 44" in e["basis"]
+    assert R.observed("elevenlabs_sfx_per_second") == (5.5, 2)
+    from filmcrafter_engine import cast_voice as C
+    C.set_limit(film, "elevenlabs_credits", 20)
+    with pytest.raises(SystemExit, match="limit"):
+        AG.generate(film, {**SFX, "duration": 4, "prompt": "a different kettle"}, **YES)                         # 44 against what is left of 20: refused before sending

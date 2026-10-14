@@ -544,7 +544,7 @@ export type SoundIdea = { kind: "ambience" | "sfx" | "music"; what: string; why:
 export type SoundIdeas = { scene: number; ideas: SoundIdea[]; source: "quick" | "director" };
 export type GenProvider = { id: "elevenlabs_sfx" | "elevenlabs_music" | "kie_suno"; label: string; kind: "sfx" | "music"; cost_known: boolean; cost_words: string; duration: [number, number] | null; loop: boolean;
   instrumental: boolean; has_key: boolean; rights: string; rights_note: string; checked: string };
-export type GenEstimate = { provider: string; label: string; kind: "sfx" | "music"; key: string; cached: string | null; unit: string; amount: number | null; basis: string; cost_known: boolean;
+export type GenEstimate = { expected?: number | null; provider: string; label: string; kind: "sfx" | "music"; key: string; cached: string | null; unit: string; amount: number | null; basis: string; cost_known: boolean;
   needs_unknown_cost_accepted: boolean; needs_rights_ack: boolean; rights_note: string; has_key: boolean };
 export type GenResult = { asset?: AudioAsset; assets?: AudioAsset[]; cached: boolean; cost?: { unit: string; estimate?: number | null; reported?: number | null; amount?: number; basis?: string }; note: string; pending?: { task: string; state: string } };
 export type RightsReport = { assets: { id: string; name: string; kind: string; commercial: string; in_plan: boolean; source: string; why: string }[]; blocking: { id: string; name: string; why: string }[]; ok: boolean };
