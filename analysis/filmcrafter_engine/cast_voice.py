@@ -109,7 +109,7 @@ def _post(path: str, accept: str = "application/json", timeout: int = 180, **kw)
 
 PROVIDER = "elevenlabs"
 CREDIT_UNIT = "elevenlabs_credits"
-LIMIT_UNITS = (CREDIT_UNIT, "voice_slot")
+LIMIT_UNITS = (CREDIT_UNIT, "voice_slot", "kie_credits")
 
 
 def _ledger(d: str) -> P.Ledger:

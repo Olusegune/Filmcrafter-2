@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api, errorText, type AiPrice, type AudioLibrary, type Cue, type CueList, type SoundIdea, type SoundIdeas } from "./api";
+import { api, errorText, type AiPrice, type AudioLibrary, type CueList, type RightsReport, type SoundIdea, type SoundIdeas, type Cue } from "./api";
 import { ask } from "./ask";
 import { aiAskWords, audioFacts } from "./soundWords";
 
@@ -19,8 +19,9 @@ export function SceneSound({ dir }: { dir: string }) {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [adding, setAdding] = useState(false);
+  const [rights, setRights] = useState<RightsReport | null>(null);
   const reload = useCallback(async () => {
-    try { const [l, a] = await Promise.all([api.filmCues("list", dir), api.filmAudio("list", dir)]); setList(l); setLib(a); } catch (e) { setErr(errorText(e)); }
+    try { const [l, a] = await Promise.all([api.filmCues("list", dir), api.filmAudio("list", dir)]); setList(l); setLib(a); api.audioGen<RightsReport>("rights", dir).then(setRights).catch(() => {}); } catch (e) { setErr(errorText(e)); }
   }, [dir]);
   useEffect(() => { void reload(); }, [reload]);
   const scenes = useMemo(() => Object.keys(list?.scenes ?? {}).map(Number).sort((a, b) => a - b), [list]);
@@ -52,6 +53,7 @@ export function SceneSound({ dir }: { dir: string }) {
       <div className="ss-scenes" role="tablist" aria-label="Scenes">{scenes.map((n) => <button key={n} role="tab" aria-selected={n === scene} className={n === scene ? "on" : ""} onClick={() => { setScene(n); setIdeas(null); }}>Scene {n}</button>)}</div>
       <p className="dim ss-lead">{info.shots.length} shot{info.shots.length === 1 ? "" : "s"}, {info.seconds.toFixed(1)} s. {dialogue.length ? `${dialogue.length} spoken line${dialogue.length === 1 ? "" : "s"} already have a voice and stay as they are.` : "No voice recorded in this scene yet."} Plans only: nothing here makes sound or costs anything.</p>
 
+      {rights && !rights.ok && <p className="ss-warn" role="status">Before you release the film: {rights.blocking.length === 1 ? "one sound in the plan has" : `${rights.blocking.length} sounds in the plan have`} rights you have not confirmed ({rights.blocking.map((r) => r.name).slice(0, 3).join(", ")}). Open it in the library and set “commercial use”.</p>}
       <section>
         <h3>The soundscape <span className="dim">{cues.length} cue{cues.length === 1 ? "" : "s"}{list.counts.needs_sound ? ` · ${list.counts.needs_sound} still need a sound` : ""}</span></h3>
         {cues.length === 0 && <p className="dim">Nothing planned for this scene yet. Ask for ideas below, or add a sound you have.</p>}

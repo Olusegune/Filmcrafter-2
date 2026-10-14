@@ -17,21 +17,25 @@ const ops = (x: number) => `${x.toLocaleString()} operation${x === 1 ? "" : "s"}
  * the headline. Nothing is said before anything was done.
  */
 export const usageWords = (by: VoiceUsage["by_unit"] | undefined): string => {
-  const c = by?.elevenlabs_credits, slots = by?.voice_slot;
+  const c = by?.elevenlabs_credits, slots = by?.voice_slot, k = by?.kie_credits;
   const parts: string[] = [];
   if (c && c.operations > 0) {
     if (c.reported > 0) {
-      parts.push(`Voice generation: ${n(c.reported)} ElevenLabs credits reported`
+      parts.push(`Generation: ${n(c.reported)} ElevenLabs credits reported`
         + (c.unreported_operations > 0 ? `, plus ${ops(c.unreported_operations)} with no amount reported (about ${n(c.estimated_unreported)} credits, estimated)` : ""));
     } else {
-      parts.push(`Voice generation: ${ops(c.operations)} so far. ElevenLabs has not reported amounts for them (estimated at about ${n(c.estimated_unreported || c.estimated)} credits)`);
+      parts.push(`Generation: ${ops(c.operations)} so far. ElevenLabs has not reported amounts for them (estimated at about ${n(c.estimated_unreported || c.estimated)} credits)`);
     }
+  }
+  if (k && k.operations > 0) {
+    parts.push(k.reported > 0 ? `Kie.ai music: ${n(k.reported)} credits reported${k.unreported_operations > 0 ? `, plus ${ops(k.unreported_operations)} with no amount reported` : ""}`
+      : `Kie.ai music: ${ops(k.operations)} so far, credits not reported yet`);
   }
   if (slots && slots.operations > 0) parts.push(`${slots.operations.toLocaleString()} voice slot${slots.operations === 1 ? "" : "s"} taken through FilmCrafter`);
   return parts.join(". ");
 };
 
-const ACTION: Record<string, string> = { speak: "Speak a line", preview: "Hear a sample", design: "Design voices", design_save: "Keep a designed voice", clone: "Clone a voice" };
+const ACTION: Record<string, string> = { speak: "Speak a line", preview: "Hear a sample", design: "Design voices", design_save: "Keep a designed voice", clone: "Clone a voice", sfx: "Make a sound effect", music: "Make music" };
 
 /** An operation in words, for the list of ones whose outcome is unknown. */
 export const attemptWords = (e: Pick<LedgerEntry, "action" | "person" | "shot" | "at">): string => {

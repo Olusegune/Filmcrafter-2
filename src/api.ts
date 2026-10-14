@@ -278,6 +278,7 @@ export const api = {
     invoke<T>("film", { action, target, data }),
   voiceDirect: <T = unknown>(action: "performance" | "performance_set" | "performance_clear" | "natural_estimate" | "natural_suggest" | "voices_estimate" | "voices_suggest" | "voices_match" | "scene_plan" | "scene_voice" | "table_read", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_voice_direct", { action, target, data }),
   filmCues: <T = CueList>(action: "list" | "add" | "update" | "approve" | "remove" | "restore" | "refresh" | "quick" | "director_estimate" | "director_suggest", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cues", { action, target, data }),
+  audioGen: <T = unknown>(action: "providers" | "estimate" | "generate" | "pending" | "check" | "rights", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audiogen", { action, target, data }),
   filmAudio: <T = AudioLibrary>(action: "list" | "import" | "update" | "approve" | "remove" | "restore", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audio", { action, target, data }),
   filmBackup: <T = unknown>(target: string, action: "make" | "list" | "verify" | "restore", name: string | null = null) => invoke<T>("film_backup", { action, target, name }),
   backups: <T = unknown>(dir: string, action: "backup" | "backups" | "restore", name: string | null = null) => invoke<T>("backups", { dir, action, name }),
@@ -537,3 +538,9 @@ export type CueList = { cues: Cue[]; dialogue: CueDialogue[]; removed: { id: str
   scenes: Record<string, { shots: { id: string; seconds: number; sound: string }[]; seconds: number }>; counts: { cues: number; needs_sound: number; suggested: number } };
 export type SoundIdea = { kind: "ambience" | "sfx" | "music"; what: string; why: string; search: string; shot: string | null; loop: boolean; matches: { asset_id: string; name: string; score: number; why: string[]; approved: boolean; seconds: number }[] };
 export type SoundIdeas = { scene: number; ideas: SoundIdea[]; source: "quick" | "director" };
+export type GenProvider = { id: "elevenlabs_sfx" | "elevenlabs_music" | "kie_suno"; label: string; kind: "sfx" | "music"; cost_known: boolean; cost_words: string; duration: [number, number] | null; loop: boolean;
+  instrumental: boolean; has_key: boolean; rights: string; rights_note: string; checked: string };
+export type GenEstimate = { provider: string; label: string; kind: "sfx" | "music"; key: string; cached: string | null; unit: string; amount: number | null; basis: string; cost_known: boolean;
+  needs_unknown_cost_accepted: boolean; needs_rights_ack: boolean; rights_note: string; has_key: boolean };
+export type GenResult = { asset?: AudioAsset; assets?: AudioAsset[]; cached: boolean; cost?: { unit: string; estimate?: number | null; reported?: number | null; amount?: number; basis?: string }; note: string; pending?: { task: string; state: string } };
+export type RightsReport = { assets: { id: string; name: string; kind: string; commercial: string; in_plan: boolean; source: string; why: string }[]; blocking: { id: string; name: string; why: string }[]; ok: boolean };

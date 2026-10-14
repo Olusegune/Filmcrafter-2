@@ -252,6 +252,13 @@ mockIPC((cmd, a) => {
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
+    case "film_audiogen": {
+      if (x.action === "providers") return { providers: [{ id: "elevenlabs_sfx", label: "ElevenLabs sound effects", kind: "sfx", cost_known: true, cost_words: "about 11 credits per second you ask for", duration: [0.5, 30], loop: true, instrumental: false, has_key: true, rights: "not_established", rights_note: "Commercial rights for sound made this way were not established.", checked: "2026-10-14" },
+        { id: "elevenlabs_music", label: "ElevenLabs Music", kind: "music", cost_known: false, cost_words: "ElevenLabs does not publish what a piece of music uses of your plan", duration: [3, 600], loop: false, instrumental: true, has_key: true, rights: "not_established", rights_note: "Commercial rights for sound made this way were not established.", checked: "2026-10-14" }] };
+      if (x.action === "estimate") return { provider: "elevenlabs_sfx", label: "ElevenLabs sound effects", kind: "sfx", key: "k", cached: null, unit: "elevenlabs_credits", amount: 22, basis: "about 11 credits per second x 2 s (an estimate)", cost_known: true, needs_unknown_cost_accepted: false, needs_rights_ack: true, rights_note: "Commercial rights for sound made this way were not established.", has_key: true };
+      if (x.action === "pending") return { tasks: [] };
+      return { assets: [], blocking: [], ok: true };
+    }
     case "film_cues": {
       const base = { cues: [{ id: "q-1a2b3c4d", kind: "ambience", asset_id: "a-sfx-1a2b3c4d", asset_name: "Rain on the roof", asset_file: "audio/sfx/a-sfx-1a2b3c4d.wav", asset_seconds: 42.5, scene: 1, shot: null, start: 0, duration: null, gain_db: -14, fade_in: 1, fade_out: 2,
           loop: true, ducking: "auto", approval: "approved", note: "", source: "manual", fresh: [], needs_sound: false, created: now, updated: now },

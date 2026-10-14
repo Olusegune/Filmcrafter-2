@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type AiPrice, type AudioAsset, type AudioLibrary, type BibleCharacter, type BibleView, type CastPlan, type VoiceProfile, type VoiceSuggestion } from "./api";
 import { ask } from "./ask";
 import { SceneSound } from "./SceneSound";
+import { MakeSound } from "./MakeSound";
 import { SamplePlayer, VoiceMaker } from "./CastVoices";
 import { notifyVoice, useCast } from "./voiceHooks";
 import { aiAskWords, audioFacts, commaList, PROFILE_FIELDS, SOUND_FIELDS, MUSIC_FIELDS, voiceKey } from "./soundWords";
@@ -179,6 +180,7 @@ function Library({ dir, kind, b }: { dir: string; kind: "sfx" | "music"; b: Bibl
   const [note, setNote] = useState("");
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const [making, setMaking] = useState(false);
   const act = useCallback(async (f: () => Promise<AudioLibrary>) => { setErr(""); setBusy(true); try { const r = await f(); setLib(r); return r; } catch (e) { setErr(errorText(e)); return null; } finally { setBusy(false); } }, []);
   useEffect(() => { void act(() => api.filmAudio("list", dir, { kind })); }, [dir, kind, act]);
   const assets = (lib?.assets ?? []).filter((a) => a.kind === kind && (!filter || a.category === filter));
@@ -206,12 +208,14 @@ function Library({ dir, kind, b }: { dir: string; kind: "sfx" | "music"; b: Bibl
     <div className="cw-body">
       <div className="sm-side">
         <div className="sm-row"><button className="btn" disabled={busy} onClick={() => void add()}>{kind === "sfx" ? "Import sounds…" : "Import music…"}</button>
+          <button className="btn ghost" disabled={busy} onClick={() => setMaking(true)}>Make with AI…</button>
           <select className="text-input" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Category">
             <option value="">All categories</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
         <ul className="cw-list" aria-label={kind === "sfx" ? "Sound effects" : "Music"}>
           {assets.map((a) => <li key={a.id}><button className={cur?.id === a.id ? "on" : ""} onClick={() => setSel(a.id)}>
             <span className="nm">{a.name}</span><span className="dim">{audioFacts(a)}</span></button></li>)}
         </ul>
+        {making && <MakeSound dir={dir} kind={kind} onClose={() => setMaking(false)} onMade={() => void act(() => api.filmAudio("list", dir, { kind }))} />}
         {lib && !assets.length && <p className="dim">{kind === "sfx" ? "No sound effects yet. Import the sounds you already have: footsteps, rain, a door. Each gets its own place in the film's library." : "No music yet. Import a score, a theme or a song you have the right to use."}</p>}
       </div>
       <div>

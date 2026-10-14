@@ -173,58 +173,89 @@ def list_assets(d: str, kind: str | None = None) -> dict:
             "counts": {k: sum(1 for a in data["assets"] if a["kind"] == k) for k in KINDS}}
 
 
+def add_file(d: str, kind: str, src: str, *, category: str | None = None, source: str = "imported", name: str | None = None, description: str = "", generation: dict | None = None,
+             licence: dict | None = None, dedupe: bool = True, tags: list | None = None) -> dict:
+    """Copy one audio file into the library as a new asset. Returns {"asset": ...} or {"skipped": why, "id": ...}. The source file is never moved or changed. The file is checked as audio first.
+    `source` is imported or generated; a generated asset carries how it was made (provider, model, prompt, settings) in `generation`."""
+    _film(d)
+    if kind not in KINDS:
+        raise SystemExit("Choose sound effects or music.")
+    if source not in SOURCES:
+        raise SystemExit("The source is imported or generated.")
+    cat = category if category in CATEGORIES[kind] else "custom"
+    src = os.path.abspath(str(src))
+    info = probe(src)
+    if not info["ok"]:
+        return {"skipped": info["why"]}
+    digest = _sha1(src)
+    ext = os.path.splitext(src)[1].lower()
+    folder = os.path.join(d, "audio", kind)
+    os.makedirs(folder, exist_ok=True)
+    holder: dict = {}
+
+    def change(data):
+        data = _normal(data)
+        same = next((a for a in data["assets"] if a["kind"] == kind and a.get("sha1") == digest), None) if dedupe else None
+        if same:
+            holder["dup"] = same
+            return data
+        aid = _id(kind, {a["id"] for a in data["assets"]} | {a["id"] for a in data["removed"]})
+        dest = os.path.join(folder, aid + ext)
+        tmp = dest + f".{os.getpid()}.tmp"
+        try:
+            shutil.copyfile(src, tmp)
+            os.replace(tmp, dest)
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        title = (name or re.sub(r"[_]+", " ", os.path.splitext(os.path.basename(src))[0])).strip()[:80] or "Untitled"
+        now = int(time.time())
+        lic = {"source": "", "note": "", "commercial": "unknown", **(licence or {})}
+        asset = {"id": aid, "kind": kind, "name": title, "description": _text(description), "category": cat, "file": f"audio/{kind}/{aid}{ext}", "original_name": os.path.basename(src)[:200],
+                 "sha1": digest, "bytes": info["bytes"], "seconds": info["seconds"], "source": source, "tags": _list(tags or []), "places": [], "props": [], "characters": [],
+                 "scenes": [], "shots": [], "genre": "", "mood": "", "tempo": "", "generation": generation or {}, "licence": lic, "approval": "pending", "added": now, "updated": now}
+        data["assets"].append(asset)
+        holder["asset"] = asset
+        return data
+
+    safeio.update_json(_path(d), change, _empty(), check=_ok)
+    if "dup" in holder:
+        return {"skipped": f"Already in the library as \u201c{holder['dup']['name']}\u201d.", "id": holder["dup"]["id"]}
+    return {"asset": holder["asset"]}
+
+
 def import_files(d: str, kind: str, files: list, category: str | None = None) -> dict:
     """Copy audio files into the film's library. The originals are never moved or changed. A file already in the library (same content, same kind) is not added twice."""
     _film(d)
     if kind not in KINDS:
         raise SystemExit("Choose sound effects or music.")
-    cat = category if category in CATEGORIES[kind] else "custom"
     if not isinstance(files, list) or not files:
         raise SystemExit("Choose at least one audio file.")
     added, skipped = [], []
     for f in files[:50]:
-        src = os.path.abspath(str(f))
-        info = probe(src)
-        if not info["ok"]:
-            skipped.append({"file": os.path.basename(src), "why": info["why"]})
-            continue
-        digest = _sha1(src)
-        ext = os.path.splitext(src)[1].lower()
-        folder = os.path.join(d, "audio", kind)
-        os.makedirs(folder, exist_ok=True)
-        holder: dict = {}
-
-        def change(data, _src=src, _digest=digest, _ext=ext, _info=info, _folder=folder):
-            data = _normal(data)
-            same = next((a for a in data["assets"] if a["kind"] == kind and a.get("sha1") == _digest), None)
-            if same:
-                holder["dup"] = same
-                return data
-            aid = _id(kind, {a["id"] for a in data["assets"]} | {a["id"] for a in data["removed"]})
-            dest = os.path.join(_folder, aid + _ext)
-            tmp = dest + f".{os.getpid()}.tmp"
-            try:
-                shutil.copyfile(_src, tmp)
-                os.replace(tmp, dest)
-            finally:
-                if os.path.exists(tmp):
-                    os.remove(tmp)
-            name = re.sub(r"[_]+", " ", os.path.splitext(os.path.basename(_src))[0]).strip()[:80] or "Untitled"
-            now = int(time.time())
-            asset = {"id": aid, "kind": kind, "name": name, "description": "", "category": cat, "file": f"audio/{kind}/{aid}{_ext}", "original_name": os.path.basename(_src)[:200],
-                     "sha1": _digest, "bytes": _info["bytes"], "seconds": _info["seconds"], "source": "imported", "tags": [], "places": [], "props": [], "characters": [],
-                     "scenes": [], "shots": [], "genre": "", "mood": "", "tempo": "", "generation": {}, "licence": {"source": "", "note": "", "commercial": "unknown"},
-                     "approval": "pending", "added": now, "updated": now}
-            data["assets"].append(asset)
-            holder["asset"] = asset
-            return data
-
-        safeio.update_json(_path(d), change, _empty(), check=_ok)
-        if "dup" in holder:
-            skipped.append({"file": os.path.basename(src), "why": f"Already in the library as “{holder['dup']['name']}”.", "id": holder["dup"]["id"]})
+        r = add_file(d, kind, str(f), category=category)
+        if "asset" in r:
+            added.append(r["asset"]["id"])
         else:
-            added.append(holder["asset"]["id"])
+            skipped.append({"file": os.path.basename(str(f)), "why": r["skipped"], **({"id": r["id"]} if "id" in r else {})})
     return {**list_assets(d), "added": added, "skipped": skipped}
+
+
+def rights_report(d: str) -> dict:
+    """Which sounds and music the film's plan uses whose commercial use is not known or not allowed, so nothing goes into a released film unnoticed. Free; changes nothing."""
+    from . import audiocues as Q
+    _film(d)
+    lib = load(d)
+    used = {c["asset_id"] for c in (Q.listing(d)["cues"]) if c.get("asset_id") and c.get("approval") != "rejected"}
+    rows = []
+    for a in lib["assets"]:
+        if a["id"] not in used and not a.get("generation"):
+            continue
+        com = (a.get("licence") or {}).get("commercial", "unknown")
+        if com != "yes":
+            rows.append({"id": a["id"], "name": a["name"], "kind": a["kind"], "commercial": com, "in_plan": a["id"] in used, "source": a["source"],
+                         "why": "Commercial use is not allowed." if com == "no" else "Commercial use is not known: confirm the rights before releasing the film."})
+    return {"assets": rows, "blocking": [r for r in rows if r["in_plan"]], "ok": not any(r["in_plan"] for r in rows)}
 
 
 def update(d: str, asset_id: str, data: dict) -> dict:

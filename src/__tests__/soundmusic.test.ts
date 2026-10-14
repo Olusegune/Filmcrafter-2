@@ -140,3 +140,37 @@ describe("Stage C wiring (scene sound)", () => {
     expect(rd("src/api.ts")).toContain('invoke<T>("film_cues"');
   });
 });
+
+describe("Stage D wiring (making sound and music)", () => {
+  const rd = (f: string) => readFileSync(f, "utf8");
+  it("is opened from the libraries, shows the price and the rights first, and asks before it sends", () => {
+    const m = rd("src/MakeSound.tsx");
+    expect(rd("src/SoundMusic.tsx")).toContain("Make with AI…");
+    expect(m.indexOf("await ask(confirmWords(")).toBeLessThan(m.indexOf('"generate"'));
+    expect(m).toContain("rights_ack: free ? false : rights");
+    expect(m).toContain("unknown_cost_accepted: unknown");
+    expect(m).toContain("I accept that the price is unknown");
+    expect(m).toContain("commercial use: not known");
+    expect(m).toContain("Already in your library: free.");
+    expect(m).toContain("Make a variation");
+    expect(m).toContain("already paid for");
+    expect(m).toContain("is never retried by itself");
+  });
+  it("the make button stays off until the price is known and what must be ticked is ticked", () => {
+    const m = rd("src/MakeSound.tsx");
+    expect(m).toMatch(/const ready = !!est && !!p\?\.has_key && \(free \|\| \(rights && \(!est\.needs_unknown_cost_accepted \|\| unknown\)\)\)/);
+  });
+  it("the plan warns about sounds whose rights are not confirmed", () => {
+    expect(rd("src/SceneSound.tsx")).toContain("rights you have not confirmed");
+  });
+  it("the shell allows exactly the engine's generation actions", () => {
+    expect(rd("src-tauri/src/lib.rs")).toMatch(/ACTIONS: \[&str; 6\] = \["providers", "estimate", "generate", "pending", "check", "rights"\]/);
+    expect(rd("src/api.ts")).toContain('invoke<T>("film_audiogen"');
+  });
+  it("the usage line mentions Kie.ai credits only as reported", async () => {
+    const { usageWords } = await import("../voiceUsage");
+    const u = (o: object) => ({ operations: 0, estimated: 0, reported: 0, unreported_operations: 0, estimated_unreported: 0, ...o });
+    expect(usageWords({ kie_credits: u({ operations: 1, unreported_operations: 1 }) })).toBe("Kie.ai music: 1 operation so far, credits not reported yet");
+    expect(usageWords({ kie_credits: u({ operations: 2, reported: 12 }) })).toBe("Kie.ai music: 12 credits reported");
+  });
+});

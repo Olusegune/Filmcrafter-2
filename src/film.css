@@ -1041,3 +1041,10 @@
 .ss-ideas li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 12px; border: 1px solid var(--hairline, rgba(244, 247, 250, 0.12)); border-radius: 12px; font-size: 13px; }
 .ss-match { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .dlg li { font-size: 12.5px; } .dlg q { quotes: none; }
+
+/* Make a sound or music with a provider */
+.ms { max-width: 640px; }
+.ms-cost { margin: 0; font-size: 12.5px; }
+.ms-price { padding: 10px 12px; border: 1px solid var(--hairline, rgba(244, 247, 250, 0.14)); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.ms-price p { margin: 0; }
+.ms-rights { align-items: flex-start; font-size: 12.5px; }

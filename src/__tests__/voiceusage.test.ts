@@ -25,11 +25,11 @@ describe("what the person is told before anything is charged", () => {
 
 describe("the voice usage line", () => {
   it("shows a number as 'reported' only when ElevenLabs reported it", () => {
-    expect(usageWords({ elevenlabs_credits: unit({ operations: 3, reported: 320, estimated: 330 }) })).toBe("Voice generation: 320 ElevenLabs credits reported");
+    expect(usageWords({ elevenlabs_credits: unit({ operations: 3, reported: 320, estimated: 330 }) })).toBe("Generation: 320 ElevenLabs credits reported");
   });
   it("keeps estimates apart: reported amounts first, the rest labelled as estimated", () => {
     expect(usageWords({ elevenlabs_credits: unit({ operations: 3, reported: 100, estimated: 140, unreported_operations: 1, estimated_unreported: 40 }) }))
-      .toBe("Voice generation: 100 ElevenLabs credits reported, plus 1 operation with no amount reported (about 40 credits, estimated)");
+      .toBe("Generation: 100 ElevenLabs credits reported, plus 1 operation with no amount reported (about 40 credits, estimated)");
   });
   it("with nothing reported, never offers an estimate as a total", () => {
     const t = usageWords({ elevenlabs_credits: unit({ operations: 2, estimated: 58, unreported_operations: 2, estimated_unreported: 58 }) });
