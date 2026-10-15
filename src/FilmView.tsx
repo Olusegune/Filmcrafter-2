@@ -7,6 +7,8 @@ import { FrameShapes } from "./FrameShapes";
 import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
+import { FirstFilm } from "./FirstFilm";
+import { buildSteps, doneCount, guideSeen, nextStep, requiredCount } from "./guideSteps";
 import { LADDER, ladderAt, minutes, neighbours, openAdvice, sceneLine, stageBadge, stageDone, stageLabel, STAGES, STORY_KINDS, storyState } from "./storyView";
 
 /**
@@ -25,6 +27,9 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [progress, setProgress] = useState<FilmProgress | null>(null);
   const [suggested, setSuggested] = useState<{ text: string; kind: StoryKind } | null>(null);          // the next step the writing helper proposed: opens in the new-version sheet to edit and save
   const [helping, setHelping] = useState(false);
+  const [guide, setGuide] = useState(false);                                     // "Your first film": the order a film is made in, from what this film has
+  const [goVoice, setGoVoice] = useState(false);
+  const [goSound, setGoSound] = useState(false);
   const MAKE_STAGE: Record<string, MakeTab> = { make: "keyframe", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
   const activeId = stage === "make" ? (makeTab === "deliver" ? "export" : "make") : stage;
@@ -34,7 +39,8 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
     api.film<FilmStatus>("status", dir, version ? { version } : {}).then(setF).catch((e) => setErr(errorText(e))), [dir]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { api.film("status", dir).then(() => api.filmBackup(dir, "make", "open")).catch(() => {}); }, [dir]);       // a snapshot of the film's records when it opens (only if it read cleanly; skipped when nothing changed)
-  useEffect(() => { api.make<FilmProgress>("progress", dir).then(setProgress).catch(() => {}); }, [dir, stage, makeTab, f?.story.locked, f?.story.current]);          // the small words under each step
+  useEffect(() => { api.make<FilmProgress>("progress", dir).then(setProgress).catch(() => {}); }, [dir, stage, makeTab, f?.story.locked, f?.story.current]);
+  useEffect(() => { if (progress && !guideSeen(dir) && !progress.story.locked && progress.make.keyframe === 0 && progress.make.video === 0) setGuide(true); }, [dir, progress]);   // a brand-new film opens the guide once          // the small words under each step
 
   const run = async (what: string, fn: () => Promise<FilmStatus>) => {
     setBusy(what); setErr("");
@@ -94,10 +100,12 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
           {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
             onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Pro"}</button>)}</div>
+        <button className="btn ghost sm ff-open" onClick={() => setGuide(true)} title="The order a film is made in, and what each step costs" aria-label="Open the first-film guide">
+          <I.Rocket size={13} /> Guide{progress && (() => { const st = buildSteps({ progress, voices: null, sound: null, pro: f.mode === "studio", exported: false }); const n = nextStep(st); return n ? <small className="ff-badge">{doneCount(st)}/{requiredCount(st)}</small> : null; })()}</button>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
 
-      {stage === "cast" ? <CastWorld key={dir} dir={dir} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={dir} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} /> : <div className="film-body">
+      {stage === "cast" ? <CastWorld key={`${dir}-${goSound}`} dir={dir} initialTab={goSound ? "sound" : undefined} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={`${dir}-${goVoice}`} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} openVoice={goVoice} /> : <div className="film-body">
         <nav className="film-scenes" aria-label="Scenes">
           <h2>Scenes <span className="dim">{f.found.scenes.filter((s) => !s.implied).length || ""}</span></h2>
           {f.found.scenes.length === 0 && <p className="dim">{isScreenplay ? "No scenes found yet." : "Scenes appear once the story is a screenplay or an outline."}</p>}
@@ -201,6 +209,10 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <span className="film-hint dim">{nb.hint}</span>
         {nb.next ? <button className="btn sel sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
       </footer>
+      {guide && <FirstFilm dir={dir} progress={progress} pro={studio} onClose={() => setGuide(false)} onGo={(where) => {
+        setGoVoice(where === "voice"); setGoSound(where === "sound");
+        goStage(where === "voice" ? "make" : where === "sound" ? "cast" : where);
+      }} />}
       {writing && <NewVersion from={f} initial={suggested} onClose={() => { setWriting(false); setSuggested(null); }} onSaved={(s) => { setF(s); setWriting(false); setScene(null); }} dir={dir} />}
     </div>
   );

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **"Your first film" guide.** A new **Guide** button at the top of every film (it also opens by itself once, on a brand-new film) shows the order a film is made in: story, cast, voices, shots (Pro), pictures, video, sound (optional), export. Each step shows whether it is done, what it costs in words (with the live price of one test shot where it can be worked out), and a "Take me there" button. It only reads and points: it never makes or buys anything, and every paid step still shows its own price and asks first. A test guards that the guide contains no paid-work calls.
+
 ## 0.25.4 (2026-10-15)
 
 - **Fixed: the Direction library's "All" tab was clipped** (only a sliver of each colour band showed, the names and notes were cut off). A long list inside a fixed-height panel squashed every card; the cards now keep their full height and the list scrolls. The same fix covers the other card lists built the same way (the approve grid and the select-and-review grid).

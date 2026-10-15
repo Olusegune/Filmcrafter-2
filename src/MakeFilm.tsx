@@ -29,14 +29,14 @@ type Pick = { provider?: string; model?: string; label?: string; price_usd?: num
  * Making the film: storyboard, hero keyframes, video, then sound and export. Every step that costs money shows the price first and waits for a yes.
  * Chosen and locked work is never replaced by a new generation.
  */
-export function MakeFilm({ dir, tab, onTab, autoBreakdown }: { dir: string; tab: MakeTab; onTab: (t: MakeTab) => void; autoBreakdown?: boolean }) {
+export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice }: { dir: string; tab: MakeTab; onTab: (t: MakeTab) => void; autoBreakdown?: boolean; openVoice?: boolean }) {
   const [st, setSt] = useState<MakeStatus | null>(null);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [note, setNote] = useState("");
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
-  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(!!openVoice);                      // the first-film guide can take you straight to the voices
   const dropped = useVoiceDrop(dir, !voiceOpen);                                  // drop a recording on a card
   const [voices, setVoices] = useState<VoiceStatus | null>(null);                 // how many of the film's voices are your own recordings
   useEffect(() => { if (!voiceOpen) api.voice("status", dir).then(setVoices).catch(() => {}); }, [dir, voiceOpen, tab]);

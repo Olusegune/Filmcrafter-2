@@ -26,9 +26,9 @@ const label = (t: Tab) => TABS.find((x) => x.id === t)!.label;
  * The Production Bible, Cast and World: the one source of truth the rest of the film is made from. Seeded from the story, then yours.
  * Characters, places and props are single entries with related states (Sarah at 8, at 28, at 70; the kitchen by day and by night).
  */
-export function CastWorld({ dir }: { dir: string }) {
+export function CastWorld({ dir, initialTab }: { dir: string; initialTab?: Tab }) {
   const [b, setB] = useState<BibleView | null>(null);
-  const [tab, setTab] = useState<Tab>("character");
+  const [tab, setTab] = useState<Tab>(initialTab ?? "character");
   const [sel, setSel] = useState<string | null>(null);
   const [err, setErr] = useState("");
   const [note, setNote] = useState("");

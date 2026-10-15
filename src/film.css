@@ -1071,3 +1071,26 @@
 .od { padding: 10px 12px; border: 1px solid rgba(232, 176, 74, 0.5); border-radius: 12px; background: rgba(232, 176, 74, 0.06); font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; }
 .od h3 { margin: 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #e8b45c; } .od ul { margin: 0; padding-left: 18px; } .od p { margin: 0; }
 .mr-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }
+
+/* Your first film (the guide) */
+.ff { width: min(720px, calc(100vw - 32px)); max-height: 90vh; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+.ff-lead { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.ff-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.ff-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #ffc04d, #ff8a1f); transition: width 240ms ease; }
+.ff-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ff-step { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 8px; }
+.ff-step.next { border-color: var(--amber, #e8b45c); background: var(--amber-wash, rgba(232, 180, 92, 0.1)); }
+.ff-step.done { opacity: 0.72; }
+.ff-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; border: 1px solid var(--hair); color: var(--text-quiet, #8b97a7); }
+.ff-step.done .ff-n { background: rgba(95, 212, 154, 0.18); border-color: rgba(95, 212, 154, 0.5); color: #7fe0b0; }
+.ff-step.next .ff-n { background: var(--amber, #e8b45c); border-color: transparent; color: #1a1205; }
+.ff-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+.ff-cost, .ff-state { font-size: 11px; padding: 0 8px; border: 1px solid var(--hair); border-radius: 999px !important; color: var(--text-quiet, #8b97a7); }
+.ff-cost.free { color: #7fe0b0; border-color: rgba(95, 212, 154, 0.4); }
+.ff-cost.asks, .ff-cost.your_recordings { color: var(--amber, #e8b45c); border-color: var(--amber-line, rgba(232, 180, 92, 0.5)); }
+.ff-state.on { color: #1a1205; background: var(--amber, #e8b45c); border-color: transparent; }
+.ff-what { margin: 4px 0 2px; font-size: 12.5px; line-height: 1.5; color: var(--mist, #b6c0cc); }
+.ff-foot { margin: 0; }
+.ff-open { gap: 6px; }
+.ff-badge { margin-left: 4px; padding: 0 6px; border-radius: 999px !important; background: var(--amber-wash, rgba(232, 180, 92, 0.15)); color: var(--amber, #e8b45c); font-size: 11px; }
+@media (max-width: 640px) { .ff-step { grid-template-columns: 28px minmax(0, 1fr); } .ff-step > .btn { grid-column: 2; justify-self: start; } }
