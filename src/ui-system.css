@@ -96,3 +96,10 @@ select { max-width: 100%; }
 .shot-card.story.xs .card-top { justify-content: center; padding: 3px 1px; }
 .shot-card.story.xs .kc-voice { right: 50%; transform: translateX(50%); }
 .shot-card.story.xs .kf-flag { display: none; }
+
+/* the Direction library's card grid: every card keeps its full height (a long list used to squash the cards until only a sliver of colour showed) */
+.dl-grid { grid-auto-rows: max-content; align-content: start; }
+.dl-card { min-height: 150px; flex-shrink: 0; }
+.dl-card .dl-body-text { min-width: 0; }
+.dl-card .dl-band { flex: none; }
+.approve-grid, .sr-grid { grid-auto-rows: max-content; align-content: start; }

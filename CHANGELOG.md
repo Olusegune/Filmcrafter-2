@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.4 (2026-10-15)
+
+- **Fixed: the Direction library's "All" tab was clipped** (only a sliver of each colour band showed, the names and notes were cut off). A long list inside a fixed-height panel squashed every card; the cards now keep their full height and the list scrolls. The same fix covers the other card lists built the same way (the approve grid and the select-and-review grid).
+- Checked every main screen at 1000 px and 1280 px wide for anything pushed outside the window, and with the accessibility checker (WCAG 2.1 A and AA): no findings. The screenshot sweep gained scenes for the Sound & Music areas and the Direction library's All tab.
+
 ## 0.25.3 (2026-10-14)
 
 - **Shot, production and continuity records are now saved the safe way** (atomic, locked, a damaged record is kept and reported instead of being mistaken for a missing one, the last good copy is used when there is one). This is the same layer the film, voice, cast, Bible and audio records already use.
