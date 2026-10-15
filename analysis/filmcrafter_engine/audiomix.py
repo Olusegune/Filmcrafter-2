@@ -98,7 +98,7 @@ def set_settings(d: str, data: dict) -> dict:
 
 # ---------------------------------------------------------------- where each cue sits on the film
 
-def placements(d: str, shot_times: dict, duration: float, st: dict | None = None, only_scene: int | None = None) -> tuple[list[dict], list[dict]]:
+def placements(d: str, shot_times: dict, duration: float, st: dict | None = None, only_scene: int | None = None, preview: bool = False) -> tuple[list[dict], list[dict]]:
     """The cues that will be heard: [{cue, path, start, end, gain, fade_in, fade_out, loop, duck, asset_seconds}] and the ones left out with a reason. `shot_times` maps a shot id to (start, end)
     seconds on the film. A cue is heard only when it is approved, not muted, in a lane that is not muted, its sound file is there and its shot or scene is in the film."""
     st = st or settings(d)
@@ -114,7 +114,7 @@ def placements(d: str, shot_times: dict, duration: float, st: dict | None = None
             spans[n] = [min(lo, a), max(hi, b)]
     data = safeio.read_json(Q._path(d), {"cues": []}, check=Q._ok)
     out, skipped = [], []
-    solo = st["solo"] if only_scene is not None else None
+    solo = st["solo"] if (only_scene is not None or preview) else None     # solo narrows a preview only; the finished film ignores it
     for c in data.get("cues", []):
         cid = c.get("id")
         if only_scene is not None and int(c.get("scene", 0)) != int(only_scene):
@@ -269,7 +269,7 @@ def _fade_gain(i0: int, n: int, s0: int, s1: int, fi: int, fo: int):
 
 # ---------------------------------------------------------------- the mix
 
-def mix_cues(d: str, base_path: str | None, shot_times: dict, duration: float, out: str, st: dict | None = None, only_scene: int | None = None, progress=None, windows=None) -> dict | None:
+def mix_cues(d: str, base_path: str | None, shot_times: dict, duration: float, out: str, st: dict | None = None, only_scene: int | None = None, progress=None, windows=None, preview: bool = False) -> dict | None:
     """The base soundtrack with the approved cues laid on it, ducked, limited and (if asked) levelled. `d` is the film or its render project. Returns None when no cue is heard (then nothing
     is changed). Writes a WAV to `out`."""
     import numpy as np
@@ -278,7 +278,7 @@ def mix_cues(d: str, base_path: str | None, shot_times: dict, duration: float, o
     if film is None or not os.path.isfile(Q._path(film)):
         return None                                              # not a film, or a film with no plan: the soundtrack is left exactly as it is
     st = st or settings(film)
-    plan, skipped = placements(film, shot_times, duration, st, only_scene)
+    plan, skipped = placements(film, shot_times, duration, st, only_scene, preview)
     if not plan:
         return {"none": True, "skipped": skipped} if skipped else None
     total = int(round(duration * RATE))
@@ -407,26 +407,33 @@ def _voices_base(film: str, times: dict, duration: float, out: str) -> str | Non
     return out
 
 
-def preview(d: str, scene: int, solo: str | None = None) -> dict:
+WHOLE_MAX = 20 * 60.0              # a whole-film preview is built in memory: longer films are previewed a scene at a time
+
+
+def preview(d: str, scene, solo: str | None = None) -> dict:
     """A short audio mix of one scene: the voices that are there, with the scene's approved cues on top, as the finished film would sound. Written to cache/audio-preview; nothing in the film changes."""
     import numpy as np
     import soundfile as sf
     Q._film(d)
-    shots = sorted([s for s in Q._shots(d).values() if int(s["scene"]) == int(scene)], key=lambda s: s["index"])
+    whole = scene in ("all", "film", "whole")
+    every = sorted(Q._shots(d).values(), key=lambda s: (int(s["scene"]), s["index"]))
+    shots = every if whole else [s for s in every if int(s["scene"]) == int(scene)]
     if not shots:
-        raise SystemExit("That scene isn't in the film.")
+        raise SystemExit("There are no shots in the film yet." if whole else "That scene isn't in the film.")
     times, at = {}, 0.0
     for s in shots:
         times[s["id"]] = (at, at + float(s["duration"]))
         at += float(s["duration"])
     duration = at
+    if whole and duration > WHOLE_MAX:
+        raise SystemExit(f"The film is {duration / 60:.0f} minutes long: preview it a scene at a time.")
     st = settings(d)
     if solo not in (None, "", *LANES):
         raise SystemExit("Choose a lane to solo.")
     st = {**st, "solo": solo or None, "target_lufs": None}
     work = os.path.join(d, "cache", "audio-preview")
     os.makedirs(work, exist_ok=True)
-    n = int(scene)
+    n = "film" if whole else int(scene)
     silent = os.path.join(work, f"scene{n}-silence.wav")
     sf.write(silent, np.zeros((int(duration * RATE), 2), dtype=np.float32), RATE, subtype="PCM_16")
     voices = _voices_base(d, times, duration, os.path.join(work, f"scene{n}-voices.wav"))
@@ -434,10 +441,10 @@ def preview(d: str, scene: int, solo: str | None = None) -> dict:
     if st["solo"] == "dialogue":
         st["mute_lanes"] = [x for x in LANES if x != "dialogue"]
     out = os.path.join(work, f"scene{n}{'-' + st['solo'] if st['solo'] else ''}.wav")
-    r = mix_cues(d, base, times, duration, out, st, only_scene=n, windows=film_windows(d))
+    r = mix_cues(d, base, times, duration, out, st, only_scene=None if whole else n, windows=film_windows(d), preview=True)
     if not r or r.get("none"):
-        return {"file": os.path.relpath(base, d).replace(os.sep, "/"), "seconds": round(duration, 1), "cues": 0, "skipped": (r or {}).get("skipped", []), "solo": st["solo"], "voices": bool(voices)}
-    return {"file": os.path.relpath(out, d).replace(os.sep, "/"), "seconds": round(duration, 1), "cues": r["cues"], "skipped": r["skipped"], "ducked": r["ducked"], "solo": st["solo"], "voices": bool(voices)}
+        return {"file": os.path.relpath(base, d).replace(os.sep, "/"), "seconds": round(duration, 1), "cues": 0, "skipped": (r or {}).get("skipped", []), "solo": st["solo"], "voices": bool(voices), "whole": whole}
+    return {"file": os.path.relpath(out, d).replace(os.sep, "/"), "seconds": round(duration, 1), "cues": r["cues"], "skipped": r["skipped"], "ducked": r["ducked"], "solo": st["solo"], "voices": bool(voices), "whole": whole}
 
 
 def main(argv: list[str]) -> int:

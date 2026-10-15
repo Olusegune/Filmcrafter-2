@@ -96,8 +96,12 @@ export function SceneSound({ dir }: { dir: string }) {
         <div className="sm-row"><span className="dim">Hear this scene:</span>
           {([[null, "Everything"], ["dialogue", "Voices only"], ["sfx", "Effects only"], ["ambience", "Ambience only"], ["music", "Music only"]] as [string | null, string][]).map(([k, label]) =>
             <button key={label} className="btn sm ghost" disabled={!!busy} onClick={() => void go("hear", async () => setHeard(await api.audioMix<MixPreview>("preview", dir, { scene, solo: k })))}>{label}</button>)}</div>
-        {heard && <div className="ss-heard"><audio controls autoPlay src={`${api.mediaUrl(`${dir}/${heard.file}`)}?v=${Date.now()}`} aria-label="The scene's mix" />
-          <span className="dim">{heard.cues} cue{heard.cues === 1 ? "" : "s"} · {heard.seconds.toFixed(1)} s{heard.ducked ? " · music dips under the voices" : ""}{heard.solo ? ` · ${heard.solo} only (a preview: the film is not changed)` : ""}</span>
+        <div className="sm-row"><span className="dim">Hear the whole film:</span>
+          {([[null, "Everything"], ["dialogue", "Voices only"], ["sfx", "Effects only"], ["ambience", "Ambience only"], ["music", "Music only"]] as [string | null, string][]).map(([k, label]) =>
+            <button key={label} className="btn sm ghost" disabled={!!busy} title="Every scene's voices and approved sound, laid end to end, as the exported film will sound (without the picture and without the loudness target)"
+              onClick={() => void go("hear", async () => setHeard(await api.audioMix<MixPreview>("preview", dir, { scene: "all", solo: k })))}>{label}</button>)}</div>
+        {heard && <div className="ss-heard"><audio controls autoPlay src={`${api.mediaUrl(`${dir}/${heard.file}`)}?v=${Date.now()}`} aria-label={heard.whole ? "The whole film's mix" : "The scene's mix"} />
+          <span className="dim">{heard.whole ? "Whole film · " : ""}{heard.cues} cue{heard.cues === 1 ? "" : "s"} · {heard.seconds.toFixed(1)} s{heard.ducked ? " · music dips under the voices" : ""}{heard.solo ? ` · ${heard.solo} only (a preview: the film is not changed)` : ""}</span>
           {heard.skipped.map((s) => <span key={s.cue} className="ss-warn">One cue was left out: {s.why}</span>)}</div>}
         <p className="dim sm-note">The finished film is mixed when you export it: approved cues only, the voices on top, a limiter so nothing clips. Muting here leaves a lane out of the film; the previews only help you listen.</p>
       </section>

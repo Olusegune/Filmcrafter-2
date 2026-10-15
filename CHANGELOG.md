@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Hear the whole film's sound.** Sound & Music > Scenes now has "Hear the whole film" (Everything, Voices only, Effects only, Ambience only, Music only) next to the per-scene buttons. It lays every scene's recorded voices and approved sound end to end, with the music dipping under the voices, so you can judge the whole soundtrack before exporting. It is free and local (no AI call), does not change the film, and ignores the loudness target, which only the export applies. Films longer than 20 minutes are previewed a scene at a time. The saved "solo" setting still never affects the exported film (tested).
+
 ## 0.26.1 (2026-10-15)
 
 - **"Your first film" guide.** A new **Guide** button at the top of every film (it also opens by itself once, on a brand-new film) shows the order a film is made in: story, cast, voices, shots (Pro), pictures, video, sound (optional), export. Each step shows whether it is done, what it costs in words (with the live price of one test shot where it can be worked out), and a "Take me there" button. It only reads and points: it never makes or buys anything, and every paid step still shows its own price and asks first. A test guards that the guide contains no paid-work calls.

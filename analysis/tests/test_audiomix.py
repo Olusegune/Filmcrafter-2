@@ -207,6 +207,11 @@ def test_muted_cues_and_lanes_are_left_out_and_solo_only_narrows_the_preview(fil
     p2 = M.preview(film, 1, "sfx")
     assert p2["cues"] == 1 and p2["solo"] == "sfx" and os.path.isfile(os.path.join(film, *p2["file"].split("/")))
     assert c2 and Q.listing(film)['cues']
+    w = M.preview(film, "all")                                                                             # the whole film: every scene's approved cues, in one file
+    assert w["whole"] is True and w["cues"] == 2 and os.path.isfile(os.path.join(film, *w["file"].split("/")))
+    w2 = M.preview(film, "all", "sfx")
+    assert w2["cues"] == 1 and w2["solo"] == "sfx"                                                          # solo narrows the whole-film preview too
+    assert mix(film, tmp_path, M.settings(film))[0]["cues"] == 2                                            # and the finished film still ignores it
 
 
 def test_the_settings_are_checked_saved_and_kept_through_a_restart(film):

@@ -549,7 +549,7 @@ export type GenEstimate = { expected?: number | null; provider: string; label: s
 export type GenResult = { asset?: AudioAsset; assets?: AudioAsset[]; cached: boolean; cost?: { unit: string; estimate?: number | null; reported?: number | null; amount?: number; basis?: string }; note: string; pending?: { task: string; state: string } };
 export type RightsReport = { assets: { id: string; name: string; kind: string; commercial: string; in_plan: boolean; source: string; why: string }[]; blocking: { id: string; name: string; why: string }[]; ok: boolean };
 export type MixSettings = { schema: number; ducking_db: number; duck_attack: number; duck_release: number; target_lufs: number | null; peak_db: number; mute_lanes: ("dialogue" | "sfx" | "ambience" | "music")[]; solo: string | null };
-export type MixPreview = { file: string; seconds: number; cues: number; skipped: { cue: string; why: string }[]; ducked?: boolean; solo: string | null; voices: boolean };
+export type MixPreview = { file: string; seconds: number; cues: number; skipped: { cue: string; why: string }[]; ducked?: boolean; solo: string | null; voices: boolean; whole?: boolean };
 export type OutdatedReport = { takes: { shot: string; take: string; kind: "voice_changed" | "voice_removed" | "voice_added"; why: string; speakers: string[]; kept: boolean; options: string[]; note: string }[];
   cues: { id: string; scene: number; shot: string | null; name: string; why: string; codes: string[] }[]; film: { export: string; changed: string[]; why: string } | null; unchecked_takes: number; clean: boolean };
 export type RegistryStatus = { models: number; providers: Record<string, { refreshed: number | null; stale: boolean; last_error: string | null }>; note: string };

@@ -33,3 +33,11 @@ describe("first-film guide steps", () => {
     }
   });
 });
+
+describe("whole-film sound preview", () => {
+  it("asks the free local mix for the whole film and never an AI call", () => {
+    const t = readFileSync("src/SceneSound.tsx", "utf8");
+    expect(t).toMatch(/Hear the whole film/);
+    expect(t).toMatch(/scene: "all"/);
+  });
+});
