@@ -1094,3 +1094,13 @@
 .ff-open { gap: 6px; }
 .ff-badge { margin-left: 4px; padding: 0 6px; border-radius: 999px !important; background: var(--amber-wash, rgba(232, 180, 92, 0.15)); color: var(--amber, #e8b45c); font-size: 11px; }
 @media (max-width: 640px) { .ff-step { grid-template-columns: 28px minmax(0, 1fr); } .ff-step > .btn { grid-column: 2; justify-self: start; } }
+
+/* What this film has cost */
+.spend { width: min(720px, calc(100vw - 32px)); max-height: 90vh; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+.spend-lead { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.spend-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.spend-table th, .spend-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+.spend-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-quiet, #8b97a7); font-weight: 600; }
+.spend-table tbody th { font-weight: 600; }
+.spend-totals ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.spend-warn { color: var(--amber, #e8b45c); }

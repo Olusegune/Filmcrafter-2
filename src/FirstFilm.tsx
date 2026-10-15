@@ -69,7 +69,7 @@ export function FirstFilm({ dir, progress, pro, onGo, onClose }: { dir: string; 
           })}
         </ol>
         <p className="why ff-foot">Tip: test one shot first. If its picture, mouth and voice are right, the others will be too, and you have spent a fraction of the cost finding out.</p>
-        <div className="cv-actions"><button className="btn" onClick={close}>Close</button><span className="why">Open it again any time from the <b>Guide</b> button at the top.</span></div>
+        <div className="cv-actions"><button className="btn" onClick={close}>Close</button><span className="why">Open it again any time from the <b>Guide</b> button at the top; the <b>Costs</b> button beside it shows what the film has cost so far.</span></div>
       </div>
     </div>
   );

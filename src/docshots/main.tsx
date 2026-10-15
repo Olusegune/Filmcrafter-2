@@ -296,6 +296,13 @@ mockIPC((cmd, a) => {
     }
     case "film_make": return x.action === "progress" ? { story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 4, keyframe: 2, video: 1 } } : N > 8 ? { ...makeStatus, shots: grow(makeStatus.shots as never[]), counts: { ...(makeStatus as { counts: object }).counts, shots: N } } : makeStatus;
     case "film_check": return continuityMock;
+    case "film_spending": return { lines: [
+      { step: "pictures", label: "Pictures", provider: "kie", unit: "kie_credits", unit_name: "Kie credits", operations: 6, reported: 24, reported_operations: 6, estimated: 0, estimated_operations: 0 },
+      { step: "video", label: "Video", provider: "kie", unit: "kie_credits", unit_name: "Kie credits", operations: 2, reported: 328, reported_operations: 2, estimated: 0, estimated_operations: 0 },
+      { step: "voices", label: "Voices", provider: "elevenlabs", unit: "elevenlabs_credits", unit_name: "ElevenLabs credits", operations: 4, reported: 9, reported_operations: 3, estimated: 3, estimated_operations: 1 },
+      { step: "sound_effects", label: "Sound effects", provider: "elevenlabs", unit: "elevenlabs_credits", unit_name: "ElevenLabs credits", operations: 2, reported: 33, reported_operations: 2, estimated: 0, estimated_operations: 0 }],
+      totals: [{ unit: "kie_credits", unit_name: "Kie credits", operations: 8, reported: 352, estimated: 0 }, { unit: "elevenlabs_credits", unit_name: "ElevenLabs credits", operations: 6, reported: 42, estimated: 3 }],
+      uncertain: [], limits: { elevenlabs_credits: 150 }, problems: [], operations: 14, note: "Amounts marked reported came from the provider's own reply; estimates are our guess from the published price. Not tracked here: the writing helper (planning with a language model)." };
     case "film_voice": return voiceStatus;
     case "film_cast_voice":
       if (x.action === "library") return { voices: [{ voice_id: "AbCdEfGh1234", name: "Warm Northern Woman", category: "premade", description: "Gentle, unhurried", labels: { accent: "british", age: "old" }, preview_url: "" }, { voice_id: "ZyXwVu987654", name: "Bright Girl", category: "premade", description: "", labels: { age: "young" }, preview_url: "" }], next: null };

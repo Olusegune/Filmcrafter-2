@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **What this film has cost.** A new **Costs** button at the top of every film opens a plain summary of the film's paid work: pictures, video, lip-sync, voices, sound effects and music, by step and provider. It reads the records FilmCrafter already keeps. A figure is called *reported* only when the provider's own reply carried it; anything else is shown as an *estimate*, never blended in. Kie credits, ElevenLabs credits and fal dollars are never added together. Work whose outcome is unknown is listed apart and not counted. It only reads (a test proves it changes no file, even when a record is damaged) and the screen has no way to start or pay for anything. The writing helper's cost is not tracked and the screen says so.
+
 ## 0.26.2 (2026-10-15)
 
 - **Hear the whole film's sound.** Sound & Music > Scenes now has "Hear the whole film" (Everything, Voices only, Effects only, Ambience only, Music only) next to the per-scene buttons. It lays every scene's recorded voices and approved sound end to end, with the music dipping under the voices, so you can judge the whole soundtrack before exporting. It is free and local (no AI call), does not change the film, and ignores the loudness target, which only the export applies. Films longer than 20 minutes are previewed a scene at a time. The saved "solo" setting still never affects the exported film (tested).

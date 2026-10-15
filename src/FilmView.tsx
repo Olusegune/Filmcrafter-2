@@ -8,6 +8,7 @@ import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
 import { FirstFilm } from "./FirstFilm";
+import { SpendingSheet } from "./SpendingSheet";
 import { buildSteps, doneCount, guideSeen, nextStep, requiredCount } from "./guideSteps";
 import { LADDER, ladderAt, minutes, neighbours, openAdvice, sceneLine, stageBadge, stageDone, stageLabel, STAGES, STORY_KINDS, storyState } from "./storyView";
 
@@ -28,6 +29,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [suggested, setSuggested] = useState<{ text: string; kind: StoryKind } | null>(null);          // the next step the writing helper proposed: opens in the new-version sheet to edit and save
   const [helping, setHelping] = useState(false);
   const [guide, setGuide] = useState(false);                                     // "Your first film": the order a film is made in, from what this film has
+  const [costs, setCosts] = useState(false);
   const [goVoice, setGoVoice] = useState(false);
   const [goSound, setGoSound] = useState(false);
   const MAKE_STAGE: Record<string, MakeTab> = { make: "keyframe", export: "deliver" };
@@ -100,6 +102,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
           {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
             onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Pro"}</button>)}</div>
+        <button className="btn ghost sm ff-open" onClick={() => setCosts(true)} title="What this film has cost so far" aria-label="What this film has cost">Costs</button>
         <button className="btn ghost sm ff-open" onClick={() => setGuide(true)} title="The order a film is made in, and what each step costs" aria-label="Open the first-film guide">
           <I.Rocket size={13} /> Guide{progress && (() => { const st = buildSteps({ progress, voices: null, sound: null, pro: f.mode === "studio", exported: false }); const n = nextStep(st); return n ? <small className="ff-badge">{doneCount(st)}/{requiredCount(st)}</small> : null; })()}</button>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
@@ -209,6 +212,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <span className="film-hint dim">{nb.hint}</span>
         {nb.next ? <button className="btn sel sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
       </footer>
+      {costs && <SpendingSheet dir={dir} onClose={() => setCosts(false)} />}
       {guide && <FirstFilm dir={dir} progress={progress} pro={studio} onClose={() => setGuide(false)} onGo={(where) => {
         setGoVoice(where === "voice"); setGoSound(where === "sound");
         goStage(where === "voice" ? "make" : where === "sound" ? "cast" : where);

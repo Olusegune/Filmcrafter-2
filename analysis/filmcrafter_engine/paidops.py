@@ -22,6 +22,7 @@ added together across providers. Entries carry an `area` ("voice" now) and a `ki
 from __future__ import annotations
 
 import hashlib
+import json
 import time
 import uuid
 from typing import Any
@@ -104,6 +105,18 @@ class Ledger:
         d = safeio.read_json(self.path, _blank(), check=_valid)
         d.setdefault("entries", [])
         d.setdefault("limits", {})
+        return d
+
+    def read_plain(self) -> dict:
+        """The ledger exactly as stored, for read-only summaries: never repairs, moves or writes anything. A missing file is an empty ledger; a damaged one raises ValueError."""
+        try:
+            with open(self.path, encoding="utf-8") as f:
+                d = json.load(f)
+        except FileNotFoundError:
+            return {"entries": [], "limits": {}}
+        if not _valid(d):
+            raise ValueError("ledger")
+        d.setdefault("entries", []); d.setdefault("limits", {})
         return d
 
     def entries(self) -> list[dict]:

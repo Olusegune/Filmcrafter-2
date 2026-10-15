@@ -280,6 +280,7 @@ export const api = {
   filmCues: <T = CueList>(action: "list" | "add" | "update" | "approve" | "remove" | "restore" | "refresh" | "quick" | "director_estimate" | "director_suggest", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_cues", { action, target, data }),
   audioGen: <T = unknown>(action: "providers" | "estimate" | "generate" | "pending" | "check" | "rights", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audiogen", { action, target, data }),
   audioMix: <T = MixSettings>(action: "settings" | "set_settings" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_mix", { action, target, data }),
+  filmSpending: (target: string) => invoke<SpendingSummary>("film_spending", { action: "summary", target }),
   filmOutdated: (target: string) => invoke<OutdatedReport>("film_outdated", { target }),
   registry: <T = RegistryStatus>(action: "status" | "list" | "refresh" | "in_use" = "status", target: string | null = null, data: Record<string, unknown> = {}) => invoke<T>("model_registry", { action, target, data }),
   prepareUpdate: (version: string) => invoke<{ version: string; films: { film: string; ok: boolean; why: string }[]; settings: string[]; summary: string }>("prepare_update", { version }),
@@ -549,6 +550,9 @@ export type GenEstimate = { expected?: number | null; provider: string; label: s
 export type GenResult = { asset?: AudioAsset; assets?: AudioAsset[]; cached: boolean; cost?: { unit: string; estimate?: number | null; reported?: number | null; amount?: number; basis?: string }; note: string; pending?: { task: string; state: string } };
 export type RightsReport = { assets: { id: string; name: string; kind: string; commercial: string; in_plan: boolean; source: string; why: string }[]; blocking: { id: string; name: string; why: string }[]; ok: boolean };
 export type MixSettings = { schema: number; ducking_db: number; duck_attack: number; duck_release: number; target_lufs: number | null; peak_db: number; mute_lanes: ("dialogue" | "sfx" | "ambience" | "music")[]; solo: string | null };
+export type SpendLine = { step: string; label: string; provider: string; unit: string; unit_name: string; operations: number; reported: number; reported_operations: number; estimated: number; estimated_operations: number };
+export type SpendingSummary = { lines: SpendLine[]; totals: { unit: string; unit_name: string; operations: number; reported: number; estimated: number }[]; uncertain: { id: string; provider: string; action: string; at: number; shot?: string | null; person?: string | null }[];
+  limits: Record<string, number>; problems: string[]; operations: number; note: string };
 export type MixPreview = { file: string; seconds: number; cues: number; skipped: { cue: string; why: string }[]; ducked?: boolean; solo: string | null; voices: boolean; whole?: boolean };
 export type OutdatedReport = { takes: { shot: string; take: string; kind: "voice_changed" | "voice_removed" | "voice_added"; why: string; speakers: string[]; kept: boolean; options: string[]; note: string }[];
   cues: { id: string; scene: number; shot: string | null; name: string; why: string; codes: string[] }[]; film: { export: string; changed: string[]; why: string } | null; unchecked_takes: number; clean: boolean };
