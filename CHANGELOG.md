@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.26.1 (2026-10-15)
 
 - **"Your first film" guide.** A new **Guide** button at the top of every film (it also opens by itself once, on a brand-new film) shows the order a film is made in: story, cast, voices, shots (Pro), pictures, video, sound (optional), export. Each step shows whether it is done, what it costs in words (with the live price of one test shot where it can be worked out), and a "Take me there" button. It only reads and points: it never makes or buys anything, and every paid step still shows its own price and asks first. A test guards that the guide contains no paid-work calls.
 
