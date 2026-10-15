@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.26.2 (2026-10-15)
 
 - **Hear the whole film's sound.** Sound & Music > Scenes now has "Hear the whole film" (Everything, Voices only, Effects only, Ambience only, Music only) next to the per-scene buttons. It lays every scene's recorded voices and approved sound end to end, with the music dipping under the voices, so you can judge the whole soundtrack before exporting. It is free and local (no AI call), does not change the film, and ignores the loudness target, which only the export applies. Films longer than 20 minutes are previewed a scene at a time. The saved "solo" setting still never affects the exported film (tested).
 
