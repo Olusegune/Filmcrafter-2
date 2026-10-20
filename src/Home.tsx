@@ -9,6 +9,7 @@ import { ask } from "./ask";
 import { UpdatePill } from "./Updates";
 import { isStoryFile, STORY_EXT } from "./storyView";
 import { FilmReel } from "./FilmReel";
+import { lastFilm, relativeDay } from "./homeInfo";
 
 /**
  * Home: a film begins with a story. Drop a screenplay, or start from an idea. Projects made in earlier versions (music videos, shows) still open from Recent.
@@ -75,6 +76,14 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
         </div>
       </div>
 
+      {lastFilm(projects) && (() => { const last = lastFilm(projects)!; return (
+        <section className="home-continue" aria-label="Continue where you left off">
+          <div><div className="hc-eyebrow">Continue where you left off</div>
+            <div className="hc-title">{last.title}</div>
+            <div className="dim">{last.state} · {relativeDay(last.modified)}</div></div>
+          <button className="btn primary hc-go" onClick={() => onOpen(last.dir)}>Continue</button>
+        </section>); })()}
+
       {(projects.length > 0 || hiddenN > 0) && (
         <div className="recent">
           <div className="recent-head"><h2>Recent</h2>
@@ -88,7 +97,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
                         onClick={() => recent("remove", p.dir)}>×</button>
                 <button className="project-card is-film" onClick={() => onOpen(p.dir)}>
                   <div className="t">{p.title}</div>
-                  <div className="m">{p.state} · {new Date(p.modified * 1000).toLocaleDateString()}</div>
+                  <div className="m">{p.state} · {relativeDay(p.modified)}</div>
                   <div className="mini-strip" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>
                 </button></div>
             ))}

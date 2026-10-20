@@ -328,11 +328,15 @@ export const fmtTime = (t: number) => {
   return `${m}:${s.toFixed(2).padStart(5, "0")}`;
 };
 
-/** What to show for a failure. The engine's own messages are already written for people. A fault in the program itself (a TypeError and the like) is wrapped in plain words, keeping the technical text for a bug report. */
+/** What to show for a failure. The engine's own messages are already written for people. A fault in the program itself (a TypeError and the like) is shown in plain words; the technical text goes to the console for whoever supports the app. */
+export const isProgramFault = (e: unknown): e is Error => e instanceof TypeError || e instanceof RangeError || e instanceof ReferenceError || e instanceof SyntaxError;
+export const FAULT_TEXT = "Something unexpected happened on this screen. Your project is safe. Try again, and if it keeps happening restart FilmCrafter and tell us what you were doing.";
 export const errorText = (e: unknown): string => {
-  if (typeof e === "string") return e;
-  if (e instanceof TypeError || e instanceof RangeError || e instanceof ReferenceError || e instanceof SyntaxError)
-    return `Something unexpected happened on this screen. Your project is safe. Try again, and if it keeps happening restart FilmCrafter and include this when you report it: ${e.message}`;
+  if (typeof e === "string") return /^(Type|Range|Reference|Syntax)Error: /.test(e) ? FAULT_TEXT : e;        // an error that was turned into text on its way here
+  if (isProgramFault(e)) {
+    console.error(e);
+    return FAULT_TEXT;
+  }
   return e instanceof Error ? e.message : "Something went wrong.";
 };
 
