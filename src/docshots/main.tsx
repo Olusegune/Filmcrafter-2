@@ -217,6 +217,7 @@ mockWindows("main");
 mockIPC((cmd, a) => {
   const x = (a ?? {}) as { action?: string; data?: Record<string, unknown> };
   switch (cmd) {
+    case "confirm_spend": return "docshot-token";
     case "plugin:dialog|open": return ["C:/boards/storyboard"];
     case "library": if (x.action === "library") return { items: [
         { id: "c1", kind: "character", name: "Sege", files: ["s1.png", "s2.png"], notes: "Mid-thirties, linen shirt, bracelet", sheet: true }, { id: "c2", kind: "character", name: "Amara", files: ["s3.png"], sheet: true },

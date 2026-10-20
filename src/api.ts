@@ -94,9 +94,11 @@ export const AUTO_IMAGE_MODEL: Record<string, string> = {
 export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string; family?: string };
 export type Look = { style: string; notes?: string; prompt?: string; avoid?: string };
 
+/** What reading the finished file back found: faults (the film is wrong), things worth a look, and notes. `ok` is null when the check could not run. */
+export type ExportCheck = { ok: boolean | null; checked: boolean; findings: { level: "fix" | "look" | "note"; what: string; from?: number; to?: number }[]; frames?: number; has_sound?: boolean; picture_seconds?: number };
 export type ExportResult = {
   path: string; preset: string; width: number; height: number; fps: number; duration: number;
-  shots: number; rendered: number; draft: boolean; loudness?: { lufs: number; range_lu: number | null; true_peak_db: number | null } | null; overlays?: number; captions?: number; subtitles?: string | null; overlay_error?: string };
+  shots: number; rendered: number; draft: boolean; loudness?: { lufs: number; range_lu: number | null; true_peak_db: number | null } | null; check?: ExportCheck | null; overlays?: number; captions?: number; subtitles?: string | null; overlay_error?: string };
 
 /** The sound layers of one shot: the song under it and the take's own sound (whole, or split into voices and effects). Nothing here renders again. */
 export type SoundLayer = { id: "song" | "all" | "voice" | "other"; label: string; on: boolean; gain: number | null; removed: boolean; effective_gain?: number; auto?: boolean; note?: string };
@@ -304,9 +306,11 @@ export const api = {
   renderPreview: (dir: string, shot: string, provider: string, model: string | null, overrides: Record<string, unknown>,
                   kind: "video" | "image" = "video") =>
     invoke<{ manifest: Manifest; payload: Record<string, unknown>; problems?: string[]; references?: { label: string; media: string; path?: string }[]; dropped_references?: string[]; audio_first?: boolean; lip_sync_mode?: string; sing_setting?: "auto" | "on" | "off"; vocal_heard?: number; inputs?: ModelInput[]; keyframe_blocks_audio?: boolean; prompt_blocks?: { priority: number; text: string; kept: boolean }[]; lip_sync?: boolean; singing?: { performer: string; lyrics: string[] } | null }>("render_preview", { dir, shot, provider, model, overrides, kind }),
-  queueRender: (dir: string, shots: string[], provider: string, model: string | null, overrides: Record<string, unknown>,
-                fixNotes: string[] = [], kind: "video" | "image" | "lipsync" = "video", sourceJob: string | null = null) =>
-    invoke<Job[]>("queue_render", { dir, shots, provider, model, overrides, fixNotes, kind, sourceJob }),
+  queueRender: async (dir: string, shots: string[], provider: string, model: string | null, overrides: Record<string, unknown>,
+                fixNotes: string[] = [], kind: "video" | "image" | "lipsync" = "video", sourceJob: string | null = null) => {
+    const spendToken = await invoke<string>("confirm_spend", { dir, shots, provider, kind });
+    return invoke<Job[]>("queue_render", { dir, shots, provider, model, overrides, fixNotes, kind, sourceJob, spendToken });
+  },
   renderEstimate: (dir: string, shots: string[], provider: string, model: string | null, kind: "video" | "image" = "video") =>
     invoke<Estimate>("render_estimate", { dir, shots, provider, model, kind }),
   resolveJob: (dir: string, job: string, action: "retry" | "dismiss" | "accept" | "recheck" | "cancel") => invoke<Job>("resolve_job", { dir, job, action }),

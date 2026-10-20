@@ -227,6 +227,7 @@ export async function installMock() {
         { role: "audio", label: "The song's vocal under this shot, for Sege to follow", path: null, sent: true }] };
       case "render_catalog": return [{ provider: "fal", model: preview.manifest.model, title: preview.manifest.title, category: "image-to-video" }];
       case "queue_render": return [];
+      case "confirm_spend": return "devmock-token";
       case "list_styles": return fetch(url("styles.json")).then((r) => r.json()).then((j) => j.styles);
       case "set_look": return null;
       case "app_ready": return null;

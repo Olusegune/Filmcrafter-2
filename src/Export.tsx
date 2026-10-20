@@ -94,6 +94,7 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
             {result.loudness && <div className="dim" title="Integrated loudness of the whole film in LUFS, its loudness range in LU, and its highest peak">
               Loudness {result.loudness.lufs} LUFS{result.loudness.true_peak_db != null ? `, peak ${result.loudness.true_peak_db} dB` : ""}.
               {result.loudness.lufs > -11 ? " Louder than most streaming sites play (about -14 LUFS), so they will turn it down." : result.loudness.lufs < -20 ? " Quiet next to most films (streaming sites play at about -14 LUFS)." : " Close to what streaming sites play (about -14 LUFS)."}</div>}
+            {result.check && <ExportChecked check={result.check} />}
             {!!result.captions && <div className="dim">Captions drawn{result.subtitles ? <>; subtitles file written: <span style={{ wordBreak: "break-all" }}>{result.subtitles}</span></> : "."}</div>}
             {!!result.overlays && <div className="dim">{result.overlays} on-screen text{result.overlays === 1 ? "" : "s"} drawn.</div>}
             {result.overlay_error && <div className="error-text">On-screen text wasn't added: {result.overlay_error} The film itself is fine.</div>}
@@ -125,3 +126,17 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** What reading the finished film back found. Faults first; a clean film says so in one line. */
+function ExportChecked({ check }: { check: NonNullable<ExportResult["check"]> }) {
+  const fix = check.findings.filter((f) => f.level === "fix"), look = check.findings.filter((f) => f.level === "look"), note = check.findings.filter((f) => f.level === "note");
+  if (check.ok === null) return <div className="dim">{note[0]?.what ?? "The finished film could not be checked."}</div>;
+  return (
+    <div className="export-check" role={fix.length ? "alert" : "status"}>
+      {!fix.length && !look.length ? <div className="status-ok"><I.Check size={14} /> Checked the finished film: the picture{check.has_sound ? " and sound are" : " is"} the length they should be{check.frames ? ` (${check.frames} frames)` : ""}, with nothing black or frozen.</div>
+        : <div className={fix.length ? "error-text" : "dim"}><b>{fix.length ? "The finished film has a fault:" : "Worth a look in the finished film:"}</b></div>}
+      {[...fix, ...look].map((f, i) => <div key={i} className={f.level === "fix" ? "error-text" : "dim"}>{f.what}</div>)}
+      {note.map((f, i) => <div key={`n${i}`} className="dim">{f.what}</div>)}
+    </div>
+  );
+}

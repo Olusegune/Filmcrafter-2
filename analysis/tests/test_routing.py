@@ -149,3 +149,25 @@ def test_models_list_sorted_by_price(monkeypatch):
     monkeypatch.setattr(routing, "shot_price", lambda p, m: prices.get(m, 0.9))
     rows = routing.models("video")
     assert rows[0]["model"] == "fal-ai/vidu/q3/image-to-video/turbo" and all(r["provider"] == "fal" for r in rows)
+
+
+def test_batch_ceiling_refuses_too_many_shots_and_too_much_money_even_with_no_budget(tmp_path, monkeypatch):
+    d = _proj(tmp_path, {"mode": "balanced"})   # no budget: only the hard ceiling applies
+    asked = []
+    monkeypatch.setattr(routing, "batch_usd", lambda *a: asked.append(a) or 1.0)
+    routing.guard(d, ["a"] * 9, "fal", "m", "video")
+    assert not asked, "a small batch is not priced (cheap path)"
+    with pytest.raises(SystemExit, match="most FilmCrafter will send at once is 120"):
+        routing.guard(d, [f"s{i}" for i in range(routing.BATCH_MAX_SHOTS + 1)], "fal", "m", "video")
+    routing.guard(d, [f"s{i}" for i in range(routing.BATCH_MAX_SHOTS)], "fal", "m", "video")
+    monkeypatch.setattr(routing, "batch_usd", lambda *a: routing.BATCH_MAX_USD + 0.5)
+    with pytest.raises(SystemExit, match=r"most FilmCrafter will send at once is \$250"):
+        routing.guard(d, [f"s{i}" for i in range(10)], "fal", "m", "video")
+    routing.guard(d, ["a"], "comfyui", "wf", "video")   # free local work is never capped
+
+
+def test_ceiling_beats_a_generous_budget(tmp_path, monkeypatch):
+    d = _proj(tmp_path, {"mode": "balanced", "budget_usd": 100000})
+    monkeypatch.setattr(routing, "batch_usd", lambda *a: 400.0)
+    with pytest.raises(SystemExit, match="most FilmCrafter will send"):
+        routing.guard(d, ["a", "b"], "fal", "m", "video")

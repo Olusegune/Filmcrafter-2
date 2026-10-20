@@ -12,6 +12,90 @@ use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter, Manager};
 
 const KEY_SERVICE: &str = "filmcrafter";
+
+// ---- S-01: the spend confirmation -------------------------------------------------------------------------------------------------------
+// A billable batch is queued only with a token that the confirmation sheet's Confirm button obtained from `confirm_spend`. A token is
+// random, single-use, short-lived and bound to one batch (project folder, provider, kind and the shots, sorted), so it cannot be reused
+// for a different or bigger batch. It does not prove a human clicked (the UI is trusted code), but a screen that forgets to ask is
+// refused here instead of charging, and a stray `invoke("queue_render")` cannot spend.
+const SPEND_TTL: std::time::Duration = std::time::Duration::from_secs(120);
+const SPEND_MAX_OPEN: usize = 64;
+
+#[derive(Default)]
+struct SpendLedger {
+    open: Vec<(String, String, std::time::Instant)>,   // (token, batch key, issued)
+}
+
+impl SpendLedger {
+    fn prune(&mut self, now: std::time::Instant) {
+        self.open.retain(|(_, _, at)| now.saturating_duration_since(*at) < SPEND_TTL);
+        if self.open.len() > SPEND_MAX_OPEN {
+            let extra = self.open.len() - SPEND_MAX_OPEN;
+            self.open.drain(..extra);
+        }
+    }
+    fn mint(&mut self, token: String, key: String, now: std::time::Instant) -> String {
+        self.prune(now);
+        self.open.push((token.clone(), key, now));
+        token
+    }
+    /// Spends the token (it is gone whether or not the rest of the queueing succeeds) when it exists, is fresh and was issued for this exact batch.
+    fn redeem(&mut self, token: &str, key: &str, now: std::time::Instant) -> bool {
+        self.prune(now);
+        match self.open.iter().position(|(t, _, _)| t == token) {
+            Some(i) => self.open.remove(i).1 == key,
+            None => false,
+        }
+    }
+}
+
+static SPEND: std::sync::Mutex<SpendLedger> = std::sync::Mutex::new(SpendLedger { open: Vec::new() });
+
+/// The batch a token is bound to. The shots are sorted, so the order a screen lists them in does not matter.
+fn spend_key(dir: &str, provider: &str, kind: &str, shots: &[String]) -> String {
+    let mut s: Vec<&str> = shots.iter().map(String::as_str).collect();
+    s.sort_unstable();
+    json!([dir, provider, kind, s]).to_string()
+}
+
+/// Local ComfyUI renders cost nothing, so they need no confirmation.
+fn spend_free(provider: &str) -> bool {
+    provider == "comfyui"
+}
+
+fn new_spend_token() -> Result<String, String> {
+    let mut b = [0u8; 16];
+    getrandom::fill(&mut b).map_err(|_| "The computer could not make a safe random number, so nothing was queued.".to_string())?;
+    Ok(b.iter().map(|x| format!("{x:02x}")).collect())
+}
+
+fn redeem_spend(token: Option<&str>, dir: &str, provider: &str, kind: &str, shots: &[String]) -> Result<(), String> {
+    if spend_free(provider) {
+        return Ok(());
+    }
+    let key = spend_key(dir, provider, kind, shots);
+    let ok = token.map(|t| SPEND.lock().map(|mut l| l.redeem(t, &key, std::time::Instant::now())).unwrap_or(false)).unwrap_or(false);
+    if ok {
+        Ok(())
+    } else {
+        Err("This render was not confirmed, or the confirmation ran out or was for a different batch. Nothing was queued: open the render sheet, check the price and confirm again.".into())
+    }
+}
+
+/// Called by a confirmation sheet's Confirm button, just before it queues the batch it showed the price of. Returns a one-use token
+/// (empty for free ComfyUI work) that `queue_render` (and applying an agent's render request) requires.
+#[tauri::command]
+fn confirm_spend(dir: String, shots: Vec<String>, provider: String, kind: Option<String>) -> Result<String, String> {
+    let dir = project_dir(&dir)?.to_string_lossy().to_string();
+    if spend_free(&provider) {
+        return Ok(String::new());
+    }
+    let key = spend_key(&dir, &provider, &kind.unwrap_or_else(|| "video".into()), &shots);
+    let token = new_spend_token()?;
+    let mut l = SPEND.lock().map_err(|_| "Could not record the confirmation.".to_string())?;
+    Ok(l.mint(token, key, std::time::Instant::now()))
+}
+
 const PROVIDERS: [&str; 6] = ["openai", "fal", "kie", "google", "elevenlabs", "openrouter"];
 
 fn err<E: std::fmt::Display>(e: E) -> String {
@@ -679,7 +763,7 @@ async fn render_preview(app: AppHandle, dir: String, shot: String, provider: Str
 #[allow(clippy::too_many_arguments)]         // the arguments are the command's public shape, named by the screen
 async fn queue_render(app: AppHandle, dir: String, shots: Vec<String>, provider: String, model: Option<String>,
                       overrides: Value, fix_notes: Option<Vec<String>>, kind: Option<String>,
-                      source_job: Option<String>) -> Result<Value, String> {
+                      source_job: Option<String>, spend_token: Option<String>) -> Result<Value, String> {
     // ComfyUI runs locally with no key; the engine checks that it's reachable.
     let key_ok = provider == "comfyui" || keyring::Entry::new(KEY_SERVICE, &provider).and_then(|e| e.get_password()).is_ok();
     if !key_ok {
@@ -687,6 +771,7 @@ async fn queue_render(app: AppHandle, dir: String, shots: Vec<String>, provider:
         return Err(format!("Add your {name} key in Settings first."));
     }
     let dir = project_dir(&dir)?.to_string_lossy().to_string();
+    redeem_spend(spend_token.as_deref(), &dir, &provider, kind.as_deref().unwrap_or("video"), &shots)?;
     let app2 = app.clone();
     let d2 = dir.clone();
     let made = tauri::async_runtime::spawn_blocking(move || {
@@ -2186,7 +2271,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
             direct_project, ensure_renderer, render_catalog, render_preview,
-            queue_render, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
+            queue_render, confirm_spend, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
             save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_materials, film_spending, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
@@ -2207,6 +2292,60 @@ fn load_project_data(d: &Path) -> Option<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_spend_token_is_single_use_bound_to_its_batch_and_expires() {
+        use std::time::{Duration, Instant};
+        let t0 = Instant::now();
+        let shots = vec!["s2".to_string(), "s1".to_string()];
+        let key = spend_key("D:/p", "fal", "video", &shots);
+        assert_eq!(key, spend_key("D:/p", "fal", "video", &["s1".to_string(), "s2".to_string()]), "order does not matter");
+        for other in [spend_key("D:/q", "fal", "video", &shots), spend_key("D:/p", "kie", "video", &shots), spend_key("D:/p", "fal", "image", &shots),
+                      spend_key("D:/p", "fal", "video", &["s1".to_string()]), spend_key("D:/p", "fal", "video", &["s1".to_string(), "s2".to_string(), "s3".to_string()])] {
+            let mut l = SpendLedger::default();
+            l.mint("tok".into(), key.clone(), t0);
+            assert!(!l.redeem("tok", &other, t0), "a token for one batch must not pay for another");
+            assert!(!l.redeem("tok", &key, t0), "and a failed try spends it");
+        }
+        let mut l = SpendLedger::default();
+        l.mint("tok".into(), key.clone(), t0);
+        assert!(!l.redeem("nope", &key, t0));
+        assert!(l.redeem("tok", &key, t0 + Duration::from_secs(5)));
+        assert!(!l.redeem("tok", &key, t0 + Duration::from_secs(6)), "single use");
+        l.mint("old".into(), key.clone(), t0);
+        assert!(!l.redeem("old", &key, t0 + SPEND_TTL), "expired");
+    }
+
+    #[test]
+    fn the_ledger_stays_small() {
+        let t0 = std::time::Instant::now();
+        let mut l = SpendLedger::default();
+        for i in 0..(SPEND_MAX_OPEN + 20) {
+            l.mint(format!("t{i}"), "k".into(), t0);
+        }
+        assert!(l.open.len() <= SPEND_MAX_OPEN + 1);
+        assert!(!l.redeem("t0", "k", t0), "the oldest was dropped");
+        assert!(l.redeem(&format!("t{}", SPEND_MAX_OPEN + 19), "k", t0));
+    }
+
+    #[test]
+    fn tokens_are_random_hex_and_only_comfyui_is_exempt() {
+        let (a, b) = (new_spend_token().unwrap(), new_spend_token().unwrap());
+        assert_eq!(a.len(), 32);
+        assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_ne!(a, b);
+        assert!(spend_free("comfyui"));
+        for p in ["fal", "kie", "google", "openai", "own", ""] {
+            assert!(!spend_free(p), "{p}");
+        }
+        assert!(redeem_spend(None, "d", "comfyui", "video", &[]).is_ok());
+        assert!(redeem_spend(None, "d", "fal", "video", &["s1".into()]).is_err(), "no token, no spending");
+        assert!(redeem_spend(Some("bogus"), "d", "kie", "image", &["s1".into()]).is_err());
+        let key = spend_key("d", "fal", "video", &["s1".to_string()]);
+        SPEND.lock().unwrap().mint("good-token".into(), key, std::time::Instant::now());
+        assert!(redeem_spend(Some("good-token"), "d", "fal", "video", &["s1".into()]).is_ok());
+        assert!(redeem_spend(Some("good-token"), "d", "fal", "video", &["s1".into()]).is_err(), "single use");
+    }
 
     #[test]
     fn a_recorded_take_must_be_a_wav() {

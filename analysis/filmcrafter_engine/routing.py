@@ -200,6 +200,13 @@ def pending_usd(d: str) -> float:
     return round(total, 2)
 
 
+# A hard ceiling on one batch, whatever the mode or budget say: a loop, a typo or a bad caller cannot queue a film's worth of paid renders in one call.
+# It is not a setting. Bigger work goes in several batches, each confirmed on its own (the shell requires a confirmation per batch).
+BATCH_MAX_SHOTS = 120
+BATCH_MAX_USD = 250.0
+BATCH_PRICE_CHECK_FROM = 10   # smaller batches cannot reach the dollar ceiling (one request is never priced above $100), so their price is not looked up here
+
+
 def guard(d: str, shot_ids: list[str], provider: str, model: str | None, kind: str) -> None:
     """Called before queueing. Raises SystemExit (nothing is sent) when the mode or the budget says no."""
     project = _read(os.path.join(d, "project.json"), {})
@@ -209,11 +216,15 @@ def guard(d: str, shot_ids: list[str], provider: str, model: str | None, kind: s
     if s["mode"] == "local":
         raise SystemExit("Local First is on, so nothing is sent to paid cloud services. Render with ComfyUI, use moving "
                          "stills, or switch this project to Balanced or Premium (Plan & budget).")
+    if len(shot_ids) > BATCH_MAX_SHOTS:
+        raise SystemExit(f"That is {len(shot_ids)} shots in one batch; the most FilmCrafter will send at once is {BATCH_MAX_SHOTS}. Nothing was sent. Render them in smaller batches.")
+    need = batch_usd(d, shot_ids, provider, model, kind) if s["budget_usd"] is not None or len(shot_ids) >= BATCH_PRICE_CHECK_FROM else None
+    if need is not None and need > BATCH_MAX_USD + 1e-6:
+        raise SystemExit(f"This batch would cost about ${need:.2f}; the most FilmCrafter will send at once is ${BATCH_MAX_USD:.0f}. Nothing was sent. Render fewer shots at a time.")
     if s["budget_usd"] is None:
         return
     from .budget import spent
     used = spent(d)["total_usd"] + pending_usd(d)
-    need = batch_usd(d, shot_ids, provider, model, kind)
     if used + need > s["budget_usd"] + 1e-6:
         raise SystemExit(f"Over budget: this project has spent ${used:.2f} of its ${s['budget_usd']:.2f} budget, and this "
                          f"would add about ${need:.2f}. Nothing was sent. Raise the budget in Plan & budget, or render fewer shots.")

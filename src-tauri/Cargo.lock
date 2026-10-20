@@ -1004,6 +1004,7 @@ dependencies = [
 name = "filmcrafter"
 version = "0.26.2"
 dependencies = [
+ "getrandom 0.3.4",
  "keyring",
  "serde",
  "serde_json",

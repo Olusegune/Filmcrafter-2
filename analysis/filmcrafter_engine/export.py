@@ -385,10 +385,17 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
                 "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": None, "preview": True, **({"overlay_error": ov["error"]} if ov.get("error") else {})}
     srt = captions.write_srt(d, out_path)
     loud = measure_loudness(out_path)
-    emit(event="progress", stage="done", progress=1.0)
     shot_count = sum(1 for s in segments if s[0] == "shot")
+    check = None
+    try:                                                      # the finished file is read back once and compared with what was asked for; a check that cannot run never costs the film
+        from . import exportcheck
+        emit(event="progress", stage="checking the finished film", progress=0.99)
+        check = exportcheck.verify(out_path, duration, fps=FPS, expect_sound=bool(song and os.path.isfile(song)), draft=rendered < shot_count)
+    except Exception as e:
+        check = {"ok": None, "checked": False, "findings": [{"level": "note", "what": f"The finished film could not be checked ({type(e).__name__})."}]}
+    emit(event="progress", stage="done", progress=1.0)
     return {"path": out_path, "preset": preset["label"], "width": w, "height": h, "fps": FPS,
-            "duration": duration, "shots": shot_count, "rendered": rendered, "draft": rendered < shot_count, "loudness": loud,
+            "duration": duration, "shots": shot_count, "rendered": rendered, "draft": rendered < shot_count, "loudness": loud, "check": check,
             **({"voiceovers": voiced["recordings"]} if voiced else {}),
             **({"audio_cues": planned["cues"], "audio_cues_skipped": planned.get("skipped", []), "audio_ducked": planned.get("ducked", False)} if planned and planned.get("path") else {}),
             **({"audio_cues_error": planned["error"]} if planned and planned.get("error") else {}),
