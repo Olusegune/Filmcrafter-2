@@ -217,6 +217,7 @@ mockWindows("main");
 mockIPC((cmd, a) => {
   const x = (a ?? {}) as { action?: string; data?: Record<string, unknown> };
   switch (cmd) {
+    case "plugin:dialog|open": return ["C:/boards/storyboard"];
     case "library": if (x.action === "library") return { items: [
         { id: "c1", kind: "character", name: "Sege", files: ["s1.png", "s2.png"], notes: "Mid-thirties, linen shirt, bracelet", sheet: true }, { id: "c2", kind: "character", name: "Amara", files: ["s3.png"], sheet: true },
         { id: "s1", kind: "set", name: "Kitchen, morning", files: ["s4.png"], notes: "Warm light, radio on" }, { id: "s2", kind: "set", name: "Night train platform", files: ["s5.png"] },
@@ -303,6 +304,15 @@ mockIPC((cmd, a) => {
       { step: "sound_effects", label: "Sound effects", provider: "elevenlabs", unit: "elevenlabs_credits", unit_name: "ElevenLabs credits", operations: 2, reported: 33, reported_operations: 2, estimated: 0, estimated_operations: 0 }],
       totals: [{ unit: "kie_credits", unit_name: "Kie credits", operations: 8, reported: 352, estimated: 0 }, { unit: "elevenlabs_credits", unit_name: "ElevenLabs credits", operations: 6, reported: 42, estimated: 3 }],
       uncertain: [], limits: { elevenlabs_credits: 150 }, problems: [], operations: 14, note: "Amounts marked reported came from the provider's own reply; estimates are our guess from the published price. Not tracked here: the writing helper (planning with a language model)." };
+    case "film_materials": return x.action === "apply" ? { applied: [{ id: "a", type: "storyboard", title: "storyboard/S01-01.png", what: "Panel for S01-01 (also the framing reference for its hero picture)" }], failed: [], skipped: [], changed_since_scan: [], message: "1 added to the film. Nothing was bought or sent anywhere." } : { token: "0123456789ab", problems: ["board.pdf: page 004 has no picture inside it (it is drawn as lines or text). Export those pages as pictures (PNG or JPG) and bring them in as files."], counts: { storyboard: 2, asset: 1, shotrow: 1, note: 1 },
+      shots: [{ id: "S01-01", scene: 1, title: "Kitchen" }, { id: "S01-02", scene: 1, title: "Tea" }, { id: "S02-01", scene: 2, title: "Yard" }],
+      items: [
+        { id: "f1", type: "storyboard", title: "storyboard/S01-01.png", rel: "boards/storyboard/S01-01.png", on: true, blocked: "", notes: [], shot: "S01-01", shot_label: "S01-01 · Kitchen", how: "the file name" },
+        { id: "f2", type: "storyboard", title: "storyboard/panel 2.png", rel: "boards/storyboard/panel 2.png", on: false, blocked: "", notes: ["This shot already has a chosen panel. Tick to use this one instead; the old one stays in the film."], shot: "S01-02", shot_label: "S01-02 · Tea", how: "their order", replaces: true },
+        { id: "f3", type: "asset", title: "characters/Sarah/front.png", rel: "boards/characters/Sarah/front.png", on: true, blocked: "", notes: [], kind: "character", name: "Sarah", entry: "sarah", entry_name: "Sarah", create: false, media_kind: "front" },
+        { id: "f4r1", type: "shotrow", title: "S01-01 · Kitchen", rel: "shots.csv", on: true, blocked: "", notes: [], shot: "S01-01", changes: [{ label: "Framing", old: "wide", new: "close-up" }, { label: "Movement", old: "", new: "push in" }, { label: "Length (s)", old: 3, new: 4 }] },
+        { id: "f5", type: "note", title: "tone.md", rel: "notes/tone.md", on: true, blocked: "", notes: [], target: "tone", excerpt: "Warm, patient, handheld. The kitchen is always lit from the window.", length: 64 },
+        { id: "f6", type: "unsorted", title: "mystery.png", rel: "boards/mystery.png", on: false, blocked: "Say what this picture is: a storyboard panel, or a picture of a character, a place or a prop.", notes: [] }] };
     case "film_voice": return voiceStatus;
     case "film_cast_voice":
       if (x.action === "library") return { voices: [{ voice_id: "AbCdEfGh1234", name: "Warm Northern Woman", category: "premade", description: "Gentle, unhurried", labels: { accent: "british", age: "old" }, preview_url: "" }, { voice_id: "ZyXwVu987654", name: "Bright Girl", category: "premade", description: "", labels: { age: "young" }, preview_url: "" }], next: null };

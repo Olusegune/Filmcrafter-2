@@ -9,6 +9,7 @@ import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
 import { FirstFilm } from "./FirstFilm";
 import { SpendingSheet } from "./SpendingSheet";
+import { BringMaterials } from "./BringMaterials";
 import { buildSteps, doneCount, guideSeen, nextStep, requiredCount } from "./guideSteps";
 import { LADDER, ladderAt, minutes, neighbours, openAdvice, sceneLine, stageBadge, stageDone, stageLabel, STAGES, STORY_KINDS, storyState } from "./storyView";
 
@@ -30,6 +31,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [helping, setHelping] = useState(false);
   const [guide, setGuide] = useState(false);                                     // "Your first film": the order a film is made in, from what this film has
   const [costs, setCosts] = useState(false);
+  const [materials, setMaterials] = useState(false);
   const [goVoice, setGoVoice] = useState(false);
   const [goSound, setGoSound] = useState(false);
   const MAKE_STAGE: Record<string, MakeTab> = { make: "keyframe", export: "deliver" };
@@ -212,8 +214,10 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <span className="film-hint dim">{nb.hint}</span>
         {nb.next ? <button className="btn sel sm" onClick={() => goStage(nb.next!)}>{stageLabel(nb.next)} ›</button> : <span />}
       </footer>
+      {materials && <BringMaterials dir={dir} onClose={() => setMaterials(false)} onDone={() => { api.make<FilmProgress>("progress", dir).then(setProgress).catch(() => {}); }} />}
       {costs && <SpendingSheet dir={dir} onClose={() => setCosts(false)} />}
       {guide && <FirstFilm dir={dir} progress={progress} pro={studio} onClose={() => setGuide(false)} onGo={(where) => {
+        if (where === "materials") { setMaterials(true); return; }
         setGoVoice(where === "voice"); setGoSound(where === "sound");
         goStage(where === "voice" ? "make" : where === "sound" ? "cast" : where);
       }} />}

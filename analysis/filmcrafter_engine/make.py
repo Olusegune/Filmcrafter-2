@@ -477,6 +477,10 @@ def import_media(d: str, shot: str, stage: str, file: str) -> dict:
             raise SystemExit("Choose a PNG, JPG or WebP picture under 25 MB.")
         os.makedirs(os.path.join(d, "storyboard"), exist_ok=True)
         dst = os.path.join(d, "storyboard", f"{file_part(c['id'])}-{int(time.time())}{os.path.splitext(src)[1].lower()}")
+        k = 2
+        while os.path.exists(dst) or os.path.exists(os.path.join(rd, "media", os.path.basename(dst))):       # two panels in the same second must never overwrite each other
+            dst = os.path.join(d, "storyboard", f"{file_part(c['id'])}-{int(time.time())}-{k}{os.path.splitext(src)[1].lower()}")
+            k += 1
         shutil.copyfile(src, dst)
         # the render engine reads project-relative files: keep a copy where it can
         rel = "media/" + os.path.basename(dst)

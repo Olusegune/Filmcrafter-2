@@ -1,13 +1,13 @@
 /** "Your first film": the order a film is made in, worked out from what the film already has. No screen code, nothing here spends or changes anything. */
 import type { FilmProgress } from "./api";
 
-export type StepId = "story" | "cast" | "voices" | "shots" | "pictures" | "video" | "sound" | "export";
+export type StepId = "story" | "materials" | "cast" | "voices" | "shots" | "pictures" | "video" | "sound" | "export";
 export type StepStatus = "done" | "next" | "later";
 export type Step = {
   id: StepId; title: string; what: string; cost: "free" | "asks" | "your_recordings";
   costWords: string;                           // what it costs, in words: always honest, always says the price is shown first when there is one
   status: StepStatus; optional: boolean;
-  go: "story" | "cast" | "shots" | "make" | "export" | "voice" | "sound";          // where the "Take me there" button goes
+  go: "story" | "cast" | "shots" | "make" | "export" | "voice" | "sound" | "materials";          // where the "Take me there" button goes
   detail: string;                              // how far along it is, in words ("2 of 3 lines have a voice")
 };
 
@@ -32,6 +32,8 @@ export function buildSteps(f: Facts): Step[] {
   const raw: Omit<Step, "status">[] = [
     { id: "story", title: "Your story, locked", what: "Bring a screenplay or an idea. When it is final, lock it: everything else is made from that exact version.", cost: "free", costWords: "Free", optional: false, go: "story",
       detail: !p ? "" : p.story.locked ? "Locked." : p.story.as_is ? "Using it as it is: lock it when you are ready." : "Not locked yet." },
+    { id: "materials", title: "Your own materials (optional)", what: "Bring a storyboard, character and place sheets, a shot list or notes you already have. They guide the shots and the pictures: nothing is added until you have seen where each piece goes.", cost: "free",
+      costWords: "Free. Nothing is bought or sent", optional: true, go: "materials", detail: !p ? "" : p.cast.pictures ? "Some of your own pictures are already in." : "Skip it if you only have a script." },
     { id: "cast", title: "Cast & World", what: "The people, the places and one visual style, so every shot looks like the same film. The writing helper can suggest details (its price is shown first).", cost: "free", costWords: "Free",
       optional: false, go: "cast", detail: !p ? "" : `${plural(p.cast.characters, "character")}, ${plural(p.cast.places, "place")}${p.cast.style ? ", a style chosen" : ", no style yet"}.` },
     { id: "voices", title: "Voices", what: "Give each speaking character a voice: record your own lines (free), or choose a voice from your ElevenLabs library (free to choose; speaking a line shows its price first). Voice a whole scene with one price and a cap.",
@@ -48,7 +50,7 @@ export function buildSteps(f: Facts): Step[] {
     { id: "export", title: "Export the film", what: "Put the pictures, video, voices and sound together into one file, or hand it to an editor.", cost: "free", costWords: "Free", optional: false, go: "export",
       detail: f.exported ? "Exported." : videoDone ? "Ready." : "After the video." },
   ];
-  const doneOf: Record<StepId, boolean> = { story: !!p && p.story.locked, cast: castDone, voices: voicesDone, shots: shotsDone, pictures: picsDone, video: videoDone, sound: !!s && s.cues > 0, export: f.exported };
+  const doneOf: Record<StepId, boolean> = { story: !!p && p.story.locked, materials: false, cast: castDone, voices: voicesDone, shots: shotsDone, pictures: picsDone, video: videoDone, sound: !!s && s.cues > 0, export: f.exported };
   let found = false;
   return raw.map((r) => {
     const done = doneOf[r.id];
