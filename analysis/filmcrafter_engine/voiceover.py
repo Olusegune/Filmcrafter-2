@@ -495,7 +495,7 @@ def slice_for(d: str, shot_id: str, seconds: float) -> str:
     if not rows:
         raise SystemExit(f"Shot {shot_id} has no recording.")
     files = [inside(d, r["path"]) for r in rows]
-    tag = hashlib.sha1("|".join(f"{f}:{os.path.getsize(f)}:{os.path.getmtime(f)}" for f in files).encode() + f"{seconds:.2f}".encode()).hexdigest()[:12]
+    tag = hashlib.sha1("|".join(f"{f}:{os.path.getsize(f)}:{os.path.getmtime(f)}" for f in files).encode() + f"{seconds:.2f}".encode(), usedforsecurity=False).hexdigest()[:12]
     out_dir = os.path.join(d, "cache", "voice")
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, f"{file_part(shot_id)}_{tag}.mp3")

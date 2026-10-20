@@ -91,7 +91,9 @@ I read the 28 commits since the 1.36.0 baseline that FilmCrafter forked from, th
 | `castboard.py` (who wears what, scene by scene, where it drifts) | Continuity for films; FilmCrafter's continuity check is shot-level | Small | Maybe |
 | Instruments, songs, dance, singers, lyrics, take windows | Music-video features | n/a | **No** (different product) |
 
-I have **not** ported any of this in this batch except by reading it. Porting means merging two code bases that have diverged for 17 versions, so it should go in small, tested steps, one row at a time, starting at the top of the table.
+**Ported so far (2026-10-20):** the `Sheet` dialog component and the nested-question handling (row 1), and the security audit workflow, clippy and bandit cleanliness (part of row 3; the repo's existing Build workflow stays manual-only, as chosen). Nothing else yet.
+
+Everything else in the table has **not** been ported. Porting means merging two code bases that have diverged for 17 versions, so it should go in small, tested steps, one row at a time, starting at the top of the table.
 
 ## 7. Your idea: storyboards, asset sheets and more as input
 

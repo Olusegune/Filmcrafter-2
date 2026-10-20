@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, type AudioLibrary, type CueList, type FilmProgress, type MakeStatus, type VoiceStatus } from "./api";
 import * as I from "./icons";
 import { buildSteps, doneCount, markGuideSeen, nextStep, requiredCount, type Step } from "./guideSteps";
@@ -36,18 +37,12 @@ export function FirstFilm({ dir, progress, pro, onGo, onClose }: { dir: string; 
     })();
     return () => { live = false; };
   }, [dir, progress?.make.shots]);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.querySelector(".ask, [role=alertdialog]")) { e.stopImmediatePropagation(); close(); } };
-    window.addEventListener("keydown", k, true);
-    return () => window.removeEventListener("keydown", k, true);
-  });                                                                  // eslint-disable-line react-hooks/exhaustive-deps
   const close = () => { markGuideSeen(dir); onClose(); };
   const steps = useMemo(() => buildSteps({ progress, voices: voices ? { people: voices.people, recorded: voices.recorded } : null, sound, pro, exported: false }), [progress, voices, sound, pro]);
   const next = nextStep(steps);
   const done = doneCount(steps), total = requiredCount(steps);
   return (
-    <div className="overlay" onClick={close}>
-      <div className="sheet glass ff" role="dialog" aria-label="Your first film" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Your first film" className="ff" onDismiss={close}>
         <div className="vs-head"><h2>Your first film</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={close} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="ff-lead">{next ? <>Next: <b>{next.title}</b>. </> : <>Every step is done. </>}{done} of {total} steps finished. Nothing on this page makes or buys anything: each step shows its own price and asks first, where it happens.</p>
         <div className="ff-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="Steps finished"><i style={{ width: `${Math.round((done / total) * 100)}%` }} /></div>
@@ -70,7 +65,6 @@ export function FirstFilm({ dir, progress, pro, onGo, onClose }: { dir: string; 
         </ol>
         <p className="why ff-foot">Tip: test one shot first. If its picture, mouth and voice are right, the others will be too, and you have spent a fraction of the cost finding out.</p>
         <div className="cv-actions"><button className="btn" onClick={close}>Close</button><span className="why">Open it again any time from the <b>Guide</b> button at the top; the <b>Costs</b> button beside it shows what the film has cost so far.</span></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

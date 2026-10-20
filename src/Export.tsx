@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { api, errorText, fmtTime, type EditorPackage, type ExportResult } from "./api";
 import { CaptionsPanel } from "./Captions";
@@ -48,8 +49,7 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
 
   const draft = rendered < shots;
   return (
-    <div className="overlay" onClick={progress ? undefined : onClose}>
-      <div className="sheet glass" role="dialog" aria-label="Export" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Export" onDismiss={progress ? undefined : onClose}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
             <h2>Export</h2>
@@ -120,8 +120,7 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
           {result && <button className="btn" onClick={() => revealItemInDir(result.path)}>Show in folder</button>}
           <button className="btn primary" onClick={run} disabled={!!progress}>{progress ? "Exporting…" : result ? "Export again" : "Export video"}</button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type MaterialItem, type MaterialsPlan, type MaterialsResult } from "./api";
 import * as I from "./icons";
@@ -18,11 +19,6 @@ export function BringMaterials({ dir, onClose, onDone }: { dir: string; onClose:
   const [err, setErr] = useState("");
   const [result, setResult] = useState<MaterialsResult | null>(null);
   const timer = useRef<number | undefined>(undefined);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !busy) { e.stopImmediatePropagation(); onClose(); } };
-    window.addEventListener("keydown", k, true);
-    return () => window.removeEventListener("keydown", k, true);
-  });                                                                  // eslint-disable-line react-hooks/exhaustive-deps
 
   const scan = async (sources: string[]) => {
     setBusy("scan"); setErr(""); setResult(null);
@@ -57,8 +53,7 @@ export function BringMaterials({ dir, onClose, onDone }: { dir: string; onClose:
   };
 
   return (
-    <div className="overlay" onClick={() => !busy && onClose()}>
-      <div className="sheet glass bm" role="dialog" aria-label="Bring your own materials" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Bring your own materials" className="bm" onDismiss={() => !busy && onClose()}>
         <div className="vs-head"><h2>Bring your own materials</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close" disabled={!!busy}><I.Close size={18} /></button></div>
         {!plan && !result && <>
           <p className="bm-lead">Besides a script, you can bring a storyboard, character and place sheets, a shot list and notes. They guide how the film is made: panels become the chosen picture for their shots, sheets become the pictures the characters and places are made from, and the shot list fills in the shots.</p>
@@ -95,8 +90,7 @@ export function BringMaterials({ dir, onClose, onDone }: { dir: string; onClose:
           {result.changed_since_scan.length > 0 && <p className="why bm-warn">These files changed after they were read, so they were not used: {result.changed_since_scan.join(", ")}. Choose them again.</p>}
           <div className="cv-actions"><button className="btn primary" onClick={onClose}>Done</button><button className="btn" onClick={() => setResult(null)}>Bring in more</button></div>
         </>}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

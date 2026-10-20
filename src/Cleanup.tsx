@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type CleanupItem, type CleanupScan } from "./api";
 import { ask } from "./ask";
 import * as I from "./icons";
@@ -61,8 +62,7 @@ export function CleanupSheet({ dir, onClose, onChanged }: { dir: string; onClose
 
   const groups: [string, string, CleanupItem[]][] = [["video", "Videos", items.filter((i) => i.kind === "video")], ["image", "Pictures", items.filter((i) => i.kind === "image")], ["audio", "Audio", items.filter((i) => i.kind === "audio")]];
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass cleanup" role="dialog" aria-label="Clean up" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Clean up" className="cleanup" onDismiss={onClose}>
         <div className="vs-head"><h2>Clean up</h2><div style={{ flex: 1 }} />
           <div className="cl-sizes" role="group" aria-label="Picture size">{(["small", "medium", "large"] as TileSize[]).map((t) => <button key={t} className={tile === t ? "on" : ""} aria-pressed={tile === t} onClick={() => setTile(t)}>{t[0].toUpperCase() + t.slice(1)}</button>)}</div>
           <button className="btn ghost small" onClick={load} disabled={!!busy}>Refresh</button>
@@ -103,8 +103,7 @@ export function CleanupSheet({ dir, onClose, onChanged }: { dir: string; onClose
           <I.Trash size={15} /> <span><b>Trash</b> {scan.trash.files} file{scan.trash.files === 1 ? "" : "s"} · {size(scan.trash.bytes)}</span><div style={{ flex: 1 }} />
           <button className="btn small" disabled={!!busy} onClick={restore}>Restore all</button>
           <button className="btn small ghost danger" disabled={!!busy} onClick={empty}>Empty trash…</button></div>}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

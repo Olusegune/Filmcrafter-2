@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type CustomFrameMade, type CustomFrameState } from "./api";
 import { ask } from "./ask";
@@ -61,8 +62,7 @@ export function InsertFrameSheet({ dir, shot, onClose, onDone }: { dir: string; 
   const a = st?.shots.find((s) => s.id === anchor);
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass insert-frame" role="dialog" aria-label="Insert a frame" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Insert a frame" className="insert-frame" onDismiss={onClose}>
         <div className="vs-head"><h2>Insert a frame</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">A new shot in the film: a card, a held picture, your own clip or something generated. It takes time the film already has, so nothing after it
@@ -103,7 +103,6 @@ export function InsertFrameSheet({ dir, shot, onClose, onDone }: { dir: string; 
         <div className="if-actions"><div style={{ flex: 1 }} />
           <button className="btn ghost" onClick={onClose}>Cancel</button>
           <button className="btn primary" disabled={!ready || busy || !anchor} onClick={go}>{busy ? "Adding…" : "Insert the frame"}</button></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

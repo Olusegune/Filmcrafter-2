@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type VoiceShot } from "./api";
 import { encodeWav, lineFor, nextUnvoiced, peaksOf, trimSilence } from "./voiceLogic";
 import { notifyVoice, useVoiceStatus } from "./voiceHooks";
@@ -125,8 +126,7 @@ export function VoiceRecorder({ dir, shotId, speaker, onClose }: { dir: string; 
   const done = !!st && left === 0;
 
   return (
-    <div className="overlay" onClick={() => { if (mode !== "recording") onClose(); }}>
-      <div className="sheet glass vr" role="dialog" aria-label="Record a voice" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Record a voice" className="vr" onDismiss={() => { if (mode !== "recording") onClose(); }}>
         <div className="vs-head"><h2>Record <span className="num">{cur}</span></h2>
           <span className="dim vr-prog">{st ? `${total - left} of ${total} voices recorded` : ""}</span>
           <div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
@@ -158,7 +158,6 @@ export function VoiceRecorder({ dir, shotId, speaker, onClose }: { dir: string; 
         {done && <p className="vr-said" role="status">Every voice in the film is recorded.</p>}
         {err && <p className="error-text" role="alert">{err}</p>}
         <p className="dim vr-hint">Your take is trimmed of silence before it is attached. A voice you replace is kept in the film's voice/_removed folder.</p>
-      </div>
-    </div>
+    </Sheet>
   );
 }

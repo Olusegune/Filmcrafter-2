@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type ColourMatchState } from "./api";
 import * as I from "./icons";
 
@@ -21,8 +22,7 @@ export function ColourMatchSheet({ dir, onClose }: { dir: string; onClose: () =>
   };
   const looked = !!st?.analysed;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass colour-match" role="dialog" aria-label="Colour match" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Colour match" className="colour-match" onDismiss={onClose}>
         <div className="vs-head"><h2>Colour match</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">Shots can differ in brightness and colour from one to the next. This looks at the take each shot uses and, when you turn it on, nudges the shots that stand out towards the typical shot when the
@@ -49,7 +49,6 @@ export function ColourMatchSheet({ dir, onClose }: { dir: string; onClose: () =>
         </ul>}
         {looked && st!.rows.some((r) => !r.adjusted && !r.is_reference) && <button className="link cm-more" onClick={() => setAll((v) => !v)}>{all ? "Show only the shots that stand out" : `Show all ${st!.rows.length} shots`}</button>}
         {looked && <p className="dim">Check the result with <b>Preview</b> under the player, or an export. Turn it off to see the film as the takes are.</p>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type CastEstimate, type CastPlan, type CastPreview, type CastVoice, type ElevenVoice, type VoiceShot } from "./api";
 import { ask } from "./ask";
@@ -193,8 +194,7 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone, replaceAp
   });
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass cv-sheet" role="dialog" aria-label={`A voice for ${person}`} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={`A voice for ${person}`} className="cv-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>A voice for {person}</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <div className="vr-who" role="tablist" aria-label="Where the voice comes from">
           {([["library", "From your library"], ["design", "Design one"], ["clone", "Clone my own"]] as [Tab, string][]).map(([t, l]) =>
@@ -261,6 +261,5 @@ export function VoiceMaker({ dir, person, cast, plan, onClose, onDone, replaceAp
           </div>;
         })()}
         {err && <p className="error-text" role="alert">{err}</p>}
-      </div>
-    </div>);
+    </Sheet>);
 }

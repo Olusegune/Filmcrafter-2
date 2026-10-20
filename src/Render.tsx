@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { Takes } from "./Takes";
 import { api, AUTO_LIPSYNC_MODEL, AUTO_MODEL, errorText, type CatalogItem, type Estimate, type ChangesSince as ChangesInfo, type TrackStats, type Job, type ModelInput, type KeyStatus, type Manifest, type ManifestInput, type Shot } from "./api";
 import { ExtendCard } from "./Extend";
@@ -370,8 +371,7 @@ export function ConfirmRender({ count, seconds, provider, model, onCancel, onCon
   }, [dir, shots, provider, modelId, kind]);
   const big = (est?.usd ?? 0) >= 25;
   return (
-    <div className="overlay" onClick={onCancel}>
-      <div className="sheet glass" role="dialog" aria-label="Confirm render" onClick={(e) => e.stopPropagation()} style={{ width: "min(500px, calc(100vw - 32px))" }}>
+    <Sheet label="Confirm render" style={{ width: "min(500px, calc(100vw - 32px))" }} onDismiss={onCancel}>
         <h2>{kind === "lipsync" ? "Lip-sync this take?" : kind === "image" ? "Make a keyframe?" : `Render ${count === 1 ? "this shot" : `${count} shots`}?`}</h2>
         <p className="sub">
           {PROVIDER_NAME[provider]} · {model}<br />
@@ -400,7 +400,6 @@ export function ConfirmRender({ count, seconds, provider, model, onCancel, onCon
           <button className="btn primary" onClick={onConfirm} autoFocus={!big} disabled={!!est?.native_blocked?.length}>
             {est?.usd != null ? `Render · ≈ $${est.usd.toFixed(2)}` : "Render"}</button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type TitleCardSpec, type TitleCardState } from "./api";
 import { FontPicker } from "./FontPicker";
@@ -92,8 +93,7 @@ export function IntroCardSheet({ dir, onClose, onChanged }: { dir: string; onClo
   const span = st?.span ?? st?.gap ?? null;
   const hasRoom = !!span;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass intro-card" role="dialog" aria-label="Intro title card" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Intro title card" className="intro-card" onDismiss={onClose}>
         <div className="vs-head"><h2>Intro title card</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         {!st && !err && <p className="dim">Loading…</p>}
@@ -155,7 +155,6 @@ export function IntroCardSheet({ dir, onClose, onChanged }: { dir: string; onClo
           </div>
         </>}
         {!hasRoom && err && <p className="error-text" role="alert">{err}</p>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

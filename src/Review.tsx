@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, fmtTime, type Job, type KeyStatus, type Shot } from "./api";
 import { ConfirmRender, PROVIDER_NAME } from "./Render";
 import * as I from "./icons";
@@ -137,8 +138,7 @@ export function ReviewSheet({ dir, shots, jobs = [], inUse = {}, keys, onSelect,
   const actOn = sel.length ? sel : shown.map((x) => x.shot.id);
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass review-sheet" role="dialog" aria-label="Review" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Review" className="review-sheet" onDismiss={onClose}>
         <div className="rv-head">
           <div>
             <h2>Review</h2>
@@ -238,8 +238,7 @@ export function ReviewSheet({ dir, shots, jobs = [], inUse = {}, keys, onSelect,
                                    model={target === "same" ? `${base(confirm[0]).model.split("/").slice(-2).join("/")} (the model that drew the flagged video), with the reviewer's corrections` : `${tgt.label}, with the reviewer's corrections`}
                                    onCancel={() => setConfirm(null)} onConfirm={() => fix(confirm)}
                                    dir={dir} shots={confirm} modelId={tgtModel(confirm[0])} />}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

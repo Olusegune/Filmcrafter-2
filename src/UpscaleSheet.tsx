@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type EngineEvent, type UpscaleRun, type UpscaleTool } from "./api";
 import { ask } from "./ask";
 import * as I from "./icons";
@@ -61,8 +62,7 @@ export function UpscaleSheet({ dir, req, onClose, onChanged }: { dir: string; re
     try { await api.upscale(dir, "revert", { shot: req.shot, kind: req.kind }); setDone(null); onChanged(); await load(); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
   };
   return (
-    <div className="overlay" onClick={() => !busy && onClose()}>
-      <div className="sheet glass up-sheet" role="dialog" aria-label="Upscale" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Upscale" className="up-sheet" onDismiss={() => !busy && onClose()}>
         <div className="vs-head"><h2><I.Sparkle size={18} /> Upscale {req.kind === "keyframe" ? "the keyframe" : "this take"} of {req.shot}</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close" disabled={!!busy}><I.Close size={18} /></button></div>
         <p className="sub">Sharper and larger: Topaz and Recraft on Kie.ai, and more on fal.ai. {req.kind === "keyframe"
@@ -77,7 +77,6 @@ export function UpscaleSheet({ dir, req, onClose, onChanged }: { dir: string; re
         </div>
         {done && <div className="note ok" role="status"><I.Check size={14} /> Done. {req.kind === "keyframe" ? "This is now the keyframe for the shot." : "The upscaled take is now the one in the film."}</div>}
         {err && <div className="error-text" role="alert" style={{ marginTop: 8 }}>{err}</div>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

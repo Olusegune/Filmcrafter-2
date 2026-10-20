@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type SceneResult, type ScenePlan, type TableRead } from "./api";
 import { ask } from "./ask";
 import * as I from "./icons";
@@ -32,8 +33,7 @@ export function VoiceScene({ dir, scene: first, mode: firstMode = "voice", onClo
     return () => window.removeEventListener("keydown", k, true);
   }, [onClose]);
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass vsc" role="dialog" aria-label="Voice a scene" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Voice a scene" className="vsc" onDismiss={onClose}>
         <div className="vs-head"><h2>{mode === "voice" ? "Voice a scene" : "Listen to a scene"}</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <div className="vsc-bar">
           <div className="vr-who" role="tablist" aria-label="What to do">
@@ -43,8 +43,7 @@ export function VoiceScene({ dir, scene: first, mode: firstMode = "voice", onClo
           <label className="cv-model">Scene <select value={scene ?? ""} onChange={(e) => setScene(Number(e.target.value))}>{scenes.map((n) => <option key={n} value={n}>Scene {n}</option>)}</select></label>
         </div>
         {scene === null ? <p className="dim">No scene has spoken lines yet.</p> : mode === "voice" ? <Voicing key={`v${scene}`} dir={dir} scene={scene} onRead={() => setMode("read")} /> : <Read key={`r${scene}`} dir={dir} scene={scene} />}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

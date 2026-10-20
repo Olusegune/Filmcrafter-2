@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Sheet } from "./Sheet";
 import { VoiceoverPanel } from "./VoiceoverPanel";
 import type { VoiceMatch } from "./api";
 import * as I from "./icons";
@@ -11,11 +12,9 @@ export function VoiceoverSheet({ dir, onClose, onChanged, initialRows, only }: {
     return () => window.removeEventListener("keydown", k);
   }, [onClose]);
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass vo-sheet" role="dialog" aria-label="Voiceover" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Voiceover" className="vo-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Voiceover</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <div className="vo-sheet-body"><VoiceoverPanel dir={dir} only={only} onChanged={onChanged} initialRows={initialRows} /></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

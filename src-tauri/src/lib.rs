@@ -676,6 +676,7 @@ async fn render_preview(app: AppHandle, dir: String, shot: String, provider: Str
 
 /// Queue shots for rendering (billable once the renderer sends them) and start the renderer.
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]         // the arguments are the command's public shape, named by the screen
 async fn queue_render(app: AppHandle, dir: String, shots: Vec<String>, provider: String, model: Option<String>,
                       overrides: Value, fix_notes: Option<Vec<String>>, kind: Option<String>,
                       source_job: Option<String>) -> Result<Value, String> {

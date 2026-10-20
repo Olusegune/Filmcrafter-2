@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
 import { ask } from "./ask";
 import { FilmContinuity } from "./FilmContinuity";
@@ -122,8 +123,7 @@ export function ShotLab({ dir }: { dir: string }) {
             <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
       </aside>
 
-      {cmd && <div className="overlay" onClick={() => setCmd(null)}>
-        <form className="sheet glass dc" role="dialog" aria-label="Director Command" onClick={(e) => e.stopPropagation()} onSubmit={(e) => { e.preventDefault(); void runCmd(); }}>
+      {cmd && <Sheet label="Director Command" className="dc" onDismiss={() => setCmd(null)} onSubmit={(e) => { e.preventDefault(); void runCmd(); }}>
           <label className="field"><span>Director Command <span className="dim">for {sel ?? "no shot"}</span></span>
             <input className="text-input" autoFocus value={cmd.text} onChange={(e) => setCmd({ ...cmd, text: e.target.value, result: null })} placeholder="e.g. make this shot more claustrophobic" /></label>
           {cmd.result && <div className="dc-result">
@@ -131,7 +131,7 @@ export function ShotLab({ dir }: { dir: string }) {
               <div className="film-actions"><button type="button" className="btn primary" onClick={applyCmd}>Apply</button><button type="button" className="btn ghost" onClick={() => setCmd({ ...cmd, result: null })}>Change my words</button></div></>
               : <><p>I didn't understand that.</p><p className="dim">{cmd.result.help}</p></>}</div>}
           {!cmd.result && <div className="film-actions"><button className="btn primary" disabled={cmd.busy || !cmd.text.trim() || !sel}>Show me the change</button><span className="dim">Nothing changes until you press Apply.</span></div>}
-        </form></div>}
+        </Sheet>}
       {helpShot && c && <ShotSuggestionSheet shot={c.id} proposal={helpShot} current={c} onClose={() => setHelpShot(null)} onUse={async (patch) => { setHelpShot(null); if (Object.keys(patch).length) await save(patch); }} />}
       {voices ? <main className="sl-main"><VoiceoverPanel dir={dir} /></main>
         : review ? <main className="sl-main"><FilmContinuity dir={dir} onGo={(id) => { setSel(id); setReview(false); }} onChanged={() => { void load(sel); if (sel) api.shots("shot", dir, { id: sel }).then((r) => setC(r.shot ?? null)).catch(() => {}); }} /></main>

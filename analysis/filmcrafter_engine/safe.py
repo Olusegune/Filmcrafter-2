@@ -25,7 +25,7 @@ def file_name(name: object, limit: int = 60) -> str:
     room = max(8, limit - len(ext))
     s = file_part(stem, 10 ** 6)
     if len(s) > room:
-        s = s[:room - 7].rstrip("._-") + "-" + hashlib.sha1(stem.encode("utf-8", "replace")).hexdigest()[:6]
+        s = s[:room - 7].rstrip("._-") + "-" + hashlib.sha1(stem.encode("utf-8", "replace"), usedforsecurity=False).hexdigest()[:6]
     return s + ext
 
 

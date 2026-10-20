@@ -290,7 +290,7 @@ def sample(d: str, url: str) -> dict:
     V._film(d)
     if not _sample_host_ok(url):
         raise SystemExit("That is not an ElevenLabs sample.")
-    name = "lib-" + hashlib.sha1(str(url).encode("utf-8")).hexdigest()[:16]
+    name = "lib-" + hashlib.sha1(str(url).encode("utf-8"), usedforsecurity=False).hexdigest()[:16]
     folder = os.path.join(d, "voice", "_previews")
     for ext in (".mp3", ".wav"):
         if os.path.isfile(os.path.join(folder, name + ext)):
@@ -523,7 +523,7 @@ def _cache(d: str, sid: str, words: str, voice: dict, seed: int | None = None) -
     """Where this exact performance is kept. The words, the voice and its settings decide it; a `seed` (only for "another take") makes a different performance of the same words."""
     parts = [voice.get("model"), voice.get("voice_id"), words, voice.get("stability"), voice.get("similarity"), voice.get("style"), voice.get("speed")]
     raw = json.dumps(parts + ([seed] if seed is not None else []), sort_keys=True)
-    return os.path.join(d, "voice", "_generated", f"{sid}-{hashlib.sha1(raw.encode('utf-8')).hexdigest()[:16]}.mp3")
+    return os.path.join(d, "voice", "_generated", f"{sid}-{hashlib.sha1(raw.encode('utf-8'), usedforsecurity=False).hexdigest()[:16]}.mp3")
 
 
 def estimate(d: str, items: list) -> dict:

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, fmtTime, type LightShot, type LightingPlan } from "./api";
 import * as I from "./icons";
 import { applySentence, groupRuns, lightColour, runName, runTick, sceneLine, targets, type LightRun } from "./lightingView";
@@ -83,8 +84,7 @@ export function LightingSheet({ dir, onClose, onChanged, onSelect }: { dir: stri
   }, [plan]);
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass lighting-sheet" role="dialog" aria-label="Light the story" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Light the story" className="lighting-sheet" onDismiss={onClose}>
         <div className="rv-head">
           <div>
             <h2>Light the story</h2>
@@ -120,7 +120,6 @@ export function LightingSheet({ dir, onClose, onChanged, onSelect }: { dir: stri
         </>}
         {done && <div className="note ok" role="status"><I.Check size={14} /> {done}</div>}
         {err && <div className="error-text" role="alert">{err}</div>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

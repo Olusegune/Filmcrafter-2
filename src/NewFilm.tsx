@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type StoryKind, type StoryPreview } from "./api";
 import * as I from "./icons";
@@ -54,8 +55,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
   };
 
   return (
-    <div className="overlay" onClick={busy ? undefined : onClose}>
-      <div className="sheet glass nf-sheet" role="dialog" aria-label="New film" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="New film" className="nf-sheet" onDismiss={busy ? undefined : onClose}>
         <div className="vs-head"><h2>New film</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
 
@@ -90,7 +90,6 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
             <button className="btn primary" onClick={create} disabled={!!busy || !text.trim()}>{busy === "create" ? "Creating…" : "Create film"}</button>
           </div>
         </>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

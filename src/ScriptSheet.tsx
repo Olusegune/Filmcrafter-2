@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type LoadedProject } from "./api";
 import * as I from "./icons";
@@ -52,8 +53,7 @@ export function ScriptSheet({ project, onClose, onDone }: { project: LoadedProje
   };
 
   return (
-    <div className="overlay" onClick={() => !busy && onClose()}>
-      <div className="sheet glass script-sheet" role="dialog" aria-label="Add a script" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Add a script" className="script-sheet" onDismiss={() => !busy && onClose()}>
         <div className="vs-head"><h2>{project.project.script ? "Replace the script" : "Add a script"}</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close" disabled={busy}><I.Close size={18} /></button></div>
         <p className="sub">Scenes and shots you've written are followed exactly and placed on the song's beats.
@@ -88,7 +88,6 @@ export function ScriptSheet({ project, onClose, onDone }: { project: LoadedProje
           <button className="btn ghost" onClick={onClose} disabled={busy}>Cancel</button>
           <button className="btn primary" onClick={adopt} disabled={!ready || busy}>{busy ? "Placing scenes on the song…" : "Use this script"}</button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

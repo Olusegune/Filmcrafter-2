@@ -1,4 +1,5 @@
 import { Badge, lookGlyph } from "./glyphs";
+import { Sheet } from "./Sheet";
 import { useEffect, useMemo, useState } from "react";
 import { api, type Look, type Style } from "./api";
 import * as I from "./icons";
@@ -46,8 +47,7 @@ export function LookPicker({ value, director, onCancel, onSave }: {
   });
 
   return (
-    <div className="overlay" onClick={onCancel}>
-      <div className="sheet glass look-sheet" role="dialog" aria-label="Choose a look" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Choose a look" className="look-sheet" onDismiss={onCancel}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
           <div>
             <h2>Look</h2>
@@ -93,7 +93,6 @@ export function LookPicker({ value, director, onCancel, onSave }: {
           <button className="btn ghost" onClick={onCancel}>Cancel</button>
           <button className="btn primary" onClick={save} disabled={!sel}>Use {chosen?.name ?? "this look"}</button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

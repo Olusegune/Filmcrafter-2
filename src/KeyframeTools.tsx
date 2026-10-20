@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText } from "./api";
 import { ask } from "./ask";
 import * as I from "./icons";
@@ -102,8 +103,7 @@ export function KeyframeTools({ dir, onClose, onChanged }: { dir: string; onClos
 
   const flagged = check?.flagged ?? [];
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass kt-sheet" role="dialog" aria-label="Keyframe tools" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Keyframe tools" className="kt-sheet" onDismiss={onClose}>
         <div className="rv-head"><div><h2>Keyframe tools</h2><p className="sub">Check hands before any video is made, and keep one look across the cast.</p></div>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
 
@@ -153,7 +153,6 @@ export function KeyframeTools({ dir, onClose, onChanged }: { dir: string; onClos
         {note && <p className="status-ok" role="status">{note}</p>}
         {err && <p className="error-text" role="alert">{err}</p>}
         {fixing && <HandFix dir={dir} shot={fixing.shot} image={fixing.image} onClose={() => setFixing(null)} onQueued={() => { loadSwap(); setNote(`Fixing the hand in ${fixing.shot}. The new versions appear here when they are ready.`); }} />}
-      </div>
-    </div>
+    </Sheet>
   );
 }

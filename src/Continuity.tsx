@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText } from "./api";
 import * as I from "./icons";
 import { PanelHead } from "./Dock";
@@ -42,8 +43,7 @@ export function ContinuitySheet({ dir, onClose, onSelectShot }: { dir: string; o
   const count = (n: number) => (c?.scenes?.find((s) => s.number === n)?.shots ?? []).reduce((a, s) => a + byShot(s.id).filter((i) => i.severity === "warning").length, 0);
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass cont-sheet" role="dialog" aria-label="Continuity" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Continuity" className="cont-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Continuity</h2><div style={{ flex: 1 }} />
           <button className="btn ghost" onClick={() => aiCheck(true)} disabled={!!busy}
                   title="One look per scene by the AI brain (OpenAI costs a few cents per scene; a local model is free)">Check all scenes with AI</button>
@@ -99,8 +99,7 @@ export function ContinuitySheet({ dir, onClose, onSelectShot }: { dir: string; o
             {sceneIssues.length === 0 && issues && <p className="dim">No continuity problems found in this scene.</p>}
           </div>}
         </div>}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

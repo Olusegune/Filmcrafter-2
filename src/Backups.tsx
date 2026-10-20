@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText } from "./api";
 import * as I from "./icons";
 import { ask } from "./ask";
@@ -26,8 +27,7 @@ export function BackupsSheet({ dir, filmDir = null, onClose, onRestored }: { dir
     try { if (dir) await api.backups(dir, "restore", b.name); onRestored(); } catch (e) { setErr(errorText(e)); setBusy(""); }
   };
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass" role="dialog" aria-label="Restore from backup" onClick={(e) => e.stopPropagation()} style={{ width: "min(560px, calc(100vw - 48px))" }}>
+    <Sheet label="Restore from backup" style={{ width: "min(560px, calc(100vw - 48px))" }} onDismiss={onClose}>
         <div className="vs-head"><h2>Restore from backup</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">FilmCrafter keeps the last 20 versions of this timeline's decisions: when you open it, every 10 minutes if something changed,
@@ -56,7 +56,6 @@ export function BackupsSheet({ dir, filmDir = null, onClose, onRestored }: { dir
             </li>))}
         </ul>
         {err && <div className="error-text" role="alert">{err}</div>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

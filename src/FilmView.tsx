@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type FilmAdvice, type FilmProgress, type FilmScene, type FilmStatus, type StoryKind } from "./api";
 import * as I from "./icons";
 import { ask } from "./ask";
@@ -104,8 +105,8 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
           {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
             onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Pro"}</button>)}</div>
-        <button className="btn ghost sm ff-open" onClick={() => setCosts(true)} title="What this film has cost so far" aria-label="What this film has cost">Costs</button>
-        <button className="btn ghost sm ff-open" onClick={() => setGuide(true)} title="The order a film is made in, and what each step costs" aria-label="Open the first-film guide">
+        <button className="btn ghost sm ff-open" onClick={() => setCosts(true)} title="What this film has cost so far" aria-label="Costs: what this film has cost so far">Costs</button>
+        <button className="btn ghost sm ff-open" onClick={() => setGuide(true)} title="The order a film is made in, and what each step costs" aria-label="Guide: the order a film is made in">
           <I.Rocket size={13} /> Guide{progress && (() => { const st = buildSteps({ progress, voices: null, sound: null, pro: f.mode === "studio", exported: false }); const n = nextStep(st); return n ? <small className="ff-badge">{doneCount(st)}/{requiredCount(st)}</small> : null; })()}</button>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
@@ -251,8 +252,7 @@ function NewVersion({ dir, from, initial, onClose, onSaved }: { dir: string; fro
     try { onSaved(await api.film<FilmStatus>("add_version", dir, { text, note: note.trim(), kind })); } catch (e) { setErr(errorText(e)); setBusy(false); }
   };
   return (
-    <div className="overlay" onClick={busy ? undefined : onClose}>
-      <div className="sheet glass nf-sheet" role="dialog" aria-label="New version" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="New version" className="nf-sheet" onDismiss={busy ? undefined : onClose}>
         <div className="vs-head"><h2>New version</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">The version you started from stays exactly as it is. This becomes version {from.versions.length + 1}.</p>
@@ -264,7 +264,6 @@ function NewVersion({ dir, from, initial, onClose, onSaved }: { dir: string; fro
         {err && <p className="error-text" role="alert">{err}</p>}
         <div className="sheet-actions"><button className="btn ghost" onClick={onClose} disabled={busy}>Cancel</button>
           <button className="btn primary" onClick={save} disabled={busy || !text.trim() || text === from.text && kind === from.kind}>{busy ? "Saving…" : "Save as a new version"}</button></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

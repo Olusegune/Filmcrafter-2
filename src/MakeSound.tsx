@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type AudioAsset, type GenEstimate, type GenProvider, type GenResult } from "./api";
 import { ask } from "./ask";
 import * as I from "./icons";
@@ -72,8 +73,7 @@ export function MakeSound({ dir, kind, onClose, onMade }: { dir: string; kind: "
     .catch((e) => setErr(errorText(e))).finally(() => setBusy(false)); };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass vsc ms" role="dialog" aria-label={kind === "sfx" ? "Make a sound effect" : "Make music"} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={kind === "sfx" ? "Make a sound effect" : "Make music"} className="vsc ms" onDismiss={onClose}>
         <div className="vs-head"><h2>{kind === "sfx" ? "Make a sound effect" : "Make music"}</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <div className="vsc-body">
           <div className="vr-who" role="tablist" aria-label="Who makes it">
@@ -110,7 +110,6 @@ export function MakeSound({ dir, kind, onClose, onMade }: { dir: string; kind: "
             <button className="btn sm" onClick={() => { setVariation((v) => v + 1); setMade([]); setNote("Ready for another version: it is a new request, so it is priced and asked about again."); }}>Make a variation</button></section>}
           {err && <p className="error-text" role="alert">{err}</p>}
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

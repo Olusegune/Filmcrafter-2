@@ -1,4 +1,5 @@
 import { Badge, directionGlyph } from "./glyphs";
+import { Sheet } from "./Sheet";
 import { useEffect, useMemo, useState } from "react";
 import { api, errorText } from "./api";
 import * as I from "./icons";
@@ -50,8 +51,7 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
     } catch (e) { setErr(errorText(e)); }
   };
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass dl-sheet" role="dialog" aria-label="Direction library" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Direction library" className="dl-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Direction library</h2><div style={{ flex: 1 }} />
           <button className="btn ghost small" onClick={() => { setMaking(true); setSel(null); }}>Save my own…</button>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
@@ -107,8 +107,7 @@ export function DirectionLibrarySheet({ dir, onClose, onApplied }: { dir: string
             </>}
           </div>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

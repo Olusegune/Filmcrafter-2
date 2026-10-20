@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Sheet } from "./Sheet";
 import type { ShotContract } from "./api";
 import * as I from "./icons";
 
@@ -23,8 +24,7 @@ export function ShotSuggestionSheet({ shot, proposal, current, onClose, onUse }:
   };
   const count = [on.acting && acting, on.camera && !!cam, on.light && !!lit].filter(Boolean).length;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass as-sheet" role="dialog" aria-label={`Suggestions for shot ${shot}`} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={`Suggestions for shot ${shot}`} className="as-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2><I.Sparkle size={16} /> Suggestions for shot {shot}</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">Written from the story and your Bible. Choose what to use; what you already set is marked and kept unless you tick the suggestion. You can change any of it afterwards.</p>
         <div className="as-rows">
@@ -41,7 +41,6 @@ export function ShotSuggestionSheet({ shot, proposal, current, onClose, onUse }:
             <div className="as-body"><p>{lit.description}</p>{lit.why && <p className="dim">{lit.why}</p>}</div></label>}
         </div>
         <div className="sheet-actions"><button className="btn ghost" onClick={onClose}>Not now</button><button className="btn primary" onClick={use} disabled={count === 0}>Use {count} {count === 1 ? "part" : "parts"}</button></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type AiPrice, type CastEstimate, type CastTake, type NaturalSuggestion, type SpokenVersion } from "./api";
 import { ask } from "./ask";
@@ -206,11 +207,9 @@ export function LineStudio({ dir, shotId, who, onClose }: { dir: string; shotId:
     return () => window.removeEventListener("keydown", k, true);
   }, [onClose]);
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass ls" role="dialog" aria-label={`${who} in ${shotId}`} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={`${who} in ${shotId}`} className="ls" onDismiss={onClose}>
         <div className="vs-head"><h2><span className="num">{shotId}</span> · {who}</h2><span className="dim">{shot ? `${shot.seconds}s shot` : ""}</span>
           <div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <LineEditor dir={dir} shotId={shotId} who={who} />
-      </div>
-    </div>);
+    </Sheet>);
 }

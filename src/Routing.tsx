@@ -1,4 +1,5 @@
 import { listPrice } from "./price";
+import { Sheet } from "./Sheet";
 import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type EngineEvent } from "./api";
 import * as I from "./icons";
@@ -44,8 +45,7 @@ export function RoutingSheet({ dir, onClose }: { dir: string; onClose: () => voi
   const pct = route.budget_usd ? Math.min(100, (route.spent_usd / route.budget_usd) * 100) : 0;
   const pickText = (p: Pick) => p.provider ? `${p.label} on ${p.provider === "comfyui" ? "your ComfyUI" : p.provider}${p.free ? " (free)" : p.price_usd != null ? ` · about $${p.price_usd.toFixed(2)} per ${p === route.image ? "still" : "5-second shot"}` : ""}` : p.reason;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass route-sheet" role="dialog" aria-label="Plan and budget" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Plan and budget" className="route-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Plan & budget</h2><div style={{ flex: 1 }} />
           <span className={`net-pill ${route.online ? "on" : "off"}`}>{route.online ? "Online" : "Offline"}</span>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
@@ -75,8 +75,7 @@ export function RoutingSheet({ dir, onClose }: { dir: string; onClose: () => voi
           models without a published price count high ($1 per video, $0.25 per still) so the budget is never under-counted.</p>
         <h3 className="perf-h">Works without internet</h3>
         <ul className="route-offline">{route.works_offline.map((w) => <li key={w}><I.Check size={12} /> {w}</li>)}</ul>
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

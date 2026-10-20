@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type SpendingSummary } from "./api";
 import * as I from "./icons";
 import { limitWords, lineWords, opsWords, providerName } from "./spendWords";
@@ -8,14 +9,8 @@ export function SpendingSheet({ dir, onClose }: { dir: string; onClose: () => vo
   const [s, setS] = useState<SpendingSummary | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => { api.filmSpending(dir).then(setS).catch((e) => setErr(errorText(e))); }, [dir]);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopImmediatePropagation(); onClose(); } };
-    window.addEventListener("keydown", k, true);
-    return () => window.removeEventListener("keydown", k, true);
-  });                                                                  // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass spend" role="dialog" aria-label="What this film has cost" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="What this film has cost" className="spend" onDismiss={onClose}>
         <div className="vs-head"><h2>What this film has cost</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         {err && <p className="why" role="alert">{err}</p>}
         {!s && !err && <p className="why">Reading the records…</p>}
@@ -33,7 +28,6 @@ export function SpendingSheet({ dir, onClose }: { dir: string; onClose: () => vo
           <p className="why">{s.note}</p>
         </>}
         <div className="cv-actions"><button className="btn" onClick={onClose}>Close</button></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

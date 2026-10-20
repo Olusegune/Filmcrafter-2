@@ -1,4 +1,5 @@
 import { UpdateRow } from "./Updates";
+import { Sheet } from "./Sheet";
 import { ModelsRow } from "./ModelsRow";
 import { useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -37,8 +38,7 @@ export function Settings({ onClose, onHelp }: { onClose: () => void; onHelp?: ()
   const remove = async (id: string) => { await api.deleteKey(id); refresh(); };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Settings" onDismiss={onClose}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
             <h2>Connections</h2>
@@ -74,8 +74,7 @@ export function Settings({ onClose, onHelp }: { onClose: () => void; onHelp?: ()
         <LocalModelsPanel />
         <UpdateRow />
         <ModelsRow />
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText } from "./api";
 import { ask } from "./ask";
 
@@ -80,8 +81,7 @@ export function HandFix({ dir, shot, image, onClose, onQueued }: { dir: string; 
   };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass hf-sheet" role="dialog" aria-label={`Fix a hand in ${shot}`} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={`Fix a hand in ${shot}`} className="hf-sheet" onDismiss={onClose}>
         <div className="rv-head"><div><h2>Fix a hand</h2><p className="sub">Mark the hand. Only that part is redrawn; the rest of {shot} stays exactly as it is.</p></div></div>
         <div className="hf-stage" ref={stage} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
           <img src={api.mediaUrl(`${dir}/${image}`)} alt={`The keyframe of ${shot}`} draggable={false} />
@@ -108,7 +108,6 @@ export function HandFix({ dir, shot, image, onClose, onQueued }: { dir: string; 
           <button className="btn primary" disabled={!usableBox(box) || !!busy} onClick={go}>{busy === "go" ? "Starting…" : "Fix this hand"}</button>
         </div>
         {err && <p className="error-text" role="alert">{err}</p>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

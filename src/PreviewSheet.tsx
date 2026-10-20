@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type ExportResult } from "./api";
 import * as I from "./icons";
 
@@ -19,8 +20,7 @@ export function PreviewSheet({ dir, from, duration, onClose }: { dir: string; fr
     try { setMade(await api.exportPreview(dir, start, end)); } catch (e) { setErr(errorText(e)); } finally { setBusy(false); }
   };
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass preview-sheet" role="dialog" aria-label="Preview" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Preview" className="preview-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Preview</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">A small, quick version of {start.toFixed(1)} s to {end.toFixed(1)} s with its layers, captions and sound. Free: nothing is sent anywhere. It shows the shots as they are now (slates where nothing is rendered).</p>
@@ -31,7 +31,6 @@ export function PreviewSheet({ dir, from, duration, onClose }: { dir: string; fr
         {err && <p className="error-text" role="alert">{err}</p>}
         {made?.overlay_error && <p className="error-text">The layers were not drawn: {made.overlay_error}</p>}
         {made && <video className="pv-video" src={api.mediaUrl(made.path)} controls autoPlay playsInline />}
-      </div>
-    </div>
+    </Sheet>
   );
 }

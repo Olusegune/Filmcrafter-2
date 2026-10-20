@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useRef, useState, type ReactNode } from "react";
+import { Sheet } from "./Sheet";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import guide from "../docs/GETTING_STARTED.md?raw";
 import * as I from "./icons";
@@ -74,8 +75,7 @@ export function HelpSheet({ onClose }: { onClose: () => void }) {
   }, [q]);   // eslint-disable-line react-hooks/exhaustive-deps
   const go = (title: string) => body.current?.querySelector("#" + slug(title))?.scrollIntoView({ behavior: "smooth", block: "start" });
   return (
-    <div className="overlay" onClick={onClose} onKeyDown={(e) => e.key === "Escape" && onClose()}>
-      <div className="sheet glass help-sheet docs-sheet" role="dialog" aria-label="Documentation" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Documentation" className="help-sheet docs-sheet" onDismiss={onClose}>
         <div className="docs-head">
           <h2>Documentation</h2>
           <input className="docs-search" type="search" placeholder="Search the guide" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search the guide" autoFocus />
@@ -91,7 +91,6 @@ export function HelpSheet({ onClose }: { onClose: () => void }) {
             {shown.length ? shown.map((s) => <Fragment key={s.title}>{renderGuide(s.md)}</Fragment>) : <p>Nothing in the guide matches "{q}".</p>}
           </article>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

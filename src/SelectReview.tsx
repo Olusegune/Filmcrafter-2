@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, fmtTime, type BoardShot, type Estimate, type Job, type Section } from "./api";
 import * as I from "./icons";
 import { FramesPanel } from "./Frames";
@@ -195,8 +196,7 @@ export function SelectReview({ dir, shots, sections, initial, aspect, onClose, o
   const chosenN = ids.filter((id) => opts[id]?.chosen).length;
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass sr-sheet" role="dialog" aria-label="Select and review" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Select and review" className="sr-sheet" onDismiss={onClose}>
         <div className="vs-head">
           <h2>Select &amp; review</h2>
           <ol className="sr-steps" aria-label="Steps">
@@ -360,7 +360,6 @@ Cost: ${money(est, r?.provider)}${r?.provider === "comfyui" ? " (runs on your co
         {pv && <Preview items={pv.items} index={pv.i} onIndex={(i) => setPv((c) => c && { ...c, i })} onClose={() => setPv(null)} />}
         {!route?.[kind]?.provider && route && <p className="error-text">{route[kind].reason ?? "No renderer is set up."}</p>}
         {err && <div className="error-text" role="alert">{err}</div>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

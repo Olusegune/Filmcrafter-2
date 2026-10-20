@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type AssistKind, type BibleView } from "./api";
 import { ask } from "./ask";
 import * as I from "./icons";
@@ -76,8 +77,7 @@ export function AssistSheet({ dir, kind, id, name, proposal, bible, onClose, onA
   };
 
   return (
-    <div className="overlay" onClick={busy ? undefined : onClose}>
-      <div className="sheet glass as-sheet" role="dialog" aria-label={`Suggestions for ${name}`} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={`Suggestions for ${name}`} className="as-sheet" onDismiss={busy ? undefined : onClose}>
         <div className="vs-head"><h2><I.Sparkle size={16} /> Suggestions for {name}</h2><div style={{ flex: 1 }} /><button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">Written from your story. Tick what you want to use and change any words first. What you already wrote is marked <b>yours</b> and stays unless you tick the suggestion.</p>
         {list.length === 0 && wardrobe.length === 0 && states.length === 0 && <p className="dim">Nothing new to suggest: the writing helper had no more to add.</p>}
@@ -94,7 +94,6 @@ export function AssistSheet({ dir, kind, id, name, proposal, bible, onClose, onA
         {err && <p className="error-text" role="alert">{err}</p>}
         <div className="sheet-actions"><button className="btn ghost" onClick={onClose} disabled={busy}>Not now</button>
           <button className="btn primary" onClick={apply} disabled={busy || chosen === 0}>{busy ? "Adding…" : `Use ${chosen} ${chosen === 1 ? "suggestion" : "suggestions"}`}</button></div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

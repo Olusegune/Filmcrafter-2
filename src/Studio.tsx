@@ -1,4 +1,5 @@
 import { SHORTCUTS, GROUPS, find as findShortcut, isTyping } from "./shortcuts";
+import { Sheet } from "./Sheet";
 import { KeyframeTools } from "./KeyframeTools";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toggleShotSound } from "./ShotSound";
@@ -744,11 +745,11 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           { id: "settings", label: "Settings", keys: "Ctrl+,", run: onSettings },
           { id: "home", label: "Back to Home", run: onHome },
         ].filter(Boolean)) as Command[]} />}
-      {keysHelp && <div className="overlay" onClick={() => setKeysHelp(false)}><div className="sheet glass keys-help" onClick={(e) => e.stopPropagation()}>
+      {keysHelp && <Sheet label="Keyboard shortcuts" className="keys-help" onDismiss={() => setKeysHelp(false)}>
         <h2>Keyboard shortcuts</h2>
         <div className="kh-cols">{GROUPS.map((g) => <section key={g}><h3>{g}</h3>
           <dl>{SHORTCUTS.filter((x) => x.group === g).map((x) => <div key={x.id}><dt><kbd>{x.keys}</kbd></dt><dd>{x.label}</dd></div>)}</dl></section>)}</div>
-        <div className="sheet-actions"><button className="btn" onClick={() => setKeysHelp(false)}>Close</button></div></div></div>}
+        <div className="sheet-actions"><button className="btn" onClick={() => setKeysHelp(false)}>Close</button></div></Sheet>}
       {toastMsg && <div className="toast glass mini" role="status">{toastMsg}</div>}
       {undoOffer && !toastMsg && <div className="toast glass mini undo-toast" role="status">{undoOffer} <button className="btn small" onClick={() => stepHist("undo")}>Undo</button> <span className="dim">Ctrl+Shift+U</span></div>}
       {night && !night.active && night.finished && night.export && (Date.now() / 1000 - night.finished < 86400) &&

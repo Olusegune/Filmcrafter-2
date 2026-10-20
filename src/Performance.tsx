@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText } from "./api";
 import * as I from "./icons";
 import { PanelHead } from "./Dock";
@@ -27,8 +28,7 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
   const set = async (data: Record<string, unknown>) => { setErr(""); try { await setPerf(data); onChanged(); } catch (e) { setErr(errorText(e)); } };
   const label = (id: string) => perf?.profiles.find((x) => x.id === id)?.label ?? id;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass perf-sheet" role="dialog" aria-label="Acting" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Acting" className="perf-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Acting</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">How big the performances are, with the small living motion between actions: blinks, breathing, weight shifts. It goes into every new keyframe and video prompt. Free to change.</p>
@@ -67,8 +67,7 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
           <details className="perf-more"><summary>Signature gestures <span className="dim">the small habits that make a character themselves</span></summary>
             <GesturesSection dir={dir} onChanged={onChanged} /></details>
         </>}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

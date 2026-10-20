@@ -1,0 +1,28 @@
+name: Security audit
+
+# Manual only, like Build: start it from the Actions tab. To run it every Monday, add back:  schedule: [{ cron: "17 6 * * 1" }]
+on:
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: JavaScript packages
+        run: npm audit
+      - name: Rust packages
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit --file src-tauri/Cargo.lock
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Python packages and code
+        run: |
+          python -m pip install pip-audit bandit
+          python -m pip_audit -r analysis/requirements-engine.txt --no-deps --disable-pip
+          python -m bandit -q -r analysis/filmcrafter_engine -ll

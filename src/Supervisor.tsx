@@ -1,3 +1,4 @@
+import { Sheet } from "./Sheet";
 import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type Estimate } from "./api";
 import { DirectorChanges } from "./DirectorChanges";
@@ -117,8 +118,8 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
   const tile = (k: "major" | "minor" | "info", label: string, n: number) => <button key={k} className={`sx-tile ${k} ${sev === k ? "on" : ""}`} aria-pressed={sev === k} onClick={() => setSev(sev === k ? "all" : k)}><b className="num">{n}</b><span>{label}</span></button>;
   const cost = (e: Estimate | null, i_kind: string) => i_kind === "lipsync" ? "priced by the second of video (about $0.13 per second on fal)" : !e ? "Price unknown" : e.usd != null ? `≈ $${e.usd.toFixed(2)}` : e.kie_credits_est ? `≈ ${e.kie_credits_est} Kie credits` : `price not published (the budget counts it as $${i_kind === "image" ? "0.25" : "1.00"})`;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass sup-sheet" role="dialog" aria-label="Production Supervisor" onClick={(e) => e.stopPropagation()}>
+    <>
+      <Sheet label="Production Supervisor" className="sup-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Production Supervisor</h2><div style={{ flex: 1 }} />
           <button className="btn ghost small" onClick={load}>Refresh</button>
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
@@ -186,8 +187,8 @@ export function SupervisorSheet({ dir, onClose, onReview, onChanged }: { dir: st
                     </div>)}
                 </div>))}</div>
             </section>))}</div>}
-      </div>
+      </Sheet>
       {card && <IntroCardSheet dir={dir} onClose={() => setCard(false)} onChanged={() => { onChanged(); load(); }} />}
-    </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { useEffect, useRef } from "react";
 import * as I from "./icons";
+import { modalStack } from "./Sheet";
 
 /**
  * A confirmation in the app's own style, as a promise: `if (!(await ask("Make 4 pictures?\n\nCost: about $0.42."))) return;`
@@ -9,14 +10,22 @@ import * as I from "./icons";
 export function Dialog({ message, ok, danger, done }: { message: string; ok: string; danger: boolean; done: (v: boolean) => void }) {
   const [title, ...rest] = message.split("\n\n");
   const okRef = useRef<HTMLButtonElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const id = Symbol("ask");
+    const before = document.activeElement as HTMLElement | null;
+    modalStack.push(id, root.current);    // a question asked from inside a sheet: Escape answers the question, not the sheet under it
     okRef.current?.focus();
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") done(false); };
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape" && modalStack.isTop(id)) { e.preventDefault(); done(false); } };
     window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
+    return () => {
+      window.removeEventListener("keydown", k);
+      modalStack.remove(id);
+      if (before && before.isConnected) before.focus({ preventScroll: true });
+    };
   }, [done]);
   return (
-    <div className="overlay ask-overlay" onClick={() => done(false)}>
+    <div ref={root} className="overlay ask-overlay" onClick={() => done(false)}>
       <div className="sheet glass ask" role="alertdialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className={`ask-ic ${danger ? "danger" : ""}`}>{danger ? <I.Alert size={20} /> : <I.Sparkle size={20} />}</div>
         <div className="ask-body">

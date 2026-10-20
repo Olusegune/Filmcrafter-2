@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Sheet } from "./Sheet";
 import { TakeCompare } from "./Compare";
 import { RefGenSheet } from "./RefGen";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -141,8 +142,7 @@ export function ShotViewer({ dir, shot, library, onClose, onChanged, onRegenerat
   const toggle = (id: string, on: boolean) => act(() => api.library(dir, "assign", { scope: "shot", key: shot.id, id, on }));
   const inherit = (id: string) => act(() => api.library(dir, "reset", { scope: "shot", key: shot.id, id }));
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass viewer-sheet" role="dialog" aria-label={`Shot ${shot.id}`} onClick={(e) => e.stopPropagation()}>
+    <Sheet label={`Shot ${shot.id}`} className="viewer-sheet" onDismiss={onClose}>
         <div className="vs-head">
           <h2 className="num">Shot {shot.id}</h2><StatusChip s={shot.status} />
           <span className="dim num">{fmtTime(shot.start)} → {fmtTime(shot.end)} · {(shot.end - shot.start).toFixed(1)}s</span>
@@ -214,8 +214,7 @@ export function ShotViewer({ dir, shot, library, onClose, onChanged, onRegenerat
             </ul>
           </div>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }
 
@@ -337,8 +336,7 @@ export function LibrarySheet({ dir, scenes, onClose, onChanged, autoMake }: {
   };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className={`sheet glass library-sheet ${over ? "drop" : ""}`} role="dialog" aria-label="Reference library" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Reference library" className={`library-sheet ${over ? "drop" : ""}`} onDismiss={onClose}>
         <div className="vs-head"><h2>Reference library</h2><div style={{ flex: 1 }} />
           <button className="btn ghost" onClick={() => setMakeOpen(true)} title="Make pictures for characters, outfits, props and places that have none, from their specs">Make missing pictures…</button>
           <button className="btn" onClick={pick}>Add files…</button>
@@ -399,8 +397,7 @@ export function LibrarySheet({ dir, scenes, onClose, onChanged, autoMake }: {
           </div>
         ))}
         {lib && lib.items.length === 0 && !draft && <p className="dim">No references yet. Add character images first: they matter most.</p>}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 
@@ -421,8 +418,7 @@ export function ApproveKeyframes({ dir, pending, onClose, onDone }: {
     catch (e) { setErr(errorText(e)); setBusy(false); }
   };
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass approve-sheet" role="dialog" aria-label="Approve keyframes" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Approve keyframes" className="approve-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Approve {chosen.length} keyframe{chosen.length === 1 ? "" : "s"}</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">The newest keyframe of each shot that doesn't have one approved yet. Click any you don't want; you can make another
@@ -445,8 +441,7 @@ export function ApproveKeyframes({ dir, pending, onClose, onDone }: {
           <button className="btn ghost" onClick={onClose}>Cancel</button>
           <button className="btn primary" disabled={busy || !chosen.length} onClick={go}>{busy ? "Approving…" : `Approve ${chosen.length}`}</button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }
 

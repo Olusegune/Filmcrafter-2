@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, AUTO_IMAGE_MODEL, errorText, type CatalogItem, type KeyStatus, type RefGenStatus } from "./api";
 import { ModelPicker } from "./ModelPicker";
 import { ask } from "./ask";
@@ -68,8 +69,7 @@ export function RefGenSheet({ dir, onClose, onChanged }: { dir: string; onClose:
 
   const ready = (st?.jobs ?? []).filter((j) => j.state === "ready" && !j.used);
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass library-sheet" role="dialog" aria-label="Make missing pictures" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Make missing pictures" className="library-sheet" onDismiss={onClose}>
         <div className="vs-head"><h2>Make missing pictures</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
         <p className="sub">These characters, outfits, props and places have no picture of their own, so a model has nothing to look at for them. Each picture is made
@@ -127,7 +127,6 @@ export function RefGenSheet({ dir, onClose, onChanged }: { dir: string; onClose:
             </div>
           </div>}
         </>}
-      </div>
-    </div>
+    </Sheet>
   );
 }

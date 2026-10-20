@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sheet } from "./Sheet";
 import { api, errorText, type Job, type Shot } from "./api";
 import * as I from "./icons";
 import { CheaperRetry } from "./CheaperRetry";
@@ -95,8 +96,7 @@ export function RenderQueueSheet({ dir, jobs, shots, onJob, onShow, onReview, on
   const groups: [string, QueueRow[]][] = [["Failed or needs a check", q.failed], ["Rendering and waiting", q.rows], ["Finished in the last 15 minutes", q.done]];
   const empty = !q.rows.length && !q.done.length && !q.failed.length;
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet glass queue-sheet" role="dialog" aria-label="Render queue" onClick={(e) => e.stopPropagation()}>
+    <Sheet label="Render queue" className="queue-sheet" onDismiss={onClose}>
         <div className="rv-head">
           <div>
             <h2>Render queue</h2>
@@ -118,7 +118,6 @@ export function RenderQueueSheet({ dir, jobs, shots, onJob, onShow, onReview, on
           <div style={{ flex: 1 }} />
           <button className="btn" onClick={() => { onClose(); onReview(); }}>Open Review</button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }
