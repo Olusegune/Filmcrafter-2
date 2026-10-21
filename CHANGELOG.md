@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.27.0 (2026-10-21)
 
 - **Bring your own materials.** Besides a script you can now bring a storyboard (pictures, a folder, a zip, or a PDF with one picture per page), character, place and prop sheets, a shot list (CSV) and notes (.txt or .md). Open it from the **Guide** (a new optional step). It first shows a plan of where each piece would go: storyboard panels to their shots (by file name such as `S01-03.png`, or by order when the numbers agree, otherwise you choose the shot), sheets to the cast, place or prop they belong to (views such as front, side and turnaround are recognised; new entries only when named), the shot list into the shots' framing, movement, length, dialogue and notes, notes kept and optionally added to the Bible. Nothing is added until you tick and confirm; a snapshot of the film's records is taken first; a locked storyboard is never touched; a panel already chosen, or words you wrote yourself, are replaced only if you tick them; the same picture is never added twice; originals stay where they are. Free and local: nothing is bought or sent. Panels can also become the framing reference for their shot's hero picture (free; the picture is still made, and priced, later).
 - **Home: "Continue where you left off"** shows the film you worked on last with one button, and the recent films say "Today", "Yesterday" or "3 days ago" instead of a date.
