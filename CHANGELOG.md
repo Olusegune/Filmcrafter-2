@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.27.1 (2026-10-21)
 
 - **The player's volume bar** is now a slim, rounded bar filled with the design system's gold, with a round thumb (it was a square blue block: two slider rules were fighting).
 - **Playback controls.** The skip buttons now go to the **previous** and **next shot** (they used to jump to the very start and end, which is far less useful in a 58-shot film); the previous button first returns to the start of the shot you are in. Scrubbing and the skip buttons also carry on from the new place while the film plays. A film with no sound file now plays on its own clock (Play used to do nothing without a soundtrack).
