@@ -48,6 +48,18 @@ Replace the recording on the tested shot, confirm that Voices/Scene sound shows 
 
 **Reading it honestly:** the reference-audio route alone (Take A) did not give lip-sync in this one test; the dedicated pass (Take B) moved the mouth toward the words. The measure is a crude proxy (motion in a box around the mouth), the sample is one shot with a mostly-silent clip, and a person has not yet watched it. What this supports: keep saying the reference audio is not a promise, keep the "Lip-sync this take…" pass as the dependable route, and judge a real shot with the real voice length (a clip that is mostly padding silence is a poor test: next time use a line that fills the shot). Things the test also showed: a model can refuse a request for reasons not in its documentation (nothing was charged); the pass costs about a fifth of a take.
 
+
+**Retest of 2026-10-21 (owner-approved caps: Kie 40 credits, ElevenLabs 55 credits; same throwaway film).** The first test's line filled only a third of the clip, so this one used a longer line (55 characters, 3.92 s of speech in the 4 s clip) and ran the Kie lip-sync pass (Volcengine) again on the same Take A, with the new recording. That is also the "after a voice changes" check: the pass was the remedy for a take whose voice had changed.
+
+| Step | What happened | Spent |
+|---|---|---|
+| New line | Spoken by the same voice; attached to the shot. The engine's safe estimate was 55 credits; **ElevenLabs reported 12**. | 12 ElevenLabs credits |
+| Lip-sync pass | Made (4.04 s, 720p, the new recording as its sound). The review noted the take is 4.0 s but the shot needs 4.5 s (length, not sync). | 32 Kie credits |
+
+Crude measure (motion in a box around the mouth, per 0.2 s, against the speech energy of the line): while the line was spoken the mouth region moved at 1.64 and in the pauses at 0.64; the correlation with the speech energy is **+0.16**. The base take (which never heard this line) moved at 1.33 and 0.26 (correlation -0.01). The contact sheet shows the mouth slightly open and changing in most quarter-second frames. **Reading it honestly:** the pass moves the mouth during speech, but this proxy cannot say whether it matches the words, and a weak correlation is not proof either way. It needs a person to watch and listen. Files: `Desktop\FilmCrafter lip-sync test 2`.
+
+Two things this run showed about the app: (1) a spending limit is checked against the safe estimate of each paid step, not the amount ElevenLabs later reports, so a longer line needs a limit near the estimate even though the real charge is about a fifth of it; (2) the engine refused the line before sending anything when the limit was too small, which is the intended behaviour.
+
 | Date | Shot | Route | Spent | Mouth followed the voice? | Notes |
 |---|---|---|---|---|---|
 | 2026-10-14 | S01-02 (close-up, 1.4 s line in a 4 s clip) | Seedance 2 reference audio | 164 Kie credits (+4 for the picture, 3 ElevenLabs) | **No** (measured and seen in frames) | The mouth moved mostly in the silent part. |
