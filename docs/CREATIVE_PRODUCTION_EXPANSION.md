@@ -89,6 +89,12 @@ Baseline: FilmCrafter 0.24.0 (Phase 0 released 2026-10-14, tag `v0.24.0`).
 
 One 2 s and one 4 s sound effect, and one voice scene of two short lines, all worked end to end with real ElevenLabs calls (39 credits reported; the app's estimates were 91). Sound effects cost about 5.5 credits per second on this account (the app's 11 credits per second is therefore a safe upper bound), and voice lines were reported at a fraction of the estimated characters. Details are in `docs/QA.md` ("Real runs of 0.25.0"). **Music and the Kie.ai music task flow have not been run.** The lip-sync test was run afterwards (Kie 200 of 300 credits): the reference-audio route alone did not follow the voice's timing, the Kie lip-sync pass improved it but is not proven; see `docs/LIPSYNC_VALIDATION.md`.
 
+## First real music run (2026-10-21, throwaway film, one request, owner said "go ahead", standing Kie limit 40 credits)
+
+One Suno-through-Kie.ai request (V6, instrumental): "Soft instrumental piano and warm strings, slow and tender, an intimate living room scene at dusk". Kie's balance went from 9,117.8 to 9,105.8 and the ledger recorded **12 credits as reported by Kie.ai** (the two agree). It returned **two pieces, 229.9 s and 194.0 s** (about 3.8 and 3.2 minutes), both saved in the library as `commercial: unknown` with the rights note, as designed. Files for listening: `Desktop\FilmCrafter music test`.
+
+What this showed: (1) the price is about 12 credits (about $0.06) for two pieces, a good deal but only one data point; (2) **a prompt with no length gets a full-length song**: there is no length control with this route, so a 20 second sting will need trimming (the Edit timeline's cue fades and trim handle that) or a different provider; (3) the safe flow worked end to end: unknown price accepted, rights acknowledged, ledger entry before the request, result polled and saved, nothing sent twice. **Not judged:** nobody has listened to the music, so whether it fits a scene is unknown. ElevenLabs Music (length-controlled, 3 to 600 s) was not run: its price is unpublished and a request costs plan credits; it needs its own approval.
+
 ## Known limitations and remaining risks
 
 - No provider call was made for real: the ElevenLabs sound-effect and music requests, the Kie task flow and the new seed parameter follow the documentation only. First real runs should be tiny.

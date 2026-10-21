@@ -55,7 +55,7 @@ PROVIDERS = {
                          "duration": [MUSIC_MIN_S, MUSIC_MAX_S], "loop": False, "variations": True, "instrumental": True, "key": "ELEVENLABS_KEY",
                          "cost_words": "ElevenLabs does not publish what a piece of music uses of your plan", "rights": "not_established"},
     "kie_suno": {"label": "Suno through Kie.ai", "short": "Kie.ai", "kind": "music", "provider": "kie", "unit": KIE_UNIT, "model": "V6", "cost_known": False, "duration": None, "loop": False,
-                 "variations": True, "instrumental": True, "key": "KIE_KEY", "cost_words": "Kie.ai does not publish what a piece of music costs in credits (it reports the credits afterwards)", "rights": "not_established"},
+                 "variations": True, "instrumental": True, "key": "KIE_KEY", "cost_words": "Kie.ai does not publish what a piece of music costs in credits (it reports the credits afterwards). In the first real run one request cost 12 credits and returned two pieces of about three to four minutes each", "rights": "not_established"},
 }
 
 
