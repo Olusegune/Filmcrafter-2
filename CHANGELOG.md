@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.28.0 (2026-10-21)
 
 - **A person's sheets now go where they fit.** Their identity pictures (turnaround, front, three-quarter, side, back, at most four) go to every shot they are in; their **expression, pose and outfit pictures go only to the shots they fit**, read from the words in the picture's name and the shot's words (worried finds anxious, sitting finds seated, "red coat" is sent for a shot that names the red coat). One of each kind per shot at most, and nothing is sent unless something really matches. Before, the first six pictures went to every shot whatever they showed.
 - **A visible Materials button** at the top of every film (next to Guide and Costs) opens bringing in storyboards, sheets, shot lists and notes. It used to be reachable only from the Guide.
