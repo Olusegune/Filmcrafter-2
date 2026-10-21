@@ -438,7 +438,7 @@ The **Costs** button at the top of a film opens a plain summary of the paid work
 
 ## Bring your own materials: storyboards, sheets, shot lists and notes
 
-Besides a script, you can bring what you already have. Open it from the Guide (**Your own materials**). Choose files or a folder; FilmCrafter reads them and shows a **plan** of where each piece would go. Nothing is added until you tick what you want and press **Bring N into the film**.
+Besides a script, you can bring what you already have. Press **Materials** at the top of the film (next to Guide and Costs), or open it from the Guide (**Your own materials**). Choose files or a folder; FilmCrafter reads them and shows a **plan** of where each piece would go. Nothing is added until you tick what you want and press **Bring N into the film**.
 
 | You bring | It goes to |
 |---|---|
@@ -449,6 +449,8 @@ Besides a script, you can bring what you already have. Open it from the Guide (*
 
 A picture FilmCrafter cannot place is shown under **Needs your answer**: say what it is (a storyboard panel, a character, a place, a prop, or leave it out) and, if it is a person, place or prop, whose it is. **Let each storyboard panel guide the framing of its shot's hero picture** (ticked by default) makes the panel the framing reference for the keyframe; it is free, and the picture itself is still made, and priced, later.
 
+**How the sheets are used.** A person's pictures are used in two ways. The pictures that say *who they are* (the turnaround and the front, three-quarter, side and back views, at most four) go to every shot they are in. Their **expression, pose and outfit pictures** go only to the shots they fit, read from the words in the picture's name and the shot's words: a picture named *worried* (or *anxious*, *scared*) goes to a shot where she is worried, *sitting* to a shot where she sits, *red coat* to a shot that names the red coat. At most one expression, one pose and one outfit are sent for a shot, and a picture is sent only when something really matches. Name your files with plain words (`sarah_worried.png`, `sarah_sitting.png`, `sarah_red_coat.png`) and it works best. A picture whose words match nothing is still used as a face if there is room. This happens when the film's pictures are prepared for making; the **What would be sent** list on a shot shows exactly which references go with it. Storyboard panels and sheets are separate things: a panel gives the framing of a shot, the sheets give who and what things look like.
+
 **What it never does.** It never spends or sends anything. It takes a snapshot of the film's records before it adds anything. A locked storyboard is never touched; a panel already chosen for a shot, or words you wrote in a shot, are replaced only if you tick that item. Your originals stay where they are (everything is copied in). What was brought in is logged in the film's `materials/imports.json`.
 
 **Limits.** A PDF page must contain a picture (a page drawn as lines or text is told to be exported as a picture); a page with several panels counts as one; Excel files must be saved as CSV.
@@ -456,6 +458,17 @@ A picture FilmCrafter cannot place is shown under **Needs your answer**: say wha
 ## Exporting, and the finished-film check
 
 **Export** shows the folder, the file name and the length before you press the button. After the export, FilmCrafter reads the finished file back once and compares it with what was asked for, and says so in one line: the picture and sound are the length they should be (with the frame count) and nothing is black or frozen, or a list. A **fault** means the film is wrong (not readable, the picture is not the length it should be, the sound ends before or after the picture). **Worth a look** means a black stretch of a second or more, a still stretch of 2.5 seconds or more (in a draft with slates this is expected and only noted), no sound track, or sound that is silent all the way through. If the check cannot run, the film is kept and it says so. The check is free and only reads the file.
+
+## Action scenes: fights, chases and sports moments
+
+On the **Shots** screen, **Action scene...** plans a fight, a chase or a sports moment as a run of short shots. Video models draw one clear thing well and long physical sequences badly, so the plan cuts the action the way an action editor does: the place first, then a swing and its landing in *separate* shots (the cut sells the contact), cuts to a hand, a foot or a face, and the upper hand swinging from one side to the other until the ending you chose. It is free and local: nothing is sent and nothing is bought.
+
+1. Choose the **kind**: *Fist fight, Armed duel, Foot chase, Vehicle chase* or *Sports moment*.
+2. Choose the **scene**, the **first side** and the **other side** (names from the scene; for a chase the first is the one who runs, for a sports moment the player), **how it ends** (the first side wins, the other wins, neither wins, it is interrupted), **how it feels** (grounded: effort and mistakes; heightened: sweeping and stylish) and **how many shots** (4 to 14). An armed duel asks for the weapon, a vehicle chase for the vehicle.
+3. Press **Plan it**. You get the beats: the place, each action, its reaction, the details, the ending. Each shows its camera (size, movement), its length, a sound note, and who has the upper hand. **Edit any line**; your edits are kept. **Try another** gives a different plan from the same choices (the same choices always give the same plan).
+4. Press **Add these N shots to the film**, after the shot you choose (the last of the scene by default). They are added as **new shots**: no existing shot is changed, locked work is never touched, and a plan is added once. Each new shot carries its action, camera, length, sound note, the screen-direction line (who stays left, who stays right) and what each person is carrying (for example a split lip) so the next shot stays the same person. Then make the pictures and video as for any shot: the usual price shown first.
+
+**Limits, honestly.** The plan is rule-based, not an AI: it gives a sound structure and wording, not a screenplay of blows. It keeps violence to impact, reaction and consequence (no gore). How good the finished shots look depends on the video model, which is weakest at contact between bodies, fast limbs and many people; that is why each shot holds one thing. It has not yet been judged on real renders. Earlier plans are listed under **Earlier plans** and are kept with the film (`choreography/`); removing one moves it aside.
 
 ## Keyboard shortcuts
 

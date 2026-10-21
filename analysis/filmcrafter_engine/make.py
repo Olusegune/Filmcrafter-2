@@ -15,6 +15,7 @@ Order of work: storyboard panels, choose one (and lock it), hero keyframe made f
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -23,6 +24,7 @@ import sys
 import time
 
 from . import safeio
+from . import sheetmatch as SM
 from .safe import check_id, file_name, file_part
 
 LOOK_FOR_LANE = {"photoreal cinematic": "live-action", "photoreal CGI": "photoreal-cgi", "feature 3D": "feature-3d", "low-poly 3D": "low-poly", "hand-drawn 2D": "hand-drawn-2d",
@@ -179,7 +181,7 @@ def sync(d: str) -> dict:
     for kind, key, lkind in (("character", "characters", "character"), ("environment", "environments", "set"), ("prop", "props", "prop")):
         for it in bible[key]:
             files = []
-            for mm in it["media"][:6]:
+            for mm in (SM.identity(it["media"]) if kind == "character" else it["media"][:6]):    # a person's own pictures: who they are first; their expressions, poses and outfits go only to the shots they fit
                 src = os.path.join(d, mm["path"])
                 if os.path.isfile(src):
                     dst = os.path.join(refs, f"{file_part(it['id'], 40)}-{file_name(os.path.basename(mm['path']), 48)}")
@@ -203,11 +205,46 @@ def sync(d: str) -> dict:
                 library.assign(rd, "project", None, "fc-" + it["id"], False)
                 for n in it.get("scenes") or []:
                     library.assign(rd, "scene", str(n), "fc-" + it["id"], True)
+    moments = _moment_references(d, rd, bible, cons, refs)
     sound = _soundtrack(d, total)
     _write(os.path.join(rd, "songmap.json"), _timeline_map(d, cons, plan, total))
     from . import voiceover                          # the person's own recorded voices, for the render project to follow
     voices = voiceover.to_render(d, rd)
-    return {"render_dir": rd, "shots": len(cons), "seconds": total, "references": made, "look": pj["look"]["style"], "soundtrack": sound, "voiceovers": voices}
+    return {"render_dir": rd, "shots": len(cons), "seconds": total, "references": made, "moment_references": moments, "look": pj["look"]["style"], "soundtrack": sound, "voiceovers": voices}
+
+
+def _moment_references(d: str, rd: str, bible: dict, cons: list[dict], refs: str) -> int:
+    """A person's expression, pose and outfit pictures go only to the shots they fit (sheetmatch.py). Rebuilt each time, so changing a picture's name or a shot's words changes where it goes."""
+    from . import library
+    p, lib = library.load(rd)
+    for it in [i for i in lib.get("items", []) if str(i.get("id", "")).startswith("fc-sm-")]:
+        library.delete(rd, it["id"])
+    made = 0
+    for ch in bible["characters"]:
+        cands = SM.moment_candidates(ch["media"])
+        if not cands:
+            continue
+        users = [c for c in cons if any((x.get("character_id") == ch["id"]) or (x.get("name") or "").lower() == ch["name"].lower() for x in c.get("characters") or [])]
+        made_ids: dict[str, str] = {}
+        for c in users:
+            for cand in SM.pick_for_shot(cands, SM.shot_text(c)):
+                m = cand["media"]
+                src = os.path.join(d, m["path"])
+                if not os.path.isfile(src):
+                    continue
+                iid = "fc-sm-" + file_part(ch["id"], 30) + "-" + hashlib.sha1(m["path"].encode("utf-8"), usedforsecurity=False).hexdigest()[:8]
+                if iid not in made_ids:
+                    dst = os.path.join(refs, f"{file_part(ch['id'], 40)}-{file_name(os.path.basename(m['path']), 48)}")
+                    if not os.path.exists(dst):
+                        shutil.copyfile(src, dst)
+                    what = {"expression": "expression", "pose": "pose", "wardrobe": "outfit"}[cand["kind"]]
+                    name = f"{ch['name']} ({what}: {os.path.splitext(os.path.basename(m['path']))[0][:30]})"
+                    library.upsert(rd, {"id": iid, "kind": "character", "name": name, "files": ["assets/refs/" + os.path.basename(dst)],
+                                        "notes": f"The {what} picture for {ch['name']} that fits this shot: keep the same person, with this {what}."})
+                    made_ids[iid] = iid
+                    made += 1
+                library.assign(rd, "shot", c["id"], iid, True)
+    return made
 
 
 # ---------------------------------------------------------------- the soundtrack

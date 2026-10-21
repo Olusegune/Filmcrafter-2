@@ -105,8 +105,9 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <div className="mode-toggle film-mode" role="group" aria-label="Mode" title="Simple hides the detailed workspaces. It is the same film either way.">
           {(["simple", "studio"] as const).map((m) => <button key={m} className={f.mode === m ? "on" : ""} aria-pressed={f.mode === m}
             onClick={() => { if (f.mode !== m) { if (m === "simple" && stage === "shots") setStage("story"); void run("mode", () => api.film<FilmStatus>("set_mode", dir, { mode: m })); } }}>{m === "simple" ? "Simple" : "Pro"}</button>)}</div>
+        <button className="btn ghost sm ff-open" onClick={() => setMaterials(true)} title="Bring a storyboard, character, pose and expression sheets, a shot list or notes" aria-label="Materials: bring a storyboard, sheets, a shot list or notes">Materials</button>
         <button className="btn ghost sm ff-open" onClick={() => setCosts(true)} title="What this film has cost so far" aria-label="Costs: what this film has cost so far">Costs</button>
-        <button className="btn ghost sm ff-open" onClick={() => setGuide(true)} title="The order a film is made in, and what each step costs" aria-label="Guide: the order a film is made in">
+        <button className="btn ghost sm ff-open" onClick={() => setGuide(true)} title="The order a film is made in, and what each step costs">
           <I.Rocket size={13} /> Guide{progress && (() => { const st = buildSteps({ progress, voices: null, sound: null, pro: f.mode === "studio", exported: false }); const n = nextStep(st); return n ? <small className="ff-badge">{doneCount(st)}/{requiredCount(st)}</small> : null; })()}</button>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>

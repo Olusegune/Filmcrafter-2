@@ -217,6 +217,13 @@ mockWindows("main");
 mockIPC((cmd, a) => {
   const x = (a ?? {}) as { action?: string; data?: Record<string, unknown> };
   switch (cmd) {
+    case "film_choreography": return x.action === "types" ? { types: [{ id: "fight", label: "Fist fight", blurb: "Two people, no weapons.", needs_b: true, good_for: "Close, handheld shots." }, { id: "chase", label: "Foot chase", blurb: "One runs, one follows.", needs_b: true, good_for: "Tracking shots." }], outcomes: [{ id: "a_wins", label: "The first side wins" }, { id: "draw", label: "Neither wins" }], intensity: [{ id: "grounded", label: "Grounded" }, { id: "heightened", label: "Heightened" }], limits: { min_beats: 4, max_beats: 14 }, advice: [] }
+      : x.action === "list" ? { plans: [] }
+      : { id: "ch-demo0001", type: "fight", scene: 1, place: "Platform", weapon: "", sides: { a: ["Sarah"], b: ["John"] }, intensity: "grounded", outcome: "a_wins", geography: "Sarah enters screen-left and John screen-right and they stay that way. Cross the line only on a cutaway.", people: ["Sarah", "John"], seconds: 12.5, warnings: ["Contact is cut around on purpose: the blow and the landing are separate shots."], after: "S01-02", applied: [], status: "draft",
+          beats: [{ n: 1, phase: "establish", kind: "establish", actor: null, momentum: "even", text: "Platform: Sarah and John, a few paces apart.", seconds: 4, framing: "establishing", movement: "locked off", angle: "eye level", lens: "wide (24mm)", sound: "wind, distance", title: "Fist fight 1/4", carrying: "" },
+                  { n: 2, phase: "strike", kind: "action", actor: "Sarah", momentum: "A", text: "Sarah throws a heavy right hand at John's jaw", seconds: 3, framing: "medium", movement: "handheld", angle: "eye level", lens: "normal (35mm)", sound: "a dull thud", title: "Fist fight 2/4", carrying: "" },
+                  { n: 3, phase: "land", kind: "reaction", actor: "John", momentum: "A", text: "John's head snaps to the side and he staggers a step (Carrying: John has a split lip.)", seconds: 2.5, framing: "close-up", movement: "handheld", angle: "eye level", lens: "portrait (50mm)", sound: "a grunt", title: "Fist fight 3/4", carrying: "John has a split lip" },
+                  { n: 4, phase: "aftermath", kind: "aftermath", actor: "Sarah", momentum: "A", text: "Sarah stands over John, breathing hard; it is over", seconds: 3, framing: "wide", movement: "pull out", angle: "high", lens: "wide (24mm)", sound: "silence settling", title: "Fist fight 4/4", carrying: "" }] };
     case "confirm_spend": return "docshot-token";
     case "plugin:dialog|open": return ["C:/boards/storyboard"];
     case "library": if (x.action === "library") return { items: [

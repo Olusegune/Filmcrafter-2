@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { ActionChoreo } from "./ActionChoreo";
 import { Sheet } from "./Sheet";
 import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
 import { ask } from "./ask";
@@ -38,6 +39,7 @@ export function ShotLab({ dir }: { dir: string }) {
   const [princ, setPrinc] = useState<{ screen_craft: boolean; video: { id: string; name: string; plain: string }[] } | null>(null);          // the animation principles this shot will carry
   const [helpShot, setHelpShot] = useState<Record<string, unknown> | null>(null);          // the writing helper suggestion for this shot
   const [helping, setHelping] = useState(false);
+  const [action, setAction] = useState(false);
   const [cmd, setCmd] = useState<{ text: string; busy: boolean; result: { understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string } | null } | null>(null);   // the Director Command              // the continuity findings instead of one shot
 
   const load = useCallback(async (keep?: string | null) => {
@@ -105,6 +107,7 @@ export function ShotLab({ dir }: { dir: string }) {
   return (
     <div className="sl">
       <aside className="sl-list" aria-label="Shots">
+        <button className="btn ghost sm sl-ck" disabled={!v.shots.length} onClick={() => setAction(true)} title="Plan a fight, a chase or a sports moment as short shots">Action scene…</button>
         <button className="btn ghost sm sl-ck" onClick={() => setCmd({ text: "", busy: false, result: null })} title="Say what you want changed in this shot (Ctrl+K)">Director Command  Ctrl+K</button>
         <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => { setReview((x) => !x); setVoices(false); }} title="Where something may have changed between shots">Continuity check</button>
         <button className={`btn ghost sm sl-ck ${voices ? "on" : ""}`} aria-pressed={voices} onClick={() => { setVoices((x) => !x); setReview(false); }} title="Attach your own recorded voices to the people in the shots">Voiceover</button>
@@ -123,6 +126,7 @@ export function ShotLab({ dir }: { dir: string }) {
             <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
       </aside>
 
+      {action && <ActionChoreo dir={dir} shots={v} characters={charNames} onClose={() => setAction(false)} onAdded={() => { void act("reload", () => api.shots("get", dir)); }} />}
       {cmd && <Sheet label="Director Command" className="dc" onDismiss={() => setCmd(null)} onSubmit={(e) => { e.preventDefault(); void runCmd(); }}>
           <label className="field"><span>Director Command <span className="dim">for {sel ?? "no shot"}</span></span>
             <input className="text-input" autoFocus value={cmd.text} onChange={(e) => setCmd({ ...cmd, text: e.target.value, result: null })} placeholder="e.g. make this shot more claustrophobic" /></label>

@@ -129,3 +129,8 @@ Everything else in the table has **not** been ported. Porting means merging two 
 | **6** | Public launch | Case-study film, tutorials, partner outreach | A film to show |
 
 Do not skip stage 1. Everything else is guessing until a person other than you has finished a scene with it.
+
+## Addendum (2026-10-21): sheets and action
+
+- **Sheets** (character, pose, expression, outfit pictures) now connect to the shots they fit, not only to the person: identity pictures to every shot, the others by the words of the picture and of the shot. See `sheetmatch.py`. Still missing: reading what a picture really shows (a vision check, priced) so unnamed pictures could be matched too.
+- **Action choreography** exists as a rule-based planner (fight, armed duel, foot chase, vehicle chase, sports moment). It is a structure and a vocabulary, not an action director: the quality of the result depends on the video model, which is weakest at contact. Next steps: an optional AI polish of each beat (priced first), a library of named moves per style (martial arts, boxing, parkour) adapted from Pulseframe's dance moves engine, and a check that compares the finished shots with the plan.

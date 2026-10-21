@@ -1130,3 +1130,24 @@
 .home-continue { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: min(760px, calc(100% - 32px)); margin: 18px auto 0; padding: 14px 18px; border: 1px solid var(--hair); border-radius: 12px; background: rgba(255, 255, 255, 0.03); }
 .hc-eyebrow { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-quiet, #8b97a7); }
 .hc-title { font-size: 18px; font-weight: 600; margin: 2px 0; overflow-wrap: anywhere; }
+
+/* Action scene (choreography) */
+.ac { width: min(860px, calc(100vw - 32px)); max-height: 90vh; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+.ac-lead { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.ac-warn { color: var(--amber, #e8b45c); }
+.ac-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.ac-kind { text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.ac-kind span { font-size: 12px; line-height: 1.45; color: var(--text-quiet, #8b97a7); }
+.ac-kind.on { border-color: var(--amber, #e8b45c); background: var(--amber-wash, rgba(232, 180, 92, 0.1)); }
+.ac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 14px; }
+.ac-beats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ac-beat { padding: 8px 10px; border: 1px solid var(--hair); border-radius: 8px; }
+.ac-beat.establish, .ac-beat.aftermath { border-color: rgba(255, 255, 255, 0.22); }
+.ac-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; margin-bottom: 4px; font-size: 13px; }
+.ac-mom { margin-left: auto; font-size: 11.5px; padding: 0 8px; border: 1px solid var(--hair); border-radius: 999px; color: var(--text-quiet, #8b97a7); }
+.ac-mom.A { color: var(--amber, #e8b45c); border-color: var(--amber-line, rgba(232, 180, 92, 0.5)); }
+.ac-mom.B { color: #7fb8ff; border-color: rgba(127, 184, 255, 0.5); }
+.ac-sound { font-size: 12px; margin-top: 4px; }
+.ac-text { margin: 0; font-size: 13px; line-height: 1.5; }
+.ac-after { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.ac-earlier ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.7; }

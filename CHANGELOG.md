@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **A person's sheets now go where they fit.** Their identity pictures (turnaround, front, three-quarter, side, back, at most four) go to every shot they are in; their **expression, pose and outfit pictures go only to the shots they fit**, read from the words in the picture's name and the shot's words (worried finds anxious, sitting finds seated, "red coat" is sent for a shot that names the red coat). One of each kind per shot at most, and nothing is sent unless something really matches. Before, the first six pictures went to every shot whatever they showed.
+- **A visible Materials button** at the top of every film (next to Guide and Costs) opens bringing in storyboards, sheets, shot lists and notes. It used to be reachable only from the Guide.
+- **Action scene (Shots screen).** Plan a fist fight, armed duel, foot chase, vehicle chase or sports moment as 4 to 14 short shots: the place, each action cut from its reaction, cuts to details, the upper hand swinging to the ending you choose, the screen-direction line and what each person is carrying (a split lip stays split). Free, local and deterministic; edit any line; it adds NEW shots after a shot you choose and never changes an existing shot. Violence is kept to impact, reaction and consequence.
+- The Action scene dialog is drawn on the page itself (the Shots screen's own layout used to push dialogs off-centre).
+
 ## 0.27.1 (2026-10-21)
 
 - **The player's volume bar** is now a slim, rounded bar filled with the design system's gold, with a round thumb (it was a square blue block: two slider rules were fighting).
