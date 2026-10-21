@@ -14,11 +14,20 @@ FilmCrafter turns a story into a film. You bring a screenplay, a logline or an i
 
 Along the top: **Story, Cast & World, Shots, Studio, Export**. Each shows how far it is and turns green when done; **Back / Next** and a one-line hint run along the bottom. **Simple** mode goes straight from the cast to the studio; **Pro** adds the Shots workspace.
 
+## Your first film: the Guide
+
+The **Guide** button at the top of every film shows the order a film is made in and what each step costs, worked out from what *this* film already has: **Your story, locked; Your own materials (optional); Cast & World; Voices; Shots (in Pro mode); Pictures: test one shot first; Video: test one shot first; Sound and music (optional); Export.** Done steps are ticked, the next one is highlighted, and **Take me there** opens that part of the app (the Voices step opens the Voiceover screen, the sound step opens Sound & Music). The pictures and video steps show the live price of one test shot. A new film opens the Guide once by itself; after that it opens only when you press the button.
+
+The Guide only reads and points. Nothing on it makes or buys anything: every paid step shows its own price and asks first where it happens.
+
+**Tip: test one shot first.** If its picture, mouth and voice are right, the others will be too, and you will have spent a small part of the cost finding out.
+
 ## Home
 
 ![Home: drop a screenplay, start a new film, or start from an idea. A small clapperboard above the heading opens, rises a little, claps shut and settles back; drag a story over it and it claps faster](img/film/home.png)
 
 - **Drop a screenplay** on the window (Fountain, text, Markdown, PDF or Word), press **New film**, or press **Start from an idea**.
+- **Continue where you left off** shows the film you worked on last, with one button. Recent films say "Today", "Yesterday" or "3 days ago".
 - **Open project** opens a film or an older project. Older music-video projects and shows still open from **Recent**.
 
 ## New film
@@ -107,6 +116,8 @@ Along the top of a film there are five steps: **Story, Cast & World, Shots, Stud
 - **Timeline**: the full editing studio (scenes, cuts, dialogue lane, soundtrack waveform, layers, Supervisor, Review, Lighting, Colour match, Clean up).
 
 ![The cards: pictures to choose from and lock, the film strip across the top, the yellow Make buttons, Check hands & faces in the bar and a flag on a card whose picture has wrong hands or a face](img/film/make.png)
+
+**The player (Timeline view).** Under the picture: **Previous shot** (press again to go further back; it goes to the start of the shot you are in first), **Play / Pause**, **Next shot**, the time, **Preview** (a quick small version of the next few seconds with layers and sound), the **scrub bar** (drag it to move back and forth through the whole film, also while it plays) and the **volume** bar (the speaker button mutes). Space plays and pauses; J and L go back and forward 5 seconds. A film with no sound file plays on its own clock, so Play still works.
 
 On the cards, three tabs follow the work:
 
@@ -202,7 +213,7 @@ If you have recorded the lines yourself, attach them and the picture speaks them
 
 ![A shot's Voice tab](img/film/shot-voice.png)
 
-**Sound & Music (the audio half of Cast & World).** Open **Cast & World → Sound & Music**. *Voices* shows each character's voice and lets you describe how it should sound (the *Approved* tick protects a voice you are happy with: nothing replaces it by itself), and **Suggest voices for this character** proposes a description and finds matching voices in your own ElevenLabs library (the free **Find matches from my notes** needs no AI). *Sound effects* and *Music* are your libraries: import files you already have, hear them, name and tag them, say which places, props, characters and scenes they belong to, and approve or reject them; taking one out only moves the file aside. *Scene sound* plans each scene's soundscape: add a sound to a scene or a shot, set where it starts, how loud it is and how it fades, or press **Quick ideas (free)** (read from the place and the shots' sound notes) or **Ask the sound director…** (your writing AI, price first). Every idea first shows what your library already has. These are plans: nothing makes sound or costs anything, and a cue tells you when its sound or its shot has changed. **Make with AI…** (in the sound effect and music libraries) makes a new sound with ElevenLabs or music with ElevenLabs Music or Suno through Kie.ai: it shows the price (or says the provider does not publish one), asks you to accept that and to acknowledge that commercial rights are **not established** for AI-made sound (it is saved as "commercial use: not known" until you set it), and asks once more before anything is sent. A sound you have already made is reused free. In the Studio's **Edit** mode the planned sound shows as lanes under the voices, and the exported film mixes it: music and ambience dip under voices, a limiter stops clipping, and **Scene sound → How it is mixed** can bring the whole film to a loudness target.
+**Sound & Music (the audio half of Cast & World).** Open **Cast & World → Sound & Music**. *Voices* shows each character's voice and lets you describe how it should sound (the *Approved* tick protects a voice you are happy with: nothing replaces it by itself), and **Suggest voices for this character** proposes a description and finds matching voices in your own ElevenLabs library (the free **Find matches from my notes** needs no AI). *Sound effects* and *Music* are your libraries: import files you already have, hear them, name and tag them, say which places, props, characters and scenes they belong to, and approve or reject them; taking one out only moves the file aside. *Scene sound* plans each scene's soundscape: add a sound to a scene or a shot, set where it starts, how loud it is and how it fades, or press **Quick ideas (free)** (read from the place and the shots' sound notes) or **Ask the sound director…** (your writing AI, price first). Every idea first shows what your library already has. These are plans: nothing makes sound or costs anything, and a cue tells you when its sound or its shot has changed. **Make with AI…** (in the sound effect and music libraries) makes a new sound with ElevenLabs or music with ElevenLabs Music or Suno through Kie.ai: it shows the price (or says the provider does not publish one), asks you to accept that and to acknowledge that commercial rights are **not established** for AI-made sound (it is saved as "commercial use: not known" until you set it), and asks once more before anything is sent. A sound you have already made is reused free. In the Studio's **Edit** mode the planned sound shows as lanes under the voices, and the exported film mixes it: music and ambience dip under voices, a limiter stops clipping, and **Scene sound → How it is mixed** can bring the whole film to a loudness target. **Hear this scene** and **Hear the whole film** (Everything, Voices only, Effects only, Ambience only, Music only) play the mix before you export: every scene's recorded voices and approved sound laid end to end, with the music dipping under the voices. It is free and local, changes nothing, leaves out the picture and the loudness target, and previews films longer than 20 minutes a scene at a time.
 
 **Directing a line and a scene.** In a line's editor, **Make this sound more natural…** offers optional alternatives (your writing AI, price first), **Save as the spoken version** keeps your wording apart from the screenplay (which is never changed), and **Make another take** speaks the same words as a genuinely different performance (priced first; your other takes are kept). On the Voiceover screen **Voice a scene…** shows who speaks, who has a voice and the one price, asks for a spending cap and one yes, and speaks only the lines that have no recording; a line that fails does not undo the others, and if a charge is unclear nothing more is sent. **Listen to a scene** plays the whole scene's dialogue in order with pauses you choose, before any video is made. **May be out of date** lists video takes made to follow a voice that has since been replaced, sounds whose file or shot changed, and a film exported before its sound changed; it never changes anything.
 
@@ -418,6 +429,33 @@ Every look the app offers, by kind of film. Pick the kind, then the look, in **C
 | **Gothic horror** | Deep shadows, eerie architecture and unsettling beauty. |
 | **Magical realism** | Believable everyday places with quiet impossible things. |
 | **Biblical epic** | Ancient settings, vast landscapes and reverent scale. |
+
+## What the film has cost: Costs
+
+The **Costs** button at the top of a film opens a plain summary of the paid work done for it: pictures, video, lip-sync, voices, sound effects and music, by step and by provider. A figure is called **reported** only when the provider's own reply carried it; anything else is shown as an **estimate** and is never added to a reported figure. Kie credits, ElevenLabs credits and fal dollars are never added together, because they are different things. Work whose outcome is unknown (it may have been charged) is listed apart and is not counted until you say what happened in the voice usage list. The spending limits you set are shown too. The writing helper's cost is not tracked here. Costs only reads: it cannot start or pay for anything.
+
+**How paid work is protected.** A render can only be queued with a one-use confirmation that the app's shell hands out when you press a confirming button; it is tied to that exact batch (the film, the provider, the kind and the shots), expires after two minutes, and cannot be reused for a different or bigger batch. The engine also refuses any single batch of more than 120 shots or about $250, whatever your budget says: bigger work goes in several batches, each confirmed on its own.
+
+## Bring your own materials: storyboards, sheets, shot lists and notes
+
+Besides a script, you can bring what you already have. Open it from the Guide (**Your own materials**). Choose files or a folder; FilmCrafter reads them and shows a **plan** of where each piece would go. Nothing is added until you tick what you want and press **Bring N into the film**.
+
+| You bring | It goes to |
+|---|---|
+| **Storyboard pictures** (PNG, JPG, WebP; a folder; a zip; or a PDF with one picture per page) | The chosen storyboard picture of a shot. Name a file by its shot (`S01-03.png`, `scene 2 shot 3.jpg`) or leave them in order: files without a shot in the name are matched in order only when the number of pictures equals the number of shots left, otherwise you choose the shot for each. |
+| **Character, place and prop sheets** (folders such as `characters/Sarah/front.png`, `locations/Kitchen.jpg`, `props/Red kettle.png`) | The cast member, place or prop with that name (a new entry only when the name is new and you leave it ticked). Views such as front, side, back, turnaround, expression, pose and wardrobe are recognised. The same picture is never added twice. |
+| **A shot list** (CSV or TSV from Excel or Google Sheets; columns such as scene, shot, size, movement, length, description, dialogue, notes) | The shots' framing, movement, length, description, dialogue and notes. Words like CU, WS, OTS, push, handheld are turned into FilmCrafter's camera words; anything it does not recognise is kept as a note, not lost. A row with no matching shot can add a new one if you tick it. |
+| **Notes** (.txt or .md) | Kept with the film. A note named like tone, world, rules or avoid can also be added to the Bible (it is appended; nothing is replaced). |
+
+A picture FilmCrafter cannot place is shown under **Needs your answer**: say what it is (a storyboard panel, a character, a place, a prop, or leave it out) and, if it is a person, place or prop, whose it is. **Let each storyboard panel guide the framing of its shot's hero picture** (ticked by default) makes the panel the framing reference for the keyframe; it is free, and the picture itself is still made, and priced, later.
+
+**What it never does.** It never spends or sends anything. It takes a snapshot of the film's records before it adds anything. A locked storyboard is never touched; a panel already chosen for a shot, or words you wrote in a shot, are replaced only if you tick that item. Your originals stay where they are (everything is copied in). What was brought in is logged in the film's `materials/imports.json`.
+
+**Limits.** A PDF page must contain a picture (a page drawn as lines or text is told to be exported as a picture); a page with several panels counts as one; Excel files must be saved as CSV.
+
+## Exporting, and the finished-film check
+
+**Export** shows the folder, the file name and the length before you press the button. After the export, FilmCrafter reads the finished file back once and compares it with what was asked for, and says so in one line: the picture and sound are the length they should be (with the frame count) and nothing is black or frozen, or a list. A **fault** means the film is wrong (not readable, the picture is not the length it should be, the sound ends before or after the picture). **Worth a look** means a black stretch of a second or more, a still stretch of 2.5 seconds or more (in a draft with slates this is expected and only noted), no sound track, or sound that is silent all the way through. If the check cannot run, the film is kept and it says so. The check is free and only reads the file.
 
 ## Keyboard shortcuts
 

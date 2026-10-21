@@ -702,3 +702,11 @@ button.link { background: none; border: 0; color: var(--signal); cursor: pointer
 .fit-great { color: #5fd49a; } .fit-slow { color: #e8b45c; } .fit-too_big { color: #ff8f85; }
 .comfy-health { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 12.5px; }
 .comfy-health ul { margin: 4px 0 0 18px; padding: 0; }
+
+/* .volume-bar rules: the volume bar: a slim, rounded track filled with the design system's gold, a round thumb (the general slider rule used to win and made it a square block) */
+.transport .volume input[type=range]:not(.scrub) { -webkit-appearance: none; appearance: none; box-sizing: content-box; width: 96px; height: 6px; padding: 9px 0; margin: 0; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(90deg, var(--gold, #e8b45c) var(--v, 90%), rgba(244, 247, 250, 0.16) var(--v, 90%)) content-box; }
+.transport .volume input[type=range]:not(.scrub)::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: transparent; }
+.transport .volume input[type=range]:not(.scrub)::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -4px; border-radius: 50%; background: var(--frost, #f4f7fa); border: 2px solid var(--gold, #e8b45c); box-shadow: none; }
+.transport .volume input[type=range]:not(.scrub):focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(232, 180, 92, 0.35); }
+.transport .scrub { border-radius: 999px; }

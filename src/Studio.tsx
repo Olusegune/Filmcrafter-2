@@ -80,7 +80,11 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   }, []);
 
   const audio = useRef<HTMLAudioElement | null>(null);
+  const clock = useRef<{ from: number; base: number } | null>(null);       // the film's clock when there is no sound file to follow (so Play still plays)
+  const lengthRef = useRef(0);
+  const timeRef = useRef(0);
   const [time, setTime] = useState(0);
+  timeRef.current = time;
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(() => { try { const v = Number(localStorage.getItem("pf-volume")); return Number.isFinite(v) && localStorage.getItem("pf-volume") !== null ? v : 0.9; } catch { return 0.9; } });
   const [muted, setMuted] = useState(false);
@@ -329,14 +333,30 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
 
   useEffect(() => {
     let raf = 0;
-    const tick = () => { if (audio.current) setTime(audio.current.currentTime); raf = requestAnimationFrame(tick); };
+    const tick = () => {
+      if (audio.current) setTime(audio.current.currentTime);
+      else if (clock.current) {
+        const t = clock.current.base + (performance.now() - clock.current.from) / 1000;
+        if (t >= lengthRef.current) { clock.current = null; setTime(lengthRef.current); setPlaying(false); return; }
+        setTime(t);
+      }
+      raf = requestAnimationFrame(tick);
+    };
     if (playing) raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [playing]);
 
   const toggle = useCallback(() => {
     const a = audio.current;
-    if (!a) return;
+    if (!a) {                                                             // no sound file: the picture plays on its own clock
+      if (clock.current) { clock.current = null; setPlaying(false); return; }
+      if (!lengthRef.current) return;
+      const from = timeRef.current >= lengthRef.current - 0.05 ? 0 : timeRef.current;
+      clock.current = { from: performance.now(), base: from };
+      setTime(from);
+      setPlaying(true);
+      return;
+    }
     if (a.paused) {
       a.play().then(() => setPlaying(true)).catch((e) => {
         setPlaying(false);
@@ -348,8 +368,10 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
     const a = audio.current;
     const c = Math.max(0, Math.min(t, map?.duration ?? 0));
     if (a) a.currentTime = c;
+    if (clock.current) clock.current = { from: performance.now(), base: c };      // scrubbing while it plays carries on from there
     setTime(c);
   }, [map]);
+  lengthRef.current = map?.duration ?? 0;
 
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
@@ -577,9 +599,9 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           </div>
           {layersOpen && focusLayer && <LayerStrip layer={focusLayer} duration={map?.duration ?? 0} time={time} onSeek={seek} />}
           <div className="transport glass">
-            <button className="icon-btn" onClick={() => seek(0)} aria-label="Back to start"><I.SkipBack size={18} /></button>
+            <button className="icon-btn" onClick={() => { const starts = shots.map((s) => s.start).sort((a, b) => a - b); const prev = [...starts].reverse().find((t) => t < time - 0.75); seek(prev ?? 0); }} aria-label="Previous shot" title="Previous shot (press again to go further back)"><I.SkipBack size={18} /></button>
             <button className="play-btn" onClick={toggle} aria-label={playing ? "Pause" : "Play"}>{playing ? <I.Pause /> : <I.Play />}</button>
-            <button className="icon-btn" onClick={() => seek((map?.duration ?? 0))} aria-label="To end"><I.SkipFwd size={18} /></button>
+            <button className="icon-btn" onClick={() => { const next = shots.map((s) => s.start).sort((a, b) => a - b).find((t) => t > time + 0.05); seek(next ?? (map?.duration ?? 0)); }} aria-label="Next shot" title="Next shot"><I.SkipFwd size={18} /></button>
             <div className="time num">{fmtTime(time)} / {fmtTime(map?.duration ?? 0)}</div>
             <button className="btn small ghost" onClick={() => { if (playing) toggle(); setPreviewOpen(true); }} title="A quick small version of the next few seconds, with layers and sound" disabled={!plan}>Preview</button>
             <input className="scrub" type="range" min={0} max={map?.duration ?? 0} step={0.04} value={Math.min(time, map?.duration ?? 0)}

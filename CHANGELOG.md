@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **The player's volume bar** is now a slim, rounded bar filled with the design system's gold, with a round thumb (it was a square blue block: two slider rules were fighting).
+- **Playback controls.** The skip buttons now go to the **previous** and **next shot** (they used to jump to the very start and end, which is far less useful in a 58-shot film); the previous button first returns to the start of the shot you are in. Scrubbing and the skip buttons also carry on from the new place while the film plays. A film with no sound file now plays on its own clock (Play used to do nothing without a soundtrack).
+- **Documentation brought up to date:** the Guide, Costs, bringing your own materials, the player, hearing the whole film's sound, the spending protections, the finished-film check and the Home "Continue" card are now in `docs/GETTING_STARTED.md`.
+- **Real runs recorded:** the lip-sync retest (12 ElevenLabs and 32 Kie credits) and the first music run (12 Kie credits, two pieces) are in `docs/LIPSYNC_VALIDATION.md` and `docs/CREATIVE_PRODUCTION_EXPANSION.md`.
+
 ## 0.27.0 (2026-10-21)
 
 - **Bring your own materials.** Besides a script you can now bring a storyboard (pictures, a folder, a zip, or a PDF with one picture per page), character, place and prop sheets, a shot list (CSV) and notes (.txt or .md). Open it from the **Guide** (a new optional step). It first shows a plan of where each piece would go: storyboard panels to their shots (by file name such as `S01-03.png`, or by order when the numbers agree, otherwise you choose the shot), sheets to the cast, place or prop they belong to (views such as front, side and turnaround are recognised; new entries only when named), the shot list into the shots' framing, movement, length, dialogue and notes, notes kept and optionally added to the Bible. Nothing is added until you tick and confirm; a snapshot of the film's records is taken first; a locked storyboard is never touched; a panel already chosen, or words you wrote yourself, are replaced only if you tick them; the same picture is never added twice; originals stay where they are. Free and local: nothing is bought or sent. Panels can also become the framing reference for their shot's hero picture (free; the picture is still made, and priced, later).
