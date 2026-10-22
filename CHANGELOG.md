@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the asset edit form was cramped.** Opened inside one narrow card, it broke file names into one letter per line and pushed the "what it shows" pick-list below. The form now takes the whole row of the list, shows each picture with its name on one line (shortened with ... if long), the pick-list beside it and the Replace and Remove buttons underneath.
+
 ## 0.28.2 (2026-10-22)
 
 - **Assets can now be edited, replaced and removed.** In the **Reference library**, **Edit** used to open its form at the top of a long list, so on a card further down nothing seemed to happen. It now opens in the card you clicked, with the name, the notes and every picture: **Replace…** a picture with another, **Remove** one (it stays in the project folder, nothing is deleted), **+ Add pictures…**, and for a plain library reference the kind too. A reference that comes from **Cast & World** (a character, place or prop with pictures) is changed in the Bible, so the change lasts: before, a library edit of such a reference was rebuilt from the Bible the next time the film was prepared.

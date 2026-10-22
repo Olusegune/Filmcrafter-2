@@ -1158,13 +1158,14 @@
 .cm-cast { color: var(--amber, #e8b45c); margin: 0; font-size: 13px; }
 
 /* Editing a reference or an asset: its name, notes and each picture */
-.lib-item.editing { display: block; }
-.ref-editor { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.lib-item.editing { display: block; grid-column: 1 / -1; }                      /* the form takes the whole row of the list, not one narrow card */
+.ref-editor { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 760px; }
 .ref-editor h4 { margin: 4px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-quiet, #8b97a7); }
-.re-files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.re-file { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px; border: 1px solid var(--hair); border-radius: 8px; }
-.re-thumb { width: 72px; height: 48px; object-fit: cover; border-radius: 4px; background: rgba(255, 255, 255, 0.06); display: grid; place-items: center; }
-.re-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 12px; overflow-wrap: anywhere; }
-.re-kind { max-width: 200px; }
-.re-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.re-files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.re-file { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 12px; align-items: start; padding: 8px; border: 1px solid var(--hair); border-radius: 8px; }
+.re-thumb { grid-row: span 2; width: 96px; height: 64px; object-fit: cover; border-radius: 4px; background: rgba(255, 255, 255, 0.06); display: grid; place-items: center; }
+.re-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; font-size: 12px; }
+.re-meta .num { flex: 1 1 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.re-kind { max-width: 220px; }
+.re-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .cw-pickind { max-width: 130px; font-size: 12px; }

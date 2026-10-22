@@ -47,3 +47,12 @@ describe("changing an asset", () => {
     expect(cast).toMatch(/>replace</);
   });
 });
+
+describe("the edit form fits", () => {
+  const css = readFileSync("src/film.css", "utf8");
+  it("takes the whole row of the list (not one narrow card) and keeps file names on one line", () => {
+    expect(css).toMatch(/\.lib-item\.editing \{[^}]*grid-column: 1 \/ -1/);
+    expect(css).toMatch(/\.re-meta \.num \{[^}]*text-overflow: ellipsis/);
+    expect(css).toMatch(/\.re-file \{ display: grid; grid-template-columns: 96px minmax\(0, 1fr\)/);
+  });
+});
