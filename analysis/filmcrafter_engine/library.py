@@ -205,8 +205,12 @@ def reference_files(d: str, project: dict, shot: dict | None, scene_number=None)
     _mark_sheets(lib)
     shot = shot or {"id": "", "performers": []}
     out, seen = [], {}
+    performers = [str(n).lower() for n in shot.get("performers") or []]
+    per_person = 4 if len(performers) < 2 else 2          # two or more people in the shot: two sheets each, so a place and the previous shot still fit and the model is not buried in character sheets
     for it in shot_items(lib, shot, scene_number if scene_number is not None else shot.get("scene")):
         label = LABELS.get(it["kind"], "{name}").format(name=it["name"])
+        if it["kind"] == "character" and not it.get("sheet") and it["name"].lower() in performers:
+            it = {**it, "files": (it.get("files") or [])[:per_person]}
         if it.get("sheet"):
             label = "character sheet (faces, turnarounds, outfits)" if it["kind"] == "character" else \
                 "set and props sheet (locations, props, colour palette)"

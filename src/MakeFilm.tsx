@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { PlaceNotice } from "./PlaceNotice";
 import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { api, errorText, type ExportResult, type InterchangeResult, type MakeShot, type MakeStatus } from "./api";
@@ -29,7 +30,7 @@ type Pick = { provider?: string; model?: string; label?: string; price_usd?: num
  * Making the film: storyboard, hero keyframes, video, then sound and export. Every step that costs money shows the price first and waits for a yes.
  * Chosen and locked work is never replaced by a new generation.
  */
-export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice }: { dir: string; tab: MakeTab; onTab: (t: MakeTab) => void; autoBreakdown?: boolean; openVoice?: boolean }) {
+export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice, onOpenPlaces }: { dir: string; tab: MakeTab; onTab: (t: MakeTab) => void; autoBreakdown?: boolean; openVoice?: boolean; onOpenPlaces?: () => void }) {
   const [st, setSt] = useState<MakeStatus | null>(null);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
@@ -154,6 +155,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice }: { dir: s
       {tab !== "deliver" && <FilmStrip dir={dir} rd={rd} shots={st.shots} selected={picked} onChanged={() => void load()}
                  onSelect={(id) => { setPicked(id); document.getElementById(`mk-${id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }} />}
       <p className="dim mk-blurb">{t.blurb}</p>
+      {stage && stage !== "video" && <PlaceNotice dir={dir} onOpenPlaces={onOpenPlaces} />}
       {stage && <GoldenNotes stage={stage} shots={st.shots} voices={voices} onVoices={() => setVoiceOpen(true)} />}
       {note && <p className="cw-note" role="status">{note} <button className="link" onClick={() => setNote("")}>OK</button></p>}
       {err && <p className="error-text" role="alert">{err}</p>}

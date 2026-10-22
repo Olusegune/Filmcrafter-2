@@ -23,11 +23,15 @@ WARM_ON_PURPOSE = re.compile(r"golden hour|golden[- ]hour|magic hour|sunset|sunr
 
 COLOUR_LINE = ("Natural, true-to-life colour with a neutral white balance: whites look white and skin shows its real tone, with no yellow, orange, sepia or golden cast over the picture. ")
 SKIN_LINE = ("People have natural skin with visible pores, fine lines and small imperfections, never smooth, waxy, plastic or airbrushed. ")
-CLEAN_LINE = ("The image is clean and sharp with fine natural detail: no digital noise, heavy grain, smearing or over-sharpening.")
+CLEAN_LINE = ("The image is clean and sharp with fine natural detail: no digital noise, heavy grain, smearing or over-sharpening. ")
+# the background: fine repeating patterns (a chain-link fence, mesh, brick, leaves, grass) are what image models smear, so they are kept soft or simple
+PATTERN_LINE = ("Fine repeating patterns in the background, such as fences, mesh, brick, leaves and grass, are kept soft or simple: never sharp, noisy or moire. ")
+SOFT_LINE = ("The background is gently out of focus (shallow depth of field), so it never competes with the people.")
 
 NEG_COLOUR = ["yellow tint", "yellow cast", "golden cast", "orange cast", "sepia tone", "warm colour cast"]
 NEG_SKIN = ["waxy skin", "plastic skin", "airbrushed skin", "oversmoothed skin", "doll-like skin"]
 NEG_CLEAN = ["digital noise", "heavy film grain", "oversharpened", "smeared detail"]
+NEG_BACKGROUND = ["moire pattern", "noisy background", "aliased mesh", "sharp tangled fence"]
 
 
 def enabled(project: dict) -> bool:
@@ -58,8 +62,21 @@ def guard(shot: dict, project: dict, look_prompt: str = "") -> dict | None:
     if not enabled(project):
         return None
     people = bool(shot.get("performers"))
-    parts = ([] if wants_warm(shot, project, look_prompt) else [COLOUR_LINE]) + ([SKIN_LINE] if people else []) + [CLEAN_LINE]
-    return {"text": "".join(parts), "priority": PRIORITY, "warm_kept": wants_warm(shot, project, look_prompt)}
+    parts = ([] if wants_warm(shot, project, look_prompt) else [COLOUR_LINE]) + ([SKIN_LINE] if people else []) + [CLEAN_LINE, PATTERN_LINE]
+    soft = soft_background(shot)
+    if soft:
+        parts.append(SOFT_LINE)
+    return {"text": "".join(parts).rstrip(), "priority": PRIORITY, "warm_kept": wants_warm(shot, project, look_prompt), "soft_background": soft}
+
+
+def soft_background(shot: dict) -> bool:
+    """True for a shot about people (not a wide or establishing view) where nobody chose the focus: the background is asked to be softly out of focus, which also hides what image models smear."""
+    if not shot.get("performers") or shot.get("focus"):
+        return False
+    framing = str(shot.get("framing") or "").lower()
+    if framing.startswith(("wide", "establishing", "extreme wide")):
+        return False
+    return not re.search(r"deep focus|everything in focus|sharp background", _text(shot), re.I)
 
 
 def negative(base: str, shot: dict, project: dict, look_prompt: str = "") -> str:
@@ -67,7 +84,7 @@ def negative(base: str, shot: dict, project: dict, look_prompt: str = "") -> str
     g = guard(shot, project, look_prompt)
     if not g:
         return base
-    terms = ([] if g["warm_kept"] else NEG_COLOUR) + (NEG_SKIN if shot.get("performers") else []) + NEG_CLEAN
+    terms = ([] if g["warm_kept"] else NEG_COLOUR) + (NEG_SKIN if shot.get("performers") else []) + NEG_CLEAN + NEG_BACKGROUND
     have = {t.strip().lower() for t in base.split(",")}
     extra = [t for t in terms if t.lower() not in have]
     return ", ".join(x for x in (base, ", ".join(extra)) if x)

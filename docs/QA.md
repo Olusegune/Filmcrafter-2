@@ -178,6 +178,13 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 - **Found while testing:** a stale dev server from another project was answering on the test port and served old code; the check was repeated against the right one. Not a product bug.
 - **NOT checked:** replacing a Cast & World picture end to end in the installed app (the file chooser is a Windows dialog and could not be driven here), and that a replaced picture is the one the next render uses (the Bible to library step is covered by the existing tests, not re-run with a real render).
 
+## Messy backgrounds (after 0.28.3): what was checked
+
+- **Diagnosis from the film's own record:** the shot's request had a one-line setting, a place with no description, layout or picture, and nine references (eight character sheets and the previous shot). This is a reading of the record, not a proof that each of these caused the artefacts in the picture.
+- **Engine** (`test_placecare.py`, 9): places that shots happen in are listed with what they lack; a description, a layout note or a picture each count; a first description comes from the story's action lines only (no dialogue), never replaces one that exists and does nothing the second time; the wording asks for a soft background only for people shots that are not wide and have no chosen focus; fine patterns are asked to stay soft in every request and in the negative; one person gets up to four sheets and two or more people two each, the first (best) ones.
+- **Screens:** wording and wiring unit tested (`placecare.test.ts`); the notice above the pictures and a way to Places.
+- **NOT checked:** whether the new wording and the two-sheet limit actually give a cleaner background on the real model (gpt-image 2.5): that needs new pictures made and looked at by a person.
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.

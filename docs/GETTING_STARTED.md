@@ -470,6 +470,16 @@ On the **Shots** screen, **Action scene...** plans a fight, a chase or a sports 
 
 **Limits, honestly.** The plan is rule-based, not an AI: it gives a sound structure and wording, not a screenplay of blows. It keeps violence to impact, reaction and consequence (no gore). How good the finished shots look depends on the video model, which is weakest at contact between bodies, fast limbs and many people; that is why each shot holds one thing. It has not yet been judged on real renders. Earlier plans are listed under **Earlier plans** and are kept with the film (`choreography/`); removing one moves it aside.
 
+## Messy or changing backgrounds
+
+A picture model is told only what the film says about a place. If a place is just "Playground - Day", it invents the fence, the trees, the tables and the building from scratch, and invents them differently in every shot. Fine repeating things (a chain-link fence, mesh, brick, leaves, grass) are the hardest for it and turn into smeared, noisy or striped texture, most of all in a very wide shape such as 21:9 at 4K.
+
+- **Describe your places.** In **Cast & World, Places**, write what is there and where (the fence on the left, the brick building behind, two blue tables right of centre, one big tree at the right edge), fill in the **Layout** boxes, and add a **picture** of the place (**Make missing pictures...** in the Library makes one; its price is shown first). Above the pictures, FilmCrafter warns you when a place has none of these, and **Fill in from the story (free)** writes the story's own words about it as a start.
+- **Soft backgrounds.** For a shot about people (not a wide view, and not when you chose the focus), every request now asks for a gently out-of-focus background and for fine patterns to be kept soft. Choose **shallow** focus on a shot in the Camera tab to be sure; choose deep focus when the place is the subject.
+- **Fewer sheets, more room.** When two or more people are in a shot, two of each person's sheets go with it (four for one person), so the place and the previous shot are not crowded out.
+- **Pick the shape for the picture.** A 16:9 picture holds fine detail better than 21:9; make a few versions and choose.
+- **Background noise in the finished film** can also be reduced with **Colour match: Reduce noise a little**.
+
 ## A yellow tint, noise and waxy skin
 
 AI pictures and video have habits of their own: a yellow, orange or golden tint over everything (very common in some image models), skin that looks smooth, waxy or airbrushed, and a layer of noise or grain. FilmCrafter works on all three, in two places.

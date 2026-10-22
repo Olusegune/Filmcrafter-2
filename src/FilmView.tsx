@@ -35,6 +35,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [materials, setMaterials] = useState(false);
   const [goVoice, setGoVoice] = useState(false);
   const [goSound, setGoSound] = useState(false);
+  const [goPlaces, setGoPlaces] = useState(false);
   const MAKE_STAGE: Record<string, MakeTab> = { make: "keyframe", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
   const activeId = stage === "make" ? (makeTab === "deliver" ? "export" : "make") : stage;
@@ -112,7 +113,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
 
-      {stage === "cast" ? <CastWorld key={`${dir}-${goSound}`} dir={dir} initialTab={goSound ? "sound" : undefined} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={`${dir}-${goVoice}`} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} openVoice={goVoice} /> : <div className="film-body">
+      {stage === "cast" ? <CastWorld key={`${dir}-${goSound}-${goPlaces}`} dir={dir} initialTab={goSound ? "sound" : goPlaces ? "environment" : undefined} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={`${dir}-${goVoice}`} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} openVoice={goVoice} onOpenPlaces={() => { setGoPlaces(true); setGoSound(false); goStage("cast"); }} /> : <div className="film-body">
         <nav className="film-scenes" aria-label="Scenes">
           <h2>Scenes <span className="dim">{f.found.scenes.filter((s) => !s.implied).length || ""}</span></h2>
           {f.found.scenes.length === 0 && <p className="dim">{isScreenplay ? "No scenes found yet." : "Scenes appear once the story is a screenplay or an outline."}</p>}
@@ -220,7 +221,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
       {costs && <SpendingSheet dir={dir} onClose={() => setCosts(false)} />}
       {guide && <FirstFilm dir={dir} progress={progress} pro={studio} onClose={() => setGuide(false)} onGo={(where) => {
         if (where === "materials") { setMaterials(true); return; }
-        setGoVoice(where === "voice"); setGoSound(where === "sound");
+        setGoVoice(where === "voice"); setGoSound(where === "sound"); setGoPlaces(false);
         goStage(where === "voice" ? "make" : where === "sound" ? "cast" : where);
       }} />}
       {writing && <NewVersion from={f} initial={suggested} onClose={() => { setWriting(false); setSuggested(null); }} onSaved={(s) => { setF(s); setWriting(false); setScene(null); }} dir={dir} />}

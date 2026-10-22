@@ -1169,3 +1169,8 @@
 .re-kind { max-width: 220px; }
 .re-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .cw-pickind { max-width: 130px; font-size: 12px; }
+
+/* A place nobody described */
+.place-notice { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--amber-line, rgba(232, 180, 92, 0.5)); border-radius: 8px; background: var(--amber-wash, rgba(232, 180, 92, 0.08)); font-size: 13px; line-height: 1.5; }
+.place-notice p { margin: 0 0 6px; }
+.place-actions { display: flex; flex-wrap: wrap; gap: 8px; }

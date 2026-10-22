@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Messy, changing backgrounds.** Found by reading the picture's own record: the playground was only ever called "Lincoln Middle School - Playground - Day", with no description, no layout and no picture, so the picture model invented the fence, the tables and the building again in every shot; nine references went with it (four character sheets each for two people, and the previous shot) and none for the place. Four changes:
+  - **A heads-up above the pictures** when a place that shots happen in has no description, layout or picture, with **Fill in from the story (free)** (it writes the story's own words about the place, never over a description that exists) and a button to open Places in Cast & World.
+  - **A soft background for shots about people** (not wide or establishing views, and not when you chose the focus yourself): the request now asks for a gently out-of-focus background, which also hides what image models smear.
+  - **Fine repeating patterns kept soft** in every request (fences, mesh, brick, leaves, grass: never sharp, noisy or moire), and the same words in the negative prompt for models that take one. This is the answer to background noise in the picture; the grain and denoise options in Colour match remain for the finished film.
+  - **Two character sheets each when two or more people share a shot** (four for one person), so a place and the previous shot are not crowded out and the model is not buried in sheets.
+
 ## 0.28.3 (2026-10-22)
 
 - **Fixed: the asset edit form was cramped.** Opened inside one narrow card, it broke file names into one letter per line and pushed the "what it shows" pick-list below. The form now takes the whole row of the list, shows each picture with its name on one line (shortened with ... if long), the pick-list beside it and the Replace and Remove buttons underneath.
