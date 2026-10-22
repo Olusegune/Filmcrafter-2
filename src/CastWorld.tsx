@@ -166,7 +166,7 @@ function RulesStyle({ b, onSave, onHelp, helping }: { b: BibleView; onSave: (d: 
 }
 
 /** One character, place or prop: its words, its related states, and its pictures. */
-function Editor({ dir, kind, item, run, onHelp, helping }: { dir: string; kind: Kind; item: Entry; media: string[]; run: (fn: () => Promise<BibleView>) => Promise<BibleView | null>; apply: (v: BibleView) => void; onHelp: () => void; helping: boolean }) {
+function Editor({ dir, kind, item, media, run, onHelp, helping }: { dir: string; kind: Kind; item: Entry; media: string[]; run: (fn: () => Promise<BibleView>) => Promise<BibleView | null>; apply: (v: BibleView) => void; onHelp: () => void; helping: boolean }) {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const val = (k: string) => draft[k] ?? ((item as unknown as Record<string, string>)[k] ?? "");
   const spatial = (k: string) => draft[`sp:${k}`] ?? ((item as BibleEnvironment).spatial?.[k] ?? "");
@@ -189,6 +189,10 @@ function Editor({ dir, kind, item, run, onHelp, helping }: { dir: string; kind: 
     const files = typeof f === "string" ? [f] : Array.isArray(f) ? f : [];
     for (const file of files) await run(() => api.bible("add_media", dir, { kind, id: item.id, file, label: "Reference", media_kind: item.media.length ? "reference" : "master" }));
   };
+  const replacePicture = async (path: string) => {
+    const f = await open({ multiple: false, filters: [{ name: "Pictures", extensions: ["png", "jpg", "jpeg", "webp"] }] });
+    if (typeof f === "string") await run(() => api.bible("replace_media", dir, { kind, id: item.id, path, file: f }));
+  };
   const addState = async () => {
     const name = await askText("Name the state", kind === "character" ? "e.g. Age 8, Injured, In the red coat" : kind === "environment" ? "e.g. Night, Wrecked" : "e.g. Broken");
     if (name) await run(() => api.bible("add_state", dir, { kind, id: item.id, label: name }));
@@ -207,7 +211,9 @@ function Editor({ dir, kind, item, run, onHelp, helping }: { dir: string; kind: 
         <div className="cw-media">
           {item.media.map((m) => (
             <figure key={m.path}><img src={api.mediaUrl(`${dir}/${m.path}`)} alt={m.label} />
-              <figcaption><span>{m.kind === "master" ? "Master" : m.label}</span>
+              <figcaption><select className="cw-pickind" aria-label="What this picture shows" value={m.kind} onChange={(e) => void run(() => api.bible("update_media", dir, { kind, id: item.id, path: m.path, media_kind: e.target.value }))}>
+                  {media.map((k) => <option key={k} value={k}>{k === "master" ? "Master sheet" : k}</option>)}</select>
+                <button className="link" onClick={() => void replacePicture(m.path)} title="Choose another picture to take its place">replace</button>
                 <button className="link" onClick={() => run(() => api.bible("remove_media", dir, { kind, id: item.id, path: m.path }))}>remove</button></figcaption></figure>))}
           <button className="cw-addpic" onClick={addPicture}>+ Add pictures…</button>
         </div>

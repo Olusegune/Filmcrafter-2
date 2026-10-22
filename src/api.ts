@@ -274,7 +274,7 @@ export const api = {
   assist: <T = AssistResult>(action: "estimate" | "suggest", target: string, data: Record<string, unknown>) => invoke<T>("film_assist", { action, target, data }),
   interchange: (target: string) => invoke<InterchangeResult>("film_interchange", { target }),
   filmCheck: <T = ContinuityView>(action: "check" | "decide" | "apply", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_check", { action, target, data }),
-  bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "update_sound_style" | "set_voice_profile" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
+  bible: <T = BibleView>(action: "get" | "seed" | "update_rules" | "update_sound_style" | "set_voice_profile" | "upsert" | "remove" | "add_state" | "remove_state" | "add_wardrobe" | "add_media" | "replace_media" | "update_media" | "remove_media", target: string, data: Record<string, unknown> = {}) =>
     invoke<T>("film_bible", { action, target, data }),
   film: <T = FilmStatus>(action: "create" | "status" | "preview" | "read_file" | "add_version" | "set_current" | "lock" | "as_is" | "rec_set" | "set_mode" | "set_aspect" | "reread", target: string | null, data: Record<string, unknown> = {}) =>
     invoke<T>("film", { action, target, data }),

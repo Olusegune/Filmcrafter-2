@@ -141,6 +141,43 @@ def test_bringing_a_picture_copies_it_in_and_leaves_the_original(film, tmp_path)
     assert len(next(c for c in r["characters"] if c["id"] == sid)["media"]) == 1 and os.path.isfile(os.path.join(film, m["path"]))
 
 
+def test_a_picture_can_be_replaced_in_place_renamed_and_retyped_and_nothing_is_deleted(film, tmp_path):
+    bible.seed(film)
+    sid = next(c["id"] for c in bible.view(film)["characters"] if c["name"] == "Sarah")
+    png = b"PNG-test-bytes" + b"0" * 20
+    a, b2, c = (tmp_path / n for n in ("a.png", "b.png", "c.png"))
+    for f, tag in ((a, b"A"), (b2, b"B"), (c, b"C")):
+        f.write_bytes(png + tag)
+    bible.add_media(film, "character", sid, str(a), "Front view", "front")
+    bible.add_media(film, "character", sid, str(b2), "Side view", "side")
+    old = next(x for x in bible.view(film)["characters"] if x["id"] == sid)["media"]
+    r = bible.replace_media(film, "character", sid, old[0]["path"], str(c))
+    new = next(x for x in r["characters"] if x["id"] == sid)["media"]
+    assert len(new) == 2 and new[0]["path"] != old[0]["path"] and new[1] == old[1], "the second picture is untouched"
+    assert new[0]["kind"] == "front" and new[0]["label"] == "Front view", "the label and kind stay unless changed"
+    assert open(os.path.join(film, new[0]["path"]), "rb").read().endswith(b"C") and os.path.isfile(os.path.join(film, old[0]["path"])), "the old file is still there"
+    assert c.exists(), "the original the person chose is untouched"
+    r = bible.replace_media(film, "character", sid, new[0]["path"], str(a), "Three quarter", "three-quarter")
+    m = next(x for x in r["characters"] if x["id"] == sid)["media"][0]
+    assert m["kind"] == "three-quarter" and m["label"] == "Three quarter"
+    r = bible.update_media(film, "character", sid, m["path"], label="Master sheet", media_kind="master")
+    m = next(x for x in r["characters"] if x["id"] == sid)["media"][0]
+    assert m["kind"] == "master" and m["label"] == "Master sheet" and open(os.path.join(film, m["path"]), "rb").read().endswith(b"A")
+    with pytest.raises(SystemExit, match="isn't on this entry"):
+        bible.replace_media(film, "character", sid, "cast/nothing.png", str(a))
+    with pytest.raises(SystemExit, match="isn't on this entry"):
+        bible.update_media(film, "character", sid, "cast/nothing.png", label="x")
+    with pytest.raises(SystemExit, match="listed kinds"):
+        bible.update_media(film, "character", sid, m["path"], media_kind="selfie")
+    bad = tmp_path / "x.exe"
+    bad.write_bytes(b"MZ")
+    with pytest.raises(SystemExit, match="Choose a PNG"):
+        bible.replace_media(film, "character", sid, m["path"], str(bad))
+    assert next(x for x in bible.view(film)["characters"] if x["id"] == sid)["media"][0]["path"] == m["path"], "a refused replace changes nothing"
+    with pytest.raises(SystemExit, match="not valid"):
+        bible.replace_media(film, "character", "..\\x", "a.png", str(a))
+
+
 def test_ids_from_outside_are_never_paths(film):
     with pytest.raises(SystemExit, match="not valid"):
         bible.upsert(film, "character", {"id": "../../evil", "name": "x"})

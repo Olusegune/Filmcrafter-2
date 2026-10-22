@@ -485,6 +485,15 @@ AI pictures and video have habits of their own: a yellow, orange or golden tint 
 
 **What it cannot do.** It cannot repaint a face: a waxy face stays waxy, only masked by grain; for that, make the picture again (the new wording helps) or use a different picture model. A tint that differs from shot to shot is the job of the matching part of Colour match above the cast options. It has been checked on test pictures, not yet on a real film.
 
+## Changing, replacing and removing a character, place or prop
+
+There are two places, and they stay in step.
+
+- **Cast & World** is the home of your characters, places and props. Open one and, under **Pictures**, each picture has a pick-list of what it shows (**Master sheet, front, three-quarter, side, back, expression, pose, wardrobe**...), **replace** (choose another picture to take its place, in the same spot, with the same label and kind unless you change them) and **remove**; **+ Add pictures...** adds more. The name, details, states and wardrobe are edited in place. **Take out** moves the whole entry to the Bible's history.
+- **Reference library** (Studio, Library) lists everything the models are shown. **Edit** opens a form *in that card*: the name, the notes and every file, with **Replace...**, **Remove** and **+ Add pictures...**. If the reference comes from Cast & World (the card says so), the form changes the Bible, so the change lasts; other references (a style picture, a prop you dropped in, a clip to follow) are changed in the library, and you can change their kind. **Remove** on the card takes the reference out of the library.
+
+Nothing is ever deleted: a picture you replace or take off stays in the project folder, and the previous Bible is kept in its history. Pictures already made keep the references they were made with; new pictures use the new ones.
+
 ## Keyboard shortcuts
 
 The same list is in the Studio: press `?` or `Ctrl+/`.

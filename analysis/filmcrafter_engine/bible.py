@@ -399,6 +399,62 @@ def add_media(d: str, kind: str, id_: str, file: str, label: str = "reference", 
     return view(d)
 
 
+def _copy_in(d: str, kind: str, it: dict, file: str) -> str:
+    """Copy a picture the person chose into the entry's folder (never over another file) and return its path inside the film."""
+    src = os.path.abspath(str(file or ""))
+    if not src.lower().endswith(IMAGE_EXT) or not os.path.isfile(src):
+        raise SystemExit("Choose a PNG, JPG or WebP picture.")
+    if os.path.getsize(src) > MAX_IMAGE_BYTES:
+        raise SystemExit("That picture is larger than 25 MB.")
+    folder = os.path.join(d, FOLDER[kind], it["id"])
+    os.makedirs(folder, exist_ok=True)
+    base, ext = os.path.splitext(os.path.basename(src))
+    name = f"{file_part(base, 50)}{ext.lower()}"
+    out, n = os.path.join(folder, name), 2
+    while os.path.exists(out):
+        out = os.path.join(folder, f"{file_part(base, 50)}-{n}{ext.lower()}")
+        n += 1
+    shutil.copyfile(src, out)
+    return os.path.relpath(out, d).replace(os.sep, "/")
+
+
+def replace_media(d: str, kind: str, id_: str, path: str, file: str, label: str | None = None, media_kind: str | None = None) -> dict:
+    """Swap one picture for another, in the same place in the list and with the same label and kind unless told otherwise. The old picture's file stays in the film folder (nothing is deleted)."""
+    if kind not in KINDS:
+        raise SystemExit("Choose character, environment or prop.")
+    b = load(d)
+    before = json.loads(json.dumps(b))
+    it = _find(b, kind, check_id(id_, kind))
+    i = next((k for k, m in enumerate(it["media"]) if m["path"] == path), None)
+    if i is None:
+        raise SystemExit("That picture isn't on this entry.")
+    new = _copy_in(d, kind, it, file)
+    m = it["media"][i]
+    it["media"][i] = {"path": new, "kind": media_kind if media_kind in MEDIA_KINDS else m.get("kind", "reference"), "label": _text(label, 80) or m.get("label") or "reference"}
+    _save(d, b, before)
+    return view(d)
+
+
+def update_media(d: str, kind: str, id_: str, path: str, label: str | None = None, media_kind: str | None = None) -> dict:
+    """Change what a picture is called, or what it shows (master, front, side, expression...). Only the note is changed: the file is not touched."""
+    if kind not in KINDS:
+        raise SystemExit("Choose character, environment or prop.")
+    if media_kind is not None and media_kind not in MEDIA_KINDS:
+        raise SystemExit("Choose one of the listed kinds of picture.")
+    b = load(d)
+    before = json.loads(json.dumps(b))
+    it = _find(b, kind, check_id(id_, kind))
+    m = next((m for m in it["media"] if m["path"] == path), None)
+    if m is None:
+        raise SystemExit("That picture isn't on this entry.")
+    if media_kind:
+        m["kind"] = media_kind
+    if label is not None:
+        m["label"] = _text(label, 80) or m.get("label") or "reference"
+    _save(d, b, before)
+    return view(d)
+
+
 def remove_media(d: str, kind: str, id_: str, path: str) -> dict:
     """Take a picture off the entry. The file stays in the film folder."""
     b = load(d)
@@ -443,7 +499,7 @@ def view(d: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-bible")
-    ap.add_argument("action", choices=["get", "seed", "update_rules", "update_sound_style", "set_voice_profile", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"])
+    ap.add_argument("action", choices=["get", "seed", "update_rules", "update_sound_style", "set_voice_profile", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "replace_media", "update_media", "remove_media"])
     ap.add_argument("target")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -472,6 +528,10 @@ def main(argv: list[str]) -> int:
             res = add_wardrobe(d, x.get("id", ""), x.get("name", ""), x.get("notes", ""))
         elif a.action == "add_media":
             res = add_media(d, x.get("kind", ""), x.get("id", ""), x.get("file", ""), x.get("label", "reference"), x.get("media_kind", "reference"))
+        elif a.action == "replace_media":
+            res = replace_media(d, x.get("kind", ""), x.get("id", ""), x.get("path", ""), x.get("file", ""), x.get("label"), x.get("media_kind"))
+        elif a.action == "update_media":
+            res = update_media(d, x.get("kind", ""), x.get("id", ""), x.get("path", ""), x.get("label"), x.get("media_kind"))
         else:
             res = remove_media(d, x.get("kind", ""), x.get("id", ""), x.get("path", ""))
         emit(event="result", data=res)

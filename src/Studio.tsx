@@ -680,7 +680,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                      onClose={() => setPerfOpen(false)} onChanged={reloadBoard} />}
       {contOpen && <ContinuitySheet dir={project.dir} onClose={() => setContOpen(false)} onSelectShot={(id) => setSel({ kind: "shot", id })} />}
       {scriptOpen && <ScriptSheet project={project} onClose={() => setScriptOpen(false)} onDone={() => { setScriptOpen(false); onReload(); }} />}
-      {libraryOpen && <LibrarySheet dir={project.dir} scenes={scenes.map((s) => ({ number: s.number, heading: s.heading }))}
+      {libraryOpen && <LibrarySheet filmDir={isRenderDir(project.dir) ? filmDirOfRender(project.dir) : undefined} dir={project.dir} scenes={scenes.map((s) => ({ number: s.number, heading: s.heading }))}
                                     onClose={() => setLibraryOpen(false)} onChanged={reloadBoard} autoMake={openMake} />}
 
       {commanding && <DirectorCommand dir={project.dir} selected={sel?.kind === "shot" ? sel.id : null} playhead={time}

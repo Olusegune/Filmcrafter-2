@@ -171,6 +171,13 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 - **Screen:** the Colour match sheet shows the new options (seen in the browser harness with mock data; wording and wiring unit tested).
 - **NOT checked:** on a real film from a real model. Whether the new wording actually reduces the yellow cast or the waxy look in a given model's pictures is unknown until a film is made with it; the post-export cast removal is a measurement-and-offset, so a film with a deliberately warm palette needs the strength lowered or the option left off.
 
+## Changing assets (after 0.28.1): what was checked
+
+- **Engine** (`test_bible.py`): a picture is replaced in the same place keeping its label and kind unless changed; the old file stays in the folder; the original the person chose is untouched; a refused replace (not a picture, not on the entry, a bad id) changes nothing; a picture can be renamed and retyped; ids from outside are never paths. The engine and the shell agree on the action list (security test).
+- **Screens** (`refeditor.test.ts`, 3 + 1): which references are edited in Cast & World (made from the Bible) and which in the library; Edit opens in the card; Replace, Remove, Add and retype are there; Cast & World has replace and the kind pick-list. Seen in the browser harness: Edit opens the form in the card, Remove drops a file from the list, Save closes it.
+- **Found while testing:** a stale dev server from another project was answering on the test port and served old code; the check was repeated against the right one. Not a product bug.
+- **NOT checked:** replacing a Cast & World picture end to end in the installed app (the file chooser is a Windows dialog and could not be driven here), and that a replaced picture is the one the next render uses (the Bible to library step is covered by the existing tests, not re-run with a real render).
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.

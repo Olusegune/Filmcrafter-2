@@ -1272,7 +1272,7 @@ async fn film(app: AppHandle, action: String, target: Option<String>, data: Valu
 /// The Production Bible, Cast and World of a film (filmcrafter_engine.bible). Free and local: nothing is sent anywhere. Pictures are copied into the film from files the person chose.
 #[tauri::command]
 async fn film_bible(app: AppHandle, action: String, target: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 12] = ["get", "seed", "update_rules", "update_sound_style", "set_voice_profile", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "remove_media"];
+    const ACTIONS: [&str; 14] = ["get", "seed", "update_rules", "update_sound_style", "set_voice_profile", "upsert", "remove", "add_state", "remove_state", "add_wardrobe", "add_media", "replace_media", "update_media", "remove_media"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

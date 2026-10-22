@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { RefEditor } from "./RefEditor";
 import { Sheet } from "./Sheet";
 import { TakeCompare } from "./Compare";
 import { RefGenSheet } from "./RefGen";
@@ -274,9 +275,10 @@ const KINDS = Object.keys(KIND_LABEL) as RefKind[];
 const MEDIA_EXT = ["png", "jpg", "jpeg", "webp", "mp4", "mov", "webm", "m4v", "mp3", "wav", "m4a"];
 
 /** Characters, sets, props, wardrobe, lighting, style, motion and audio references; project-wide or per scene. */
-export function LibrarySheet({ dir, scenes, onClose, onChanged, autoMake }: {
-  dir: string; scenes: { number: number; heading: string }[]; onClose: () => void; onChanged: () => void; autoMake?: boolean;
+export function LibrarySheet({ dir, scenes, onClose, onChanged, autoMake, filmDir }: {
+  dir: string; scenes: { number: number; heading: string }[]; onClose: () => void; onChanged: () => void; autoMake?: boolean; filmDir?: string;
 }) {
+  const [editId, setEditId] = useState<string | null>(null);                 // the reference being changed: its form opens in its own card, where you are looking
   const [lib, setLib] = useState<Library | null>(null);
   const [draft, setDraft] = useState<{ kind: RefKind; name: string; files: string[]; notes: string; id?: string } | null>(null);
   const [err, setErr] = useState("");
@@ -370,6 +372,10 @@ export function LibrarySheet({ dir, scenes, onClose, onChanged, autoMake }: {
             {lib.items.filter((i) => i.kind === k).map((it) => {
               const t = thumbs[it.files[0]];
               const onProject = lib.assign.project.includes(it.id);
+              if (editId === it.id) return (
+                <div key={it.id} className="lib-item editing">
+                  <RefEditor dir={dir} filmDir={filmDir} item={it} kinds={KINDS.map((k) => ({ id: k, label: KIND_LABEL[k] }))} onDone={() => { setEditId(null); load(); }} onChanged={() => { load(); onChanged(); window.dispatchEvent(new Event("pf-library-changed")); }} />
+                </div>);
               return (
                 <div key={it.id} className="lib-item">
                   <div className="lib-thumb" style={{ backgroundImage: t ? `url("${media(dir, t)}")` : undefined }}>
@@ -388,7 +394,7 @@ export function LibrarySheet({ dir, scenes, onClose, onChanged, autoMake }: {
                     </div>
                   </div>
                   <div className="lib-actions">
-                    <button className="btn ghost small" onClick={() => setDraft({ id: it.id, kind: it.kind, name: it.name, files: it.files, notes: it.notes ?? "" })}>Edit</button>
+                    <button className="btn ghost small" onClick={() => { setDraft(null); setEditId(it.id); }}>Edit</button>
                     <button className="btn ghost small" onClick={async () => { if (await ask(`Remove “${it.name}” from the library? The file stays in the project folder.`)) call("delete", { id: it.id }); }}>Remove</button>
                   </div>
                 </div>
