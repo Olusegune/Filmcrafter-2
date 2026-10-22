@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.28.3 (2026-10-22)
 
 - **Fixed: the asset edit form was cramped.** Opened inside one narrow card, it broke file names into one letter per line and pushed the "what it shows" pick-list below. The form now takes the whole row of the list, shows each picture with its name on one line (shortened with ... if long), the pick-list beside it and the Replace and Remove buttons underneath.
 
