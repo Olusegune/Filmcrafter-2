@@ -164,6 +164,13 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 - **Player.** Scrubbing, previous and next shot and the rounded gold volume bar were driven in the browser harness; the no-sound-file clock is covered by code review and a source-text test only (the harness film has a mock soundtrack that cannot play).
 - **Dialogs, spending token, finished-film check, Costs, Guide, materials import** (0.26 to 0.27): see the changelog; each has its own tests.
 
+## Yellow tint, noise and waxy skin (after 0.28.0): what was checked
+
+- **Prompt wording** (`test_picturecare.py`, 6): on by default and off per film; the line asks for neutral white balance, real skin and a clean image; a warm shot (golden hour, candlelight, sunset, fireplace, sepia, or a warm look) keeps its warmth; the negative prompt gets the words once and not for warm shots; it reaches the real request for both a picture and a video model; it gives way to the hands line but not to loose extras when a prompt is too long. An existing anatomy test was updated: a model with a negative prompt now always gets a clean-image negative unless picture care is off.
+- **Whole-film cast** (`test_colormatch.py`, 5 new, with real ffmpeg clips): an all-yellow film is found where matching shots to each other sees nothing; a neutral film has no cast and a small cast is left alone; removing the cast moves a yellow shot clearly towards neutral (measured on exported pixels) while a cool shot stays cool; denoise and grain are off until asked and are plain ffmpeg filters that run in a real export; the picture-care switch is a setting of the film.
+- **Screen:** the Colour match sheet shows the new options (seen in the browser harness with mock data; wording and wiring unit tested).
+- **NOT checked:** on a real film from a real model. Whether the new wording actually reduces the yellow cast or the waxy look in a given model's pictures is unknown until a film is made with it; the post-export cast removal is a measurement-and-offset, so a film with a deliberately warm palette needs the strength lowered or the option left off.
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.

@@ -37,6 +37,21 @@ export function ColourMatchSheet({ dir, onClose }: { dir: string; onClose: () =>
           <label className="field"><span>Match to</span>
             <select className="text-input" value={st!.reference ?? ""} onChange={(e) => run("ref", "set", { reference: e.target.value })}>
               <option value="">The typical shot</option>{st!.rows.map((r) => <option key={r.shot} value={r.shot}>{r.shot}</option>)}</select></label></div>}
+        <section className="cm-care" aria-label="Colour cast, noise and skin">
+          <h3>Yellow tint, noise and waxy skin</h3>
+          <p className="sub">Some AI models put a yellow or golden tint over everything, leave a layer of noise, or make skin look smooth and waxy. Matching shots to each other cannot remove a tint they all share, so these work on the whole film.</p>
+          {looked && st!.cast_seen && <p className={st!.cast_seen.noticeable ? "cm-cast" : "dim"} role="status">{st!.cast_seen.noticeable
+            ? <>This film leans <b>{st!.cast_seen.label}</b> (about {Math.round(st!.cast_seen.size)} on the colour scale). </>
+            : "No colour cast worth correcting was found. "}{st!.cast ? (st!.cast_fix ? "It is being taken out when you export." : "") : st!.cast_seen.noticeable ? "Turn on the first option below to take it out." : ""}</p>}
+          {!looked && <p className="dim">Press <b>Look at the shots</b> first, so the film's colour can be measured.</p>}
+          <label className="ly-check"><input type="checkbox" checked={st?.cast ?? false} disabled={!!busy || !looked} onChange={(e) => run("cast", "set", { cast: e.target.checked, enabled: e.target.checked ? true : st?.enabled })} /> Take out a colour cast that runs through the whole film</label>
+          {st?.cast && <label className="field cm-strength"><span>How much to take out ({Math.round((st.cast_strength ?? 0.85) * 100)}%)</span>
+            <input type="range" min={0.2} max={1} step={0.05} value={st.cast_strength} onChange={(e) => setSt({ ...st, cast_strength: Number(e.target.value) })} onPointerUp={() => run("caststrength", "set", { cast_strength: st.cast_strength })} onKeyUp={() => run("caststrength", "set", { cast_strength: st.cast_strength })} /></label>}
+          <label className="ly-check"><input type="checkbox" checked={st?.denoise ?? false} disabled={!!busy} onChange={(e) => run("denoise", "set", { denoise: e.target.checked, enabled: e.target.checked ? true : st?.enabled })} /> Reduce noise a little (a light clean-up)</label>
+          <label className="ly-check"><input type="checkbox" checked={st?.grain ?? false} disabled={!!busy} onChange={(e) => run("grain", "set", { grain: e.target.checked, enabled: e.target.checked ? true : st?.enabled })} /> Add a fine, even grain (hides an over-smooth, waxy look)</label>
+          <label className="ly-check"><input type="checkbox" checked={st?.picture_care ?? true} disabled={!!busy} onChange={(e) => run("prompts", "set", { prompts: e.target.checked })} /> When pictures and video are made, ask the models for natural skin, neutral colour and a clean image (this only changes pictures made from now on)</label>
+          <p className="dim">All of this is applied when the film is put together. Your takes are never changed, and turning "Use it when exporting" off shows them as they are.</p>
+        </section>
         {err && <p className="error-text" role="alert">{err}</p>}
         {looked && !st!.rows.some((r) => r.adjusted) && <p className="cm-ok">Your shots already match well. Nothing needs nudging.</p>}
         {looked && <ul className="cm-list">

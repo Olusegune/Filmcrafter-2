@@ -1151,3 +1151,8 @@
 .ac-text { margin: 0; font-size: 13px; line-height: 1.5; }
 .ac-after { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
 .ac-earlier ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.7; }
+
+/* Colour match: the yellow tint, noise and waxy skin options */
+.cm-care { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 8px; }
+.cm-care h3 { margin: 0; font-size: 14px; }
+.cm-cast { color: var(--amber, #e8b45c); margin: 0; font-size: 13px; }

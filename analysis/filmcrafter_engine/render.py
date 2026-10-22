@@ -1101,6 +1101,10 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     g = ANAT.guard(shot)
     if g and not only:
         blocks.append((g["priority"], g["text"]))
+    from . import picturecare as PC        # natural skin, neutral colour, a clean image (and a warm look left alone): the habits of AI pictures, asked against in plain words
+    pcare = PC.guard(shot, project, look.get("prompt", ""))
+    if pcare and not only:
+        blocks.append((pcare["priority"], pcare["text"]))
     if shot.get("note"):
         blocks.append((10, "Direction for this take: " + str(shot["note"]).strip().rstrip(".") + "."))
     if shot.get("continues"):
@@ -1192,8 +1196,8 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         payload[roles["resolution"]] = _pick_quality(fields[roles["resolution"]], project.get("quality", "standard"))
     if project.get("quality") == "max" and "bitrate_mode" in fields and "high" in (fields["bitrate_mode"].get("enum") or []):
         payload["bitrate_mode"] = "high"
-    if "negative_prompt" in roles and (look["avoid"] or ANAT.guard(shot)):
-        payload[roles["negative_prompt"]] = ANAT.negative(f"{look['avoid']}, text, subtitles, watermark" if look["avoid"] else "text, subtitles, watermark", shot)
+    if "negative_prompt" in roles and (look["avoid"] or ANAT.guard(shot) or PC.enabled(project)):
+        payload[roles["negative_prompt"]] = PC.negative(ANAT.negative(f"{look['avoid']}, text, subtitles, watermark" if look["avoid"] else "text, subtitles, watermark", shot), shot, project, look.get("prompt", ""))
     if "audio" in roles:   # the song is the master audio track (PRD §3), unless the model speaks this scene's lines itself
         payload[roles["audio"]] = bool(native)
     for k, v in (overrides or {}).items():  # Director Mode pins always win

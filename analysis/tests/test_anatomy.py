@@ -85,8 +85,10 @@ def test_a_model_with_a_negative_prompt_is_told_what_to_avoid_even_without_a_loo
     shot = {"performers": ["Sege"], "beats": ["Sege waves."]}
     p = build(shot, video_model(negative=True), project={"look": "A watercolour film."})
     assert "fused fingers" in p["negative_prompt"]
-    p2 = build({"performers": [], "beats": ["The sea."]}, video_model(negative=True), project={"look": "A watercolour film."})
-    assert "negative_prompt" not in p2
+    p2 = build({"performers": [], "beats": ["The sea."]}, video_model(negative=True), project={"look": "A watercolour film.", "picture_care": {"on": False}})
+    assert "negative_prompt" not in p2                                   # nobody in the shot, nothing to avoid, and picture care switched off
+    p3 = build({"performers": [], "beats": ["The sea."]}, video_model(negative=True), project={"look": "A watercolour film."})
+    assert "digital noise" in p3["negative_prompt"] and "fused fingers" not in p3["negative_prompt"]      # picture care is on by default: a clean image is asked for
 
 
 # ---------------------------------------------------------------- the checkers

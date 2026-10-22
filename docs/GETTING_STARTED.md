@@ -470,6 +470,21 @@ On the **Shots** screen, **Action scene...** plans a fight, a chase or a sports 
 
 **Limits, honestly.** The plan is rule-based, not an AI: it gives a sound structure and wording, not a screenplay of blows. It keeps violence to impact, reaction and consequence (no gore). How good the finished shots look depends on the video model, which is weakest at contact between bodies, fast limbs and many people; that is why each shot holds one thing. It has not yet been judged on real renders. Earlier plans are listed under **Earlier plans** and are kept with the film (`choreography/`); removing one moves it aside.
 
+## A yellow tint, noise and waxy skin
+
+AI pictures and video have habits of their own: a yellow, orange or golden tint over everything (very common in some image models), skin that looks smooth, waxy or airbrushed, and a layer of noise or grain. FilmCrafter works on all three, in two places.
+
+**1. When a picture or video is asked for (automatic, free, on by default).** Every request now carries one plain line: natural, true-to-life colour with a neutral white balance (whites look white, skin shows its real tone, no yellow, orange, sepia or golden cast); natural skin with visible pores and small imperfections, never smooth, waxy, plastic or airbrushed; a clean, sharp image with no digital noise, heavy grain or over-sharpening. Models that take a *negative prompt* are also told what to avoid in words. A shot that is warm on purpose (golden hour, sunset, candlelight, firelight, a warm look) keeps its warmth: the colour part is left out for it. The "What would be sent" list shows the line. This only changes pictures and video made from now on, and wording lowers the odds rather than removing them: no model is reliable here. You can switch it off for a film in **Colour match**.
+
+**2. When the film is put together (Colour match, free, for pictures already made).** Open **Colour match** (Timeline view, on the left rail), press **Look at the shots**, then:
+
+- **Take out a colour cast that runs through the whole film.** Matching shots to each other cannot remove a tint that *every* shot shares, because the typical shot has it too. This measures the film's average colour against neutral, says what it found ("This film leans yellow"), and moves every shot back by one shared amount (you choose how much, 20 to 100%). Each shot keeps its own differences: a night scene stays blue and a sunset stays warm. A small cast (under about 3 on the colour scale) is left alone, and one correction never moves the colour by more than 18.
+- **Reduce noise a little.** A light, temporal denoise.
+- **Add a fine, even grain.** A fine moving grain that hides an over-smooth, waxy look and unifies shots from different models.
+- **Use it when exporting** is the master switch; turn it off and the film is exactly the takes. Your takes are never changed: everything is applied only in the exported file and the preview.
+
+**What it cannot do.** It cannot repaint a face: a waxy face stays waxy, only masked by grain; for that, make the picture again (the new wording helps) or use a different picture model. A tint that differs from shot to shot is the job of the matching part of Colour match above the cast options. It has been checked on test pictures, not yet on a real film.
+
 ## Keyboard shortcuts
 
 The same list is in the Studio: press `?` or `Ctrl+/`.

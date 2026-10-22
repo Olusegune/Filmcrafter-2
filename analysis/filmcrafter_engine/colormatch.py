@@ -4,6 +4,12 @@ sent anywhere, and the takes themselves are never changed: the correction is onl
 
 The correction is a straight-line adjustment of brightness (Y) and the two colour channels (U, V), strong enough to move a shot towards the reference by `strength` (0 to 1).
 
+Two more things AI pictures often need, both applied only when the film is put together:
+  cast      a colour cast that runs through the WHOLE film (the yellow, orange or golden tint some image models put over everything). Matching shots to the typical shot cannot remove it,
+            because the typical shot has it too. So the film's own average colour is measured and moved back towards neutral by one shared offset (each shot keeps its own differences: a night
+            scene stays blue, a sunset stays warm). Small casts are left alone.
+  finish    a light denoise (`hqdn3d`) and an optional fine grain that hides a waxy, over-smooth look. Both are off until you turn them on.
+
   python -m filmcrafter_engine.colormatch <state|analyze|set|clear> <project> --data '{...}'
 """
 from __future__ import annotations
@@ -17,6 +23,10 @@ import sys
 import time
 
 GRADE = "grade.json"
+CAST_MIN = 3.0                           # a film-wide cast smaller than this (in studio-range colour units) is not a cast worth correcting
+CAST_MAX = 18.0                          # and one correction never moves the colour by more than this
+DENOISE = "hqdn3d=2.0:1.5:3.0:3.0"       # a light, temporal denoise
+GRAIN = "noise=alls=5:allf=t"            # a fine, moving grain
 MIN_GAIN, MAX_GAIN = 0.75, 1.35          # a correction never stretches or squeezes a channel more than this
 IGNORE_BELOW = 0.06                      # shots already this close to the reference (as a fraction of the range) are left alone
 SAMPLES = (0.2, 0.5, 0.8)
@@ -54,7 +64,37 @@ def _write(path: str, data) -> None:
 def load(d: str) -> dict:
     g = _read(os.path.join(d, GRADE), {}) or {}
     return {"enabled": bool(g.get("enabled", False)), "strength": min(1.0, max(0.0, float(g.get("strength", 0.7)))), "reference": g.get("reference"),
-            "shots": g.get("shots") or {}, "stats": g.get("stats") or {}, "analysed": g.get("analysed")}
+            "shots": g.get("shots") or {}, "stats": g.get("stats") or {}, "analysed": g.get("analysed"),
+            "cast": bool(g.get("cast", False)), "cast_strength": min(1.0, max(0.0, float(g.get("cast_strength", 0.85)))), "cast_fix": g.get("cast_fix"), "cast_seen": g.get("cast_seen"),
+            "denoise": bool(g.get("denoise", False)), "grain": bool(g.get("grain", False))}
+
+
+def measure_cast(stats: dict) -> dict | None:
+    """The colour cast that runs through the whole film: the median colour of the shots against neutral. {"u", "v", "size", "label"} (u and v are how far the film leans, in colour units)."""
+    if not stats:
+        return None
+    mu = statistics.median(s["u"][0] for s in stats.values()) - 128.0
+    mv = statistics.median(s["v"][0] for s in stats.values()) - 128.0
+    size = (mu * mu + mv * mv) ** 0.5
+    if mu < 0 and abs(mv) < abs(mu) * 0.4:
+        label = "yellow"
+    elif mu < 0 and mv > 0:
+        label = "yellow-orange"
+    elif mu < 0:
+        label = "yellow-green"
+    elif mv > 0:
+        label = "magenta"
+    else:
+        label = "blue-green" if mu > abs(mv) * 0.4 else "green"
+    return {"u": round(mu, 2), "v": round(mv, 2), "size": round(size, 2), "label": label, "noticeable": size >= CAST_MIN}
+
+
+def cast_fix_of(seen: dict | None, strength: float) -> dict | None:
+    """The shared offset that moves the film's colour back towards neutral, or None when there is no cast worth correcting."""
+    if not seen or not seen.get("noticeable"):
+        return None
+    cl = lambda x: max(-CAST_MAX, min(CAST_MAX, x))
+    return {"u": round(cl(-seen["u"] * strength), 2), "v": round(cl(-seen["v"] * strength), 2)}
 
 
 def _yuv(rgb):
@@ -150,8 +190,8 @@ def analyze(d: str, strength: float | None = None, reference: str | None = None)
     cur = load(d)
     strength = cur["strength"] if strength is None else min(1.0, max(0.0, float(strength)))
     takes = _takes(d)
-    if len(takes) < 2:
-        raise SystemExit("Colour matching needs at least two shots with a take or picture to compare.")
+    if len(takes) < 1:
+        raise SystemExit("Colour matching needs at least one shot with a take or picture to look at.")
     cache = _read(os.path.join(d, "cache", "colormatch.json"), {}) or {}
     stats = {}
     for sid, path in takes.items():
@@ -174,7 +214,9 @@ def analyze(d: str, strength: float | None = None, reference: str | None = None)
     for sid, st in stats.items():
         if sid != ref_id and _distance(st, ref) >= IGNORE_BELOW:
             shots[sid] = _correction(st, ref, strength)
-    grade = {"enabled": cur["enabled"], "strength": strength, "reference": ref_id if ref_id in stats else None, "shots": shots, "stats": {k: {c: [round(x, 2) for x in v] for c, v in s.items()} for k, s in stats.items()},
+    seen = measure_cast(stats)
+    grade = {**{k: cur[k] for k in ("cast", "cast_strength", "denoise", "grain")}, "cast_seen": seen, "cast_fix": cast_fix_of(seen, cur["cast_strength"]),
+             "enabled": cur["enabled"], "strength": strength, "reference": ref_id if ref_id in stats else None, "shots": shots, "stats": {k: {c: [round(x, 2) for x in v] for c, v in s.items()} for k, s in stats.items()},
              "analysed": int(time.time())}
     _write(os.path.join(d, GRADE), grade)
     return state(d)
@@ -188,16 +230,36 @@ def state(d: str) -> dict:
         rows.append({"shot": sid, "distance": round(_distance(st, ref), 3) if ref else 0.0, "bright": round(st["y"][0] - ref["y"][0], 1) if ref else 0.0,
                      "adjusted": sid in g["shots"], "is_reference": sid == g["reference"]})
     rows.sort(key=lambda r: -r["distance"])
-    return {"enabled": g["enabled"], "strength": g["strength"], "reference": g["reference"], "analysed": g["analysed"], "rows": rows, "adjusted": len(g["shots"])}
+    from . import picturecare
+    project = _read(os.path.join(d, "project.json"), {}) or {}
+    return {"enabled": g["enabled"], "strength": g["strength"], "reference": g["reference"], "analysed": g["analysed"], "rows": rows, "adjusted": len(g["shots"]),
+            "cast": g["cast"], "cast_strength": g["cast_strength"], "cast_seen": g["cast_seen"], "cast_fix": g["cast_fix"], "denoise": g["denoise"], "grain": g["grain"],
+            "picture_care": picturecare.enabled(project)}
 
 
 def set_options(d: str, spec: dict) -> dict:
     """Turn the correction on or off for the export, change its strength or the reference shot (the corrections are worked out again)."""
     g = _read(os.path.join(d, GRADE), None)
+    if "prompts" in spec:                            # ask the picture and video models for natural skin and neutral colour (picturecare.py): a setting of the film
+        pj = _read(os.path.join(d, "project.json"), {}) or {}
+        pj["picture_care"] = {"on": bool(spec["prompts"])}
+        _write(os.path.join(d, "project.json"), pj)
     if not g:
-        raise SystemExit("Look at the shots first.")
-    if "enabled" in spec:
-        g["enabled"] = bool(spec["enabled"])
+        if not any(k in spec for k in ("enabled", "cast", "cast_strength", "denoise", "grain")):
+            return state(d)
+        g = {"enabled": False, "strength": 0.7, "reference": None, "shots": {}, "stats": {}, "analysed": None}
+    changed = False
+    for k in ("enabled", "cast", "denoise", "grain"):
+        if k in spec:
+            g[k] = bool(spec[k])
+            changed = True
+    if "cast_strength" in spec:
+        g["cast_strength"] = min(1.0, max(0.0, float(spec["cast_strength"])))
+        changed = True
+    if changed:
+        cs = min(1.0, max(0.0, float(g.get("cast_strength", 0.85))))
+        g["cast_seen"] = measure_cast(g.get("stats") or {})
+        g["cast_fix"] = cast_fix_of(g["cast_seen"], cs)
         _write(os.path.join(d, GRADE), g)
     if "strength" in spec or "reference" in spec:
         analyze(d, strength=spec.get("strength"), reference=spec["reference"] if "reference" in spec else None)
@@ -214,14 +276,22 @@ def clear(d: str) -> dict:
 def filter_for(d: str, shot_id: str) -> str:
     """The ffmpeg filter for this shot's correction ('' when there is none, it is off, or the shot is the reference). Only numbers made here go in."""
     g = load(d)
-    fix = g["shots"].get(shot_id) if g["enabled"] else None
-    if not fix:
+    if not g["enabled"]:
         return ""
-    parts = []
-    for ch, lo, hi in (("y", 16, 235), ("u", 16, 240), ("v", 16, 240)):
-        a, b = (float(x) for x in fix[ch])
-        parts.append(f"{ch}='clip(val*{a:.4f}+({b:.3f}),{lo},{hi})'")
-    return "lutyuv=" + ":".join(parts)
+    fix = g["shots"].get(shot_id)
+    cf = g["cast_fix"] if g["cast"] else None
+    out = [DENOISE] if g["denoise"] else []
+    if fix or cf:
+        parts = []
+        for ch, lo, hi in (("y", 16, 235), ("u", 16, 240), ("v", 16, 240)):
+            a, b = (float(x) for x in fix[ch]) if fix else (1.0, 0.0)
+            if cf and ch in ("u", "v"):
+                b += float(cf[ch])                        # the film-wide cast offset, shared by every shot
+            parts.append(f"{ch}='clip(val*{a:.4f}+({b:.3f}),{lo},{hi})'")
+        out.append("lutyuv=" + ":".join(parts))
+    if g["grain"]:
+        out.append(GRAIN)
+    return ",".join(out)
 
 
 def signature(d: str, shot_id: str) -> str:
