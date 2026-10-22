@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.28.1 (2026-10-22)
 
 - **Yellow tint, noise and waxy skin.** Two layers, both free. (1) **Picture care in every request:** every picture and video request now carries a plain line asking for natural, true-to-life colour with a neutral white balance (no yellow, orange, sepia or golden cast), real skin texture (never smooth, waxy or airbrushed) and a clean image (no digital noise, heavy grain or over-sharpening), and models with a negative prompt are told the same as words to avoid. A shot that is warm on purpose (golden hour, sunset, candlelight, a warm look) keeps its warmth. On by default; switch it off per film. (2) **Colour match can now take out a colour cast that runs through the whole film** (the typical shot has the cast too, so matching shots to each other never could): it measures the film against neutral, says what it found, and moves every shot back by one shared offset you control, keeping each shot's own differences. It also has **Reduce noise** and **Add fine grain** (hides a waxy look). All of it is applied only when the film is put together; takes are never changed.
 - Colour match now works with a single shot, and its options can be set before the shots have been looked at.
