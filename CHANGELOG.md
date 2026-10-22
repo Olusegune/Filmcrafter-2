@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.28.4 (2026-10-22)
 
 - **Messy, changing backgrounds.** Found by reading the picture's own record: the playground was only ever called "Lincoln Middle School - Playground - Day", with no description, no layout and no picture, so the picture model invented the fence, the tables and the building again in every shot; nine references went with it (four character sheets each for two people, and the previous shot) and none for the place. Four changes:
   - **A heads-up above the pictures** when a place that shots happen in has no description, layout or picture, with **Fill in from the story (free)** (it writes the story's own words about the place, never over a description that exists) and a button to open Places in Cast & World.
