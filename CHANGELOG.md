@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.28.2 (2026-10-22)
 
 - **Assets can now be edited, replaced and removed.** In the **Reference library**, **Edit** used to open its form at the top of a long list, so on a card further down nothing seemed to happen. It now opens in the card you clicked, with the name, the notes and every picture: **Replace…** a picture with another, **Remove** one (it stays in the project folder, nothing is deleted), **+ Add pictures…**, and for a plain library reference the kind too. A reference that comes from **Cast & World** (a character, place or prop with pictures) is changed in the Bible, so the change lasts: before, a library edit of such a reference was rebuilt from the Bible the next time the film was prepared.
 - **In Cast & World**, each picture of a character, place or prop can now be **replaced** in place (same spot, same label and kind unless you change them) and told what it shows (master sheet, front, side, back, expression, pose, wardrobe...).
