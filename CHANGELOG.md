@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Composition is now built in.** Every picture and video request for a shot about people now says where they sit in the frame, worked out from the shot size, who is in it and which way the blocking plan has them facing: one person on a third with look room in front of the face and their eyes on the upper third line; two people on opposite thirds facing in; a horizon on a third and layered depth in a wide shot; the foreground shoulder and the opposite third in an over-the-shoulder shot; the thing they look at in a point-of-view shot. It is left out when a storyboard panel already sets the framing, and one switch turns it off for the film. On a shot's **Camera** tab, a **Composition** box draws the thirds grid with the points marked and shows the sentences that go into the request. In the pictures screens, **Thirds grid** draws the rule-of-thirds lines over the pictures so you can judge where people sit.
+- **Pacing report** (Shots screen, **Pacing...**). Reads the cuts as they are and reports the rhythm scene by scene (a bar for every shot, tall for long) and where it works against the story: a shot too short for its own dialogue (a fault, with the length it needs), very short or very long shots, four of the same shot size in a row, identical shot lengths, a scene that does not open wide, a long exchange with no close-ups, a long speech in one shot, a scene much faster or slower than the rest, and transition effects on most cuts. Each finding has a reason, a suggestion and a button to its shot. It only reads.
+
 ## 0.28.4 (2026-10-22)
 
 - **Messy, changing backgrounds.** Found by reading the picture's own record: the playground was only ever called "Lincoln Middle School - Playground - Day", with no description, no layout and no picture, so the picture model invented the fence, the tables and the building again in every shot; nine references went with it (four character sheets each for two people, and the previous shot) and none for the place. Four changes:

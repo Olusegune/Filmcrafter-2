@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { PacingSheet } from "./PacingSheet";
+import { CompositionGuide } from "./CompositionGuide";
 import { ActionChoreo } from "./ActionChoreo";
 import { Sheet } from "./Sheet";
 import { api, errorText, type BibleView, type ShotBeat, type ShotContract, type ShotsView, type ShotSuggestion } from "./api";
@@ -40,6 +42,7 @@ export function ShotLab({ dir }: { dir: string }) {
   const [helpShot, setHelpShot] = useState<Record<string, unknown> | null>(null);          // the writing helper suggestion for this shot
   const [helping, setHelping] = useState(false);
   const [action, setAction] = useState(false);
+  const [pacing, setPacing] = useState(false);
   const [cmd, setCmd] = useState<{ text: string; busy: boolean; result: { understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string } | null } | null>(null);   // the Director Command              // the continuity findings instead of one shot
 
   const load = useCallback(async (keep?: string | null) => {
@@ -107,6 +110,7 @@ export function ShotLab({ dir }: { dir: string }) {
   return (
     <div className="sl">
       <aside className="sl-list" aria-label="Shots">
+        <button className="btn ghost sm sl-ck" disabled={!v.shots.length} onClick={() => setPacing(true)} title="The rhythm of the cuts, and where it works against the story">Pacing…</button>
         <button className="btn ghost sm sl-ck" disabled={!v.shots.length} onClick={() => setAction(true)} title="Plan a fight, a chase or a sports moment as short shots">Action scene…</button>
         <button className="btn ghost sm sl-ck" onClick={() => setCmd({ text: "", busy: false, result: null })} title="Say what you want changed in this shot (Ctrl+K)">Director Command  Ctrl+K</button>
         <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => { setReview((x) => !x); setVoices(false); }} title="Where something may have changed between shots">Continuity check</button>
@@ -126,6 +130,7 @@ export function ShotLab({ dir }: { dir: string }) {
             <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
       </aside>
 
+      {pacing && <PacingSheet dir={dir} onClose={() => setPacing(false)} onGo={(id) => { setSel(id); setPacing(false); }} />}
       {action && <ActionChoreo dir={dir} shots={v} characters={charNames} onClose={() => setAction(false)} onAdded={() => { void act("reload", () => api.shots("get", dir)); }} />}
       {cmd && <Sheet label="Director Command" className="dc" onDismiss={() => setCmd(null)} onSubmit={(e) => { e.preventDefault(); void runCmd(); }}>
           <label className="field"><span>Director Command <span className="dim">for {sel ?? "no shot"}</span></span>
@@ -196,6 +201,7 @@ export function ShotLab({ dir }: { dir: string }) {
                 <p className="dim">{sug.camera.framing}, {sug.camera.angle}, {sug.camera.movement}, {sug.camera.lens}, {sug.camera.focus} focus.</p><p>{sug.camera.why}</p>
                 <p className="dim">Light: {sug.lighting.description}</p><p>{sug.lighting.why}</p>
                 <div className="film-actions"><button className="btn primary sm" onClick={apply}>Use this</button><button className="btn ghost sm" onClick={() => setSug(null)}>No thanks</button></div></div>}</div>
+            {c && <CompositionGuide dir={dir} shot={c.id} version={`${c.camera?.framing}|${c.camera?.angle}|${JSON.stringify(c.plan ?? null)}|${c.blocking}`} />}
             <div className="cw-grid2">{pick("camera.framing", "Framing", v.enums.framing)}{pick("camera.angle", "Angle", v.enums.angle)}{pick("camera.lens", "Lens", v.enums.lens)}{pick("camera.movement", "Movement", v.enums.movement)}{pick("camera.focus", "Focus", v.enums.focus)}</div>
             {text("camera.position", "Where the camera is", 2, "e.g. Behind Sarah's left shoulder, at the sink")}
             {text("camera.why", "Why", 2, "What this choice does for the story")}

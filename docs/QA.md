@@ -185,6 +185,13 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 - **Screens:** wording and wiring unit tested (`placecare.test.ts`); the notice above the pictures and a way to Places.
 - **NOT checked:** whether the new wording and the two-sheet limit actually give a cleaner background on the real model (gpt-image 2.5): that needs new pictures made and looked at by a person.
 
+## Composition and pacing (after 0.28.4): what was checked
+
+- **Composition** (`test_composition.py`, 11): the shot size is read from the framing words; people and the way they face are read from the blocking words (both phrasings the app writes); one person is placed opposite the way they face so there is look room; two people take opposite thirds and the screen sides in the blocking are kept; a wide shot gets a horizon on a third (and a low angle moves it); every size gives sentences with reasons and points inside the frame; it reaches a real request, can be switched off for the film, is left out when a storyboard panel is attached and when nobody is in a medium shot, and is dropped before the hands line when a prompt is too long; the guide for a film's shot and the switch work and the command line refuses a bad id.
+- **Pacing** (`test_pacing.py`, 10): each kind of finding is raised for a built-to-fit film and not for the cases it should skip (an insert, action); findings are ordered faults first with a reason and a tip; transitions are flagged only above the share; reading changes no file; an empty film is refused.
+- **Screens** (`pacing.test.ts`, 6): bar sizing, words, wiring and read-only guards; Seen in the browser harness: the Pacing sheet (8 bars, the fault first), the Composition box on the Camera tab (grid, one point, the sentences).
+- **NOT checked:** whether the composition wording changes where a real model puts people (it only asks); the thresholds in the pacing report (2.5 words a second, four in a row, a third of the cuts) are sensible rules of thumb, not measured on a real film; and neither has been tried by a person on a real film.
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.

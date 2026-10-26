@@ -1105,6 +1105,10 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     pcare = PC.guard(shot, project, look.get("prompt", ""))
     if pcare and not only:
         blocks.append((pcare["priority"], pcare["text"]))
+    from . import composition as COMP      # where people sit in the frame: thirds, headroom, look room (left out when a storyboard panel sets the composition)
+    comp = COMP.line_for(shot, project, refs)
+    if comp and not only:
+        blocks.append((comp["priority"], comp["text"]))
     if shot.get("note"):
         blocks.append((10, "Direction for this take: " + str(shot["note"]).strip().rstrip(".") + "."))
     if shot.get("continues"):

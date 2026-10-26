@@ -37,7 +37,8 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice, onOpenPlac
   const [note, setNote] = useState("");
   const [result, setResult] = useState<ExportResult | null>(null);
   const [preset, setPreset] = useState("youtube");
-  const [voiceOpen, setVoiceOpen] = useState(!!openVoice);                      // the first-film guide can take you straight to the voices
+  const [voiceOpen, setVoiceOpen] = useState(!!openVoice);
+  const [grid, setGrid] = useState(() => { try { return localStorage.getItem("pf-thirds") === "1"; } catch { return false; } });                      // the first-film guide can take you straight to the voices
   const dropped = useVoiceDrop(dir, !voiceOpen);                                  // drop a recording on a card
   const [voices, setVoices] = useState<VoiceStatus | null>(null);                 // how many of the film's voices are your own recordings
   useEffect(() => { if (!voiceOpen) api.voice("status", dir).then(setVoices).catch(() => {}); }, [dir, voiceOpen, tab]);
@@ -143,7 +144,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice, onOpenPlac
   const stage = tab === "deliver" ? null : tab;
 
   return (
-    <div className="mk">
+    <div className={`mk ${grid ? "thirds" : ""}`}>
       {voiceOpen && <VoiceoverSheet dir={dir} onClose={() => setVoiceOpen(false)} />}
       {dropped}
       <div className="mk-head">
@@ -162,6 +163,7 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice, onOpenPlac
 
       {stage && <>
         <div className="mk-bar">
+          <button className={`btn ghost sm ${grid ? "on" : ""}`} aria-pressed={grid} onClick={() => setGrid((g) => { try { localStorage.setItem("pf-thirds", g ? "0" : "1"); } catch { /* a convenience only */ } return !g; })} title="Draw the rule-of-thirds lines over the pictures, to judge where people sit in the frame">Thirds grid</button>
           <button className="btn primary" disabled={!!busy} onClick={() => generate(stage, st.shots.filter((s) => ready(s, stage) && (stage === "video" || !s[stage].locked) && !done(s, stage)).map((s) => s.id))}>
             Make all that are missing</button>
           {stage === "keyframe" && <button className="btn" disabled={!!busy || !hc || st.counts.keyframe === 0} onClick={checkHands}

@@ -480,6 +480,18 @@ A picture model is told only what the film says about a place. If a place is jus
 - **Pick the shape for the picture.** A 16:9 picture holds fine detail better than 21:9; make a few versions and choose.
 - **Background noise in the finished film** can also be reduced with **Colour match: Reduce noise a little**.
 
+## Composition and pacing
+
+**Composition (built into every request).** Image and video models put people near the middle of the frame unless told otherwise, which is what makes AI films look flat. FilmCrafter works out where the people should sit from the shot size, who is in the shot and which way the blocking plan has them facing, and adds that to the request: eyes on the upper third and look room in front of the face for one person; opposite thirds, facing in, for two; a horizon on a third and layers of depth for a wide shot; the foreground shoulder and the other person on the opposite third for over-the-shoulder; the thing they look at, for point of view; the object on a third for an insert. On a shot's **Camera** tab the **Composition** box shows those sentences with the thirds grid and the points drawn, and the switch under it turns the wording off for the whole film. If the shot has a storyboard panel, the panel sets the framing and the wording is left out. On the pictures screens, **Thirds grid** draws the rule-of-thirds lines over the pictures (just for you, nothing is changed).
+
+**Pacing (Shots, Pacing...).** The report reads the cuts as they are: shot lengths, shot sizes, dialogue and the transitions between shots. You see each scene as a row of bars (tall for a long shot; click one to go to it) and a list, faults first:
+
+- **Fix:** a shot is too short for its own dialogue (people speak about 2.5 words a second, with a breath either side).
+- **Look:** a shot under about a second and a quarter that is not an insert or action; a long silent hold; four shots of the same size in a row; transition effects on more than a third of the cuts.
+- **Note:** identical lengths, a scene that does not open on a wide shot, a long exchange with no close-ups, a long speech in one shot, a scene much faster or slower than the rest.
+
+Each finding says why it matters and what to try. It is advice: it changes nothing, and a deliberate choice is yours to keep.
+
 ## A yellow tint, noise and waxy skin
 
 AI pictures and video have habits of their own: a yellow, orange or golden tint over everything (very common in some image models), skin that looks smooth, waxy or airbrushed, and a layer of noise or grain. FilmCrafter works on all three, in two places.

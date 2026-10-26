@@ -283,6 +283,8 @@ export const api = {
   audioGen: <T = unknown>(action: "providers" | "estimate" | "generate" | "pending" | "check" | "rights", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_audiogen", { action, target, data }),
   audioMix: <T = MixSettings>(action: "settings" | "set_settings" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_mix", { action, target, data }),
   filmChoreography: <T = ActionPlan>(action: "types" | "generate" | "update" | "apply" | "list" | "remove" | "get", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_choreography", { action, target, data }),
+  filmPacing: (target: string) => invoke<PacingReport>("film_pacing", { action: "report", target }),
+  filmComposition: <T = CompositionGuideData>(action: "guide" | "set", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_composition", { action, target, data }),
   filmPlaces: (action: "status" | "draft", target: string) => invoke<PlacesStatus>("film_placecare", { action, target }),
   filmMaterials: <T = MaterialsPlan>(action: "scan" | "apply" | "review" | "history", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_materials", { action, target, data }),
   filmSpending: (target: string) => invoke<SpendingSummary>("film_spending", { action: "summary", target }),
@@ -568,6 +570,9 @@ export type ActionPlan = { id: string; type: string; scene: number; place: strin
   warnings: string[]; after: string; applied: string[]; status: "draft" | "applied" };
 export type ActionTypes = { types: { id: string; label: string; blurb: string; needs_b: boolean; good_for: string }[]; outcomes: { id: string; label: string }[]; intensity: { id: string; label: string }[]; limits: { min_beats: number; max_beats: number }; advice: string[] };
 export type ActionList = { plans: { id: string; created: number; type: string; scene: number; outcome: string; seconds: number; status: string; applied: string[]; beats: number }[] };
+export type PacingReport = { film: { shots: number; seconds: number; asl: number; shortest: number; longest: number }; scenes: { number: number; shots: number; seconds: number; asl: number; shortest: number; longest: number; bars: { id: string; seconds: number }[] }[];
+  findings: { level: "fix" | "look" | "note"; shot: string | null; scene: number | null; what: string; why: string; tip: string }[]; counts: { fix: number; look: number; note: number }; note: string };
+export type CompositionGuideData = { size: string; shot: string; in_prompt: boolean; lines: { text: string; why: string }[]; points: { name: string; x: number; y: number }[]; horizon: number | null; text: string; grid: number[] };
 export type PlacesStatus = { places: { id: string; name: string; scenes: number[]; has_description: boolean; has_layout: boolean; has_picture: boolean; missing: boolean }[]; missing: string[]; filled?: { id: string; name: string; description: string }[]; note?: string };
 export type MaterialItem = { id: string; type: "storyboard" | "asset" | "shotrow" | "newshot" | "note" | "unsorted" | "skip"; title: string; rel?: string; on: boolean; blocked: string; notes: string[]; preview?: string; why?: string;
   shot?: string; shot_label?: string; how?: string; replaces?: boolean; kind?: "character" | "environment" | "prop"; name?: string; entry?: string | null; entry_name?: string; create?: boolean; media_kind?: string;
