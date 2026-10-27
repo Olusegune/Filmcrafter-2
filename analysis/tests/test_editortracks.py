@@ -186,3 +186,24 @@ def test_the_premiere_and_resolve_file_gets_a_third_timeline_with_the_sound_on_t
     assert len(audio_tracks) == 3 and all(len(t.findall("clipitem")) >= 1 for t in audio_tracks)
     ids = [c.get("id") for c in root.iter("clipitem")]
     assert len(set(ids)) == len(ids)
+
+
+def test_the_real_opentimelineio_library_reads_the_tracks_back(film, tmp_path):
+    otio = pytest.importorskip("opentimelineio")
+    d, sid = film
+    rd = make.render_dir(d)
+    os.makedirs(os.path.join(rd, "media"), exist_ok=True)
+    jobs = []
+    for i, s in enumerate(S._index(d)["order"]):
+        open(os.path.join(rd, "media", f"v{i}.mp4"), "wb").write(b"\x00\x00\x00\x18ftypmp42")
+        jobs.append({"id": f"v{i}", "shot_id": s, "plan": "production", "state": "ready", "kind": "video", "provider": "kie", "model": "wan", "output": f"media/v{i}.mp4", "created": 1 + i, "updated": 2 + i})
+    json.dump({"schema_version": 1, "jobs": jobs}, open(os.path.join(rd, "jobs.json"), "w"))
+    cue(d, tmp_path, "sfx", 1.0, shot=sid, start=0.5)
+    res = X.write(d)
+    tl = otio.adapters.read_from_file(os.path.join(res["dir"], res["files"]["otio"]))
+    audio = {t.name: t for t in tl.tracks if t.kind == "Audio"}
+    assert {"Voice Sarah", "Voice John", "Sound effects"} <= set(audio)
+    sarah = [c for c in audio["Voice Sarah"] if isinstance(c, otio.schema.Clip)]
+    assert len(sarah) == 1 and sarah[0].duration().to_seconds() == 2.0
+    start = audio["Voice Sarah"].range_of_child(sarah[0]).start_time.to_seconds()
+    assert start == next(r for r in rows_of(d) if r["id"] == sid)["start"] / FPS

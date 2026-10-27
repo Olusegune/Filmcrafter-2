@@ -180,7 +180,7 @@ def write(d: str) -> dict:
     if not rows:
         raise SystemExit("There are no shots yet.")
     m = _read(os.path.join(d, "film.json"), {})
-    title = file_part(m.get("title", "Film").replace(" ", "_"), 60)
+    title = file_part(m.get("title", "Film").replace(" ", "_"), 30)                       # short, so the folder, the files and the sounds inside stay well under Windows's 260-character path limit
     pretty = m.get("title", "Film")
     out = os.path.join(d, "exports", "interchange", f"{title} {time.strftime('%Y-%m-%d %H%M%S')}")
     os.makedirs(os.path.join(out, "media"), exist_ok=True)
