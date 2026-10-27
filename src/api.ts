@@ -284,6 +284,7 @@ export const api = {
   audioMix: <T = MixSettings>(action: "settings" | "set_settings" | "preview", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_mix", { action, target, data }),
   filmChoreography: <T = ActionPlan>(action: "types" | "generate" | "update" | "apply" | "list" | "remove" | "get", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_choreography", { action, target, data }),
   filmAudioPlan: (action: "report" | "apply" | "set", target: string, data: Record<string, unknown> = {}) => invoke<SoundPlan>("film_audioplan", { action, target, data }),
+  filmReadiness: (target: string) => invoke<Readiness>("film_readiness", { action: "report", target }),
   filmPacing: (target: string) => invoke<PacingReport>("film_pacing", { action: "report", target }),
   filmComposition: <T = CompositionGuideData>(action: "guide" | "set", target: string, data: Record<string, unknown> = {}) => invoke<T>("film_composition", { action, target, data }),
   filmPlaces: (action: "status" | "draft", target: string) => invoke<PlacesStatus>("film_placecare", { action, target }),
@@ -571,6 +572,10 @@ export type ActionPlan = { id: string; type: string; scene: number; place: strin
   warnings: string[]; after: string; applied: string[]; status: "draft" | "applied" };
 export type ActionTypes = { types: { id: string; label: string; blurb: string; needs_b: boolean; good_for: string }[]; outcomes: { id: string; label: string }[]; intensity: { id: string; label: string }[]; limits: { min_beats: number; max_beats: number }; advice: string[] };
 export type ActionList = { plans: { id: string; created: number; type: string; scene: number; outcome: string; seconds: number; status: string; applied: string[]; beats: number }[] };
+export type ReadinessGo = "story" | "cast" | "shots" | "voice" | "soundplan" | "make" | "export";
+export type ReadinessItem = { step: string; level: "fix" | "look" | "note"; what: string; why: string; go: ReadinessGo; shot: string | null;
+  fix: { kind: "shot_seconds"; shot: string; seconds: number; was: number; label: string } | null };
+export type Readiness = { items: ReadinessItem[]; next: ReadinessItem | null; counts: { fix: number; look: number; note: number }; ready: boolean; shots: number; unread: string[]; note: string };
 export type SoundRoute = "none" | "voice_over" | "needs_voice" | "audio_in" | "post_sync" | "native";
 export type SoundPlan = { tier: string; model: string; model_known: boolean; model_takes_recording: boolean; model_makes_sound: boolean; native_scene: boolean; counts: Record<string, number>; lines_to_speak: number; tts_credits: number; tts_unpriced: number; keep_rate: number; tries: number; note: string; changed?: string[];
   shots: { shot: string; scene: number; title: string; seconds: number; route: SoundRoute; why: string; warnings: string[]; setting: "auto" | "on" | "off"; recommended_setting: string; differs: boolean; speakers: string[]; lines: { speaker: string; line: string; voice_over: boolean; has_voice: boolean; source: string }[] }[] };

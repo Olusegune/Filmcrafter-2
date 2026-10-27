@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Sound on tracks for your editor.** The hand-off folder's OpenTimelineIO and Final Cut XML now carry each person's voice on a track of its own (Voice Sarah, Voice John...), and the approved sound effects, ambience and music on theirs, every clip at its real frame: the same place, J and L cuts, gaps and levels the exported film is mixed with. A looping sound is laid end to end to fill its time. The sounds are copied into `audio/voice` and `audio/cues`. For Premiere Pro and DaVinci Resolve, **Send to your editor** adds a third timeline, *shots with sound by track*, with the same shots over one audio track per voice and per kind of sound; the first two timelines are unchanged. Not in the EDL (it cannot carry this much).
+- **The next step, always in view.** A slim line under the film's header says the one next thing to do (a fix first, then cast pictures, voices, keyframes, video, approval, export), with a button that goes there. **All N things** opens **Is this film ready?**: everything open, in the order a film is made, each with the reason and a button. A shot that is too short for its line can be **lengthened to fit in one click**, and put back. It only reads: a paid step sends you to Make, where the price is shown first.
 ## 0.30.0 (2026-10-27)
 
 - **Hide the picture sheets.** In a shot's panel, **What the model is given** and **References** each have a **Hide pictures / Show pictures** link. One choice for the whole app, remembered on this computer: the thumbnails and the enlarged picture disappear everywhere they are listed and the panel shrinks to the names. It only changes what is drawn; the model is given exactly the same pictures.

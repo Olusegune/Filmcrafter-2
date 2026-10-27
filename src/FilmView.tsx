@@ -9,6 +9,7 @@ import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
 import { FirstFilm } from "./FirstFilm";
+import { NextStep } from "./NextStep";
 import { SpendingSheet } from "./SpendingSheet";
 import { BringMaterials } from "./BringMaterials";
 import { buildSteps, doneCount, guideSeen, nextStep, requiredCount } from "./guideSteps";
@@ -36,6 +37,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   const [goVoice, setGoVoice] = useState(false);
   const [goSound, setGoSound] = useState(false);
   const [goPlaces, setGoPlaces] = useState(false);
+  const [goShot, setGoShot] = useState<string | null>(null);                    // a shot the next-step bar or the readiness list sent you to
   const MAKE_STAGE: Record<string, MakeTab> = { make: "keyframe", export: "deliver" };
   const stageOf = (id: string) => (id in MAKE_STAGE ? "make" : id);
   const activeId = stage === "make" ? (makeTab === "deliver" ? "export" : "make") : stage;
@@ -112,8 +114,12 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
           <I.Rocket size={13} /> Guide{progress && (() => { const st = buildSteps({ progress, voices: null, sound: null, pro: f.mode === "studio", exported: false }); const n = nextStep(st); return n ? <small className="ff-badge">{doneCount(st)}/{requiredCount(st)}</small> : null; })()}</button>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
+      <NextStep dir={dir} refresh={`${stage}-${makeTab}-${progress?.make.keyframe}-${progress?.make.video}-${progress?.shots.count}-${f.story.current}`} onGo={(it) => {
+        setGoVoice(it.go === "voice"); setGoSound(false); setGoPlaces(false); setGoShot(it.shot);
+        goStage(it.go === "voice" ? "make" : it.go === "shots" && !studio ? "make" : it.go === "soundplan" ? "shots" : it.go);
+      }} />
 
-      {stage === "cast" ? <CastWorld key={`${dir}-${goSound}-${goPlaces}`} dir={dir} initialTab={goSound ? "sound" : goPlaces ? "environment" : undefined} /> : stage === "shots" ? <ShotLab key={dir} dir={dir} /> : stage === "make" ? <MakeFilm key={`${dir}-${goVoice}`} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} openVoice={goVoice} onOpenPlaces={() => { setGoPlaces(true); setGoSound(false); goStage("cast"); }} /> : <div className="film-body">
+      {stage === "cast" ? <CastWorld key={`${dir}-${goSound}-${goPlaces}`} dir={dir} initialTab={goSound ? "sound" : goPlaces ? "environment" : undefined} /> : stage === "shots" ? <ShotLab key={`${dir}-${goShot}`} dir={dir} initial={goShot} /> : stage === "make" ? <MakeFilm key={`${dir}-${goVoice}`} dir={dir} tab={makeTab} onTab={setMakeTab} autoBreakdown={!studio} openVoice={goVoice} onOpenPlaces={() => { setGoPlaces(true); setGoSound(false); goStage("cast"); }} /> : <div className="film-body">
         <nav className="film-scenes" aria-label="Scenes">
           <h2>Scenes <span className="dim">{f.found.scenes.filter((s) => !s.implied).length || ""}</span></h2>
           {f.found.scenes.length === 0 && <p className="dim">{isScreenplay ? "No scenes found yet." : "Scenes appear once the story is a screenplay or an outline."}</p>}

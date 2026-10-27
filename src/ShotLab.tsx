@@ -29,7 +29,7 @@ export const clock = (s: number) => `${s.toFixed(1).replace(/\.0$/, "")}s`;
  * The shots: the story broken down into scenes and shots, each one a Shot Contract that says what the shot is for, who is in it and how they act, where the camera is, how it is lit and what must stay
  * the same. The first pass is a draft to change. Nothing is made from a shot until you decide.
  */
-export function ShotLab({ dir }: { dir: string }) {
+export function ShotLab({ dir, initial }: { dir: string; initial?: string | null }) {
   const [v, setV] = useState<ShotsView | null>(null);
   const [sel, setSel] = useState<string | null>(null);
   const [c, setC] = useState<ShotContract | null>(null);
@@ -57,7 +57,7 @@ export function ShotLab({ dir }: { dir: string }) {
       setSel(id && s.shots.some((x) => x.id === id) ? id : s.shots[0]?.id ?? null);
     } catch (e) { setErr(errorText(e)); }
   }, [dir]);
-  useEffect(() => { void load(); api.bible("get", dir).then(setBible).catch(() => {}); }, [load, dir]);
+  useEffect(() => { void load(initial); api.bible("get", dir).then(setBible).catch(() => {}); }, [load, dir]);
   useEffect(() => {
     setSug(null); setDraft({});
     if (!sel) { setC(null); return; }

@@ -137,7 +137,7 @@ In the **Timeline**, the inspector keeps the everyday tabs (Shot, Keyframe, Vide
 
 ![With Advanced open: Compose (prompt, references, start and end frames) and Media appear, and the button now says Fewer](img/film/studio-advanced.png)
 
-**Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film (a format for each frame shape: 16:9, 21:9, 2.39:1, 4:3, 1:1, 4:5, 3:4, 9:16, 9:21; it starts on your film's own shape) or write a hand-off folder for an editor.
+**Export** is the last step: choose a soundtrack (music, a dialogue mix, an ADR track you made elsewhere; it is copied in untouched) or keep silence, then export the film (a format for each frame shape: 16:9, 21:9, 2.39:1, 4:3, 1:1, 4:5, 3:4, 9:16, 9:21; it starts on your film's own shape) or write a hand-off folder for an editor. The hand-off puts **each person's voice on a track of its own** and the approved sound effects, ambience and music on theirs, at their real places (the same J and L cuts and gaps as the film), in the OpenTimelineIO and Final Cut XML files; the sounds are copied beside them. **Send to your editor** (Premiere Pro or DaVinci Resolve) adds a third timeline, *shots with sound by track*, with one audio track per voice and per kind of sound. Open the folder's `.fcpxml` in DaVinci Resolve (File, Import, Timeline) or the editor file in Premiere; the picture cut is also in the EDL.
 
 ![Export: a readiness line, then three numbered panels: soundtrack, export the film, hand off to an editor](img/film/export.png)
 
@@ -485,6 +485,12 @@ A picture model is told only what the film says about a place. If a place is jus
 **Depth of field.** On a shot's **Camera** tab, **Depth of field** works like the aperture on a real lens: **Very shallow (about f/1.4)** keeps only the eyes (or one detail) sharp and melts everything else into a soft wash; **Shallow (about f/2.8)** keeps the subject sharp and the background softly out of focus; **Medium (about f/5.6)** keeps the people and what is near them sharp; **Deep (about f/11)** keeps everything sharp, near and far, so the place reads as clearly as the people. The choice goes into the picture and video request in those words. On **Automatic**, shots about people get a softly out-of-focus background and wide shots are left alone. Models follow this wording rather than obey it, so check the picture.
 
 **J and L cuts.** On the **Voice** tab of a shot that has dialogue, two sliders (0 to 2 seconds each) shape how its sound meets the picture. **The line starts before the picture** is a *J cut*: the next person is heard just before they are seen. **The line carries on over the next picture** is an *L cut*: you stay with the speaker's voice while the film shows the listener. They are used when the film is exported, with your own recordings and spoken lines; the recording is not changed and the pictures stay exactly where they are. A line cannot start before the start of the film. Where the lead or tail overlaps another line, the two are heard together, so listen to the cut (**Preview**) and shorten it if people talk over each other.
+
+## The next step, and "Is this film ready?"
+
+Under the film's header, one slim line says the **next thing to do**, with a button that takes you there. It follows the order a film is made in: a fix first (a shot too short for its own line), then the pictures of your cast, voices, keyframes, video, approval and export. **All N things** opens **Is this film ready?**: everything still open, each with the reason and a button. A shot that is too short for its line has **Lengthen to X s**, which sets its length in one click and offers **Put it back**. Nothing here makes or buys anything: a step that costs money sends you to **Make**, where the price is shown first and nothing starts until you confirm.
+
+![Is this film ready? A fix with a one-click length, then what is worth doing before spending money](img/film/ready.png)
 
 ## Sound plan and hiding pictures
 

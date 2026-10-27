@@ -72,7 +72,7 @@ def gather(d: str) -> dict:
         s = byid.get(c["id"], {})
         takes = (s.get("video") or {}).get("takes", [])
         take = next((x for x in takes if x["approved"] and x["ok"]), None) or next((x for x in takes if x["ok"]), None)
-        rows.append({"id": c["id"], "scene": c["scene"], "title": c["title"] or c["story_purpose"], "framing": c["camera"]["framing"], "frames": dur, "start": t, "take": take, "dialogue": c["dialogue"]})
+        rows.append({"id": c["id"], "scene": c["scene"], "title": c["title"] or c["story_purpose"], "framing": c["camera"]["framing"], "frames": dur, "start": t, "take": take, "dialogue": c["dialogue"], "lead": float((c.get("sound_cut") or {}).get("lead", 0.0)), "tail": float((c.get("sound_cut") or {}).get("tail", 0.0))})
         t += dur
     return {"rows": rows, "total": t, "soundtrack": st.get("soundtrack", {}), "render_dir": make.render_dir(d)}
 
@@ -93,7 +93,7 @@ def edl(title: str, rows: list[dict], media_rel: dict[str, str] | None = None) -
     return "\n".join(out)
 
 
-def otio(title: str, rows: list[dict], media_rel: dict[str, str], audio_rel: str | None, total: int) -> dict:
+def otio(title: str, rows: list[dict], media_rel: dict[str, str], audio_rel: str | None, total: int, tracks_in: list[dict] | None = None) -> dict:
     def rt(v: int) -> dict:
         return {"OTIO_SCHEMA": "RationalTime.1", "rate": FPS, "value": v}
 
@@ -116,11 +116,21 @@ def otio(title: str, rows: list[dict], media_rel: dict[str, str], audio_rel: str
         tracks.append({"OTIO_SCHEMA": "Track.1", "name": "Soundtrack", "kind": "Audio", "metadata": {}, "effects": [], "markers": [], "children": [
             {"OTIO_SCHEMA": "Clip.1", "name": "Soundtrack", "source_range": rng(0, total), "metadata": {}, "effects": [], "markers": [],
              "media_reference": {"OTIO_SCHEMA": "ExternalReference.1", "target_url": audio_rel, "metadata": {}, "name": os.path.basename(audio_rel)}}]})
+    for t in tracks_in or []:                                     # one audio track for each person's voice, and for effects, ambience and music, every clip at its frame
+        kids, cur = [], 0
+        for c in t["clips"]:
+            if c["start"] > cur:
+                kids.append({"OTIO_SCHEMA": "Gap.1", "name": "", "source_range": rng(0, c["start"] - cur), "metadata": {}, "effects": [], "markers": []})
+            ref = {"OTIO_SCHEMA": "ExternalReference.1", "target_url": c["file"], "available_range": rng(0, c["source_frames"]), "metadata": {}, "name": os.path.basename(c["file"] or "")}
+            kids.append({"OTIO_SCHEMA": "Clip.1", "name": c["name"][:80], "source_range": rng(c.get("source_start", 0), c["frames"]),
+                         "metadata": {"filmcrafter": {"gain_db": c["gain_db"], "fade_in": c["fade_in"], "fade_out": c["fade_out"], "note": c["note"]}}, "media_reference": ref, "effects": [], "markers": []})
+            cur = c["start"] + c["frames"]
+        tracks.append({"OTIO_SCHEMA": "Track.1", "name": t["name"], "kind": "Audio", "children": kids, "metadata": {"filmcrafter": {"role": t["role"]}}, "effects": [], "markers": []})
     return {"OTIO_SCHEMA": "Timeline.1", "name": title, "global_start_time": rt(0), "metadata": {"generator": "FilmCrafter"},
             "tracks": {"OTIO_SCHEMA": "Stack.1", "name": "tracks", "children": tracks, "metadata": {}, "effects": [], "markers": []}}
 
 
-def fcpxml(title: str, rows: list[dict], media_rel: dict[str, str], total: int, w: int, h: int) -> str:
+def fcpxml(title: str, rows: list[dict], media_rel: dict[str, str], total: int, w: int, h: int, tracks_in: list[dict] | None = None) -> str:
     def f(frames: int) -> str:
         return f"{frames}/{FPS}s"
     assets, clips = [], []
@@ -128,6 +138,19 @@ def fcpxml(title: str, rows: list[dict], media_rel: dict[str, str], total: int, 
         aid = f"r{i + 1}"
         assets.append(f'    <asset id="{aid}" name="{escape(r["id"])}" start="0s" duration="{f(r["frames"])}" hasVideo="1" format="r1"><media-rep kind="original-media" src="{escape(media_rel[r["id"]])}"/></asset>')
         clips.append(f'          <asset-clip ref="{aid}" offset="{f(r["start"])}" name="{escape(r["id"] + " " + r["title"][:50])}" start="0s" duration="{f(r["frames"])}"/>')
+    first = next((x for x in rows if x["take"]), None)
+    if first and tracks_in:                                       # the voices, effects, ambience and music hang under the first picture on lanes of their own (negative lanes are audio)
+        lane, n = 0, len(assets)
+        held: list[str] = []
+        for t in tracks_in:
+            lane -= 1
+            for c in t["clips"]:
+                n += 1
+                aid = f"r{n + 1}"
+                assets.append(f'    <asset id="{aid}" name="{escape(c["name"][:60])}" start="0s" duration="{f(c["source_frames"])}" hasAudio="1" audioSources="1" audioChannels="2" audioRate="48000"><media-rep kind="original-media" src="{escape(c["file"] or "")}"/></asset>')
+                vol = f'<adjust-volume amount="{c["gain_db"]}dB"/>' if c["gain_db"] else ""
+                held.append(f'            <asset-clip ref="{aid}" lane="{lane}" offset="{f(c["start"] - first["start"])}" name="{escape(t["name"] + ": " + c["name"][:40])}" start="{f(c.get("source_start", 0))}" duration="{f(c["frames"])}" audioRole="{escape(t["role"])}">{vol}</asset-clip>')
+        clips[0] = clips[0][:-2] + ">" + "\n".join(held) + "\n          </asset-clip>"
     return ('<?xml version="1.0" encoding="UTF-8"?>\n<fcpxml version="1.9">\n  <resources>\n'
             f'    <format id="r1" name="FFVideoFormat{h}p{FPS}" frameDuration="1/{FPS}s" width="{w}" height="{h}"/>\n' + "\n".join(assets) + "\n  </resources>\n"
             f'  <library>\n    <event name="{escape(title)}">\n      <project name="{escape(title)}">\n        <sequence format="r1" duration="{f(total)}" tcStart="0s" tcFormat="NDF">\n          <spine>\n'
@@ -180,7 +203,7 @@ def write(d: str) -> dict:
         os.makedirs(os.path.join(out, "audio"), exist_ok=True)
         audio_rel = "audio/" + file_name(os.path.basename(snd), 60)
         shutil.copyfile(snd, os.path.join(out, audio_rel))
-    from . import voiceover                                         # your own recordings, one file per person per shot, named for both, ready to line up under each shot
+    from . import editortracks, voiceover                           # your own recordings, one file per person per shot, and the planned sound: laid on tracks of their own, copied beside them
     voice_rel: dict[str, list[str]] = {}
     for r in rows:
         for v in voiceover.for_shot(rd, r["id"]):
@@ -188,6 +211,7 @@ def write(d: str) -> dict:
             rel = "audio/voice/" + file_name(f"{r['id']}-{v['key']}{os.path.splitext(v['path'])[1].lower()}", 70)
             shutil.copyfile(voiceover.inside(rd, v["path"]), os.path.join(out, rel))
             voice_rel.setdefault(r["id"], []).append(rel)
+    tracks = editortracks.audio_tracks(d, rd, rows, FPS, g["total"], out)
     pj = _read(os.path.join(rd, "project.json"), {})
     aspect = pj.get("aspect_ratio", "16:9")
     w, h = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080), "2.39:1": (1920, 804), "21:9": (1920, 804)}.get(aspect, (1920, 1080))
@@ -196,10 +220,10 @@ def write(d: str) -> dict:
         fh.write(edl(pretty, rows, media_rel))
     files["edl"] = f"{title}.edl"
     with open(os.path.join(out, f"{title}.otio"), "w", encoding="utf-8", newline="\n") as fh:
-        json.dump(otio(pretty, rows, media_rel, audio_rel, g["total"]), fh, indent=2)
+        json.dump(otio(pretty, rows, media_rel, audio_rel, g["total"], tracks), fh, indent=2)
     files["otio"] = f"{title}.otio"
     with open(os.path.join(out, f"{title}.fcpxml"), "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(fcpxml(pretty, rows, media_rel, g["total"], w, h))
+        fh.write(fcpxml(pretty, rows, media_rel, g["total"], w, h, tracks))
     files["fcpxml"] = f"{title}.fcpxml"
     text = srt(rows)
     if text:
@@ -219,7 +243,7 @@ def write(d: str) -> dict:
     if voice_rel:
         files["voiceover"] = "audio/voice"
     placed = sum(1 for r in rows if r["take"])
-    return {"dir": out, "files": files, "shots": len(rows), "placed": placed, "missing": [r["id"] for r in rows if not r["take"]], "audio": audio_rel, "seconds": round(g["total"] / FPS, 1)}
+    return {"dir": out, "files": files, "shots": len(rows), "placed": placed, "missing": [r["id"] for r in rows if not r["take"]], "audio": audio_rel, "audio_tracks": [{"name": t["name"], "clips": len(t["clips"])} for t in tracks], "seconds": round(g["total"] / FPS, 1)}
 
 
 def main(argv: list[str]) -> int:

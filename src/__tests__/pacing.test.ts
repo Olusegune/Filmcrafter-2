@@ -61,3 +61,22 @@ describe("hiding the asset pictures", () => {
     }
   });
 });
+
+describe("the next step and the readiness list", () => {
+  const sheet = readFileSync("src/ReadinessSheet.tsx", "utf8");
+  const bar = readFileSync("src/NextStep.tsx", "utf8");
+  it("only reads, and the one thing it changes is a shot's length, which can be put back", () => {
+    expect(sheet).toMatch(/filmReadiness/);
+    expect(sheet).not.toMatch(/queueRender|\.generate\(|castVoice|audioGen|confirmed:\s*true|fetch\(/);
+    expect(sheet).toMatch(/generation: \{ duration: seconds \}/);
+    expect(sheet).toMatch(/Put it back to/);
+  });
+  it("is one slim line in the film's header area, with the whole list behind it", () => {
+    expect(bar).toMatch(/aria-label="The next step"/);
+    expect(bar).toMatch(/ReadinessSheet/);
+    expect(readFileSync("src/FilmView.tsx", "utf8")).toMatch(/<NextStep dir=\{dir\}/);
+  });
+  it("a step that costs money goes to the place where the price is shown, never makes anything itself", () => {
+    expect(bar).not.toMatch(/queueRender|\.generate\(|castVoice|audioGen|confirmed:\s*true/);
+  });
+});

@@ -29,9 +29,9 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 
 NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
-TARGETS = {"premiere": ("Premiere Pro", "File > Import, choose the .xml file. The bin \"{bin}\" appears in the Project panel with both timelines; double-click one to open it."),
+TARGETS = {"premiere": ("Premiere Pro", "File > Import, choose the .xml file. The bin \"{bin}\" appears in the Project panel with its timelines; double-click one to open it."),
            "resolve": ("DaVinci Resolve", "File > Import > Timeline, choose the .xml file (leave \"Automatically import source clips into media pool\" on). "
-                                          "Both timelines and their clips appear in the Media Pool.")}
+                                          "The timelines and their clips appear in the Media Pool.")}
 FILM_EXT = (".mp4", ".mov", ".m4v")
 MAX_CLIPS = 2000
 
@@ -112,7 +112,7 @@ def _file(parent, ids: dict, path: str, info: dict):
     return f
 
 
-def _clip(track, ids: dict, n: list, name: str, path: str, info: dict, seq_fps: float, start: float, length: float, kind: str, link_to: str | None = None):
+def _clip(track, ids: dict, n: list, name: str, path: str, info: dict, seq_fps: float, start: float, length: float, kind: str, link_to: str | None = None, src_in: float = 0.0):
     """One clip on a track: placed at `start` seconds for `length` seconds, taken from the start of its file."""
     tb, _ = _timebase(seq_fps)
     s = round(start * tb)
@@ -127,8 +127,8 @@ def _clip(track, ids: dict, n: list, name: str, path: str, info: dict, seq_fps: 
     _rate(c, info["fps"])
     _sub(c, "start", s)
     _sub(c, "end", e)
-    _sub(c, "in", 0)
-    _sub(c, "out", max(1, round(length * ftb)))
+    _sub(c, "in", round(src_in * ftb))
+    _sub(c, "out", round(src_in * ftb) + max(1, round(length * ftb)))
     _file(c, ids, path, info)
     if kind == "audio":
         st = _sub(c, "sourcetrack")
@@ -204,6 +204,34 @@ def _takes(d: str) -> tuple[list[dict], list[str]]:
     return out[:MAX_CLIPS], missing
 
 
+def _stems(d: str, takes: list[dict]) -> list[dict]:
+    """The film's sound as separate tracks (each person's voice, effects, ambience, music) for a sequence of its own: [{name, clips: [{name, path, start, length, src_in}]}] in seconds.
+    Nothing when the project is not a film, or has no recordings or approved cues."""
+    try:
+        from . import audiomix, editortracks
+        film = audiomix.film_of(d)
+        plan_name = "directed" if os.path.exists(os.path.join(d, "directed.json")) else "production"
+        with open(os.path.join(d, f"{plan_name}.json"), encoding="utf-8") as f:
+            plan = json.load(f)
+    except (ImportError, OSError, ValueError):
+        return []
+    if not film:
+        return []
+    fps = 24
+    rows = [{"id": sh["id"], "start": round(float(sh["start"]) * fps), "frames": max(1, round((float(sh["end"]) - float(sh["start"])) * fps)),
+             "lead": float(sh.get("dialogue_lead") or 0.0), "tail": float(sh.get("dialogue_tail") or 0.0)}
+            for sc in plan.get("scenes", []) for sh in sc.get("shots", [])]
+    if not rows:
+        return []
+    total = max(r["start"] + r["frames"] for r in rows)
+    try:
+        tracks = editortracks.audio_tracks(film, d, rows, fps, total)
+    except (SystemExit, OSError, ValueError, KeyError):
+        return []
+    return [{"name": t["name"], "clips": [{"name": c["name"], "path": c["path"], "start": c["start"] / fps, "length": c["frames"] / fps, "src_in": c.get("source_start", 0) / fps}
+                                          for c in t["clips"] if c.get("path") and os.path.isfile(c["path"])]} for t in tracks]
+
+
 def package(d: str, target: str, film: str | None = None) -> dict:
     if target not in TARGETS:
         raise SystemExit("Choose Premiere Pro or DaVinci Resolve.")
@@ -242,6 +270,7 @@ def package(d: str, target: str, film: str | None = None) -> dict:
 
     takes, missing = _takes(d)
     clips = 0
+    stems: list[dict] = []
     if takes:
         seq2, vt2, at2 = _sequence(kids, "sequence-2", f"{safe}: shots (to re-edit)", fps, w, h, fi["duration"])
         for t in takes:
@@ -256,6 +285,22 @@ def package(d: str, target: str, film: str | None = None) -> dict:
             clips += 1
         if fi["audio"]:
             _clip(at2, ids, n, os.path.basename(film) + " (sound)", film, fi, fps, 0, fi["duration"], "audio")
+        stems = [t for t in _stems(d, takes) if t["clips"]]
+        if stems:                                                # the same shots over the sound split into tracks: a voice per person, effects, ambience and music
+            seq3, vt3, at3 = _sequence(kids, "sequence-3", f"{safe}: shots with sound by track", fps, w, h, fi["duration"])
+            for t in takes:
+                ti = probe(t["path"])
+                if ti["video"] and ti["duration"] > 0 and t["start"] < fi["duration"]:
+                    _clip(vt3, ids, n, f"{t['id']} - {os.path.basename(t['path'])}", t["path"], ti, fps, t["start"], max(0.04, min(t["end"] - t["start"], ti["duration"], fi["duration"] - t["start"])), "video")
+            audio_el = seq3.find("media/audio")
+            for k, t in enumerate(stems):
+                track = at3 if k == 0 else _sub(audio_el, "track")
+                for c in t["clips"]:
+                    if c["start"] >= fi["duration"]:
+                        continue
+                    ai = probe(c["path"])
+                    if ai["audio"] and ai["duration"] > 0:
+                        _clip(track, ids, n, f"{t['name']}: {c['name']}", c["path"], ai, fps, c["start"], min(c["length"], fi["duration"] - c["start"]), "audio", src_in=c["src_in"])
     ET.indent(root)
     out_dir = os.path.join(exports, f"{safe} - editor")
     os.makedirs(out_dir, exist_ok=True)
@@ -267,7 +312,7 @@ def package(d: str, target: str, film: str | None = None) -> dict:
         f.seek(0)
         f.write(body.replace("?>", "?>\n<!DOCTYPE xmeml>", 1))
     os.replace(tmp, out)
-    return {"path": out, "folder": out_dir, "target": target, "app": app, "film": os.path.basename(film), "sequences": 2 if takes else 1,
+    return {"path": out, "folder": out_dir, "target": target, "app": app, "film": os.path.basename(film), "sequences": (3 if stems else 2) if takes else 1, "sound_tracks": [t["name"] for t in stems] if takes else [],
             "shot_clips": clips, "missing": sorted(set(missing)), "steps": steps.format(bin=bin_name)}
 
 
