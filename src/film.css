@@ -1199,3 +1199,8 @@
 .pc-item.fix .pc-level { color: #ef6b73; }
 .pc-item.look .pc-level { color: var(--amber, #e8b45c); }
 .pc-main p { margin: 4px 0 0; }
+
+/* Depth of field and J/L cuts */
+.sl-dof { margin: 8px 0; }
+.sound-cut { margin: 8px 0 12px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+.sound-cut h4 { margin: 0; font-size: 13px; }

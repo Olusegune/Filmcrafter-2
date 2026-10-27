@@ -324,7 +324,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
         rendered += 1 if src else 0
         if sh:
             at = (base + sum(s[3] for s in segments[:i])) / FPS
-            vo_items.append({"shot": sh["id"], "start": at, "end": at + frames / FPS})
+            vo_items.append({"shot": sh["id"], "start": at, "end": at + frames / FPS, "lead": float(sh.get("dialogue_lead") or 0.0), "tail": float(sh.get("dialogue_tail") or 0.0)})
         if src and sh and take.get("media_kind") != "image" and take.get("provider") != "own":
             start = (base + sum(s[3] for s in segments[:i])) / FPS      # the shot's place on the whole song, in whole frames like its picture
             mix_items.append({"shot": sh["id"], "start": start, "end": start + frames / FPS, "take": take})

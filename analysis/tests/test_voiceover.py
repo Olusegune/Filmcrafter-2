@@ -249,6 +249,27 @@ def test_a_recording_is_cut_at_the_end_of_its_shot_and_never_clips(voiced, tmp_p
     assert abs(x).max() <= 0.98 + 1e-3 and len(x) == 6 * rate
 
 
+def test_a_line_can_lead_its_picture_a_j_cut_and_trail_over_the_next_one_an_l_cut(voiced, tmp_path):
+    film, rd, sid = voiced
+    base = str(tmp_path / "base.wav")
+    sf.write(base, np.zeros(44100 * 10, dtype="float32"), 44100)
+
+    def play(**kw):
+        out = V.mix_into(rd, base, [{"shot": sid, "start": 4.0, "end": 5.0, **kw}], 10.0, str(tmp_path / "m.wav"))
+        x, rate = sf.read(out["path"])
+        nz = np.nonzero(abs(x) > 0.02)[0]
+        return nz[0] / rate, nz[-1] / rate
+    a0, a1 = play()
+    assert 3.95 < a0 < 4.3 and a1 < 5.05, "plain: the line starts with its shot and is cut at the shot's end"
+    j0, j1 = play(lead=1.0)
+    assert 2.95 < j0 < 3.3 and j1 < 5.05, "a J cut: the line starts a second before the picture"
+    l0, l1 = play(tail=1.5)
+    assert 3.95 < l0 < 4.3 and 6.0 < l1 < 6.6, "an L cut: the line carries on over the next picture"
+    z0, _ = play(lead=9.0)
+    assert z0 >= 0.0, "a lead can never push the line before the start of the film"
+    assert play(lead=-3.0, tail=-3.0) == (a0, a1), "a negative lead or tail is no lead or tail"
+
+
 def test_the_command_line_speaks_json(film, tmp_path, capsys):
     sid = first_shot_with(film, "Lila")
     f = tone(tmp_path, f"LILA_{sid}.wav", 1.0)

@@ -30,6 +30,8 @@ ANGLE = ("eye level", "low", "high", "dutch", "overhead")
 LENS = ("wide (24mm)", "normal (35mm)", "portrait (50mm)", "telephoto (85mm+)", "macro")
 MOVEMENT = ("locked off", "push in", "pull out", "pan", "tilt", "dolly", "tracking", "orbit", "crane", "handheld", "rack focus", "subject tracking")
 FOCUS = ("deep", "shallow", "rack", "follow")
+DOF = ("very shallow", "shallow", "medium", "deep")      # how much is in focus, chosen like an aperture (dof.py); empty is automatic
+CUT_MAX = 2.0                                           # a J or L cut: how many seconds a line may lead or trail its picture
 LIMIT = 4000
 MAX_PER_SCENE = 8
 BEAT_FIELDS = ("character", "what", "want", "need", "fear", "hiding", "subtext", "start", "turn", "end")
@@ -386,9 +388,24 @@ def set_fields(d: str, sid: str, patch: dict) -> dict:
                 if v and v not in allowed:
                     raise SystemExit(f"Choose a {k} from the list.")
                 c["camera"][k] = v
+        if "dof" in cam:
+            v = _text(cam["dof"], 20)
+            if v and v not in DOF:
+                raise SystemExit("Choose a depth of field from the list.")
+            c["camera"]["dof"] = v
         for k in ("position", "why"):
             if k in cam:
                 c["camera"][k] = _text(cam[k])
+    cut = patch.get("sound_cut")
+    if isinstance(cut, dict):                                                  # J and L cuts: the line starts before its picture (lead) or carries on over the next picture (tail)
+        cur = dict(c.get("sound_cut") or {})
+        for k in ("lead", "tail"):
+            if k in cut:
+                try:
+                    cur[k] = round(max(0.0, min(CUT_MAX, float(cut[k] or 0))), 1)
+                except (TypeError, ValueError):
+                    raise SystemExit("A lead or a tail is a number of seconds.")
+        c["sound_cut"] = {"lead": cur.get("lead", 0.0), "tail": cur.get("tail", 0.0)}
     lit = patch.get("lighting")
     if isinstance(lit, dict):
         for k in ("description", "time", "why"):
@@ -433,7 +450,7 @@ def view(d: str) -> dict:
         s["shots"] += 1
         s["seconds"] = round(s["seconds"] + sh["duration"], 1)
     return {"title": m["title"], "story_version": idx.get("story_version"), "shots": shots, "scenes": list(scenes.values()),
-            "seconds": round(sum(s["duration"] for s in shots), 1), "enums": {"framing": list(FRAMING), "angle": list(ANGLE), "lens": list(LENS), "movement": list(MOVEMENT), "focus": list(FOCUS)}}
+            "seconds": round(sum(s["duration"] for s in shots), 1), "enums": {"framing": list(FRAMING), "angle": list(ANGLE), "lens": list(LENS), "movement": list(MOVEMENT), "focus": list(FOCUS), "dof": list(DOF)}, "cut_max": CUT_MAX}
 
 
 def add(d: str, scene: int, after: str | None = None) -> dict:

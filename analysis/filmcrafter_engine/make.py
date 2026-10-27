@@ -132,6 +132,7 @@ def _plan(d: str, bible: dict, cons: list[dict]) -> dict:
         shot = {"id": c["id"], "scene": c["scene"], "number": c["index"], "start": round(t, 2), "end": round(t + dur, 2),
                 "beats": [_visual(c)], "visual_prompt": _visual(c), "performers": [x["name"].title() if x["name"].isupper() else x["name"] for x in c["characters"]],
                 "framing": ", ".join(x for x in (cam["framing"].capitalize() if cam["framing"] else "", (cam["angle"] + " angle") if cam["angle"] and cam["angle"] != "eye level" else "", cam["position"]) if x),
+                "dof": cam.get("dof", ""), "dialogue_lead": float((c.get("sound_cut") or {}).get("lead", 0.0)), "dialogue_tail": float((c.get("sound_cut") or {}).get("tail", 0.0)),
                 "lens": cam["lens"], "camera_movement": cam["movement"] if cam["movement"] != "locked off" else "locked off, no camera movement", "focus": (cam["focus"] + " focus") if cam["focus"] else "",
                 "environment": ". ".join(x for x in (env, (bible_env or {}).get("description", "")) if x),
                 "lighting": c["lighting"]["description"], "acting_beats": _beats_text(c), "source_shots": [c["id"]],

@@ -534,8 +534,8 @@ def mix_into(d: str, base_path: str, items: list[dict], duration: float, out: st
     track[: len(base)] = base
     n = 0
     for it, rows in placed:
-        at = int(round(it["start"] * rate))
-        stop = min(total, int(round(it["end"] * rate)))
+        at = max(0, int(round((it["start"] - max(0.0, float(it.get("lead") or 0.0))) * rate)))          # a J cut: the line starts before its picture
+        stop = min(total, int(round((it["end"] + max(0.0, float(it.get("tail") or 0.0))) * rate)))      # an L cut: it carries on over the next picture
         for r in rows:
             x = shotsound.decode(inside(d, r["path"]) or "", 2)
             x = x[: max(0, stop - at)]

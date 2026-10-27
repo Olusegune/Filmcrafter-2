@@ -71,8 +71,8 @@ def guard(shot: dict, project: dict, look_prompt: str = "") -> dict | None:
 
 def soft_background(shot: dict) -> bool:
     """True for a shot about people (not a wide or establishing view) where nobody chose the focus: the background is asked to be softly out of focus, which also hides what image models smear."""
-    if not shot.get("performers") or shot.get("focus"):
-        return False
+    if not shot.get("performers") or shot.get("focus") or shot.get("dof"):
+        return False                                 # the person chose the focus or the depth of field: their choice stands
     framing = str(shot.get("framing") or "").lower()
     if framing.startswith(("wide", "establishing", "extreme wide")):
         return False

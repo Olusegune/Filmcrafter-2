@@ -1109,6 +1109,10 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     comp = COMP.line_for(shot, project, refs)
     if comp and not only:
         blocks.append((comp["priority"], comp["text"]))
+    from . import dof as DOF               # the aperture-style depth of field the person chose for this shot
+    dof = DOF.line(shot)
+    if dof and not only:
+        blocks.append((dof["priority"], dof["text"]))
     if shot.get("note"):
         blocks.append((10, "Direction for this take: " + str(shot["note"]).strip().rstrip(".") + "."))
     if shot.get("continues"):

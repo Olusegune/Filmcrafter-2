@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { SoundCut } from "./SoundCut";
 import { PacingSheet } from "./PacingSheet";
 import { CompositionGuide } from "./CompositionGuide";
 import { ActionChoreo } from "./ActionChoreo";
@@ -14,6 +15,7 @@ import * as I from "./icons";
 
 type Tab = "story" | "acting" | "camera" | "blocking" | "light" | "voice" | "continuity";
 const TABS: { id: Tab; label: string }[] = [{ id: "story", label: "Story" }, { id: "acting", label: "Acting" }, { id: "camera", label: "Camera" }, { id: "blocking", label: "Blocking" }, { id: "light", label: "Light" }, { id: "voice", label: "Voice" }, { id: "continuity", label: "Continuity" }];
+const DOF_LABEL: Record<string, string> = { "very shallow": "Very shallow (about f/1.4): only the eyes are sharp", shallow: "Shallow (about f/2.8): the subject sharp, the background soft", medium: "Medium (about f/5.6)", deep: "Deep (about f/11): everything sharp" };
 const BEAT: [keyof ShotBeat, string][] = [["character", "Who"], ["what", "What we see"], ["want", "Wants"], ["need", "Needs"], ["fear", "Fears"], ["hiding", "Hiding"], ["subtext", "Subtext"], ["start", "Starts feeling"], ["turn", "Turns to"], ["end", "Ends feeling"]];
 const EMPTY_BEAT: ShotBeat = { character: "", what: "", want: "", need: "", fear: "", hiding: "", subtext: "", start: "", turn: "", end: "" };
 
@@ -201,13 +203,15 @@ export function ShotLab({ dir }: { dir: string }) {
                 <p className="dim">{sug.camera.framing}, {sug.camera.angle}, {sug.camera.movement}, {sug.camera.lens}, {sug.camera.focus} focus.</p><p>{sug.camera.why}</p>
                 <p className="dim">Light: {sug.lighting.description}</p><p>{sug.lighting.why}</p>
                 <div className="film-actions"><button className="btn primary sm" onClick={apply}>Use this</button><button className="btn ghost sm" onClick={() => setSug(null)}>No thanks</button></div></div>}</div>
+            {c && <label className="field sl-dof"><span>Depth of field <span className="dim">how much is in focus, like the aperture</span></span>
+              <select className="text-input" value={c.camera.dof ?? ""} onChange={(e) => void save({ camera: { dof: e.target.value } })} aria-label="Depth of field"><option value="">Automatic (soft behind people, left alone in wide shots)</option>{(v.enums.dof ?? []).map((k) => <option key={k} value={k}>{DOF_LABEL[k] ?? k}</option>)}</select></label>}
             {c && <CompositionGuide dir={dir} shot={c.id} version={`${c.camera?.framing}|${c.camera?.angle}|${JSON.stringify(c.plan ?? null)}|${c.blocking}`} />}
             <div className="cw-grid2">{pick("camera.framing", "Framing", v.enums.framing)}{pick("camera.angle", "Angle", v.enums.angle)}{pick("camera.lens", "Lens", v.enums.lens)}{pick("camera.movement", "Movement", v.enums.movement)}{pick("camera.focus", "Focus", v.enums.focus)}</div>
             {text("camera.position", "Where the camera is", 2, "e.g. Behind Sarah's left shoulder, at the sink")}
             {text("camera.why", "Why", 2, "What this choice does for the story")}
           </>}
 
-          {tab === "voice" && <VoiceoverPanel dir={dir} only={c.id} />}
+          {tab === "voice" && <>{c.dialogue.length > 0 && <SoundCut lead={c.sound_cut?.lead ?? 0} tail={c.sound_cut?.tail ?? 0} max={v.cut_max ?? 2} onChange={(x) => void save({ sound_cut: x })} />}<VoiceoverPanel dir={dir} only={c.id} /></>}
           {tab === "blocking" && c && <BlockingPlan dir={dir} shot={c.id} locked={locked} plan={c.plan ?? null} onSaved={save} />}
           {tab === "light" && <>
             {text("lighting.description", "The light", 3, "Where it comes from, how hard or soft, what colour")}

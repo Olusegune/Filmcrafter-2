@@ -192,6 +192,13 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 - **Screens** (`pacing.test.ts`, 6): bar sizing, words, wiring and read-only guards; Seen in the browser harness: the Pacing sheet (8 bars, the fault first), the Composition box on the Camera tab (grid, one point, the sentences).
 - **NOT checked:** whether the composition wording changes where a real model puts people (it only asks); the thresholds in the pacing report (2.5 words a second, four in a row, a third of the cuts) are sensible rules of thumb, not measured on a real film; and neither has been tried by a person on a real film.
 
+## Depth of field and J and L cuts (after 0.28.4): what was checked
+
+- **Depth of field** (`test_dof.py`, 4): each level names what is sharp and the aperture it matches; the choice reaches a real request and replaces the automatic soft background (and outlasts the general picture-care line when a prompt is too long); a shot keeps its choice, only the listed levels are accepted, the choice reaches the production plan the renderer reads.
+- **J and L cuts** (`test_voiceover.py` plus `test_dof.py`): with real audio, a plain line starts with its shot and is cut at the shot's end; a lead moves the start earlier by the amount; a tail carries on past the shot's end by the amount; a lead can never push a line before the start of the film; negative values are no lead or tail. Values are kept 0 to 2 s, one change keeps the other, no other shot changes, and the export hands the lead and tail to the voice mix.
+- **Screens** (`dofcut.test.ts`, 3): the depth-of-field list with apertures and the automatic default; the two sliders only for a shot with dialogue; no paid or sending call. Seen in the browser harness: the options and the two sliders.
+- **NOT checked:** an exported film with a J or L cut listened to by a person (the engine test measures where the sound starts and ends, not how it feels); whether a real model follows the aperture wording; the editor hand-off (Resolve) does not carry the lead and tail, so a film cut in an editor has the lines at their shots.
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.
