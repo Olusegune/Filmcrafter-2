@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.29.0 (2026-10-26)
 
 - **Depth of field, chosen like an aperture.** On a shot's **Camera** tab, **Depth of field** offers *Very shallow (about f/1.4: only the eyes are sharp), Shallow (about f/2.8), Medium (about f/5.6)* and *Deep (about f/11: everything sharp)*. The request says it in a cinematographer's terms. Left on **Automatic**, shots about people get a softly out-of-focus background and wide shots are left alone; a choice you make stands in place of the automatic one.
 - **J and L cuts for a shot's dialogue.** On the **Voice** tab of a shot with dialogue, **The line starts before the picture** (a J cut: you hear them before you see them) and **The line carries on over the next picture** (an L cut), 0 to 2 seconds each. They are used when the film is exported: the recording is not changed and the picture stays where it is. A lead can never push a line before the start of the film.
