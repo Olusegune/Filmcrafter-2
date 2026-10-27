@@ -9,6 +9,8 @@
  * A scene can be told what to do once it is up: &click=<button text> presses a button, &drag=x0,y0,x1,y1 drags a box on the Fix a hand picture (fractions of the picture).
  */
 import { SoundPlan } from "../SoundPlan";
+import { PacingSheet } from "../PacingSheet";
+import { GivenToModel } from "../GivenToModel";
 import { createRoot } from "react-dom/client";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import type { ReactNode } from "react";
@@ -433,6 +435,8 @@ const scenes: Record<string, () => ReactNode> = {
   cleanup: () => <CleanupSheet dir={DIR} onClose={noop} onChanged={noop} />,
   modelpicker: () => card(<><h2>Choose your video model</h2><p className="sub">Recommended models first, everything else behind All models.</p><div style={{ width: 360 }}><ModelPicker catalog={pickerCatalog} value="bytedance/seedance-2" label="Model" onChange={noop} onRefresh={noop} /></div></>),
   modelchoice: () => card(<><h2>Choose your picture model</h2><p className="sub">Choosing one fixes it for the whole project, which keeps your characters looking the same in every picture.</p><ModelChoice dir={DIR} kind="image" /></>, 560),
+  pacing: () => <PacingSheet dir={DIR} onClose={noop} onGo={noop} />,
+  givenmodel: () => card(<GivenToModel dir={DIR} inputs={[{ role: "first_frame", label: "Keyframe S01-02", path: "s1.png", sent: true }, { role: "reference", label: "Sarah, front view", path: "s2.png", sent: true }, { role: "reference", label: "Kitchen, master", path: "s4.png", sent: true }, { role: "audio", label: "Sarah's recording", path: null, sent: true }] as never} />, 520),
   soundplan: () => <SoundPlan dir={DIR} onClose={noop} onGo={noop} />,
   compose: () => card(<ComposeTab dir={DIR} shot="S01-01" keys={keys} />, 460),
 };

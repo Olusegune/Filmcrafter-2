@@ -1216,3 +1216,4 @@
 .sp-missing { color: var(--amber, #e8b45c); }
 .sp-warn { color: #ef6b73; }
 .sp-set { display: block; margin-top: 6px; font-size: 12.5px; }
+.sp-tier .btn.on { border-color: var(--amber, #e8b45c); color: var(--amber, #e8b45c); }

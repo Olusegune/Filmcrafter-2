@@ -490,7 +490,12 @@ A picture model is told only what the film says about a place. If a place is jus
 
 **Sound plan (Shots, Sound plan...).** For every shot it says how the voice will be made and why, strictest first: **Needs a voice** (someone on screen speaks and a line has no recording yet), **Model speaks**, **Model follows the recording**, **Laid over at export**, **Voice-over** and **No voice**. A line marked `(V.O.)` or `(O.S.)` in your script, or spoken by a narrator, is a voice-over: nobody on screen speaks it, so the picture is made silent and the voice is mixed in when you export. Below the plan you see how many lines still need a voice, what speaking them with your ElevenLabs voices would use, and how many tries to allow for (Draft or Final). Each shot has an **On-screen speaking** choice (Automatic, Someone on screen speaks, Nobody on screen speaks); **Mark voice-over shots as silent on screen** sets it for voice-over shots you have not set yourself. Nothing here makes or buys anything; recording and speaking lines is still done on the Voice tab and in Voiceover, where prices are shown first.
 
+![The Sound plan: a shot that needs a voice first, then a voice-over with its recommendation and the Mark button](img/film/sound-plan.png)
+
 **Hide pictures.** **What the model is given** and **References** in a shot's panel have a **Hide pictures** link. It hides the thumbnails everywhere they appear, to give the panel room, and **Show pictures** brings them back. The model is given the same pictures either way.
+
+![What the model is given, with its Hide pictures link](img/film/given-to-model.png)
+![The same panel with the pictures hidden: only the heading and the Show pictures link remain](img/film/given-to-model-hidden.png)
 
 ## Composition and pacing
 
@@ -503,6 +508,8 @@ A picture model is told only what the film says about a place. If a place is jus
 - **Note:** identical lengths, a scene that does not open on a wide shot, a long exchange with no close-ups, a long speech in one shot, a scene much faster or slower than the rest.
 
 Each finding says why it matters and what to try. It is advice: it changes nothing, and a deliberate choice is yours to keep.
+
+![The Pacing report: a bar for every shot in each scene, then the findings with a reason and a tip](img/film/pacing.png)
 
 ## A yellow tint, noise and waxy skin
 
