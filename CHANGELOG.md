@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.30.0 (2026-10-27)
 
 - **Hide the picture sheets.** In a shot's panel, **What the model is given** and **References** each have a **Hide pictures / Show pictures** link. One choice for the whole app, remembered on this computer: the thumbnails and the enlarged picture disappear everywhere they are listed and the panel shrinks to the names. It only changes what is drawn; the model is given exactly the same pictures.
 - **Sound plan** (Shots screen, **Sound plan...**). One list that says, for every shot, how its voice will be made and why: *No voice*, *Voice-over* (made silent, mixed in at export), *Needs a voice*, *Model follows the recording*, *Laid over at export*, or *Model speaks* (a scene's native dialogue). It also warns when a shot is too short for its lines or has too many speakers, counts the lines that still need a voice and what speaking them would use of your ElevenLabs plan, and says how many tries to allow for (Draft or Final). Free: it makes and buys nothing. The only thing it can change is a shot's own **On-screen speaking** setting (Automatic / Someone on screen speaks / Nobody on screen speaks), and **Mark voice-over shots as silent on screen** sets that for the voice-over shots you have not set yourself.
