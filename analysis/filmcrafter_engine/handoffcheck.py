@@ -47,7 +47,7 @@ def check(out: str, files: dict[str, str], placed: int, total_frames: int) -> li
     except (OSError, ValueError, KeyError, TypeError) as e:
         problems.append(f"The OpenTimelineIO file could not be read back ({type(e).__name__}).")
     try:
-        root = ET.parse(os.path.join(out, files["fcpxml"])).getroot()
+        root = ET.parse(os.path.join(out, files["fcpxml"])).getroot()   # nosec B314: the file this run wrote a moment ago, never one from outside
         assets = {a.get("id"): a for a in root.iter("asset")}
         for c in root.iter("asset-clip"):
             if c.get("ref") not in assets:
