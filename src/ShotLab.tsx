@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { SoundCut } from "./SoundCut";
 import { PacingSheet } from "./PacingSheet";
+import { SoundPlan } from "./SoundPlan";
 import { CompositionGuide } from "./CompositionGuide";
 import { ActionChoreo } from "./ActionChoreo";
 import { Sheet } from "./Sheet";
@@ -45,6 +46,7 @@ export function ShotLab({ dir }: { dir: string }) {
   const [helping, setHelping] = useState(false);
   const [action, setAction] = useState(false);
   const [pacing, setPacing] = useState(false);
+  const [soundPlan, setSoundPlan] = useState(false);
   const [cmd, setCmd] = useState<{ text: string; busy: boolean; result: { understood: boolean; summary: string[]; patch: Record<string, unknown>; help?: string } | null } | null>(null);   // the Director Command              // the continuity findings instead of one shot
 
   const load = useCallback(async (keep?: string | null) => {
@@ -113,6 +115,7 @@ export function ShotLab({ dir }: { dir: string }) {
     <div className="sl">
       <aside className="sl-list" aria-label="Shots">
         <button className="btn ghost sm sl-ck" disabled={!v.shots.length} onClick={() => setPacing(true)} title="The rhythm of the cuts, and where it works against the story">Pacing…</button>
+        <button className="btn ghost sm sl-ck" disabled={!v.shots.length} onClick={() => setSoundPlan(true)} title="How each shot's voice will be made, and why. Free: nothing is made or bought">Sound plan…</button>
         <button className="btn ghost sm sl-ck" disabled={!v.shots.length} onClick={() => setAction(true)} title="Plan a fight, a chase or a sports moment as short shots">Action scene…</button>
         <button className="btn ghost sm sl-ck" onClick={() => setCmd({ text: "", busy: false, result: null })} title="Say what you want changed in this shot (Ctrl+K)">Director Command  Ctrl+K</button>
         <button className={`btn ghost sm sl-ck ${review ? "on" : ""}`} onClick={() => { setReview((x) => !x); setVoices(false); }} title="Where something may have changed between shots">Continuity check</button>
@@ -132,6 +135,7 @@ export function ShotLab({ dir }: { dir: string }) {
             <button className="link" onClick={() => act("add", () => api.shots("add", dir, { scene: n }), (r) => r.id ?? sel)}>+ Add a shot</button></section>))}
       </aside>
 
+      {soundPlan && <SoundPlan dir={dir} onClose={() => setSoundPlan(false)} onGo={(id) => { setSel(id); setSoundPlan(false); }} />}
       {pacing && <PacingSheet dir={dir} onClose={() => setPacing(false)} onGo={(id) => { setSel(id); setPacing(false); }} />}
       {action && <ActionChoreo dir={dir} shots={v} characters={charNames} onClose={() => setAction(false)} onAdded={() => { void act("reload", () => api.shots("get", dir)); }} />}
       {cmd && <Sheet label="Director Command" className="dc" onDismiss={() => setCmd(null)} onSubmit={(e) => { e.preventDefault(); void runCmd(); }}>

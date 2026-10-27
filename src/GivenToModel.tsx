@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSheetsShown } from "./sheetsPref";
 import { api, type ModelInput } from "./api";
 import "./acting.css";
 
@@ -10,12 +11,14 @@ const ROLE_NAME: Record<string, string> = { first_frame: "First frame", referenc
  */
 export function GivenToModel({ dir, inputs }: { dir: string; inputs: ModelInput[] }) {
   const [big, setBig] = useState<string | null>(null);
+  const [shown, toggle] = useSheetsShown();
   if (!inputs.length) return null;
   const sent = inputs.filter((i) => i.sent).length;
   return (
     <section className="mi" aria-label="What the model is given">
-      <h4>What the model is given <span className="dim">· {sent} of {inputs.length} used</span></h4>
-      <ul className="mi-row">
+      <h4>What the model is given <span className="dim">· {sent} of {inputs.length} used</span>
+        <button className="link mi-hide" onClick={toggle} aria-expanded={shown} title="Hide or show these pictures in every shot panel. It only changes what is drawn, not what the model is given.">{shown ? "Hide pictures" : "Show pictures"}</button></h4>
+      {shown && <ul className="mi-row">
         {inputs.map((i, k) => (
           <li key={k} className={`mi-item ${i.sent ? "" : "off"} role-${i.role}`}>
             {i.path
@@ -26,8 +29,8 @@ export function GivenToModel({ dir, inputs }: { dir: string; inputs: ModelInput[
             <span className="mi-label" title={i.label}>{i.label}</span>
             {!i.sent && <span className="mi-off">not used: this model won't take it here</span>}
           </li>))}
-      </ul>
-      {big && <img className="mi-big" src={api.mediaUrl(`${dir}/${big}`)} alt="The picture, larger" onClick={() => setBig(null)} />}
+      </ul>}
+      {shown && big && <img className="mi-big" src={api.mediaUrl(`${dir}/${big}`)} alt="The picture, larger" onClick={() => setBig(null)} />}
     </section>
   );
 }

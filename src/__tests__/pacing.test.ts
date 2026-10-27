@@ -35,3 +35,29 @@ describe("the composition guide", () => {
   });
   it("never starts paid work", () => expect(t).not.toMatch(/queueRender|\.generate\(|castVoice|audioGen|confirmed:\s*true/));
 });
+
+describe("the sound plan", () => {
+  const t = readFileSync("src/SoundPlan.tsx", "utf8");
+  it("spends nothing: it reads, and changes only a shot's own setting when asked", () => {
+    expect(t).toMatch(/filmAudioPlan/);
+    expect(t).not.toMatch(/queueRender|\.generate\(|castVoice|audioGen|confirmed:\s*true|fetch\(/);
+    expect(t).toMatch(/Mark \{toApply\} voice-over shot/);
+  });
+  it("is reached from the Shots screen and a row goes to its shot", () => {
+    expect(readFileSync("src/ShotLab.tsx", "utf8")).toMatch(/Sound plan…/);
+    expect(t).toMatch(/Go to \{s\.shot\}/);
+  });
+});
+
+describe("hiding the asset pictures", () => {
+  it("is one remembered choice every panel follows, and it only changes what is drawn", () => {
+    const p = readFileSync("src/sheetsPref.ts", "utf8");
+    expect(p).toMatch(/pf-hide-sheets/);
+    expect(p).toMatch(/addEventListener\(EVENT/);
+    for (const f of ["src/GivenToModel.tsx", "src/ShotRefs.tsx"]) {
+      const s = readFileSync(f, "utf8");
+      expect(s).toMatch(/useSheetsShown\(\)/);
+      expect(s).toMatch(/Hide pictures/);
+    }
+  });
+});

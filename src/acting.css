@@ -109,3 +109,5 @@
 
 /* the living waveform above the drop card */
 .living-wave { display: block; margin: 2px auto 4px; max-width: 100%; }
+.mi h4 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.mi-hide { margin-left: auto; font-size: 12px; }

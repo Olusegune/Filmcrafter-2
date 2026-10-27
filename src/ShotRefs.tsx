@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useSheetsShown } from "./sheetsPref";
 import { api, errorText, type BoardShot, type Library, type RefItem } from "./api";
 import { PanelHead } from "./Dock";
 import * as I from "./icons";
@@ -20,6 +21,7 @@ export function ShotRefs({ dir, shot, library, thumbs, want, onChanged }: {
   const [err, setErr] = useState("");
   const items = useMemo(() => (library?.items ?? []).filter((i) => i.kind in KINDS && !i.sheet && i.files.length > 0), [library]);
   useEffect(() => { want(items.map((i) => i.files[0])); }, [items]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const [shown, toggleShown] = useSheetsShown();
   if (!shot || !items.length) return null;
   const on = new Map(shot.references.map((r) => [r.id, r.from]));
   const own = library.assign.shots[shot.id] ?? {};
@@ -30,8 +32,8 @@ export function ShotRefs({ dir, shot, library, thumbs, want, onChanged }: {
   return (
     <section className="panel shotrefs">
       <PanelHead icon={<I.Layers size={18} />} title="Pictures used in this shot" tag={`${on.size} on`} tone="free"
-                 hint="These pictures are shown to the model to keep faces, outfits, props and places the same. Click one to turn it on or off for this shot only." right={changed ? <button className="link" onClick={auto} disabled={busy}>Back to automatic</button> : undefined} />
-      {Object.entries(KINDS).map(([kind, k]) => {
+                 hint="These pictures are shown to the model to keep faces, outfits, props and places the same. Click one to turn it on or off for this shot only." right={<>{changed && <button className="link" onClick={auto} disabled={busy}>Back to automatic</button>}<button className="link" onClick={toggleShown} aria-expanded={shown} title="Hide or show the pictures in every shot panel. It only changes what is drawn.">{shown ? "Hide pictures" : "Show pictures"}</button></>} />
+      {shown && Object.entries(KINDS).map(([kind, k]) => {
         const list = items.filter((i) => i.kind === kind);
         if (!list.length) return null;
         return (

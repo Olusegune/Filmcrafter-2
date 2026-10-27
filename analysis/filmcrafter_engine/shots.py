@@ -110,6 +110,9 @@ def scene_blocks(text: str) -> list[dict]:
             scenes.append(cur)
         if not in_dlg and not (cur.get("implied") and has_headings) and story._is_cue(raw, prev_blank, nxt):          # lines before the first scene heading are a title page (an all-capitals title is not a speaker)
             blk = {"type": "dialogue", "speaker": story.CUE_NOTE.sub("", s).strip().lstrip("@").strip(), "paren": "", "lines": []}
+            ext = story.CUE_NOTE.search(s)                                 # (V.O.) and (O.S.) say that nobody on screen speaks this line: kept, not thrown away with the note
+            if ext and re.search(r"V\.?O|O\.?S", ext.group(0), re.I):
+                blk["ext"] = "V.O." if re.search(r"V\.?O", ext.group(0), re.I) else "O.S."
             cur["blocks"].append(blk)
             in_dlg = True
         elif in_dlg and blk is not None:
@@ -229,7 +232,7 @@ def _draft_scene(scene: dict, version: int | None, names: list[str] | None = Non
         if not run:
             return
         speakers = list(dict.fromkeys(b["speaker"] for b in run))
-        dlg = [{"speaker": b["speaker"], "line": " ".join(b["lines"]), "paren": b.get("paren", "")} for b in run]
+        dlg = [{"speaker": b["speaker"], "line": " ".join(b["lines"]), "paren": b.get("paren", ""), **({"ext": b["ext"]} if b.get("ext") else {})} for b in run]
         words = sum(len(x["line"].split()) for x in dlg)
         if len(speakers) >= 2:
             turns: list[list[dict]] = []
@@ -360,7 +363,7 @@ def set_fields(d: str, sid: str, patch: dict) -> dict:
         from . import blocking
         c["plan"] = blocking.clean(patch["plan"])
     if "dialogue" in patch:
-        c["dialogue"] = [{"speaker": _text(x.get("speaker"), 60), "line": _text(x.get("line")), "paren": _text(x.get("paren"), 100)} for x in (patch["dialogue"] or []) if isinstance(x, dict)][:60]
+        c["dialogue"] = [{"speaker": _text(x.get("speaker"), 60), "line": _text(x.get("line")), "paren": _text(x.get("paren"), 100), **({"ext": x["ext"]} if x.get("ext") in ("V.O.", "O.S.") else {})} for x in (patch["dialogue"] or []) if isinstance(x, dict)][:60]
     if "characters" in patch:
         c["characters"] = [{"name": _text(x.get("name"), 80), "character_id": _text(x.get("character_id"), 64) or None, "state_id": _text(x.get("state_id"), 16) or None,
                             "wardrobe_id": _text(x.get("wardrobe_id"), 16) or None} for x in (patch["characters"] or []) if isinstance(x, dict) and _text(x.get("name"), 80)][:20]
