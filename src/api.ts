@@ -514,7 +514,7 @@ export type MakeSynced = { render_dir: string; shots: number; seconds: number; r
 export type ContinuityFinding = { id: string; kind: string; shot: string; other: string; severity: "note" | "look" | "likely"; text: string; suggestion: string; status: "open" | "noted" | "dismissed"; apply?: Record<string, string> };
 export type ContinuityView = { findings: ContinuityFinding[]; open: number; shots: number };
 
-export type InterchangeResult = { dir: string; files: Record<string, string>; shots: number; placed: number; missing: string[]; audio: string | null; seconds: number };
+export type InterchangeResult = { dir: string; problems?: string[]; stems?: string[]; audio_tracks?: { name: string; clips: number }[]; files: Record<string, string>; shots: number; placed: number; missing: string[]; audio: string | null; seconds: number };
 
 // ---------------------------------------------------------------- optional writing help
 export type AssistKind = "character" | "environment" | "prop" | "world" | "story" | "shot";

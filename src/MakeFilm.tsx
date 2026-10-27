@@ -201,7 +201,11 @@ export function MakeFilm({ dir, tab, onTab, autoBreakdown, openVoice, onOpenPlac
             <p className="mk-big">Your film is never trapped here</p>
             <p className="dim">One folder: the cut as an EDL (Premiere Pro, Resolve, Avid), OpenTimelineIO and Final Cut Pro XML, a shot manifest, subtitles, and copies of the takes and soundtrack.</p>
             <div className="film-actions"><button className="btn" disabled={!!busy || st.counts.video === 0} onClick={doHandoff}>{busy === "handoff" ? "Writing…" : "Write the hand-off folder"}</button></div>
-            {handoff && <div className="mk-result"><b>Written</b> · {handoff.placed} of {handoff.shots} shots placed{handoff.missing.length ? `; no take yet: ${handoff.missing.join(", ")}` : ""}<br /><span className="dim">{handoff.dir}</span></div>}</section>
+            {handoff && <div className="mk-result"><b>Written</b> · {handoff.placed} of {handoff.shots} shots placed{handoff.missing.length ? `; no take yet: ${handoff.missing.join(", ")}` : ""}<br />
+              {(handoff.audio_tracks?.length ?? 0) > 0 && <>Sound on {handoff.audio_tracks!.length} tracks ({handoff.audio_tracks!.map((t) => t.name).join(", ")}){handoff.stems?.length ? `, and each as one file in audio/stems` : ""}.<br /></>}
+              {handoff.problems?.length === 0 && <span className="ok">Read back as an editor would: nothing missing, nothing overlapping.<br /></span>}
+              {handoff.problems?.map((p, i) => <span key={i} className="why" role="alert">{p}<br /></span>)}
+              <span className="dim">{handoff.dir}</span></div>}</section>
         </div>
       </div>}
     </div>

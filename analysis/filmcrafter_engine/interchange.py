@@ -243,7 +243,16 @@ def write(d: str) -> dict:
     if voice_rel:
         files["voiceover"] = "audio/voice"
     placed = sum(1 for r in rows if r["take"])
-    return {"dir": out, "files": files, "shots": len(rows), "placed": placed, "missing": [r["id"] for r in rows if not r["take"]], "audio": audio_rel, "audio_tracks": [{"name": t["name"], "clips": len(t["clips"])} for t in tracks], "seconds": round(g["total"] / FPS, 1)}
+    from . import handoffcheck                                       # the folder is read back as an editor would, and each track is written as one finished file
+    try:
+        stems = handoffcheck.write_stems(out, tracks, g["total"] / FPS)
+    except Exception:                                                # the stems are extra: the timelines stand without them
+        stems = []
+    if stems:
+        files["stems"] = "audio/stems"
+    problems = handoffcheck.check(out, files, placed, g["total"])
+    handoffcheck.save_report(out, problems)
+    return {"dir": out, "problems": problems, "stems": stems, "files": files, "shots": len(rows), "placed": placed, "missing": [r["id"] for r in rows if not r["take"]], "audio": audio_rel, "audio_tracks": [{"name": t["name"], "clips": len(t["clips"])} for t in tracks], "seconds": round(g["total"] / FPS, 1)}
 
 
 def main(argv: list[str]) -> int:

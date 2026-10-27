@@ -207,3 +207,43 @@ def test_the_real_opentimelineio_library_reads_the_tracks_back(film, tmp_path):
     assert len(sarah) == 1 and sarah[0].duration().to_seconds() == 2.0
     start = audio["Voice Sarah"].range_of_child(sarah[0]).start_time.to_seconds()
     assert start == next(r for r in rows_of(d) if r["id"] == sid)["start"] / FPS
+
+
+def _hand_off_film(film):
+    d, sid = film
+    rd = make.render_dir(d)
+    os.makedirs(os.path.join(rd, "media"), exist_ok=True)
+    jobs = []
+    for i, s in enumerate(S._index(d)["order"]):
+        open(os.path.join(rd, "media", f"v{i}.mp4"), "wb").write(b"\x00\x00\x00\x18ftypmp42")
+        jobs.append({"id": f"v{i}", "shot_id": s, "plan": "production", "state": "ready", "kind": "video", "provider": "kie", "model": "wan", "output": f"media/v{i}.mp4", "created": 1 + i, "updated": 2 + i})
+    json.dump({"schema_version": 1, "jobs": jobs}, open(os.path.join(rd, "jobs.json"), "w"))
+    return d, sid
+
+
+def test_the_finished_hand_off_is_read_back_clean_and_each_track_is_one_file(film, tmp_path):
+    d, sid = _hand_off_film(film)
+    cue(d, tmp_path, "sfx", 1.0, shot=sid, start=0.5)
+    res = X.write(d)
+    assert res["problems"] == [], res["problems"]
+    assert json.load(open(os.path.join(res["dir"], "handoff-check.json")))["ok"] is True
+    assert sorted(os.path.basename(x) for x in res["stems"]) == ["Sound_effects.wav", "Voice_John.wav", "Voice_Sarah.wav"] and res["files"]["stems"] == "audio/stems"
+    x, rate = sf.read(os.path.join(res["dir"], res["stems"][0].replace("/", os.sep)))
+    total = sum(r["frames"] for r in rows_of(d)) / FPS
+    assert abs(len(x) / rate - total) < 0.05, "a stem is as long as the film, so it lines up from zero in any editor"
+    sarah = sf.read(os.path.join(res["dir"], "audio", "stems", "Voice_Sarah.wav"))[0]
+    start = next(r for r in rows_of(d) if r["id"] == sid)["start"] / FPS
+    assert float(np.max(np.abs(sarah[: int(start * rate) - 100]))) < 1e-4 and float(np.max(np.abs(sarah[int(start * rate) + 1000:int((start + 1.5) * rate)]))) > 0.05, "silent before the line, then the voice"
+
+
+def test_a_missing_sound_and_an_overlap_are_found_and_said_in_words(film, tmp_path):
+    from filmcrafter_engine import handoffcheck as H
+    d, sid = _hand_off_film(film)
+    res = X.write(d)
+    out = res["dir"]
+    os.remove(os.path.join(out, "audio", "voice", f"{sid}-sarah.wav"))
+    problems = H.check(out, res["files"], res["placed"], sum(r["frames"] for r in rows_of(d)))
+    assert any("is not in the folder" in p for p in problems)
+    text = open(os.path.join(out, res["files"]["edl"]), encoding="utf-8").read()
+    open(os.path.join(out, res["files"]["edl"]), "w", encoding="utf-8").write(text.split("\n\n")[0] + "\n")
+    assert any("EDL has" in p for p in H.check(out, res["files"], res["placed"], 999999))
