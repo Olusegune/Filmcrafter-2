@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { api, errorText, type SoundPlan as Plan } from "./api";
 import * as I from "./icons";
 import { Sheet } from "./Sheet";
-import { creditsWords, routeOrder, routeWords, settingWords } from "./soundPlanWords";
+import { DialogueTiming } from "./DialogueTiming";
+import { creditsWords, routeOrder, routeWords, settingWords, videoCostWords } from "./soundPlanWords";
 
 /**
  * "Sound plan": for every shot with dialogue, how its voice will be made and why, in one list. It reads the film as it is and spends nothing. The only thing it can change is a shot's own
@@ -14,6 +15,7 @@ export function SoundPlan({ dir, onClose, onGo }: { dir: string; onClose: () => 
   const [busy, setBusy] = useState(false);
   const [tier, setTier] = useState<"draft" | "final">("draft");
   const [msg, setMsg] = useState("");
+  const [view, setView] = useState<"plan" | "timing">("plan");
   const load = useCallback(() => api.filmAudioPlan("report", dir, { tier }).then(setR).catch((e) => setErr(errorText(e))), [dir, tier]);
   useEffect(() => { load(); }, [load]);
   const run = async (action: "apply" | "set", data: Record<string, unknown> = {}) => {
@@ -36,14 +38,19 @@ export function SoundPlan({ dir, onClose, onGo }: { dir: string; onClose: () => 
           {r.model_known ? <>The video model is <b>{r.model}</b>, which {r.model_takes_recording ? "can be given a recording to follow" : "cannot be given a recording"}{r.model_makes_sound ? " and can make its own sound" : ""}.</> : <>The video model is not chosen yet, so the plan assumes recordings are laid over the picture at export.</>}
           {" "}{r.lines_to_speak ? <><b>{r.lines_to_speak}</b> line{r.lines_to_speak === 1 ? "" : "s"} still need a voice (speaking them with your voices would use {creditsWords(r.tts_credits, r.tts_unpriced)}).</> : "Every line has its voice."}
         </p>
+        {videoCostWords(r.video_cost) && <p className="why sp-cost">{videoCostWords(r.video_cost)}</p>}
         <div className="sp-tier" role="group" aria-label="How many tries to allow for">
           <span className="dim">Tries to allow for</span>
           <button className={`btn ghost sm ${tier === "draft" ? "on" : ""}`} aria-pressed={tier === "draft"} onClick={() => setTier("draft")}>Draft</button>
           <button className={`btn ghost sm ${tier === "final" ? "on" : ""}`} aria-pressed={tier === "final"} onClick={() => setTier("final")}>Final</button>
           <span className="dim">about {r.tries} per shot ({Math.round(r.keep_rate * 100)}% kept)</span>
         </div>
+        <div className="sp-tier" role="tablist" aria-label="What to show">
+          <button role="tab" aria-selected={view === "plan"} className={`btn ghost sm ${view === "plan" ? "on" : ""}`} onClick={() => setView("plan")}>How each voice is made</button>
+          <button role="tab" aria-selected={view === "timing"} className={`btn ghost sm ${view === "timing" ? "on" : ""}`} onClick={() => setView("timing")}>When each voice falls</button>
+        </div>
         {msg && <p className="why" role="status">{msg}</p>}
-        <ul className="sp-list">
+        {view === "timing" ? <DialogueTiming dir={dir} shots={r.shots} onGo={onGo} /> : <ul className="sp-list">
           {rows.map((s) => (
             <li key={s.shot} className={`sp-item ${s.route}`}>
               <span className="sp-route">{routeWords(s.route)}</span>
@@ -62,7 +69,7 @@ export function SoundPlan({ dir, onClose, onGo }: { dir: string; onClose: () => 
               </div>
               <button className="btn ghost sm" onClick={() => onGo(s.shot)}>Go to {s.shot}</button>
             </li>))}
-        </ul>
+        </ul>}
         <p className="why">{r.note}</p>
       </>}
       <div className="cv-actions">

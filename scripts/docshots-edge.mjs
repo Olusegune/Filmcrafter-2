@@ -59,6 +59,7 @@ const SCENES = {
   studio: ["studio.png", "scene=studio&click=zzz&click=OK"],
   soundplan: ["film/sound-plan.png", "scene=soundplan"],
   ready: ["film/ready.png", "scene=ready"],
+  timing: ["film/dialogue-timing.png", "scene=soundplan&click=When each voice falls"],
   pacing: ["film/pacing.png", "scene=pacing"],
   givenmodel: ["film/given-to-model.png", "scene=givenmodel"],
   givenhidden: ["film/given-to-model-hidden.png", "scene=givenmodel&click=Hide pictures"],

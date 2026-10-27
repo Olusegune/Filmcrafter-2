@@ -1235,3 +1235,15 @@
 .rd-main p { margin: 4px 0 0; }
 .rd-acts { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
 .rd-undo { margin: 0; }
+.dt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.dt-item { padding: 8px 10px; border: 1px solid var(--hair); border-radius: 8px; }
+.dt-item.over { border-color: rgba(239, 107, 115, 0.6); }
+.dt-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 12.5px; }
+.dt-strip { position: relative; height: 34px; margin-top: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.03); overflow: hidden; }
+.dt-pic { position: absolute; top: 0; bottom: 0; background: rgba(255, 255, 255, 0.09); border-radius: 4px; }
+.dt-tail { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 4px, transparent 4px 8px); }
+.dt-seg { position: absolute; top: 6px; bottom: 6px; display: flex; align-items: center; padding: 0 6px; border-radius: 4px; background: var(--vc, #e8b45c); color: #11151b; font-size: 11px; font-weight: 600; overflow: hidden; white-space: nowrap; }
+.dt-seg.est { background: repeating-linear-gradient(135deg, var(--vc, #e8b45c) 0 5px, transparent 5px 9px); color: var(--frost, #f4f7fa); border: 1px dashed var(--vc, #e8b45c); }
+.dt-warn { color: #ef6b73; margin: 6px 0 0; }
+
+.sp-cost { margin: 0; }

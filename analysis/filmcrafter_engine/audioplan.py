@@ -68,9 +68,50 @@ def _caps(rd: str, tier: str) -> dict:
         return out
 
 
+def _video_cost(rd: str, ids: list[str]) -> dict | None:
+    """What making the video for the shots that have people speaking would cost with the model Auto would use, from the app's own price tables and what this model cost before: the price
+    includes a lip-sync pass where one would run. None when it cannot be worked out; a shot without a price is counted as not priced, never guessed."""
+    if not ids:
+        return None
+    try:
+        from . import render, routing
+        project = safeio.read_json(os.path.join(rd, "project.json"), {}) or {}
+        pk = routing.pick(project, "video")
+        if not pk.get("provider"):
+            return None
+        e = render.estimate(rd, ids, pk["provider"], pk["model"], "video")
+        return {"usd": e.get("usd"), "usd_known": e.get("usd_known"), "unknown": e.get("unknown", 0), "shots": e.get("shots", len(ids)), "lipsync_shots": e.get("lipsync_shots", 0), "model": pk.get("label") or pk["model"]}
+    except Exception:
+        return None
+
+
 def _setting(rd: str, sid: str) -> str:
     v = ((safeio.read_json(os.path.join(rd, "project.json"), {}) or {}).get("sing_shots") or {}).get(sid)
     return v if v in ("on", "off") else "auto"
+
+
+GAP = 0.25                                       # seconds between two people's recordings in one shot: the film's own mix uses the same
+
+
+def _timing(v: dict | None, secs: float, c: dict) -> dict:
+    """Where each person's voice falls in the shot, as the film's mix lays it out: in speaking order, a short gap between people, starting `lead` seconds before the picture (a J cut)
+    and allowed `tail` seconds after it (an L cut). A person with no recording yet is shown with an estimate of the time their words need, marked as one."""
+    cut = c.get("sound_cut") or {}
+    lead, tail = max(0.0, float(cut.get("lead") or 0.0)), max(0.0, float(cut.get("tail") or 0.0))
+    at, segs = -lead, []
+    for p in (v or {}).get("people", []):
+        rec = p.get("recording")
+        words = sum(len(str(x).split()) for x in p.get("lines", []))
+        if rec:
+            length, est = float(rec.get("seconds") or 0.0), False
+        elif words:
+            length, est = words / 2.5 + 0.4, True
+        else:
+            continue
+        segs.append({"speaker": p["name"], "start": round(at, 2), "seconds": round(length, 2), "estimated": est, "file": (rec or {}).get("file")})
+        at += length + GAP
+    end = (segs[-1]["start"] + segs[-1]["seconds"]) if segs else 0.0
+    return {"lead": lead, "tail": tail, "segments": segs, "end": round(end, 2), "over": round(max(0.0, end - (secs + tail)), 2)}
 
 
 def report(d: str, tier: str = "draft") -> dict:
@@ -121,10 +162,13 @@ def report(d: str, tier: str = "draft") -> dict:
             warnings.append(f"The shot lasts {secs:.1f} s but its lines need about {need:.1f} s.")
         for x in missing:
             speak_items.append({"shot": sid, "speaker": x["speaker"], "text": x["line"]})
+        timing = _timing(v, secs, c)
+        if timing["over"] > 0.05:
+            warnings.append(f"The voices run {timing['over']:.1f} s past the end of the shot (and its tail): they are cut there. Lengthen the shot, or shorten the line.")
         current = _setting(rd, sid)
         rec_setting = "off" if route == "voice_over" else "auto"
         rows.append({"shot": sid, "scene": c["scene"], "title": c.get("title", ""), "seconds": secs, "lines": lines, "speakers": speakers, "route": route, "why": why, "warnings": warnings,
-                     "setting": current, "recommended_setting": rec_setting, "differs": route == "voice_over" and current != "off"})
+                     "timing": timing, "setting": current, "recommended_setting": rec_setting, "differs": route == "voice_over" and current != "off"})
     credits = 0
     unpriced = 0
     try:
@@ -138,7 +182,8 @@ def report(d: str, tier: str = "draft") -> dict:
         counts[r["route"]] = counts.get(r["route"], 0) + 1
     keep = float((safeio.read_json(os.path.join(rd, "project.json"), {}) or {}).get("audio_plan", {}).get("keep_" + tier, KEEP[tier])) if os.path.isfile(os.path.join(rd, "project.json")) else KEEP[tier]
     keep = min(1.0, max(0.2, keep))
-    return {"tier": tier, "model": caps["model"], "model_known": caps["known"], "model_takes_recording": caps["ref_audio"], "model_makes_sound": caps["audio"], "native_scene": native,
+    spoken = [r["shot"] for r in rows if r["route"] in ("needs_voice", "audio_in", "post_sync", "native")]
+    return {"video_cost": _video_cost(rd, spoken), "tier": tier, "model": caps["model"], "model_known": caps["known"], "model_takes_recording": caps["ref_audio"], "model_makes_sound": caps["audio"], "native_scene": native,
             "shots": rows, "counts": counts, "lines_to_speak": len(speak_items), "tts_credits": credits, "tts_unpriced": unpriced,
             "keep_rate": keep, "tries": round(1 / keep, 2),
             "note": "The route is what the film does today by its existing rules. Nothing here makes or buys anything; the only thing Apply changes is the shot's own on or off setting for who speaks on screen."}

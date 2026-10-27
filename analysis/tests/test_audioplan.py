@@ -178,3 +178,43 @@ def test_the_command_line_speaks_json(film, capsys):
     out = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
     assert out["event"] == "result" and out["data"]["shots"]
     assert A.main(["set", film, "--data", json.dumps({"shot": "../../x", "value": "off"})]) == 1
+
+
+def test_timing_lays_the_voices_out_like_the_mix_and_says_when_they_run_over(film, tmp_path):
+    sid = shot_with(film, "He said he would call")
+    S.set_fields(film, sid, {"dialogue": [{"speaker": "SARAH", "line": "He said he would call."}, {"speaker": "JOHN", "line": "Did you say something?"}], "generation": {"duration": 6.0}, "sound_cut": {"lead": 0.5, "tail": 0.0}})
+    record(film, tmp_path, sid, "Sarah")                                       # 2.0 s; John has no recording yet
+    t = row(A.report(film), sid)["timing"]
+    sarah, john = t["segments"]
+    assert sarah["start"] == -0.5 and sarah["seconds"] == 2.0 and not sarah["estimated"]
+    assert john["start"] == pytest.approx(-0.5 + 2.0 + A.GAP) and john["estimated"], "no recording yet: an estimate, marked as one"
+    S.set_fields(film, sid, {"generation": {"duration": 2.0}})
+    r = row(A.report(film), sid)
+    assert r["timing"]["over"] > 0 and any("past the end of the shot" in w for w in r["warnings"])
+    S.set_fields(film, sid, {"sound_cut": {"lead": 0.0, "tail": 2.0}, "generation": {"duration": 3.0}})
+    assert row(A.report(film), sid)["timing"]["over"] < r["timing"]["over"], "an L cut gives the voices room"
+    quiet = next(x for x in A.report(film)["shots"] if not x["lines"])
+    assert quiet["timing"]["segments"] == [] and quiet["timing"]["over"] == 0
+
+
+def test_the_gap_matches_the_mix():
+    assert A.GAP == V.GAP
+
+
+def test_the_video_price_for_the_spoken_shots_is_shown_or_honestly_absent(film, monkeypatch):
+    seen = {}
+
+    def fake(rd, ids, provider, model, kind="video"):
+        seen["ids"] = ids
+        return {"usd": 3.2, "usd_known": 3.2, "unknown": 0, "shots": len(ids), "lipsync_shots": 1}
+    import filmcrafter_engine.render as Rn
+    import filmcrafter_engine.routing as Ro
+    monkeypatch.setattr(Rn, "estimate", fake)
+    monkeypatch.setattr(Ro, "pick", lambda project, kind: {"provider": "kie", "model": "m", "label": "Model M"})
+    r = A.report(film)
+    spoken = [x["shot"] for x in r["shots"] if x["route"] in ("needs_voice", "audio_in", "post_sync", "native")]
+    assert r["video_cost"] == {"usd": 3.2, "usd_known": 3.2, "unknown": 0, "shots": len(spoken), "lipsync_shots": 1, "model": "Model M"} and seen["ids"] == spoken
+    monkeypatch.setattr(Ro, "pick", lambda project, kind: {})
+    assert A.report(film)["video_cost"] is None, "no model chosen: nothing guessed"
+    monkeypatch.setattr(Ro, "pick", lambda project, kind: (_ for _ in ()).throw(RuntimeError("x")))
+    assert A.report(film)["video_cost"] is None, "a price that cannot be worked out is left out, the plan still shows"
