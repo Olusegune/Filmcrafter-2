@@ -75,6 +75,14 @@ export function isTyping(t: EventTarget | null): boolean {
   return ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
 }
 
+/** Like isTyping for a key press: a slider (the scrub bar, the volume) keeps focus after you drag it, and the keys it uses itself (arrows, Home, End, Page Up/Down) stay its own, but Space, J, K and the rest still play and pause. */
+export function isTypingKey(e: { target: EventTarget | null; key: string }): boolean {
+  const el = e.target as HTMLInputElement | null;
+  if (!isTyping(el)) return false;
+  if (el?.tagName === "INPUT" && el.type === "range") return /^(Arrow|Home$|End$|Page)/.test(e.key);
+  return true;
+}
+
 type Parsed = { mod: boolean; shift: boolean; key: string };
 function parse(spec: string): Parsed {
   const parts = spec.split("+");

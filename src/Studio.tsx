@@ -1,4 +1,4 @@
-import { SHORTCUTS, GROUPS, find as findShortcut, isTyping } from "./shortcuts";
+import { SHORTCUTS, GROUPS, find as findShortcut, isTypingKey } from "./shortcuts";
 import { Sheet } from "./Sheet";
 import { KeyframeTools } from "./KeyframeTools";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -375,7 +375,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
 
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
-      const typing = isTyping(e.target);
+      const typing = isTypingKey(e);
       const el = e.target as HTMLElement;
       const hit = findShortcut(e, { typing });
       if (e.key === "Escape" && focus) { setFocusMode(false); return; }
