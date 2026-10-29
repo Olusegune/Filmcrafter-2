@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.31.1 (2026-10-29)
+
+- **Keys work after you drag the scrub bar.** Space (play and pause), J, K and the other playback keys no longer go dead while the slider has focus; the slider keeps its own arrow, Home, End and Page keys.
+
 ## 0.31.0 (2026-10-27)
 
 - **The hand-off is read back before you are told it is done.** After the folder is written it is opened the way an editor would: every file a timeline points at must be there, no track may play two sounds at once or run past the film, the Final Cut XML must be well-formed with every clip defined, and the EDL must have one event for each shot with a take. Anything wrong is said in a sentence under the result; a clean folder says so. (It also found a real problem on a real film: very long titles made folder paths too long for Windows, so names are now kept short.)
