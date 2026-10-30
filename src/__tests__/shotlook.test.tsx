@@ -36,7 +36,7 @@ describe("the look of one shot", () => {
     const html = view({ own: { ...read, shots: { "S01-01": "anime" } } });
     expect(html).toMatch(/<option value="anime" selected=""/);
     expect(html).toMatch(/<details[^>]*open/);
-    expect(html).toContain("Its own look");
+    expect(html).toContain(">Own<");
     expect(html).toContain("made in its own look");
   });
   it("shows nothing until the looks are read", () => {

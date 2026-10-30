@@ -1750,3 +1750,5 @@ select option, select optgroup { background: #12171e; color: var(--frost); }
 .shot-look .sl-field { display: flex; flex-direction: column; gap: 3px; margin: 6px 0; font-size: 12px; }
 .shot-look select { width: 100%; min-width: 0; height: 34px; padding: 0 9px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--carbon); color: var(--frost); font-size: 12.5px; text-overflow: ellipsis; }
 .shot-look select:focus-visible { outline: none; border-color: var(--ignite); box-shadow: 0 0 0 3px var(--ignite-wash); }
+.flag { align-items: flex-start; }
+.flag > svg { flex: none; margin-top: 2px; }

@@ -20,7 +20,7 @@ export function ShotLook({ dir, shotId, own, filmLook, sceneLook, onChanged }: {
   const set = (style: string) => { setErr(""); saveShotLook(dir, shotId, style).then(onChanged).catch((e) => setErr(errorText(e))); };
   return (
     <details className="panel shot-look" open={!!mine}>
-      <summary><PanelHead icon={<I.Eye size={18} />} title="Look for this shot" tag={mine ? "Its own look" : ""} tone="ok" right={<I.Chevron size={16} />} /></summary>
+      <summary><PanelHead icon={<I.Eye size={18} />} title="Look for this shot" tag={mine ? "Own" : ""} tone="ok" right={<I.Chevron size={16} />} /></summary>
       <label className="sl-field"><span className="cam-lbl">Look</span>
         <select aria-label="Look for this shot" value={mine} onChange={(e) => set(e.target.value)}>
           <option value="">{sameAsLabel(own, filmLook, sceneLook)}</option>

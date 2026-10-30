@@ -14,7 +14,7 @@ import { PacingSheet } from "../PacingSheet";
 import { GivenToModel } from "../GivenToModel";
 import { createRoot } from "react-dom/client";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { RenderQueueSheet } from "../RenderQueue";
 import { ReviewSheet } from "../Review";
 import { KeyframeTools } from "../KeyframeTools";
@@ -45,9 +45,10 @@ import { MakeFilm } from "../MakeFilm";
 import { FilmContinuity } from "../FilmContinuity";
 import { AssistSheet } from "../AssistSheet";
 import { ShotSuggestionSheet } from "../ShotSuggestionSheet";
-import { Studio } from "../Studio";
+import { Studio, ShotInspector } from "../Studio";
+import { ShotLook } from "../ShotLook";
 import renderFixture from "./render-fixture.json";
-import type { Job, LoadedProject, Shot } from "../api";
+import type { Job, LoadedProject, Shot, StyleBibleRead } from "../api";
 import directions from "./directions.json";
 import styles from "../../analysis/filmcrafter_engine/styles.json";
 import "../styles.css";
@@ -221,6 +222,7 @@ mockWindows("main");
 mockIPC((cmd, a) => {
   const x = (a ?? {}) as { action?: string; data?: Record<string, unknown> };
   switch (cmd) {
+    case "stylebible": { if (x.action === "set_shot") { const d = x.data as { shot: string; style: string | null }; if (d.style) sbShots[d.shot] = d.style; else delete sbShots[d.shot]; } return sbRead(); }
     case "film_choreography": return x.action === "types" ? { types: [{ id: "fight", label: "Fist fight", blurb: "Two people, no weapons.", needs_b: true, good_for: "Close, handheld shots." }, { id: "chase", label: "Foot chase", blurb: "One runs, one follows.", needs_b: true, good_for: "Tracking shots." }], outcomes: [{ id: "a_wins", label: "The first side wins" }, { id: "draw", label: "Neither wins" }], intensity: [{ id: "grounded", label: "Grounded" }, { id: "heightened", label: "Heightened" }], limits: { min_beats: 4, max_beats: 14 }, advice: [] }
       : x.action === "list" ? { plans: [] }
       : { id: "ch-demo0001", type: "fight", scene: 1, place: "Platform", weapon: "", sides: { a: ["Sarah"], b: ["John"] }, intensity: "grounded", outcome: "a_wins", geography: "Sarah enters screen-left and John screen-right and they stay that way. Cross the line only on a cutaway.", people: ["Sarah", "John"], seconds: 12.5, warnings: ["Contact is cut around on purpose: the blow and the landing are separate shots."], after: "S01-02", applied: [], status: "draft",
@@ -400,6 +402,24 @@ mockIPC((cmd, a) => {
 
 // ---------------------------------------------------------------- the scenes
 const noop = () => {};
+
+// a look for one shot: the made-up looks and the one shot that has its own (set in memory, so the select can be tried)
+const sbShots: Record<string, string> = scene === "shotlook-own" ? { "S01-04": "anime" } : {};
+const sbRead = (): StyleBibleRead => ({ style: { id: "claymation", name: "Claymation", prompt: "" }, scenes: [], shots: { ...sbShots }, precedence: [],
+  styles: [{ id: "claymation", name: "Claymation", group: "", description: "" }, { id: "anime", name: "Shonen action anime", group: "", description: "" }, { id: "noir", name: "Film noir", group: "", description: "" }] });
+const ShotLookDemo = () => {
+  const [own, setOwn] = useState<StyleBibleRead>(sbRead());
+  const mine = own.shots["S01-04"];
+  const shotFx: Shot = { id: "S01-04", scene: 1, number: 4, start: 12, end: 16.5, beats: ["Sege opens the suitcase and finds the letter."], source_shots: ["S01-04"], performers: ["Sege"], framing: "Close-up", state: "planned", renderer: "auto", emotion: "dread" };
+  return (
+    <aside className="inspector" style={{ width: 360, height: 700, display: "flex", flexDirection: "column" }} aria-label="Inspector">
+      <ShotInspector shot={shotFx} director={false} onClose={noop} project={project}
+        tabs={{ styleChanged: scene !== "shotlook-own" || !!mine, look: { name: mine ? "Shonen action anime" : "Claymation", own: !!mine, onOpen: noop },
+          badges: { keyframe: "", frames: "", video: "", media: "" }, media: null, keyframe: () => null, frames: () => null, video: () => null,
+          shot: <ShotLook dir={DIR} shotId="S01-04" own={own} filmLook="claymation" sceneLook="claymation" onChanged={setOwn} /> }} />
+    </aside>
+  );
+};
 const keys = { openai: true, fal: true, kie: true, google: false, elevenlabs: false } as never;
 const take = (id: string, _shot: string, n: number, over: Record<string, unknown> = {}) => ({ id, n, state: "ready", provider: "kie", model: "bytedance/seedance-2", output: `v${n}.mp4`, kind: "video", created: n, cost: n === 1 ? 50 : 38, cost_unit: "credits", approved: n === 1, ...over });
 const card = (children: ReactNode, width = 480) => <div className="sheet glass" style={{ width }}>{children}</div>;
@@ -438,6 +458,9 @@ const scenes: Record<string, () => ReactNode> = {
   directionlibrary: () => <DirectionLibrarySheet dir={DIR} onClose={noop} onApplied={noop} />,
   directions: () => <div style={{ maxWidth: 1180, margin: "0 auto", padding: 24 }}><CreativeDirections project={project} onPlanned={noop} onSettings={noop} /></div>,
   looks: () => <LookPicker value={{ style: "auto" }} director={false} onCancel={noop} onSave={noop} />,
+  shotlook: () => <ShotLookDemo />,
+  "shotlook-own": () => <ShotLookDemo />,
+  shotlookpicker: () => <LookPicker value={{ style: "claymation" }} director={false} onCancel={noop} onSave={noop} shot={{ id: "S01-04", own: true, sameAs: "Same as its film (Claymation)", onClear: noop }} />,
   lighting: () => <LightingSheet dir={DIR} onClose={noop} />,
   cleanup: () => <CleanupSheet dir={DIR} onClose={noop} onChanged={noop} />,
   modelpicker: () => card(<><h2>Choose your video model</h2><p className="sub">Recommended models first, everything else behind All models.</p><div style={{ width: 360 }}><ModelPicker catalog={pickerCatalog} value="bytedance/seedance-2" label="Model" onChange={noop} onRefresh={noop} /></div></>),
