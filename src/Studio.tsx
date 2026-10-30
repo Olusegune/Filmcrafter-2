@@ -12,7 +12,7 @@ import { AUTO_MODEL, type Job, type KeyStatus, type Overlay, type ShotHistory, t
 import { ExportSheet } from "./Export";
 import { ShotCamera } from "./Camera";
 import { LookPicker, lookName, normalizeLook, useStyles } from "./Looks";
-import { effectiveLook, styleChangedSince } from "./styleStale";
+import { effectiveLook, shotLookToSave, styleChangedSince } from "./styleStale";
 import { sameAsLabel, saveShotLook, ShotLook } from "./ShotLook";
 import { needsAttention, ReviewSheet } from "./Review";
 import { ComposeTab } from "./Compose";
@@ -221,7 +221,8 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
     const id = shotLookFor;
     setShotLookFor(null);
     if (!id) return;
-    try { setOwnLooks(await saveShotLook(project.dir, id, style)); } catch (e) { setError(errorText(e)); }
+    const inherited = effectiveLook(ownLooks ? { scenes: ownLooks.scenes } : null, id, shots.find((x) => x.id === id)?.scene, look.style);
+    try { setOwnLooks(await saveShotLook(project.dir, id, shotLookToSave(style, inherited))); } catch (e) { setError(errorText(e)); }
   };
   // Studio-level File/View menu items.
   useEffect(() => {

@@ -82,6 +82,8 @@ def read(d: str) -> dict:
 
 
 def _set(d: str, table: str, key: str, style: str | None, clear_if_film: bool) -> dict:
+    if not os.path.isfile(_project_path(d)):
+        raise SystemExit("This folder is not a project.")          # never make a project file out of nothing
     def change(project):
         if not isinstance(project, dict):
             raise SystemExit("This project file is not readable.")

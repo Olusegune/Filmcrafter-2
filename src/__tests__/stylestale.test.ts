@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectiveLook, styleChangedSince } from "../styleStale";
+import { effectiveLook, shotLookToSave, styleChangedSince } from "../styleStale";
 
 describe("a shot made in an earlier style is marked, never re-rendered", () => {
   const take = (look: string | null | undefined, over = {}) => ({ state: "ready", kind: "video", look, ...over });
@@ -31,5 +31,13 @@ describe("the look a shot is played in", () => {
     const inOwn = [{ state: "ready", kind: "video", look: "anime" }];
     expect(styleChangedSince(inOwn, effectiveLook(own, "S06-02", 6, "claymation"))).toBe(false);   // the film's look changed, but this shot keeps its own: nothing to flag
     expect(styleChangedSince(inOwn, effectiveLook({ shots: {}, scenes: [] }, "S06-02", 6, "claymation"))).toBe(true);   // its own look was cleared: it follows the film again
+  });
+});
+
+describe("what is saved when a look is picked for a shot", () => {
+  it("clears when the pick is the look the shot already inherits, and keeps any other pick", () => {
+    expect(shotLookToSave("noir", "noir")).toBe("");
+    expect(shotLookToSave("anime", "noir")).toBe("anime");
+    expect(shotLookToSave("", "noir")).toBe("");
   });
 });

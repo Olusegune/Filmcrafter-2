@@ -169,3 +169,68 @@ def test_the_command_line_speaks_json_and_refuses_unknown_actions(tmp_path, caps
     assert json.loads(capsys.readouterr().out)["event"] == "error"
     with pytest.raises(SystemExit):
         SB.main(["delete", d])
+
+
+# ---------------------------------------------------------------- found by QA
+
+SCRIPT = """INT. KITCHEN - MORNING
+
+Sarah jumps off the step, her coat flaring, and lands laughing.
+
+EXT. PLATFORM - NIGHT
+
+Rain on the roof.
+"""
+
+
+@pytest.mark.regression
+def test_remaking_the_render_project_keeps_the_looks_of_scenes_and_shots(tmp_path):
+    """make.sync rebuilds the render project's look from the Bible every time; it used to drop look.scenes and look.shots with it."""
+    from filmcrafter_engine import bible, make, shots, story
+    film = story.create(str(tmp_path / "films"), "T", "screenplay", SCRIPT)["dir"]
+    bible.seed(film)
+    shots.breakdown(film)
+    rd = make.sync(film)["render_dir"]
+    first = json.load(open(os.path.join(rd, "production.json")))["scenes"][0]["shots"][0]["id"]
+    SB.set_shot(rd, first, "anime")
+    SB.set_scene(rd, 2, "live-action")
+    bible.update_rules(film, {"style": {"lane": "feature 3D"}})                      # the film's look changes, then the render project is made again
+    pj = json.load(open(os.path.join(make.sync(film)["render_dir"], "project.json")))
+    assert pj["look"]["style"] == "feature-3d"
+    assert pj["look"]["shots"] == {first: "anime"} and pj["look"]["scenes"] == {"2": "live-action"}
+
+
+@pytest.mark.security
+def test_a_folder_that_is_not_a_project_is_refused_and_nothing_is_created(tmp_path):
+    empty = tmp_path / "nothing"
+    empty.mkdir()
+    for call in (lambda: SB.set_shot(str(empty), "S01-01", "anime"), lambda: SB.set_scene(str(empty), 1, "anime")):
+        with pytest.raises(SystemExit):
+            call()
+    assert os.listdir(empty) == []
+    assert SB.read(str(empty))["shots"] == {}                                              # reading is harmless
+
+
+def test_a_damaged_project_file_is_left_alone_and_said_so(tmp_path):
+    d = project(tmp_path, FILM)
+    open(d + "/project.json", "w").write("{ not json")
+    with pytest.raises(SystemExit):
+        SB.set_shot(d, "S06-02", "anime")
+    assert open(d + "/project.json").read() == "{ not json"                                  # not replaced by defaults: the filmmaker's file is kept as it is
+
+
+@pytest.mark.integration
+def test_the_app_calls_it_as_a_process_and_parallel_changes_are_not_lost(tmp_path):
+    """The app runs `python -m filmcrafter_engine.stylebible` once per click; two clicks at the same moment must both land."""
+    import subprocess
+    import sys
+    d = project(tmp_path, FILM)
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env = {**os.environ, "PYTHONPATH": root, "PYTHONIOENCODING": "utf-8"}
+    ids = [f"S09-{n:02d}" for n in range(1, 9)]
+    procs = [subprocess.Popen([sys.executable, "-m", "filmcrafter_engine.stylebible", "set_shot", d, "--data", json.dumps({"shot": sid, "style": "anime"})],
+                              cwd=root, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for sid in ids]
+    outs = [p.communicate(timeout=120) for p in procs]
+    assert all(p.returncode == 0 for p in procs), outs
+    assert all(json.loads(o[0].strip().splitlines()[-1])["event"] == "result" for o in outs)
+    assert saved_look(d)["shots"] == {sid: "anime" for sid in ids}

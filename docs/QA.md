@@ -215,6 +215,22 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 - **Screens** (`dofcut.test.ts`, 3): the depth-of-field list with apertures and the automatic default; the two sliders only for a shot with dialogue; no paid or sending call. Seen in the browser harness: the options and the two sliders.
 - **NOT checked:** an exported film with a J or L cut listened to by a person (the engine test measures where the sound starts and ends, not how it feels); whether a real model follows the aperture wording; the editor hand-off (Resolve) does not carry the lead and tail, so a film cut in an editor has the lines at their shots.
 
+### A look for one scene or one shot (unreleased, after 0.31.1)
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) and shell |
+|---|---|---|
+| **Unit** | `test_stylebible` (17): shot beats scene beats film; an older project without the keys is unchanged; an unknown look, a genre feel or a non-text value is ignored; the film's notes still apply; set, read and clear; a project with no look, or an early text look, can still get one | `stylestale.test.ts` (5: the look a shot is played in; a take is compared with the shot's own look; picking the inherited look clears), `shotlook.test.tsx` (8: the options, the first option's wording for scene or film, the saved call for that shot only, the picker opened from the Look chip) |
+| **Integration** | the look reaches the compiled prompt; each queued job records the effective look; the app's real call (`python -m filmcrafter_engine.stylebible`) with 8 changes at the same moment, none lost | `cargo test`: choosing the film's look keeps the scene and shot looks |
+| **Regression** | remaking the render project from the film (`make.sync`) used to drop every scene and shot look | picking the look a shot already inherits used to store a pointless own look |
+| **Security** | a bad shot id (`../x`, `..`, empty, a slash, a space, 80 characters, a number), a bad scene number, an unknown look, a genre feel and a folder that is not a project are refused and nothing is written; a damaged project file is left exactly as it was | none |
+| **Money** | changing a look never calls `enqueue` or `run` and never touches `jobs.json` (a test makes either call fail the run) | the save call asks the app for the look only: no render, no price |
+
+Whole suites after this change: `pytest` **2,139 passed**, 6 skipped; `vitest` **638 passed** (79 files); `cargo test` **13 passed**; `cargo clippy -D warnings`, `tsc --noEmit` and `npm run build` clean. `rafter secrets .` finds one test fixture in `src/docshots/main.tsx` (a placeholder, unchanged); `rafter run` could not run (the plan's scan allowance for the period was used up).
+
+Bugs found by this pass and fixed: (1) **`make.sync` wiped the scene and shot looks** each time the render project was rebuilt from the Bible (a failing test first); (2) a shot picked in the look it already inherited was stored as its own look and got the gold chip; (3) the app could make a `project.json` out of a folder that was not a project; (4) choosing another film look in the picker replaced the whole look setting, dropping scene and shot looks (found earlier, test in `cargo test`); (5) the picture check and the take review judged a shot in its own look against the film's look.
+
+**NOT checked:** the screens by eye in the running app (no browser harness for this repo runs here, and there is no jsdom or Playwright to click through them: the tests render the markup and call the save function); a real provider drawing a shot in a different look from its neighbours; the installer.
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.

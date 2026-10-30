@@ -6,6 +6,7 @@
 - **Look changed after this shot was made.** The note on a shot now compares its takes with the look the shot has *now* (its own, its scene's or the film's), so changing one shot's look flags only that shot. It never starts a render.
 - **Choosing the film's look keeps the looks of scenes and shots.** Before, choosing another film look in the picker replaced the whole look setting; scenes and shots that had a look of their own would have been dropped.
 - **The checks judge a shot against its own look.** The picture check and the take review no longer flag a shot that is meant to be in another look for not matching the film's.
+- **Remaking the render project keeps them.** Rebuilding it from the Bible used to throw away every scene and shot look; it now keeps them. Picking, for a shot, the look it already has from its scene or the film no longer stores a pointless own look. The command refuses a folder that is not a project instead of making a project file in it.
 - Tests: the order shot, scene, film; older projects; an unknown look; a bad shot id, scene or look refused; the look in the prompt and recorded on each job; changing a look never queues a render or touches a take.
 
 ## 0.31.1 (2026-10-29)

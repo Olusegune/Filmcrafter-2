@@ -64,6 +64,17 @@ Run for real, not in the test suite: `python -m pulseframe_analysis.model_audit 
 
 The screen tests have no markers, so the table above is how they are classed.
 
+### A look for one scene or one shot (after 0.31.1)
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) and shell |
+|---|---|---|
+| **Unit** | `test_stylebible` (the order shot, scene, film; older projects; unknown looks; set, read, clear) | `stylestale.test.ts`, `shotlook.test.tsx` (markup and the save call; this repo has no jsdom, so nothing clicks the select) |
+| **Integration** | the look in the prompt and on each job; the real command run as a process, 8 at once | `cargo test` (the film's look keeps scene and shot looks) |
+| **Regression** | `make.sync` keeps scene and shot looks | picking the inherited look clears it |
+| **Security** | bad shot ids, scene numbers and looks; a folder that is not a project; a damaged project file | none |
+
+There is no end-to-end test for this: the repository has no `e2e` folder and no browser driver among its dependencies.
+
 ### Checks outside the test suites
 
 - `python -m tests.speech_check` (in `analysis/`, Windows): measures how well the voice/effects split works on synthesized speech with effects and music at known levels, and prints the numbers quoted in the guide. `test_split_speech` guards them.

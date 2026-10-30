@@ -163,8 +163,10 @@ def sync(d: str) -> dict:
     plan = _plan(d, bible, cons)
     total = plan["scenes"][-1]["end"] if plan["scenes"] else 0
     pj = _read(os.path.join(rd, "project.json"), {}) or {}
+    old_look = pj.get("look") if isinstance(pj.get("look"), dict) else {}
+    own_looks = {k: old_look[k] for k in ("scenes", "shots") if isinstance(old_look.get(k), dict) and old_look[k]}      # a scene or shot played in a look of its own (stylebible.py) is the filmmaker's, not the Bible's: it stays
     pj.update({"schema_version": 2, "title": m["title"], "song": "", "state": "directed", "aspect_ratio": m.get("aspect_ratio", "16:9"),
-               "look": {"style": B.effective_look(bible), **({"genre": bible["style"]["genre"]} if bible["style"].get("genre") else {}), **({"notes": bible["style"]["notes"]} if bible["style"].get("notes") else {})}, "film": True})
+               "look": {"style": B.effective_look(bible), **({"genre": bible["style"]["genre"]} if bible["style"].get("genre") else {}), **({"notes": bible["style"]["notes"]} if bible["style"].get("notes") else {}), **own_looks}, "film": True})
     pj.setdefault("performance", {"default": "natural", "scenes": {}, "characters": {}, "shots": {}})      # a film starts with natural acting, so small real motion is in the prompt from the first render
     pj.setdefault("lip_sync_mode", "auto")
     if "principles" in bible["style"]:               # the twelve principles of animation the film switched on (none saved: the style's own defaults)
