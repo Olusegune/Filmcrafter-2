@@ -68,12 +68,23 @@ The screen tests have no markers, so the table above is how they are classed.
 
 | Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) and shell |
 |---|---|---|
-| **Unit** | `test_stylebible` (the order shot, scene, film; older projects; unknown looks; set, read, clear) | `stylestale.test.ts`, `shotlook.test.tsx` (markup and the save call; this repo has no jsdom, so nothing clicks the select) |
+| **Unit** | `test_stylebible` (the order shot, scene, film; older projects; unknown looks; set, read, clear) | `stylestale.test.ts`, `shotlook.test.tsx` (markup and the save call) |
+| **Component** (jsdom, clicked) | none | `component/shotlook.dom.test.tsx` (choosing a look saves for that shot only, the empty option clears it, a failed save says why, the panel stays open after clearing, the picker for one shot) |
 | **Integration** | the look in the prompt and on each job; the real command run as a process, 8 at once | `cargo test` (the film's look keeps scene and shot looks) |
-| **Regression** | `make.sync` keeps scene and shot looks | picking the inherited look clears it |
+| **Regression** | `make.sync` keeps scene and shot looks | picking the inherited look clears it; the picker for one shot gives back only the look, not the film's notes; the panel folded shut when its look was cleared |
 | **Security** | bad shot ids, scene numbers and looks; a folder that is not a project; a damaged project file | none |
+| **End to end** (Playwright, real Edge) | none | `e2e/shotlook.spec.ts` (Shot tab, header chip, picker, Escape, no render button) |
+| **Accessibility** (axe-core, WCAG 2.1 A and AA) | none | `e2e/a11y.spec.ts`: every scene of the screenshot harness (43) |
 
-There is no end-to-end test for this: the repository has no `e2e` folder and no browser driver among its dependencies.
+### Browser tests (Playwright) and component tests (jsdom)
+
+```
+npm run test:components            # jsdom component tests (src/__tests__/component), fast
+npx playwright test                # all browser tests (starts npm run dev if it is not running)
+npx playwright test e2e/a11y.spec.ts
+```
+
+The browser tests drive the **screenshot harness** (`http://localhost:1420/docshots.html?scene=...`), which answers the app's backend calls with made-up data held in memory: no engine, no provider, nothing can be charged. Locally they use the Microsoft Edge that Windows already has (`PW_CHANNEL=chrome` or `msedge` to choose); in CI use `npx playwright install chromium`. They do **not** drive the whole Studio: its browser preview (`?mock`) needs a `mock-data/` folder that is not in the repository (it is in `.gitignore`). The harness removes its own `docshot` class in these tests, because that class un-scrolls long lists for screenshots. Animations are switched off first: a sheet that is still fading in gives axe a colour that is not real (a first run reported 22 screens with low contrast that were not).
 
 ### Checks outside the test suites
 

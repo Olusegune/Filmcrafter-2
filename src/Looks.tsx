@@ -43,7 +43,7 @@ export function LookPicker({ value, director, onCancel, onSave, shot }: {
   }, [styles, q]);
 
   const pick = (id: string) => { setSel(id); if (id !== value.style) { setPrompt(""); setAvoid(""); } };
-  const save = () => onSave({
+  const save = () => shot ? onSave({ style: sel }) : onSave({
     style: sel, ...(notes.trim() && { notes: notes.trim() }),
     ...(director && prompt.trim() && { prompt: prompt.trim() }), ...(director && avoid.trim() && { avoid: avoid.trim() }),
   });

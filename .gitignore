@@ -35,3 +35,5 @@ mock-data/
 
 # local preview config
 .claude/
+test-results/
+playwright-report/

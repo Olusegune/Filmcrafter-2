@@ -46,7 +46,8 @@ import { FilmContinuity } from "../FilmContinuity";
 import { AssistSheet } from "../AssistSheet";
 import { ShotSuggestionSheet } from "../ShotSuggestionSheet";
 import { Studio, ShotInspector } from "../Studio";
-import { ShotLook } from "../ShotLook";
+import { ShotLook, saveShotLook } from "../ShotLook";
+import { shotLookToSave } from "../styleStale";
 import renderFixture from "./render-fixture.json";
 import type { Job, LoadedProject, Shot, StyleBibleRead } from "../api";
 import directions from "./directions.json";
@@ -409,15 +410,21 @@ const sbRead = (): StyleBibleRead => ({ style: { id: "claymation", name: "Clayma
   styles: [{ id: "claymation", name: "Claymation", group: "", description: "" }, { id: "anime", name: "Shonen action anime", group: "", description: "" }, { id: "noir", name: "Film noir", group: "", description: "" }] });
 const ShotLookDemo = () => {
   const [own, setOwn] = useState<StyleBibleRead>(sbRead());
+  const [picking, setPicking] = useState(false);
   const mine = own.shots["S01-04"];
+  const pick = (style: string) => { setPicking(false); saveShotLook(DIR, "S01-04", shotLookToSave(style, "claymation")).then(setOwn); };
   const shotFx: Shot = { id: "S01-04", scene: 1, number: 4, start: 12, end: 16.5, beats: ["Sege opens the suitcase and finds the letter."], source_shots: ["S01-04"], performers: ["Sege"], framing: "Close-up", state: "planned", renderer: "auto", emotion: "dread" };
   return (
+    <>
     <aside className="inspector" style={{ width: 360, height: 700, display: "flex", flexDirection: "column" }} aria-label="Inspector">
       <ShotInspector shot={shotFx} director={false} onClose={noop} project={project}
-        tabs={{ styleChanged: scene !== "shotlook-own" || !!mine, look: { name: mine ? "Shonen action anime" : "Claymation", own: !!mine, onOpen: noop },
+        tabs={{ styleChanged: scene !== "shotlook-own" || !!mine, look: { name: mine ? (own.styles.find((x) => x.id === mine)?.name ?? mine) : "Claymation", own: !!mine, onOpen: () => setPicking(true) },
           badges: { keyframe: "", frames: "", video: "", media: "" }, media: null, keyframe: () => null, frames: () => null, video: () => null,
           shot: <ShotLook dir={DIR} shotId="S01-04" own={own} filmLook="claymation" sceneLook="claymation" onChanged={setOwn} /> }} />
     </aside>
+    {picking && <LookPicker value={{ style: mine || "claymation" }} director={false} onCancel={() => setPicking(false)} onSave={(l) => pick(l.style)}
+                            shot={{ id: "S01-04", own: !!mine, sameAs: "Same as its film (Claymation)", onClear: () => pick("") }} />}
+    </>
   );
 };
 const keys = { openai: true, fal: true, kie: true, google: false, elevenlabs: false } as never;
