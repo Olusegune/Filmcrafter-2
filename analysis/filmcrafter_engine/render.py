@@ -1154,7 +1154,9 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         body = f"{look['prompt'].split(':')[0].rstrip('.')}. " + body
     blocks.append((10, body.strip()))
     if full:
-        blocks.append((10, f"Whole-picture style, no exceptions: {look_name}. Everything in the frame is drawn this way, the characters' bodies, faces, hair and clothes included, not only the set and the background."))
+        blocks.append((10, f"Whole-picture style, no exceptions: {look_name}. Everything in the frame is drawn this way, the characters' bodies, faces, hair and clothes included, not only the set and the background. "
+                           "THIS IS THE MOST IMPORTANT RULE OF THE SHOT: IF THE CHARACTERS LOOK LIKE THEY BELONG TO A DIFFERENT STYLE FROM THE BACKGROUND, THE SHOT IS WRONG. "
+                           "From the reference pictures take only who the people are and what the place contains: not their lighting, colour grade, depth of field, framing or rendering."))
     elif keep_cast:
         blocks.append((9, f"Only the setting is in this look ({look_name}); the characters keep their own rendering from the reference pictures."))
     if shot.get("performers") and not only:

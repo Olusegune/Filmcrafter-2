@@ -256,6 +256,7 @@ def test_a_shot_in_a_look_of_its_own_restyles_the_characters_too_not_only_the_se
     assert "keep who they are (face shape, features, hair design, build, skin tone, outfit design)" in p and "draw them entirely in this look" in p
     assert "Whole-picture style, no exceptions" in p and "the characters' bodies, faces, hair and clothes included" in p
     assert "Take only each character's identity from them" in p and "not their rendering style" in p
+    assert "THE SHOT IS WRONG" in p and "not their lighting, colour grade, depth of field, framing or rendering" in p
     assert "(take what it shows, not how it is drawn)" in p
     assert "identical skin tone, face, hair and clothes" not in p and "Match the characters' faces, hair and wardrobe exactly" not in p
     assert "the characters drawn in a different style from the rest of the picture" in p

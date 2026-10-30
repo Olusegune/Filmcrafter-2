@@ -217,14 +217,16 @@ def beats_text(d: str, shot: dict, kind: str = "video") -> str | None:
 
 NUDGES = {
     "restrained": {"label": "More restrained", "levels": 2, "text": ("Underplay it: hold more back; the feeling leaks through the eyes and the breath, not through big gestures.",
-                                                                      "Underplay it strongly: almost no gesture, stillness is the performance; the feeling shows only in the eyes, the breath and the jaw.")},
+                                                                      "Underplay it strongly: every peak reads through the body, not the face: a tightened grip, a caught step, a held stillness; a shout becomes a quiet exhale, shock becomes a small recoil "
+                                                                      "before any expression; no wide grins, gasps, theatrical shock or eyebrow acting, nothing larger than a real person would do alone.")},
     "grounded": {"label": "Less exaggerated", "text": "Keep it grounded and small: nothing larger than the moment needs, no mugging, no stage gestures."},
     "vulnerable": {"label": "More vulnerable", "text": "Let the guard down: softer eyes, a smaller posture, the breath a little unsteady; the person lets themselves be seen."},
     "hesitant": {"label": "More hesitant", "text": "A hesitation before each action: it starts, stops, and starts again; the eyes check before the body commits."},
     "playful": {"label": "More playful", "text": "A lightness in the performance: quick, loose movement, a trace of a smile, eyes bright, an easy rhythm."},
     "tense": {"label": "More tension", "text": "Held tension: stillness before each move, a tight jaw and shoulders, the breath held and let go in small pieces."},
     "still_body": {"label": "Reduce body movement", "text": "Keep the body almost still: only the eyes, the breath and the smallest shifts move."},
-    "eyes": {"label": "Let the eyes tell the story", "text": "Let the eyes carry the feeling: the face stays quiet and the gaze does the acting, moving, holding and lingering on purpose."},
+    "eyes": {"label": "Let the eyes tell the story", "text": "Let the eyes carry the feeling: the face stays quiet and the gaze does the acting, moving, holding and lingering on purpose. Real gaze: small involuntary micro-movements, irregular blinks, "
+                                                              "smooth tracking when following something; the head and the eyes agree, and nobody looks into the lens."},
     "hold": {"label": "Hold the reaction longer", "text": "Hold the final reaction: stay on the moment and let it finish before anything else happens; do not cut away early."},
 }
 
