@@ -47,6 +47,7 @@ export async function installMock() {
         ...(i === "song" ? { effective_gain: e.layers[i].gain ?? (anyTake ? 0.4 : 1), auto: e.layers[i].gain === null } : {}) })) };
   };
   const soundTouched: Record<string, true> = {};
+  const mockShotLooks: Record<string, string> = {};
   const soundCall = (a: { action?: string; data?: Record<string, unknown> }) => {
     const d = (a.data ?? {}) as { shot?: string; layer?: string; on?: boolean; gain?: number | null };
     if (a.action === "overview") return soundTouched;
@@ -168,6 +169,11 @@ export async function installMock() {
       case "comfy_install": return { dest: "C:/Users/you/FilmCrafter ComfyUI", source: "github.com/comfyanonymous/ComfyUI (releases)", ok: true, reason: "", warnings: [], gpu: "NVIDIA GeForce RTX 3060", vendor: "nvidia", vram_gb: 12, tag: "v0.39.0",
         asset: { name: "ComfyUI_windows_portable_nvidia.7z", size: 2003629308, url: "", sha256: null }, download_gb: 2.0, need_gb: 12.8, free_gb: 640.9 };
       case "providers": return { providers: [], comfyui: { url: "http://127.0.0.1:8188", connected: !new URLSearchParams(location.search).has("nocomfy"), device: "NVIDIA GeForce RTX 3060", workflows: [] } };
+      case "stylebible": {
+        if (a.action === "set_shot") { const d = a.data as { shot: string; style: string | null }; if (d.style) mockShotLooks[d.shot] = d.style; else delete mockShotLooks[d.shot]; }
+        return { style: { id: "auto", name: "Auto", prompt: "" }, styles: [{ id: "auto", name: "Auto", group: "", description: "" }, { id: "claymation", name: "Claymation", group: "", description: "" }, { id: "anime", name: "Anime", group: "", description: "" }],
+          scenes: [], shots: { ...mockShotLooks }, precedence: [] };
+      }
       case "lighting": {
         if (a.action === "apply") return { changed: ["S01-01", "S01-02"], skipped: ["S01-03"], undo: true };
         if (a.action === "undo") return { restored: ["S01-01", "S01-02"], more: false };

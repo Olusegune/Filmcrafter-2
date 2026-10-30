@@ -19,8 +19,10 @@ export function lookName(styles: Style[], look: Look) {
 }
 
 /** One visual choice for the whole video. Its wording is injected into every shot's render prompt. */
-export function LookPicker({ value, director, onCancel, onSave }: {
+export function LookPicker({ value, director, onCancel, onSave, shot }: {
   value: Look; director: boolean; onCancel: () => void; onSave: (l: Look) => void;
+  /** Picking for one shot instead of the whole film: no notes or wording (those belong to the film's look), and a button to go back to what the shot inherits (`sameAs`). */
+  shot?: { id: string; own: boolean; sameAs: string; onClear: () => void };
 }) {
   const styles = useStyles();
   const [sel, setSel] = useState(value.style);
@@ -47,11 +49,11 @@ export function LookPicker({ value, director, onCancel, onSave }: {
   });
 
   return (
-    <Sheet label="Choose a look" className="look-sheet" onDismiss={onCancel}>
+    <Sheet label={shot ? `Choose a look for shot ${shot.id}` : "Choose a look"} className="look-sheet" onDismiss={onCancel}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
           <div>
-            <h2>Look</h2>
-            <p className="sub">One style for the whole video. FilmCrafter applies it to every shot automatically.</p>
+            <h2>{shot ? `Look for shot ${shot.id}` : "Look"}</h2>
+            <p className="sub">{shot ? "Only this shot is made in it. Pictures and takes already made are left as they are, and a new take shows its price first." : "One style for the whole video. FilmCrafter applies it to every shot automatically."}</p>
           </div>
           <button className="icon-btn" onClick={onCancel} aria-label="Close"><I.Close /></button>
         </div>
@@ -73,11 +75,11 @@ export function LookPicker({ value, director, onCancel, onSave }: {
             </div>
           ))}
         </div>
-        <div className="field" style={{ marginTop: 14 }}>
+        {!shot && <div className="field" style={{ marginTop: 14 }}>
           <label htmlFor="look-notes">Your notes <span className="opt">Optional · added to every shot, e.g. “keep Sege's beard and linen shirt”</span></label>
           <input id="look-notes" className="text-input" value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </div>
-        {director && chosen && (
+        </div>}
+        {!shot && director && chosen && (
           <div className="look-advanced">
             <div className="field">
               <label htmlFor="look-prompt">Prompt wording <span className="opt">Sent with every shot · leave empty for the library wording</span></label>
@@ -91,6 +93,7 @@ export function LookPicker({ value, director, onCancel, onSave }: {
         )}
         <div className="sheet-actions">
           <button className="btn ghost" onClick={onCancel}>Cancel</button>
+          {shot?.own && <button className="btn ghost" onClick={shot.onClear}>{shot.sameAs}</button>}
           <button className="btn primary" onClick={save} disabled={!sel}>Use {chosen?.name ?? "this look"}</button>
         </div>
     </Sheet>

@@ -663,7 +663,7 @@ def compile_motion(d: str, man: dict, shot: dict, motion: dict, overrides: dict 
     if f["background"]:
         payload[f["background"]] = "input_image" if motion.get("background") == "image" else "input_video"
     if f["prompt"]:
-        look = resolve_look(_read(os.path.join(d, "project.json"), {}))
+        look = resolve_look(_read(os.path.join(d, "project.json"), {}), shot.get("scene"), shot.get("id"))
         text = " ".join(x.strip() for x in (motion.get("note") or "", f"The character keeps exactly the face, hair, clothes and body of the picture. {look['prompt']}") if x and x.strip())
         limit = fields[f["prompt"]].get("max_length") or 2500
         payload[f["prompt"]] = text.encode("utf-8")[:limit].decode("utf-8", "ignore")
@@ -693,11 +693,30 @@ def styles() -> dict[str, dict]:
         return {s["id"]: s for s in json.load(f)["styles"]}
 
 
-def resolve_look(project: dict) -> dict:
-    """Project look -> {'id', 'prompt', 'avoid'}. Custom wording (Director Mode) overrides the library's."""
+def own_look_id(look: dict, scene=None, shot=None) -> str | None:
+    """The look a shot is played in when it is not the film's: the shot's own (look.shots), else its scene's (look.scenes). A look id that is not in the library (or is a genre feel,
+    which is only ever layered on a look) is ignored, so a hand-edited or older project falls back to the next level. Pure: it reads, never writes."""
+    lib = styles()
+    for table, key in (("shots", shot), ("scenes", scene)):
+        if key is None or not isinstance(look.get(table), dict):
+            continue
+        own = look[table].get(str(key))
+        if isinstance(own, str) and own in lib and lib[own].get("family") != "genre":
+            return own
+    return None
+
+
+def resolve_look(project: dict, scene=None, shot=None) -> dict:
+    """Project look -> {'id', 'prompt', 'avoid'}. Custom wording (Director Mode) overrides the library's. A shot played in a look of its own (stylebible.py) gets that look's wording;
+    otherwise its scene's own look, otherwise the film's. The film's notes ("keep Sege's beard") still apply; its custom wording and genre feel belong to the film's look and do not."""
     look = project.get("look") or {"style": "auto"}
     if isinstance(look, str):  # early projects stored free text
         return {"id": "custom", "prompt": look, "avoid": ""}
+    own = own_look_id(look, scene, shot)
+    if own:
+        lib = styles()[own]
+        notes = str(look.get("notes") or "").strip()
+        return {"id": own, "prompt": f"{lib['prompt']} {notes}" if notes else lib["prompt"], "avoid": lib["avoid"]}
     base = styles().get(look.get("style", "auto"), styles()["auto"])
     prompt = look.get("prompt") or base["prompt"]
     avoid = look.get("avoid") if look.get("avoid") is not None else base["avoid"]
@@ -961,7 +980,7 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     """
     roles, fields = man["roles"], {f["name"]: f for f in man["inputs"]}
     payload: dict = {}
-    look = resolve_look(project)  # the same look wording goes into every shot of the project
+    look = resolve_look(project, (scene or {}).get("number"), shot.get("id"))  # the film's look wording goes into every shot, unless the shot (or its scene) is played in a look of its own
     from . import styleguard as SG   # a stylised look is kept: words that ask for a photograph, from elsewhere in the prompt, are reworded (see styleguard.py)
     style = SG.sanitize(plan.get("meta", {}).get("VISUAL STYLE", ""), project, look["id"])
     blocks: list[tuple[int, str]] = []  # (priority, text); lowest priority is dropped first if too long
@@ -2131,7 +2150,7 @@ def enqueue(d: str, shot_ids: list[str], provider: str, model: str | None, overr
             extra["swap_in"] = str(swap_in)[:20]
         job = {"id": uuid.uuid4().hex[:12], "shot_id": sid, "plan": plan_name, "source_shots": shot.get("source_shots", []),
                "shot_start": shot["start"], "shot_end": shot["end"], "provider": provider, "model": model_id,
-               "kind": kind, "source_job": source_job, "overrides": job_over or {}, "fix_notes": fix_notes or [], **({"refs_only": True} if refs_only else {}), **({"note": note} if note else {}), **({"custom_prompt": custom_prompt, "prompt_only": prompt_only} if custom_prompt else {}), "look": resolve_look(project)["id"], "state": "queued", "provider_job_id": None, "attempts": 0,
+               "kind": kind, "source_job": source_job, "overrides": job_over or {}, "fix_notes": fix_notes or [], **({"refs_only": True} if refs_only else {}), **({"note": note} if note else {}), **({"custom_prompt": custom_prompt, "prompt_only": prompt_only} if custom_prompt else {}), "look": resolve_look(project, (scene or {}).get("number"), sid)["id"], "state": "queued", "provider_job_id": None, "attempts": 0,
                "created": int(time.time()), "updated": int(time.time()), "output": None, "error": None, "cost": None, **extra}
         store.jobs.append(job)
         made.append(job)

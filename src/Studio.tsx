@@ -8,10 +8,12 @@ import { PlayerOverlays } from "./PlayerOverlays";
 import { api, errorText, fmtTime, type BoardShot, type EngineEvent, type LoadedProject, type Plan, type Scene, type Shot, type SongMap } from "./api";
 import * as I from "./icons";
 import { ACTIVE_STATES, ConfirmRender, defaultProvider, JobChip, latestJobs, RenderPanel } from "./Render";
-import { AUTO_MODEL, type Job, type KeyStatus, type Overlay, type ShotHistory } from "./api";
+import { AUTO_MODEL, type Job, type KeyStatus, type Overlay, type ShotHistory, type StyleBibleRead } from "./api";
 import { ExportSheet } from "./Export";
 import { ShotCamera } from "./Camera";
 import { LookPicker, lookName, normalizeLook, useStyles } from "./Looks";
+import { effectiveLook, styleChangedSince } from "./styleStale";
+import { sameAsLabel, saveShotLook, ShotLook } from "./ShotLook";
 import { needsAttention, ReviewSheet } from "./Review";
 import { ComposeTab } from "./Compose";
 import { LightingSheet } from "./Lighting";
@@ -211,6 +213,16 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [pendingKf, setPendingKf] = useState<Record<string, string>>({});
   const [approvingKf, setApprovingKf] = useState(false);
   const styles = useStyles();
+  // the shots and scenes that are played in a look of their own (stylebible.py); a read, never a render
+  const [ownLooks, setOwnLooks] = useState<StyleBibleRead | null>(null);
+  const [shotLookFor, setShotLookFor] = useState<string | null>(null);
+  useEffect(() => { let live = true; api.stylebible(project.dir, "read").then((r) => live && setOwnLooks(r)).catch(() => {}); return () => { live = false; }; }, [project.dir, look.style]);
+  const pickShotLook = async (style: string) => {
+    const id = shotLookFor;
+    setShotLookFor(null);
+    if (!id) return;
+    try { setOwnLooks(await saveShotLook(project.dir, id, style)); } catch (e) { setError(errorText(e)); }
+  };
   // Studio-level File/View menu items.
   useEffect(() => {
     const on = (e: Event) => {
@@ -629,7 +641,10 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                      const pj = jobs.filter((j) => j.plan === planName && j.shot_id === s.id && j.state !== "dismissed");
                      const vid = pj.filter((j) => j.kind !== "image");
                      const kfRef = keyframes[planName]?.[s.id] ?? null;
+                     const shotLook = effectiveLook(ownLooks, s.id, s.scene, look.style);
                      return {
+                       styleChanged: styleChangedSince(pj, shotLook),
+                       look: { name: styles.find((x) => x.id === shotLook)?.name ?? lookName(styles, look), own: !!ownLooks?.shots[s.id], onOpen: () => setShotLookFor(s.id) },
                        badges: {
                          keyframe: pj.some((j) => j.kind === "image" && ACTIVE_STATES.includes(j.state)) ? "busy" : kfRef ? "ok" : "",
                          frames: boardShot.get(s.id)?.end_mode && boardShot.get(s.id)?.end_mode !== "none" ? "ok" : "",
@@ -638,6 +653,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                        },
                        shot: <>
                          {board && <ShotRefs dir={project.dir} shot={boardShot.get(s.id)} library={board.library} thumbs={thumbs} want={want} onChanged={reloadBoard} />}
+                         <ShotLook dir={project.dir} shotId={s.id} own={ownLooks} filmLook={look.style} sceneLook={effectiveLook(ownLooks ? { scenes: ownLooks.scenes } : null, s.id, s.scene, look.style)} onChanged={setOwnLooks} />
                          <ShotCamera dir={project.dir} shotId={s.id} sceneShotIds={shots.filter((x) => x.scene === s.scene).map((x) => x.id)} onChanged={mediaChanged} />
                          <ShotPerformance dir={project.dir} shotId={s.id} onChanged={reloadBoard} />
                          <ShotContinuity dir={project.dir} shotId={s.id} onChanged={mediaChanged} />
@@ -708,6 +724,12 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                  onSelect={(id) => { setSel({ kind: "shot", id }); const sh = shots.find((x) => x.id === id); if (sh) seek(sh.start); }}
                                  onClose={() => setReviewing(false)} />}
       {lookOpen && <LookPicker value={look} director={director} onCancel={() => setLookOpen(false)} onSave={saveLook} />}
+      {shotLookFor && ownLooks && (() => {
+        const sh = shots.find((x) => x.id === shotLookFor);
+        const inherited = effectiveLook(ownLooks ? { scenes: ownLooks.scenes } : null, shotLookFor, sh?.scene, look.style);
+        return <LookPicker value={{ style: effectiveLook(ownLooks, shotLookFor, sh?.scene, look.style) }} director={false} onCancel={() => setShotLookFor(null)} onSave={(l) => pickShotLook(l.style)}
+                           shot={{ id: shotLookFor, own: !!ownLooks.shots[shotLookFor], sameAs: sameAsLabel(ownLooks, look.style, inherited), onClear: () => pickShotLook("") }} />;
+      })()}
       {exporting && <ExportSheet dir={project.dir} projectAspect={project.project.aspect_ratio} shots={shots.length}
                                  rendered={shots.filter((s) => latest.get(s.id)?.state === "ready").length}
                                  onClose={() => setExporting(false)} />}
@@ -926,6 +948,8 @@ function Inspector({ sel, shots, scenes, map, plan, director, project, onClose, 
 type Tab = "shot" | "keyframe" | "frames" | "video" | "media";
 type Badge = "" | "ok" | "busy" | "bad";
 export type ShotTabs = {
+  styleChanged: boolean;                                   // a take of this shot was made in another look than the one it has now
+  look: { name: string; own: boolean; onOpen: () => void };  // the look the shot is played in, for the chip in its header
   badges: { keyframe: Badge; frames: Badge; video: Badge; media: Badge };
   shot: React.ReactNode; media: React.ReactNode;
   keyframe: (go: (t: Tab) => void) => React.ReactNode; frames: (go: (t: Tab) => void) => React.ReactNode; video: (go: (t: Tab) => void) => React.ReactNode;
@@ -958,7 +982,8 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
     <><span className="k">{k}</span><span className="v">{v}</span></>);
   return (
     <DockCtx.Provider value={{ el: dockEl, tab }}>
-      <div className="inspector-head"><span className="t num">Shot {s.id}</span>
+      <div className="inspector-head"><div className="insp-title"><span className="t num">Shot {s.id}</span>
+        <button className={`chip look-chip ${tabs.look.own ? "gold" : ""}`} onClick={tabs.look.onOpen} title="Choose a look for this shot" aria-label={`Look: ${tabs.look.name}. Choose a look for this shot`}><I.Eye size={12} />{tabs.look.name}</button></div>
         <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
       <div className="insp-tabrow">
       <div className="insp-tabs" role="tablist" aria-label="Shot sections">
@@ -977,6 +1002,7 @@ export function ShotInspector({ shot: s, scene, director, onClose, tabs, project
           <div className="insp-section" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <StateChip shot={s} /><span className="chip">Renderer: Auto</span>
           </div>
+          {tabs.styleChanged && <div className="flag"><I.Alert size={14} /><span>The video's look changed after this shot was made. Nothing is re-rendered for you: <button className="link" onClick={() => setTab("video")}>make a new take</button> (the price is shown first) or leave it.</span></div>}
           {s.flags?.map((f) => <div key={f} className="flag"><I.Alert size={14} /> {f}</div>)}
           <div className="insp-section"><div className="kv">
             {row("Time", `${fmtTime(s.start)} → ${fmtTime(s.end)}`)}

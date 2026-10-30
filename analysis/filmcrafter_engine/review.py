@@ -150,7 +150,7 @@ def visual(d: str, project: dict, shot: dict, take: str, need: float) -> dict | 
     brief = {"shot": shot.get("visual_prompt") or " ".join(shot.get("beats", [])),
              "performers": shot.get("performers", []), "framing": shot.get("framing"),
              "wardrobe": shot.get("wardrobe"), "continuity": shot.get("continuity"),
-             "look": resolve_look(project)["prompt"], **({"acting_asked_for": acting_ask} if acting_ask else {})}
+             "look": resolve_look(project, shot.get("scene"), shot.get("id"))["prompt"], **({"acting_asked_for": acting_ask} if acting_ask else {})}
     content.append({"type": "input_text", "text": "Shot contract: " + json.dumps(brief, ensure_ascii=False) + "\nFrames from the take:"})
     for t, f in _frames_at(take, need, 5 if acting_ask else 3):        # a performance needs more frames than a still life: the change over time is the point
         content.append({"type": "input_text", "text": f"Frame at {t:g} s of {round(need, 1):g} s:"})

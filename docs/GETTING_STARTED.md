@@ -75,6 +75,12 @@ Open **Cast & World** along the top. The first time, FilmCrafter fills it from y
 
 The look is **written into every picture and video prompt**, with its name first (models weigh the first words most), a fuller description, a *style lock* sentence that is the last thing dropped if a prompt gets long, and a list of what it must never look like. For a drawn, 3D or crafted look, words elsewhere in the prompt that ask for a photograph are reworded so they cannot pull the picture back to photorealism; photorealistic looks are left alone.
 
+### A look for one scene or one shot
+
+One look runs through the film, but a dream, a memory or a single odd shot can be played in another. Open the shot in the Studio and use **Look for this shot** on the **Shot** tab (its first choice, *Same as its scene (or film)*, takes the look away again), or press the **Look** chip at the top of the shot to choose from the full list. A shot's own look beats its scene's, and a scene's beats the film's. Your notes for the film ("keep Sege's beard") still apply; the film's genre feel and custom wording do not.
+
+This changes only what the **next** picture or take is made from. Nothing already made is re-rendered, nothing is charged, and a new take shows its price first, as always. If a shot's take was made in another look than the one it has now, the Shot tab says so ("The video's look changed after this shot was made") and leaves the decision to you. Changing the film's look keeps every look you gave a scene or a shot.
+
 ### Animation principles
 
 The twelve principles of animation (squash and stretch, anticipation, staging, pose to pose, follow-through, slow in and out, arcs, secondary action, timing, exaggeration, solid drawing, appeal) are in **Rules & style**. For each shot, the few that fit what happens in it are added to its prompt (a jump gets anticipation and squash and stretch; a coat in the wind gets follow-through), never all twelve. Drawn and 3D looks use most of them, crafts fewer, and photorealistic films keep only the ones that are also good acting and camera craft. Switch any on or off, or press *Use the style's own choice*. A quiet acting profile (Restrained, Natural) leaves exaggeration out unless you chose it.

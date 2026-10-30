@@ -76,7 +76,7 @@ def check(d: str, job: dict) -> dict:
                 {"type": "input_text", "text": "The shot: " + json.dumps({
                     "description": shot.get("visual_prompt") or " ".join(shot.get("beats", [])),
                     "performers": shot.get("performers", []), "framing": shot.get("framing"), "lens": shot.get("lens"),
-                    "look": resolve_look(project)["prompt"][:300]}, ensure_ascii=False)}]
+                    "look": resolve_look(project, (scene or {}).get("number"), job["shot_id"])["prompt"][:300]}, ensure_ascii=False)}]
     c = brain()
     model = resolve_model(c, DEFAULT_MODEL, vision=True)
     r = c.responses.create(model=model, input=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": content}],

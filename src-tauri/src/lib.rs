@@ -2112,7 +2112,36 @@ fn set_look(dir: String, look: Value) -> Result<(), String> {
     if !look["style"].is_string() {
         return Err("Choose a look.".into());
     }
-    update_project(&project_dir(&dir)?, json!({ "look": look }))
+    let d = project_dir(&dir)?;
+    let old = read_json(&d.join("project.json")).map(|p| p["look"].clone()).unwrap_or(Value::Null);
+    update_project(&d, json!({ "look": keep_own_looks(&old, look) }))
+}
+
+/// Changing the film's look must not lose the scenes and shots played in a look of their own (stylebible): the picker only knows the film's look, so they are carried over.
+fn keep_own_looks(old: &Value, mut new: Value) -> Value {
+    if let (Some(o), Some(n)) = (old.as_object(), new.as_object_mut()) {
+        for key in ["scenes", "shots"] {
+            if !n.contains_key(key) {
+                if let Some(v) = o.get(key).filter(|v| v.as_object().is_some_and(|m| !m.is_empty())) {
+                    n.insert(key.to_string(), v.clone());
+                }
+            }
+        }
+    }
+    new
+}
+
+/// A look for one scene or one shot (filmcrafter_engine.stylebible): read | set_scene | set_shot. Free and local. It writes only the look's rules in project.json; nothing is rendered,
+/// charged or replaced, and a new take still shows its price first.
+#[tauri::command]
+async fn stylebible(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 3] = ["read", "set_scene", "set_shot"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let d = project_dir(&dir)?.to_string_lossy().to_string();
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.stylebible".into(), action, d, "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "stylebible", &args, &[])).await.map_err(err)?
 }
 
 // ---------- song-first creative development ----------
@@ -2346,7 +2375,7 @@ pub fn run() {
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, confirm_spend, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
             save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_materials, film_choreography, film_placecare, film_audioplan, film_readiness, film_pacing, film_composition, film_spending, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
-            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
+            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, stylebible, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -2365,6 +2394,18 @@ fn load_project_data(d: &Path) -> Option<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn changing_the_films_look_keeps_the_looks_of_scenes_and_shots() {
+        let old = json!({"style": "claymation", "scenes": {"6": "live-action"}, "shots": {"S06-02": "anime"}, "notes": "n"});
+        let kept = keep_own_looks(&old, json!({"style": "noir"}));
+        assert_eq!(kept, json!({"style": "noir", "scenes": {"6": "live-action"}, "shots": {"S06-02": "anime"}}));
+        // a key the new look already has is left as it is (the other is still carried over); an old look without any, or none at all, adds nothing
+        assert_eq!(keep_own_looks(&old, json!({"style": "noir", "shots": {}})), json!({"style": "noir", "shots": {}, "scenes": {"6": "live-action"}}));
+        assert_eq!(keep_own_looks(&old, json!({"style": "noir", "shots": {"S01-01": "noir"}, "scenes": {}})), json!({"style": "noir", "shots": {"S01-01": "noir"}, "scenes": {}}));
+        assert_eq!(keep_own_looks(&json!({"style": "x"}), json!({"style": "noir"})), json!({"style": "noir"}));
+        assert_eq!(keep_own_looks(&Value::Null, json!({"style": "noir"})), json!({"style": "noir"}));
+    }
 
     #[test]
     fn a_spend_token_is_single_use_bound_to_its_batch_and_expires() {
