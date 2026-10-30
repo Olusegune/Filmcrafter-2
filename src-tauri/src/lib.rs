@@ -1703,7 +1703,8 @@ async fn acting(app: AppHandle, dir: String, action: String, data: Value) -> Res
 /// anywhere and nothing is rendered or charged; the screenplay, the shots and the Bible are only read.
 #[tauri::command]
 async fn performance_director(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 10] = ["characters_get", "character_set", "character_clear", "breakdown_get", "breakdown_set", "breakdown_reset", "breakdown_accept", "beats_suggest", "nudges_get", "nudge_set"];
+    const ACTIONS: [&str; 15] = ["characters_get", "character_set", "character_clear", "breakdown_get", "breakdown_set", "breakdown_reset", "breakdown_accept", "beats_suggest", "nudges_get", "nudge_set",
+        "kind_options", "continuity_get", "continuity_dismiss", "model_labels", "delivery_hint"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

@@ -6,7 +6,7 @@ import "@testing-library/jest-dom/vitest";
 const invoke = vi.fn();
 vi.mock("@tauri-apps/api/core", () => ({ invoke: (cmd: string, args: unknown) => invoke(cmd, args), convertFileSrc: (p: string) => p }));
 
-import { FieldRow, NudgeRow, PeopleProfiles, SceneNotes } from "../../PerformanceDirector";
+import { ArcFlags, FieldRow, NudgeRow, PeopleProfiles, SceneNotes } from "../../PerformanceDirector";
 import { BeatsView } from "../../ActingDepth";
 import type { Breakdown, CastProfiles, NudgeState, PField } from "../../api";
 
@@ -109,7 +109,7 @@ const cast = (): CastProfiles => ({ fields: ["desire"], people: [
 
 describe("what a person is like", () => {
   it("shows what the cast already says, read only, beside the fields", async () => {
-    invoke.mockResolvedValue(cast());
+    invoke.mockImplementation((_c: string, args: { action: string }) => Promise.resolve(args.action === "kind_options" ? { kinds: [] } : cast()));
     render(<PeopleProfiles dir="p" />);
     const known = await screen.findByRole("region", { name: /What the cast already says about Sarah/ });
     expect(known).toHaveTextContent(/roleLead/);
@@ -118,7 +118,7 @@ describe("what a person is like", () => {
     expect(screen.getByTitle("Fields you have filled in")).toHaveTextContent("1");
   });
   it("saves only the fields that changed, for that person", async () => {
-    invoke.mockResolvedValueOnce(cast()).mockResolvedValueOnce(cast());
+    invoke.mockImplementation((_c: string, args: { action: string }) => Promise.resolve(args.action === "kind_options" ? { kinds: [] } : cast()));
     render(<PeopleProfiles dir="p" />);
     await screen.findByText("About Sarah");
     const save = screen.getByRole("button", { name: "Save Sarah" });
@@ -128,7 +128,7 @@ describe("what a person is like", () => {
     await waitFor(() => expect(invoke).toHaveBeenLastCalledWith("performance_director", { dir: "p", action: "character_set", data: { person: "Sarah", fields: { desire: "to be taken seriously" } } }));
   });
   it("clears everything for one person only, and only when something is filled in", async () => {
-    invoke.mockResolvedValue(cast());
+    invoke.mockImplementation((_c: string, args: { action: string }) => Promise.resolve(args.action === "kind_options" ? { kinds: [] } : cast()));
     render(<PeopleProfiles dir="p" />);
     await screen.findByText("About Sarah");
     expect(screen.queryByRole("button", { name: /Clear everything/ })).not.toBeInTheDocument();
@@ -175,5 +175,37 @@ describe("beats, version 2", () => {
   it("has no suggest button when none is wired", () => {
     view({ onSuggest: undefined });
     expect(screen.queryByRole("button", { name: /Suggest beats/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("what kind of character", () => {
+  const answer = (a: string) => a === "kind_options" ? { kinds: [{ id: "human", label: "A person" }, { id: "robot", label: "A robot or machine" }] } : cast();
+  it("saves the kind chosen for that person only", async () => {
+    invoke.mockImplementation((_c: string, args: { action: string }) => Promise.resolve(answer(args.action)));
+    render(<PeopleProfiles dir="p" />);
+    const pick = await screen.findByRole("combobox", { name: "What kind of character" });
+    await screen.findByRole("option", { name: "A robot or machine" });
+    fireEvent.change(pick, { target: { value: "robot" } });
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("performance_director", { dir: "p", action: "character_set", data: { person: "Sarah", fields: { kind: "robot" } } }));
+  });
+});
+
+describe("the emotional arc check", () => {
+  const arc = (dismissed: string[] = []) => ({ sections: ["A", "B"], dismissed, people: [{ name: "Sarah", source: "you", dismissed: dismissed.length,
+    track: [{ section: "A", emotion: "calm", intensity: 2 }, { section: "B", emotion: "furious", intensity: 8 }],
+    flags: dismissed.length ? [] : [{ id: "Sarah|abrupt|A>B", kind: "abrupt", scenes: ["A", "B"], message: "Sarah goes from calm to furious." }] }] });
+  it("points at a place worth a look and lets it be dismissed", async () => {
+    invoke.mockImplementation((_c: string, args: { action: string }) => Promise.resolve(args.action === "continuity_dismiss" ? arc(["Sarah|abrupt|A>B"]) : arc()));
+    render(<ArcFlags dir="p" />);
+    expect(await screen.findByText(/Sarah goes from calm to furious/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Dismiss: Sarah goes from calm/ }));
+    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith("performance_director", { dir: "p", action: "continuity_dismiss", data: { flag: "Sarah|abrupt|A>B", undo: false } }));
+    expect(await screen.findByText(/Nothing stands out/)).toBeInTheDocument();
+    expect(screen.getByText(/1 dismissed/)).toBeInTheDocument();
+  });
+  it("explains what to do when no arcs are written", async () => {
+    invoke.mockResolvedValue({ sections: [], dismissed: [], people: [{ name: "Sarah", track: [], flags: [], dismissed: 0 }] });
+    render(<ArcFlags dir="p" />);
+    expect(await screen.findByText(/at least two scenes/)).toBeInTheDocument();
   });
 });

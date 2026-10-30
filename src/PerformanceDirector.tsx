@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, errorText, type Breakdown, type CastProfiles, type NudgeState, type PField, type SceneBreakdown } from "./api";
+import { api, errorText, type Breakdown, type CastProfiles, type EmotionalArc, type KindOptions, type NudgeState, type PField, type SceneBreakdown } from "./api";
 import * as I from "./icons";
 
 /**
@@ -127,8 +127,10 @@ export function PeopleProfiles({ dir, onChanged }: { dir: string; onChanged?: ()
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [kinds, setKinds] = useState<KindOptions["kinds"] | null>(null);
   const apply = useCallback((r: CastProfiles) => { setData(r); setSel((s) => (s && r.people.some((p) => p.name === s) ? s : r.people[0]?.name ?? null)); setDraft({}); }, []);
   useEffect(() => { let live = true; api.performanceDirector<CastProfiles>(dir, "characters_get").then((r) => live && apply(r)).catch((e) => live && setErr(errorText(e))); return () => { live = false; }; }, [dir, apply]);
+  useEffect(() => { api.performanceDirector<KindOptions>(dir, "kind_options").then((r) => setKinds(Array.isArray(r?.kinds) ? r.kinds : [])).catch(() => setKinds([])); }, [dir]);
   const call = async (action: "character_set" | "character_clear", fields?: Record<string, string>) => {
     if (!sel) return;
     setBusy(true); setErr("");
@@ -162,6 +164,14 @@ export function PeopleProfiles({ dir, onChanged }: { dir: string; onChanged?: ()
               {p.gestures.length > 0 && <div><dt>signature gestures</dt><dd>{p.gestures.map((g) => `when ${g.when}: ${g.do}`).join("; ")}</dd></div>}
             </dl>
           </section>)}
+        <label className="pd-pf pd-kind">
+          <span>What kind of character</span>
+          <select className="text-input" value={p.profile.kind ?? ""} disabled={busy} aria-label="What kind of character" onChange={(e) => call("character_set", { kind: e.target.value })}>
+            <option value="">Not set (treated as a person)</option>
+            {(kinds ?? []).map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+          </select>
+          <span className="dim">An animal, a robot or a creature is acted with ears, posture and pace, not a human face. Only what you choose here is used.</span>
+        </label>
         <div className="pd-profile">
           {PROFILE_FIELDS.map((f) => (
             <label key={f.id} className="pd-pf">
@@ -197,6 +207,34 @@ export function NudgeRow({ dir, shotId, onChanged }: { dir: string; shotId: stri
             {n.label}{n.levels > 1 && n.level > 0 ? ` · ${"●".repeat(n.level)}` : ""}</button>))}
       </div>
       {err && <p className="error-text" role="alert">{err}</p>}
+    </section>
+  );
+}
+
+const FLAG_NAME: Record<string, string> = { abrupt: "A sudden change", flat: "Stays the same", nonstop: "Full strength for long", unrested: "Drops with no step" };
+
+/** Where each person's feeling goes from scene to scene, and the few places worth a look. Each can be dismissed; nothing is changed by looking. */
+export function ArcFlags({ dir }: { dir: string }) {
+  const [data, setData] = useState<EmotionalArc | null>(null);
+  const [err, setErr] = useState("");
+  const load = useCallback(() => api.performanceDirector<EmotionalArc>(dir, "continuity_get").then(setData).catch((e) => setErr(errorText(e))), [dir]);
+  useEffect(() => { void load(); }, [load]);
+  const dismiss = async (flag: string, undo = false) => { setErr(""); try { setData(await api.performanceDirector<EmotionalArc>(dir, "continuity_dismiss", { flag, undo })); } catch (e) { setErr(errorText(e)); } };
+  if (!data) return err ? <p className="error-text" role="alert">{err}</p> : <p className="dim">Loading…</p>;
+  const withArc = data.people.filter((p) => p.track.length > 0);
+  if (!withArc.length) return <p className="dim">Write each person's feeling for at least two scenes above, and the places where it jumps, stalls or never rests are pointed out here.</p>;
+  const flagged = withArc.reduce((n, p) => n + p.flags.length, 0);
+  return (
+    <section className="pd-arcflags" aria-label="Emotional arc check">
+      <h4 className="pd-h">Worth a look {flagged > 0 ? <span className="pd-flag mine" title="Places to look at">{flagged}</span> : null}</h4>
+      {err && <p className="error-text" role="alert">{err}</p>}
+      {flagged === 0 && <p className="dim">Nothing stands out: no sudden jumps, long stalls or stretches at full strength. This only reads the feelings you wrote; it cannot say a performance is right.</p>}
+      {withArc.map((p) => p.flags.length > 0 && (
+        <div key={p.name} className="pd-flaglist"><b>{p.name}</b>
+          <ul>{p.flags.map((f) => (
+            <li key={f.id}><span className="pd-flagkind">{FLAG_NAME[f.kind] ?? f.kind}</span> {f.message}{" "}
+              <button type="button" className="btn small ghost" aria-label={`Dismiss: ${f.message}`} onClick={() => dismiss(f.id)}>Dismiss</button></li>))}</ul></div>))}
+      {data.dismissed.length > 0 && <p className="dim">{data.dismissed.length} dismissed. <button type="button" className="link" onClick={async () => { for (const id of data.dismissed) await dismiss(id, true); }}>Show them again</button></p>}
     </section>
   );
 }

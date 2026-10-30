@@ -4,7 +4,7 @@ import { api, errorText } from "./api";
 import * as I from "./icons";
 import { PanelHead } from "./Dock";
 import { ArcSection, BeatsPanel, GesturesSection } from "./ActingDepth";
-import { NudgeRow, PeopleProfiles, SceneNotes } from "./PerformanceDirector";
+import { ArcFlags, NudgeRow, PeopleProfiles, SceneNotes } from "./PerformanceDirector";
 
 export type PerfData = { profiles: { id: string; label: string; blurb: string }[]; default: string;
   scenes: Record<string, string>; characters: Record<string, string>; shots: Record<string, string>; set: boolean };
@@ -27,6 +27,7 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
   const { perf, setPerf } = usePerformance(dir);
   const [err, setErr] = useState("");
   const [tab, setTab] = useState<"scenes" | "people" | "style">("scenes");
+  const [arcTick, setArcTick] = useState(0);                       // the arc check reads again after the arc is edited
   const set = async (data: Record<string, unknown>) => { setErr(""); try { await setPerf(data); onChanged(); } catch (e) { setErr(errorText(e)); } };
   const label = (id: string) => perf?.profiles.find((x) => x.id === id)?.label ?? id;
   const TABS: ["scenes" | "people" | "style", string][] = [["scenes", "Scenes"], ["people", "People"], ["style", "Style & arcs"]];
@@ -72,7 +73,8 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
           </div>
           <p className="dim">A shot's own choice (in its panel) wins, then the scene, then the character, then the whole video.</p></details>
           <details className="perf-more"><summary>Emotional arc <span className="dim">how each character's feeling travels through the film</span></summary>
-            <ArcSection dir={dir} onChanged={onChanged} /></details>
+            <ArcSection dir={dir} onChanged={() => { onChanged(); setArcTick((t) => t + 1); }} />
+            <ArcFlags key={arcTick} dir={dir} /></details>
           <details className="perf-more"><summary>Signature gestures <span className="dim">the small habits that make a character themselves</span></summary>
             <GesturesSection dir={dir} onChanged={onChanged} /></details>
         </>}

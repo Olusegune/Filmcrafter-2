@@ -105,8 +105,12 @@ export type SceneBreakdown = {
   turning_points: { shot: string; person: string; what: string }[]; nonverbal: { shot: string; what: string }[]; reactions: { shot: string; person: string; what: string }[];
 };
 export type Breakdown = { has_contracts: boolean; scenes: SceneBreakdown[] };
+export type ArcFlag = { id: string; kind: "abrupt" | "flat" | "nonstop" | "unrested"; scenes: string[]; message: string };
+export type EmotionalArc = { people: { name: string; track: { section: string; emotion: string; intensity: number }[]; flags: ArcFlag[]; dismissed: number }[]; sections: string[]; dismissed: string[] };
+export type KindOptions = { kinds: { id: string; label: string }[] };
 export type NudgeState = { shot: string; nudges: { id: string; label: string; level: number; levels: number }[] };
-export type PDAction = "characters_get" | "character_set" | "character_clear" | "breakdown_get" | "breakdown_set" | "breakdown_reset" | "breakdown_accept" | "beats_suggest" | "nudges_get" | "nudge_set";
+export type PDAction = "characters_get" | "character_set" | "character_clear" | "breakdown_get" | "breakdown_set" | "breakdown_reset" | "breakdown_accept" | "beats_suggest" | "nudges_get" | "nudge_set"
+  | "kind_options" | "continuity_get" | "continuity_dismiss" | "model_labels" | "delivery_hint";
 export type Look = { style: string; notes?: string; prompt?: string; avoid?: string };
 /** A look for one scene or one shot (stylebible.py). `scenes[].style` and `shots[id]` are the scene's and the shot's own look ids; absent means the film's. */
 export type StyleBibleRead = { style: { id: string; name: string; prompt: string }; styles: { id: string; name: string; group: string; description: string }[]; scenes: { scene: number; heading: string | null; style: string | null }[]; shots: Record<string, string>; keep_cast?: Record<string, boolean>; precedence: string[] };

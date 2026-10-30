@@ -114,6 +114,8 @@ Each milestone is releasable by itself, adds tests for what it does, and reports
 
 Rough size: M1 and M2 are the largest user-visible steps; M3 and M5 carry the most new logic; M6 is mostly hardening.
 
+**Status (2026-10-30).** M1, M2 done. M3 done in a smaller form: character kinds, look-specific wording, effort and contact lines (`performance_prompts.py`). M4: `model_capabilities.py` labels (tested, documented, unverified) and the delivery hint; the voice link is a hint, not yet applied to the voice step. M5: `emotional_continuity.py` and its flags in the Acting sheet; review confidence and selective regeneration are not built. M6: the engine already refuses `beats_write` and `arc_write` without `confirmed`; the recorded real run has not happened and needs the owner's approval of the spend.
+
 ## 8. What will not be claimed
 
 No label of "verified" for any model feature without a recorded real run; no wording like "Hollywood quality" or "perfect acting"; the review will say what it saw and how sure it is, never that a performance is good; nothing is rendered, charged, pushed or released without the owner's say-so.

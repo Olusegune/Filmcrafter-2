@@ -1203,6 +1203,8 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
             blocks.append((7, shot["inner_text"]))
         if shot.get("psychology_text"):
             blocks.append((5, shot["psychology_text"]))
+        if shot.get("performance_text"):
+            blocks.append((6, shot["performance_text"]))
     if shot.get("continuity") and not only:   # Continuity Director: blocking, 180-degree line, eyelines, wardrobe, light
         blocks.append((7, shot["continuity"]))
     if shot.get("locked_design"):   # canonical assets (e.g. from a Producer package)
@@ -2733,6 +2735,15 @@ def _with_movement(d: str, shot: dict) -> dict:
     try:   # timed performance beats, where this person is in their arc, their signature gestures (acting.py)
         from . import acting
         from . import character_performance, performance_analysis       # the Performance Director: what you wrote about the people, never a draft
+        from . import performance_prompts
+        try:                                                              # the look's family decides how a non-human's acting is worded
+            from . import animation_principles
+            with open(os.path.join(d, "project.json"), encoding="utf-8") as fh:
+                fam = animation_principles.family(resolve_look(json.load(fh), shot.get("scene"), shot.get("id"))["id"])
+        except Exception:
+            fam = ""
+        if performance_prompts.text(d, shot, fam):
+            extra["performance_text"] = performance_prompts.text(d, shot, fam)
         for key, text in (("acting_beats", acting.beats_text(d, shot, "video")), ("acting_beats_pose", acting.beats_text(d, shot, "image")),
                           ("arc_text", acting.arc_text(d, shot)), ("business_text", acting.business_text(d, shot)),
                           ("acting_nudges", acting.nudge_text(d, shot)), ("acting_carry", acting.carry_text(d, shot)),

@@ -103,6 +103,9 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 ## Performance Director screens (2026-10-30)
 Checked on the harness, no provider: 16 jsdom component tests, 3 browser tests, and the axe scan over the two new scenes (no violations). Visual fixes found by looking: oversized text boxes made the Scenes tab long, and the beat editor ran too tall (details are now folded behind a summary line). Not checked: the sheets in the installed desktop app, or with a real film's breakdown.
 
+## Performance Director steps three to five and the old-code removal (2026-10-30)
+Checked: new engine tests (kinds, prompt wording, honest model labels, delivery hint, arc flags, the allow-lists), 19 component tests, 4 browser tests and the accessibility scan; the full Python suite (2211 passed after the removal), vitest, clippy, cargo test and all browser tests passed after removing the song-first code. Not checked: a real provider run (acting quality is labelled *unverified* on purpose), the installed app on a real film.
+
 ## Layout and accessibility sweep (2026-10-15, 0.25.4)
 
 `PF_OVERFLOW=1 PF_QA=1 PF_WIDTH=1000 (and 1280) node scripts/docshots-edge.mjs home film cast castsound soundfx soundscene soundstyle shots make select studio export dirliball compose library supervisor`: nothing outside the window, no page scrolling sideways, no console errors. `PF_A11Y=1` (axe-core, WCAG 2.1 A and AA) on 14 of those screens: 0 findings. The one defect found by eye was the Direction library's squashed cards (fixed). Not covered: 125% and 150% Windows scaling (a person must look), and dialogs, which the harness draws inline rather than as modals.

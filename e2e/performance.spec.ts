@@ -43,4 +43,17 @@ test.describe("the Performance Director", () => {
     await btn.click();
     await expect(page.getByRole("button", { name: /More restrained · ●/ })).toHaveAttribute("aria-pressed", "true");
   });
+
+  test("a kind of character can be chosen, and the arc check can be dismissed", async ({ page }) => {
+    await open(page, "acting");
+    await page.getByRole("tab", { name: /People/ }).click();
+    const kind = page.getByRole("combobox", { name: "What kind of character" });
+    await kind.selectOption("robot");
+    await expect(kind).toHaveValue("robot");
+    await page.getByRole("tab", { name: /Style/ }).click();
+    await page.getByText("Emotional arc", { exact: false }).first().click();
+    await expect(page.getByText(/goes from calm \(2\/10\) to furious/)).toBeVisible();
+    await page.getByRole("button", { name: /^Dismiss:/ }).click();
+    await expect(page.getByText(/Nothing stands out/)).toBeVisible();
+  });
 });

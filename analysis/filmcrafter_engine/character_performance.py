@@ -17,9 +17,11 @@ import time
 
 from . import safeio
 
+from .performance_prompts import KINDS
+
 FILE = "characters.json"
 SCHEMA = 1
-FIELDS = {"personality": 320, "desire": 320, "fears": 320, "triggers": 320, "contradictions": 320, "defenses": 320, "speech_rhythm": 200, "carriage": 240, "stress": 320, "state_now": 160}
+FIELDS = {"personality": 320, "desire": 320, "fears": 320, "triggers": 320, "contradictions": 320, "defenses": 320, "speech_rhythm": 200, "carriage": 240, "stress": 320, "state_now": 160, "kind": 20}
 
 
 def film_dir(d: str) -> str | None:
@@ -52,7 +54,7 @@ def load(d: str) -> dict:
     people = {}
     for name, p in (s.get("people") if isinstance(s.get("people"), dict) else {}).items():
         if isinstance(p, dict):
-            people[str(name)] = {k: _txt(p.get(k), n) for k, n in FIELDS.items() if _txt(p.get(k), n)}
+            people[str(name)] = {k: _txt(p.get(k), n) for k, n in FIELDS.items() if _txt(p.get(k), n) and (k != "kind" or _txt(p.get(k), n) in KINDS)}
     return {"schema": SCHEMA, "people": people}
 
 
@@ -112,7 +114,7 @@ def get(d: str) -> dict:
         gestures = acting.load(d)["business"]
     except Exception:
         gestures = {}
-    return {"fields": list(FIELDS), "people": [{"name": n, "profile": {k: stored.get(n, {}).get(k, "") for k in FIELDS}, "known": _known(d, n), "style": _style(d, n),
+    return {"fields": [k for k in FIELDS if k != "kind"], "people": [{"name": n, "profile": {k: stored.get(n, {}).get(k, "") for k in FIELDS}, "known": _known(d, n), "style": _style(d, n),
                                                 "gestures": acting.clean_business(gestures.get(n))} for n in _people(d)]}
 
 
@@ -123,6 +125,8 @@ def set_fields(d: str, person: str, fields: dict) -> dict:
     if not isinstance(fields, dict) or not any(k in FIELDS for k in fields):
         raise SystemExit("Nothing to save.")
     cleaned = {k: _txt(v, FIELDS[k]) for k, v in fields.items() if k in FIELDS}
+    if cleaned.get("kind") and cleaned["kind"] not in KINDS:
+        raise SystemExit("That kind of character is not one of the choices.")
 
     def change(data):
         data = data if isinstance(data, dict) else {}

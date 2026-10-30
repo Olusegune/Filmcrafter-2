@@ -426,6 +426,7 @@ const pdScenes = [
 ];
 const pdProfiles: Record<string, Record<string, string>> = { Sarah: {}, John: {} };
 const pdNudges: Record<string, number> = {};
+const pdDismissed = new Set<string>();
 const NUDGE_DEFS: [string, string, number][] = [["restrained", "More restrained", 2], ["grounded", "Less exaggerated", 1], ["vulnerable", "More vulnerable", 1], ["hesitant", "More hesitant", 1], ["playful", "More playful", 1],
   ["tense", "More tension", 1], ["still_body", "Reduce body movement", 1], ["eyes", "Let the eyes tell the story", 1], ["hold", "Hold the reaction longer", 1]];
 const pdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
@@ -444,6 +445,13 @@ const pdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown
     case "breakdown_set": case "breakdown_accept": { const s = slot(String(d.path)); if (!s) throw new Error("That is not a part of this scene's breakdown.");
       s.value = a.action === "breakdown_set" ? String(d.value ?? "") : s.value; s.source = "you"; s.from = "your edit"; return sc; }
     case "breakdown_reset": { const s = slot(String(d.path)); if (!s) throw new Error("That is not a part of this scene's breakdown."); s.source = "auto"; s.from = "the draft"; return sc; }
+    case "kind_options": return { kinds: [["human", "A person"], ["stylised", "A stylised person (cartoon, puppet)"], ["animal", "An animal"], ["robot", "A robot or machine"], ["creature", "A creature or monster"]].map(([id, label]) => ({ id, label })) };
+    case "continuity_get": case "continuity_dismiss": {
+      if (a.action === "continuity_dismiss") { const f = String((d as { flag?: string }).flag); if ((d as { undo?: boolean }).undo) pdDismissed.delete(f); else pdDismissed.add(f); }
+      const all = [{ id: "Sarah|abrupt|Scene 1>Scene 2", kind: "abrupt", scenes: ["Scene 1", "Scene 2"], message: "Sarah goes from calm (2/10) to furious (8/10) between Scene 1 and Scene 2. If nothing in the story causes that change, it may feel sudden." }];
+      return { sections: ["Scene 1", "Scene 2"], dismissed: [...pdDismissed], people: [{ name: "Sarah", source: "you", dismissed: all.filter((x) => pdDismissed.has(x.id)).length,
+        track: [{ section: "Scene 1", emotion: "calm", intensity: 2 }, { section: "Scene 2", emotion: "furious", intensity: 8 }], flags: all.filter((x) => !pdDismissed.has(x.id)) }] };
+    }
     case "characters_get": return { fields: ["personality", "desire", "fears", "triggers", "contradictions", "defenses", "speech_rhythm", "carriage", "stress", "state_now"],
       people: Object.keys(pdProfiles).map((n) => ({ name: n, profile: { personality: "", desire: "", fears: "", triggers: "", contradictions: "", defenses: "", speech_rhythm: "", carriage: "", stress: "", state_now: "", ...pdProfiles[n] },
         known: n === "Sarah" ? { role: "Lead", relationships: "Wants John to stay" } : {}, style: n === "Sarah" ? "restrained" : "", gestures: n === "Sarah" ? [{ when: "flustered", do: "touches the front of her collar" }] : [] })) };
