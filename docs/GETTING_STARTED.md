@@ -262,6 +262,8 @@ In **Settings** add a key for Kie.ai, fal, Google or OpenAI; the app lists each 
 
 ![The model picker: recommended models as cards, everything else under All models with a search](img/film/modelpicker.png)
 
+**Seedream and picture size.** **Seedream 5.0 Pro** is on Kie.ai and on fal, and is a recommended card on both. It goes up to **2K** (2048 pixels along the long edge) on both providers: it has no 4K. **Seedream 4.5** goes up to **4K**. The picker marks both with *up to 2K* or *up to 4K*; these are the largest sizes the providers publish for each model, and FilmCrafter has not proved them with a real render. The project's **Quality** decides which size is asked for: **Draft** and **Standard** use the model's basic size; **High** and **Max** ask for the largest the model offers, in your film's shape (for example 2048 × 1152 for 16:9). A bigger picture costs more, so a price that was learned at the basic size is never shown for a bigger one: until a picture has been made at that size, the price sheet says *Not priced yet at this size* and the budget counts it at a deliberately high price. On Kie you can also choose **Detail** (basic or high) yourself, beside the button that makes the picture; on fal the size follows the project's Quality.
+
 ## Cards or timeline: the same film two ways
 
 Along the top of a film, **Cards | Timeline** switches how you see the same shots:

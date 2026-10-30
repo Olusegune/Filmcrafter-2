@@ -15,7 +15,7 @@ export const shortName = (c: CatalogItem): string => {
 };
 
 /** What the list says after a model's name: new, cannot see your pictures, good at text. */
-export const marks = (c: CatalogItem): string => [c.fresh ? "NEW" : "", c.sees === false ? "text only" : "", c.text ? "clean text" : ""].filter(Boolean).join(" · ");
+export const marks = (c: CatalogItem): string => [c.fresh ? "NEW" : "", c.sees === false ? "text only" : "", c.text ? "clean text" : "", c.max_size ? `up to ${c.max_size}` : ""].filter(Boolean).join(" · ");
 
 /**
  * Choose a model. Recommended models come first as cards (name, family, and NEW / "text only" / "clean text" marks). "All models" opens a searchable list grouped by family; "text only"
@@ -45,7 +45,7 @@ export function ModelPicker({ catalog, value, onChange, onBlur, label, id, onRef
     return (
       <button key={c.model} type="button" className={`mp2-card ${on ? "on" : ""}`} aria-pressed={on} title={`${c.title} (${c.model})${marks(c) ? " · " + marks(c) : ""}`} onClick={() => onChange(c.model)}>
         <span className="mp2-name">{shortName(c)}{c.fresh && <span className="mp-new" aria-label="new"> NEW</span>}</span>
-        <span className="mp2-sub">{split(c)[0]}{c.sees === false ? " · text only" : ""}{c.text ? " · clean text" : ""}</span>
+        <span className="mp2-sub">{split(c)[0]}{c.sees === false ? " · text only" : ""}{c.text ? " · clean text" : ""}{c.max_size ? ` · up to ${c.max_size}` : ""}</span>
         {on && <span className="mp2-check" aria-hidden="true">✓</span>}
       </button>);
   };

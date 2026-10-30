@@ -28,6 +28,11 @@ TEXT_GOOD = re.compile(r"ideogram|gpt-image|gpt/gpt-image|qwen3|seedream/5-pro|s
 
 RECOMMENDED_IMAGE = ["google/nanobanana-2-1", "google/pro-image-to-image", "gpt/gpt-image-2-5-flare-image-to-image", "seedream/5-pro-image-to-image",
                      "flux2/pro-image-to-image", "google/nano-banana-edit", "ideogram/v3-edit"]
+# fal's own ids for the picture models worth a card of their own (fal's list is otherwise unranked)
+RECOMMENDED_IMAGE_FAL = ["bytedance/seedream/v5/pro/edit"]
+# The largest picture size a model's published settings offer (what the provider documents, read 2026-10-30; not proved by a real render here). Seedream 5 Pro stops at 2K on both
+# providers (Kie: basic 1K, high 2K; fal: up to about 4.6 million pixels); Seedream 4.5 reaches 4K (Kie: high; fal: auto_4K).
+MAX_PICTURE_SIZE = [(re.compile(r"seedream/5-pro|seedream/v5/pro", re.I), "2K"), (re.compile(r"seedream/4-5|seedream/v4\.5", re.I), "4K")]
 RECOMMENDED_VIDEO = ["kling/kling-3-0", "kling/v3-turbo-image-to-video", "kling/v3-omni-image-to-video", "bytedance/seedance-2", "bytedance/seedance-2-5",
                      "minimax-h3/image-to-video", "wan/3-0-video", "happyhorse-1-1/image-to-video"]
 # picture-to-video: a video model that only takes text cannot start from your keyframe either
@@ -60,6 +65,13 @@ def rank(slug: str, kind: str = "image") -> int | None:
     """Position in the recommended list (0 = first), or None."""
     lst = RECOMMENDED_VIDEO if kind == "video" else RECOMMENDED_IMAGE
     return lst.index(slug) if slug in lst else None
+
+
+def max_size(slug: str, kind: str = "image") -> str | None:
+    """The largest picture size a model offers, for the few models it is known for (None: not known, nothing is claimed)."""
+    if kind != "image":
+        return None
+    return next((size for rx, size in MAX_PICTURE_SIZE if rx.search(slug or "")), None)
 
 
 def _seen_path(cache_dir: str) -> str:
@@ -103,6 +115,8 @@ def decorate(items: list[dict], provider: str, kind: str, cache_dir: str) -> lis
         slug = it["model"]
         it["sees"] = sees_pictures(slug, kind) if provider == "kie" else True
         it["text"] = good_at_text(slug) if provider == "kie" else False
-        it["rec"] = rank(slug, kind) if provider == "kie" else None
+        it["rec"] = rank(slug, kind) if provider == "kie" else (RECOMMENDED_IMAGE_FAL.index(slug) if provider == "fal" and kind == "image" and slug in RECOMMENDED_IMAGE_FAL else None)
+        if max_size(slug, kind):
+            it["max_size"] = max_size(slug, kind)
     mark_fresh(items, provider, kind, cache_dir)
     return sorted(items, key=lambda it: (it["rec"] is None, it["rec"] if it["rec"] is not None else 0, not it["sees"], it.get("title", "")))

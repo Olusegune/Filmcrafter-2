@@ -85,6 +85,7 @@ def _cheapest(kind: str, providers: tuple = ("kie", "fal")) -> dict | None:
 
 
 FALLBACK_USD = {"image": 0.25, "video": 1.00, "lipsync": 0.50}   # when a provider publishes no price: assume high, not zero
+FALLBACK_BIG_PICTURE_USD = 0.75                                    # a 2K or 4K picture with no price yet (Kie shows its price only after the first one): higher still
 
 
 def _read(path, default=None):
@@ -179,7 +180,8 @@ def batch_usd(d: str, shot_ids: list[str], provider: str, model: str | None, kin
         return round(e["kie_credits_est"] * KIE_USD_PER_CREDIT, 2)
     if e.get("usd") is not None:
         return float(e["usd"])
-    return round((e.get("usd_known") or 0) + FALLBACK_USD.get(kind, 1.0) * (e.get("unknown") or len(shot_ids)), 2)
+    each = FALLBACK_BIG_PICTURE_USD if e.get("size_unpriced") else FALLBACK_USD.get(kind, 1.0)
+    return round((e.get("usd_known") or 0) + each * (e.get("unknown") or len(shot_ids)), 2)
 
 
 def pending_usd(d: str) -> float:
@@ -193,8 +195,10 @@ def pending_usd(d: str) -> float:
             continue
         if j.get("estimate_usd") is not None:
             total += float(j["estimate_usd"])
-        elif j["provider"] == "kie" and mem.get(j["model"]):
-            total += mem[j["model"]] * KIE_USD_PER_CREDIT
+        elif j["provider"] == "kie" and mem.get(f"{j['model']}|{j['size_key']}" if j.get("size_key") else j["model"]):
+            total += mem[f"{j['model']}|{j['size_key']}" if j.get("size_key") else j["model"]] * KIE_USD_PER_CREDIT      # at the size the job asks for, never the basic size's price
+        elif j.get("size_key"):
+            total += FALLBACK_BIG_PICTURE_USD
         else:
             total += FALLBACK_USD.get(j.get("kind", "video"), 1.0)
     return round(total, 2)

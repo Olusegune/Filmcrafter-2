@@ -836,9 +836,26 @@ def acting_direction(shot: dict, plan: dict, play: str | None = None) -> str:
     return " ".join(lines)
 
 
+K_TOKEN = re.compile(r"^(?:auto_)?(\d+(?:\.\d+)?)\s*k$", re.I)
+
+
+def _k(value) -> float | None:
+    """1.5 for "auto_1.5K", 4 for "4K": the size a picture model names in thousands of pixels (None for anything else)."""
+    m = K_TOKEN.match(str(value).strip())
+    return float(m.group(1)) if m else None
+
+
+def _k_only(opts) -> bool:
+    return bool(opts) and all(_k(o) is not None for o in opts)
+
+
 def _pick_quality(field: dict, tier: str):
-    """Map a project quality tier onto the model's own resolution options."""
+    """Map a project quality tier onto the model's own resolution options. A picture model that names its sizes 1K, 2K, 4K gets the smallest at Draft and Standard and the largest
+    at High and Max (it used to get the largest at every tier: 4K for a draft)."""
     opts = field.get("enum") or []
+    if _k_only(opts):
+        ordered = sorted(opts, key=_k)
+        return ordered[-1] if tier in ("high", "max") else ordered[0]
 
     def height(o):
         if str(o).lower() in ("4k", "2160p"):
@@ -855,6 +872,46 @@ def _pick_quality(field: dict, tier: str):
         return ranked[-1]
     want = 1080 if tier == "high" else 720
     return min(ranked, key=lambda o: (abs(height(o) - want), -height(o)))
+
+
+def _ratio(project: dict) -> float:
+    m = re.match(r"^\s*([\d.]+)\s*[:/]\s*([\d.]+)\s*$", str(project.get("aspect_ratio", "16:9")))
+    r = float(m.group(1)) / float(m.group(2)) if m and float(m.group(2)) else 16 / 9
+    return r if 0.1 < r < 10 else 16 / 9
+
+
+def _dims(k: float, ratio: float) -> dict:
+    """The exact size for "k thousand pixels" on the long edge, in the project's shape (multiples of 8)."""
+    long_edge = round(k * 1024)
+    w, h = (long_edge, long_edge / ratio) if ratio >= 1 else (long_edge * ratio, long_edge)
+    return {"width": max(8, round(w / 8) * 8), "height": max(8, round(h / 8) * 8)}
+
+
+def picture_size_plan(man: dict, project: dict) -> dict:
+    """What the quality tier asks of a PICTURE model's size: {"payload": the fields to set, "key": "" for the model's basic size, else a short name of the larger one}.
+    High and Max ask for the largest size the model offers (2K for Seedream 5 Pro, 4K for Seedream 4.5); Draft and Standard keep the basic size. The key is what a price is
+    remembered under, because a bigger picture costs more: a price learned at the basic size must never be shown for a 4K one. Video models are left to `_pick_quality`."""
+    roles, fields = man.get("roles") or {}, {f["name"]: f for f in man.get("inputs") or []}
+    if "duration" in roles:
+        return {"payload": {}, "key": ""}
+    top = project.get("quality", "standard") in ("high", "max")
+    payload, key = {}, ""
+    q = fields.get("quality")
+    if q and sorted(str(x) for x in (q.get("enum") or [])) == ["basic", "high"]:         # Kie's Seedream: basic is the small size, high the large one
+        payload["quality"] = "high" if top else "basic"
+        key = "quality=high" if top else ""
+    sz = fields.get("image_size")
+    autos = [_k(o) for o in (sz.get("enum") or []) if str(o).lower().startswith("auto_") and _k(o)] if sz else []
+    if top and autos and "aspect_ratio" not in roles:                                  # fal's Seedream: an exact width and height in the project's shape
+        k = max(autos)
+        payload["image_size"] = _dims(k, _ratio(project))
+        key = f"size={k:g}K"
+    res = fields.get(roles.get("resolution", ""))
+    if res and _k_only(res.get("enum")):
+        chosen = _pick_quality(res, project.get("quality", "standard"))
+        if _k(chosen) != min(_k(o) for o in res["enum"]):
+            key = f"resolution={chosen}"
+    return {"payload": payload, "key": key}
 
 
 class RequestProblem(Exception):
@@ -1221,6 +1278,7 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
             payload["size"] = min(dims)[1]
     if "resolution" in roles:
         payload[roles["resolution"]] = _pick_quality(fields[roles["resolution"]], project.get("quality", "standard"))
+    payload.update(picture_size_plan(man, project)["payload"])          # High and Max: the largest picture size the model offers (its price is remembered under that size)
     if project.get("quality") == "max" and "bitrate_mode" in fields and "high" in (fields["bitrate_mode"].get("enum") or []):
         payload["bitrate_mode"] = "high"
     if "negative_prompt" in roles and (look["avoid"] or ANAT.guard(shot) or PC.enabled(project)):
@@ -2100,6 +2158,7 @@ def enqueue(d: str, shot_ids: list[str], provider: str, model: str | None, overr
                and j["state"] in ACTIVE) >= variants:
             continue  # never double-queue the same shot on the same model (side-by-side comparisons are fine)
         shot, scene = _shot(plan, sid)
+        size_key = picture_size_plan(man, project)["key"] if kind == "image" else ""       # a bigger picture costs more: the job says which size it asks for
         if not (shot.get("visual_prompt") or shot.get("beats") or shot.get("description")):
             # a shot cut from the song alone has no picture described yet; never pay to render a blank prompt
             emit(event="progress", stage=f"{sid} has no description yet, skipped")
@@ -2150,7 +2209,7 @@ def enqueue(d: str, shot_ids: list[str], provider: str, model: str | None, overr
             extra["swap_in"] = str(swap_in)[:20]
         job = {"id": uuid.uuid4().hex[:12], "shot_id": sid, "plan": plan_name, "source_shots": shot.get("source_shots", []),
                "shot_start": shot["start"], "shot_end": shot["end"], "provider": provider, "model": model_id,
-               "kind": kind, "source_job": source_job, "overrides": job_over or {}, "fix_notes": fix_notes or [], **({"refs_only": True} if refs_only else {}), **({"note": note} if note else {}), **({"custom_prompt": custom_prompt, "prompt_only": prompt_only} if custom_prompt else {}), "look": resolve_look(project, (scene or {}).get("number"), sid)["id"], "state": "queued", "provider_job_id": None, "attempts": 0,
+               "kind": kind, "source_job": source_job, "overrides": job_over or {}, "fix_notes": fix_notes or [], **({"refs_only": True} if refs_only else {}), **({"note": note} if note else {}), **({"custom_prompt": custom_prompt, "prompt_only": prompt_only} if custom_prompt else {}), "look": resolve_look(project, (scene or {}).get("number"), sid)["id"], **({"size_key": size_key} if size_key else {}), "state": "queued", "provider_job_id": None, "attempts": 0,
                "created": int(time.time()), "updated": int(time.time()), "output": None, "error": None, "cost": None, **extra}
         store.jobs.append(job)
         made.append(job)
@@ -2773,7 +2832,7 @@ def _check(d: str, store: Store, p, j: dict) -> None:
                          error="The provider sent back something that isn't a picture. It may still have been billed: check your provider dashboard.")
             return
     if j["provider"] == "kie" and res.get("cost"):
-        remember_kie_cost(j["model"], float(res["cost"]))
+        remember_kie_cost(j["model"], float(res["cost"]), j.get("size_key") or "")
     saved = _save_last_frame(d, j, res.get("last_frame_url")) if res.get("last_frame_url") else None
     store.update(j, state="ready", output=os.path.relpath(out, d).replace(os.sep, "/"), output_url=res["url"],
                  cost=res.get("cost"), cost_unit=res.get("cost_unit"), finished=int(time.time()), **({"last_frame_image": saved} if saved else {}))
@@ -2937,8 +2996,11 @@ def _estimate_payload(provider: str, model: str, man: dict, payload: dict) -> di
     if any(u in unit for u in ("video", "request", "generation", "image")):
         return {"usd": round(unit_price, 3), "basis": f"${unit_price} per {unit}"}
     if "megapixel" in unit:   # stills: about one megapixel; video: every frame counts
+        size = payload.get("image_size")
         if "duration" in roles:
             mp = 1280 * 720 * 24 * secs / 1e6
+        elif isinstance(size, dict) and size.get("width") and size.get("height"):
+            mp = float(size["width"]) * float(size["height"]) / 1e6          # the size that will really be asked for
         else:
             mp = 1.05
         return {"usd": round(unit_price * mp, 3), "basis": f"${unit_price}/megapixel × ≈{mp:.1f} MP"}
@@ -2958,11 +3020,20 @@ def kie_cost_memory() -> dict:
     return mem
 
 
-def remember_kie_cost(model: str, credits: float) -> None:
+def kie_credits_for(jobs: list[dict], model: str, key: str = "") -> float | None:
+    """Credits one render of this model cost before, at this size (`key` from picture_size_plan; "" is the basic size). A price learned at another size is never used."""
+    seen = sorted(float(j["cost"]) for j in jobs if j.get("provider") == "kie" and j.get("model") == model and j.get("cost") and (j.get("size_key") or "") == key)
+    if seen:
+        return seen[len(seen) // 2]
+    return kie_cost_memory().get(f"{model}|{key}" if key else model)
+
+
+def remember_kie_cost(model: str, credits: float, key: str = "") -> None:
     path = os.path.join(CACHE_DIR, "kie_costs.json")
     mem = _read(path, {}) or {}
-    old = mem.get(model)
-    mem[model] = round(credits if old is None else 0.7 * old + 0.3 * credits, 1)   # smooth: durations vary per shot
+    slot = f"{model}|{key}" if key else model
+    old = mem.get(slot)
+    mem[slot] = round(credits if old is None else 0.7 * old + 0.3 * credits, 1)   # smooth: durations vary per shot
     try:
         os.makedirs(CACHE_DIR, exist_ok=True)
         _write(path, mem)
@@ -3023,13 +3094,16 @@ def estimate(d: str, shot_ids: list[str], provider: str, model: str | None, kind
                               + (f" {len(crowded_native)} of them ({', '.join(crowded_native[:4])}{'…' if len(crowded_native) > 4 else ''}) hold more speech than "
                                  "fits, so the model may rush or cut it off: shorten the lines or split the shot." if crowded_native else "")} if native_shots else {})}
     if provider == "kie":   # Kie publishes no per-model price: estimate from what this model actually cost before
-        seen = [float(j["cost"]) for j in Store(d).jobs if j["provider"] == "kie" and j["model"] == man["model"] and j.get("cost")]
-        per = sorted(seen)[len(seen) // 2] if seen else kie_cost_memory().get(man["model"])
+        skey = picture_size_plan(man, project)["key"] if kind == "image" else ""
+        per = kie_credits_for(Store(d).jobs, man["model"], skey)
+        if not per and skey:     # a bigger picture than any this model made before: its earlier price does not apply, so say so instead of showing a lower one
+            out["size_unpriced"] = True
+            out["basis"] = f"Not priced yet at this size ({skey.split('=')[1]}): it costs more than the basic size, and Kie shows the amount only after a picture is made. Counted at a high safety price until then."
         if per:
             from .budget import KIE_USD_PER_CREDIT
             out["kie_credits_est"] = round(per * len(shot_ids))
             out["kie_usd_est"] = round(per * len(shot_ids) * KIE_USD_PER_CREDIT, 2)       # a rough dollar figure, so Kie and fal can be compared
-            out["basis"] = f"≈{round(per)} credits per shot (what {man['model'].split('/')[-1]} cost before)"
+            out["basis"] = f"≈{round(per)} credits per shot (what {man['model'].split('/')[-1]} cost before" + (f", at the larger size {skey.split('=')[1]})" if skey else ")")
     if provider == "kie" and os.environ.get("KIE_KEY"):
         try:
             r = requests.get("https://api.kie.ai/api/v1/chat/credit", headers={**UA, "Authorization": f"Bearer {os.environ['KIE_KEY']}"}, timeout=20)

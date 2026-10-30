@@ -77,7 +77,7 @@ export type Manifest = {
   provider: string; model: string; title: string; category: string; inputs: ManifestInput[];
   roles: Record<string, string>; ref_syntax: string | null;
 };
-export type CatalogItem = { provider: string; model: string; title: string; category: string; sees?: boolean; text?: boolean; rec?: number | null; fresh?: boolean };
+export type CatalogItem = { provider: string; model: string; title: string; category: string; sees?: boolean; text?: boolean; rec?: number | null; fresh?: boolean; max_size?: string };
 export const AUTO_MODEL: Record<string, string> = {
   fal: "bytedance/seedance-2.0/reference-to-video",
   kie: "bytedance/seedance-2",
