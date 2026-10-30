@@ -663,15 +663,15 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                        },
                        shot: <>
                          {board && <ShotRefs dir={project.dir} shot={boardShot.get(s.id)} library={board.library} thumbs={thumbs} want={want} onChanged={reloadBoard} />}
-                         <ShotLook dir={project.dir} shotId={s.id} own={ownLooks} filmLook={look.style} sceneLook={effectiveLook(ownLooks ? { scenes: ownLooks.scenes } : null, s.id, s.scene, look.style)} onChanged={setOwnLooks} />
                          <ShotCamera dir={project.dir} shotId={s.id} sceneShotIds={shots.filter((x) => x.scene === s.scene).map((x) => x.id)} onChanged={mediaChanged} />
                          <ShotPerformance dir={project.dir} shotId={s.id} onChanged={reloadBoard} />
                          <ShotContinuity dir={project.dir} shotId={s.id} onChanged={mediaChanged} />
                        </>,
-                       keyframe: (go) => <KeyframePanel dir={project.dir} shot={s} plan={planName} aspect={aspectCss(frame.aspect_ratio)} frame={frame.aspect_ratio} quality={frame.quality}
+                       keyframe: (go) => <><ShotLook dir={project.dir} shotId={s.id} own={ownLooks} filmLook={look.style} sceneLook={effectiveLook(ownLooks ? { scenes: ownLooks.scenes } : null, s.id, s.scene, look.style)} onChanged={setOwnLooks} />
+                                      <KeyframePanel dir={project.dir} shot={s} plan={planName} aspect={aspectCss(frame.aspect_ratio)} frame={frame.aspect_ratio} quality={frame.quality}
                                       jobs={jobs.filter((j) => j.plan === planName)} keys={keys} director={director} approved={kfRef} onJobs={mergeJobs} onSettings={onSettings}
                                       onNext={() => go("video")}
-                                      onApproved={(ref) => { setKeyframes((k) => ({ ...k, [planName]: { ...(k[planName] ?? {}), [s.id]: ref ?? "" } })); reloadBoard(); }} />,
+                                      onApproved={(ref) => { setKeyframes((k) => ({ ...k, [planName]: { ...(k[planName] ?? {}), [s.id]: ref ?? "" } })); reloadBoard(); }} /></>,
                        frames: (go) => <ComposeTab dir={project.dir} shot={s.id} keys={keys} onOpenKeyframe={() => go("keyframe")}
                                       refsPanel={board ? <ShotRefs dir={project.dir} shot={boardShot.get(s.id)} library={board.library} thumbs={thumbs} want={want} onChanged={reloadBoard} /> : null}
                                       onChanged={() => { reloadBoard(); api.loadProject(project.dir).then((p) => { if (p.keyframes) setKeyframes(p.keyframes); }).catch(() => {}); }}

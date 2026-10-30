@@ -6,6 +6,9 @@ import * as I from "./icons";
 /** Save one shot's own look; an empty pick goes back to its scene's or the film's. It only writes a setting: nothing is rendered or charged. */
 export const saveShotLook = (dir: string, shotId: string, style: string) => api.stylebible(dir, "set_shot", { shot: shotId, style: style || null });
 
+/** Keep the characters as the reference pictures draw them: only the world is in the new look. Saving it never renders anything. */
+export const saveKeepCast = (dir: string, shotId: string, keep: boolean) => api.stylebible(dir, "set_shot_options", { shot: shotId, keep_cast: keep });
+
 /** The first option of the picker: what the shot is played in when it has no look of its own. */
 export const sameAsLabel = (own: StyleBibleRead, filmLook: string, sceneLook: string): string =>
   `Same as its ${sceneLook !== filmLook ? "scene" : "film"} (${own.styles.find((x) => x.id === sceneLook)?.name ?? sceneLook})`;
@@ -28,7 +31,11 @@ export function ShotLook({ dir, shotId, own, filmLook, sceneLook, onChanged }: {
           <option value="">{sameAsLabel(own, filmLook, sceneLook)}</option>
           {own.styles.filter((x) => x.id !== sceneLook).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select></label>
-      <p className="dim">{mine ? "This shot is made in its own look. Pictures and takes already made are left as they are." : "Pictures and takes already made are never re-rendered when a look changes."}</p>
+      {mine && <label className="sl-keep">
+        <input type="checkbox" checked={!!own.keep_cast?.[shotId]} onChange={(e) => { setErr(""); saveKeepCast(dir, shotId, e.target.checked).then(onChanged).catch((x) => setErr(errorText(x))); }} />
+        <span>Keep the characters as they look in the film <span className="dim">(only the world changes)</span></span></label>}
+      <p className="dim">{mine ? (own.keep_cast?.[shotId] ? "Only the world is made in this look; the characters keep their own look." : "The whole picture is made in this look, the characters too: they keep who they are (face, hair, build, outfit) but are drawn the way everything else is.") + " Make a new keyframe to see it: the price is shown first, and pictures already made are left as they are."
+        : "Pictures and takes already made are never re-rendered when a look changes."}</p>
       {err && <div className="error-text" role="alert">{err}</div>}
     </details>
   );

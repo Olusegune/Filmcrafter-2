@@ -224,7 +224,8 @@ mockWindows("main");
 mockIPC((cmd, a) => {
   const x = (a ?? {}) as { action?: string; data?: Record<string, unknown> };
   switch (cmd) {
-    case "stylebible": { if (x.action === "set_shot") { const d = x.data as { shot: string; style: string | null }; if (d.style) sbShots[d.shot] = d.style; else delete sbShots[d.shot]; } return sbRead(); }
+    case "stylebible": { if (x.action === "set_shot_options") { const d = x.data as { shot: string; keep_cast: boolean }; if (d.keep_cast) sbKeep[d.shot] = true; else delete sbKeep[d.shot]; }
+      if (x.action === "set_shot") { const d = x.data as { shot: string; style: string | null }; if (d.style) sbShots[d.shot] = d.style; else delete sbShots[d.shot]; } return sbRead(); }
     case "film_choreography": return x.action === "types" ? { types: [{ id: "fight", label: "Fist fight", blurb: "Two people, no weapons.", needs_b: true, good_for: "Close, handheld shots." }, { id: "chase", label: "Foot chase", blurb: "One runs, one follows.", needs_b: true, good_for: "Tracking shots." }], outcomes: [{ id: "a_wins", label: "The first side wins" }, { id: "draw", label: "Neither wins" }], intensity: [{ id: "grounded", label: "Grounded" }, { id: "heightened", label: "Heightened" }], limits: { min_beats: 4, max_beats: 14 }, advice: [] }
       : x.action === "list" ? { plans: [] }
       : { id: "ch-demo0001", type: "fight", scene: 1, place: "Platform", weapon: "", sides: { a: ["Sarah"], b: ["John"] }, intensity: "grounded", outcome: "a_wins", geography: "Sarah enters screen-left and John screen-right and they stay that way. Cross the line only on a cutaway.", people: ["Sarah", "John"], seconds: 12.5, warnings: ["Contact is cut around on purpose: the blow and the landing are separate shots."], after: "S01-02", applied: [], status: "draft",
@@ -407,7 +408,8 @@ const noop = () => {};
 
 // a look for one shot: the made-up looks and the one shot that has its own (set in memory, so the select can be tried)
 const sbShots: Record<string, string> = scene === "shotlook-own" ? { "S01-04": "anime" } : {};
-const sbRead = (): StyleBibleRead => ({ style: { id: "claymation", name: "Claymation", prompt: "" }, scenes: [], shots: { ...sbShots }, precedence: [],
+const sbKeep: Record<string, boolean> = {};
+const sbRead = (): StyleBibleRead => ({ style: { id: "claymation", name: "Claymation", prompt: "" }, scenes: [], shots: { ...sbShots }, keep_cast: { ...sbKeep }, precedence: [],
   styles: [{ id: "claymation", name: "Claymation", group: "", description: "" }, { id: "anime", name: "Shonen action anime", group: "", description: "" }, { id: "noir", name: "Film noir", group: "", description: "" }] });
 const ShotLookDemo = () => {
   const [own, setOwn] = useState<StyleBibleRead>(sbRead());

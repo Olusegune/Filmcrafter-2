@@ -27,7 +27,12 @@ test.describe("a look for one shot", () => {
     await expect(pick).toHaveValue("anime");
     await expect(chip).toHaveText("Shonen action anime");
     await expect(chip).toHaveClass(/gold/);
-    await expect(page.getByText("This shot is made in its own look")).toBeVisible();
+    await expect(page.getByText(/The whole picture is made in this look, the characters too/)).toBeVisible();
+    const keep = page.getByLabel(/Keep the characters as they look in the film/);
+    await expect(keep).not.toBeChecked();
+    await keep.check();
+    await expect(page.getByText(/Only the world is made in this look; the characters keep their own look/)).toBeVisible();
+    await keep.uncheck();
     await pick.selectOption("");                                                       // the first option takes the look away again
     await expect(pick).toHaveValue("");
     await expect(chip).toHaveText("Claymation");

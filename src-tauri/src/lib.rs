@@ -2158,7 +2158,7 @@ fn keep_own_looks(old: &Value, mut new: Value) -> Value {
 /// charged or replaced, and a new take still shows its price first.
 #[tauri::command]
 async fn stylebible(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 3] = ["read", "set_scene", "set_shot"];
+    const ACTIONS: [&str; 4] = ["read", "set_scene", "set_shot", "set_shot_options"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

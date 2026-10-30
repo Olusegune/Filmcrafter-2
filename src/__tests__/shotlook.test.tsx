@@ -37,7 +37,8 @@ describe("the look of one shot", () => {
     expect(html).toMatch(/<option value="anime" selected=""/);
     expect(html).toMatch(/<details[^>]*open/);
     expect(html).toContain(">Own<");
-    expect(html).toContain("made in its own look");
+    expect(html).toContain("The whole picture is made in this look, the characters too");
+    expect(html).toContain("Keep the characters as they look in the film");
   });
   it("shows nothing until the looks are read", () => {
     expect(view({ own: null })).toBe("");

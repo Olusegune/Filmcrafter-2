@@ -1118,6 +1118,15 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     roles, fields = man["roles"], {f["name"]: f for f in man["inputs"]}
     payload: dict = {}
     look = resolve_look(project, (scene or {}).get("number"), shot.get("id"))  # the film's look wording goes into every shot, unless the shot (or its scene) is played in a look of its own
+    # A shot (or scene) played in a look of its own is RESTYLED: the reference pictures show the people in the film's look, and a model follows a picture before words, so without this
+    # only the set changes and the characters keep their old rendering. `keep_cast` (look.keep_cast[shot id]) is the person's choice to change only the world.
+    _lk = project.get("look") if isinstance(project.get("look"), dict) else {}
+    restyle = own_look_id(_lk, (scene or {}).get("number"), shot.get("id")) is not None
+    keep_cast = restyle and bool((_lk.get("keep_cast") or {}).get(str(shot.get("id"))))
+    full = restyle and not keep_cast
+    look_name = look["prompt"].split(":")[0].rstrip(".")
+    if full:
+        look = {**look, "avoid": ", ".join(x for x in (look.get("avoid"), "the characters drawn in a different style from the rest of the picture") if x)}
     from . import styleguard as SG   # a stylised look is kept: words that ask for a photograph, from elsewhere in the prompt, are reworded (see styleguard.py)
     style = SG.sanitize(plan.get("meta", {}).get("VISUAL STYLE", ""), project, look["id"])
     blocks: list[tuple[int, str]] = []  # (priority, text); lowest priority is dropped first if too long
@@ -1134,12 +1143,20 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         frame = "; ".join(x for x in (shot.get("framing"), shot.get("lens")) if x)
         frame = f"Framing (follow exactly): {frame.rstrip('.')}. " if frame else ""
         ident = ""
-        if shot.get("performers"):  # identity up front too: close framings (hands, fragments) otherwise drift
+        if shot.get("performers") and full:    # who they are, not how they are drawn: the reference pictures are in another look
+            ident = ("Same people as the reference images (" + ", ".join(shot["performers"]) + "): keep who they are (face shape, features, hair design, build, skin tone, outfit design) "
+                     "and draw them entirely in this look, their skin, hair, clothes and faces rendered the same way as everything else in the picture. "
+                     "Do not copy how the reference pictures are drawn, lit or rendered. ")
+        elif shot.get("performers"):  # identity up front too: close framings (hands, fragments) otherwise drift
             ident = "Same people as the reference images (" + ", ".join(shot["performers"]) + "): identical skin tone, face, hair and clothes. "
         body = f"{lead}. {frame}{ident}A single still, the first frame of this shot, in exactly that style: " + body
     elif not only and look["id"] not in ("auto", "custom"):          # a video model weighs its opening words most too: name the look first
         body = f"{look['prompt'].split(':')[0].rstrip('.')}. " + body
     blocks.append((10, body.strip()))
+    if full:
+        blocks.append((10, f"Whole-picture style, no exceptions: {look_name}. Everything in the frame is drawn this way, the characters' bodies, faces, hair and clothes included, not only the set and the background."))
+    elif keep_cast:
+        blocks.append((9, f"Only the setting is in this look ({look_name}); the characters keep their own rendering from the reference pictures."))
     if shot.get("performers") and not only:
         # Name AND describe them: with partial faces (hands, profiles, fragments) the name alone lets models drift.
         who = []
@@ -1224,9 +1241,18 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         blocks.append((7, "Motion references: " + "; ".join(r["label"] for r in motion_refs) + "."))
     if image_refs:
         ordinal = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"]
-        tags = [f"{man['ref_syntax'].format(n=i + 1)} is the {_ref_label(r['label'], shot.get('locked_design'))}" if man.get("ref_syntax")
-                else f"the {ordinal[i] if i < len(ordinal) else str(i + 1) + 'th'} reference image is the {_ref_label(r['label'], shot.get('locked_design'))}" for i, r in enumerate(image_refs)]
-        blocks.append((9, "References: " + "; ".join(tags) + ". Match the characters' faces, hair and wardrobe exactly."))
+        def _what(r: dict) -> str:
+            label = _ref_label(r["label"], shot.get("locked_design"))
+            if not full or r.get("endframe"):
+                return label
+            if r.get("kind") == "continuity":     # the shot before is in this look already when it was played in it: then it is the best reference there is
+                return label if r.get("look") == look["id"] else label + " (use only its set layout and light; redraw everything in the new look)"
+            return label + " (take what it shows, not how it is drawn)"
+        tags = [f"{man['ref_syntax'].format(n=i + 1)} is the {_what(r)}" if man.get("ref_syntax")
+                else f"the {ordinal[i] if i < len(ordinal) else str(i + 1) + 'th'} reference image is the {_what(r)}" for i, r in enumerate(image_refs)]
+        close = (f"Take only each character's identity from them (face, hair, outfit design, skin tone), not their rendering style: redraw the characters in {look_name}." if full
+                 else "Match the characters' faces, hair and wardrobe exactly.")
+        blocks.append((9, "References: " + "; ".join(tags) + ". " + close))
 
     lip = bool(sung and "ref_audio" in roles and project.get("lip_sync", "auto") != "off")
     if lip:
@@ -2665,8 +2691,17 @@ def _previous_shot_ref(d: str, plan_name: str, plan: dict, shot_id: str) -> list
     if not p:
         return []
     who = " and ".join(shared)
+    prev_look = None
+    try:                                           # which look that picture is in, so a restyled shot can use it fully when it is in the same look and only for layout when it is not
+        project = _read(os.path.join(d, "project.json"), {}) or {}
+        for sc in plan.get("scenes", []):
+            ids = [x["id"] for x in sc.get("shots", []) if isinstance(x, dict) and x.get("id")]
+            if shot_id in ids and ids.index(shot_id) > 0:
+                prev_look = resolve_look(project, sc.get("number"), ids[ids.index(shot_id) - 1])["id"]
+    except Exception:
+        prev_look = None
     return [{"label": f"the previous shot of this scene (match its set and light, and the clothes of {who} only; do not copy anyone else from it, not its framing)",
-             "path": p, "kind": "continuity", "media": "image", "sheet": False}]
+             "path": p, "kind": "continuity", "media": "image", "sheet": False, **({"look": prev_look} if prev_look else {})}]
 
 
 def _with_movement(d: str, shot: dict) -> dict:

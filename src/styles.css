@@ -1771,3 +1771,5 @@ select option, select optgroup { background: #12171e; color: var(--frost); }
 .rail button.rail-more { color: var(--text-quiet, #8f99a8); }
 .rail button.rail-more[aria-expanded="true"] { color: var(--frost); }
 .rail .rail-sep { width: 28px; height: 1px; margin: 4px 0; background: var(--line); flex: none; }
+.shot-look .sl-keep { display: flex; align-items: flex-start; gap: 8px; margin: 8px 0 2px; font-size: 12.5px; }
+.shot-look .sl-keep input { margin-top: 3px; }

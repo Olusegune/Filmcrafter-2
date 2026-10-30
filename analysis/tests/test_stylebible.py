@@ -234,3 +234,94 @@ def test_the_app_calls_it_as_a_process_and_parallel_changes_are_not_lost(tmp_pat
     assert all(p.returncode == 0 for p in procs), outs
     assert all(json.loads(o[0].strip().splitlines()[-1])["event"] == "result" for o in outs)
     assert saved_look(d)["shots"] == {sid: "anime" for sid in ids}
+
+
+# ---------------------------------------------------------------- a look of its own is applied to the characters too (the references show them in the film's look)
+
+def restyle_request(look, refs=None, shot_id="S06-02", scene=6, performers=("Sarah",)):
+    man = R._finish("fal", "t/img", "Img", "image-to-image", [field("prompt", required=True), {**field("image_urls"), "type": "array", "items": "string"}])
+    sh = {"id": shot_id, "scene": scene, "number": 1, "start": 0.0, "end": 2.0, "beats": ["A girl draws on a bench."], "performers": list(performers), "framing": "medium", "camera_moves": [], "source_shots": [shot_id]}
+    plan = {"meta": {}, "characters": [{"name": "Sarah", "appearance": "A girl with braids in a bun, green shirt, denim overalls"}], "scenes": [{"number": scene, "heading": "EXT.", "shots": [sh]}]}
+    refs = refs if refs is not None else [{"label": "reference for Sarah (face, expressions, full-body turnaround)", "url": "u1"}, {"label": "set and props sheet (locations, props, colour palette)", "url": "u2"}]
+    return R.compile_request(sh, {"number": scene}, plan, {"look": look, "aspect_ratio": "16:9"}, man, refs)["prompt"]
+
+
+FILM_3D = {"style": "feature-3d"}
+
+
+@pytest.mark.regression
+def test_a_shot_in_a_look_of_its_own_restyles_the_characters_too_not_only_the_set():
+    """Low-poly was applied to the tree and not to the girl: the prompt told the model to keep her skin, face, hair and clothes identical to the references, which are in the film's look."""
+    p = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}})
+    assert "keep who they are (face shape, features, hair design, build, skin tone, outfit design)" in p and "draw them entirely in this look" in p
+    assert "Whole-picture style, no exceptions" in p and "the characters' bodies, faces, hair and clothes included" in p
+    assert "Take only each character's identity from them" in p and "not their rendering style" in p
+    assert "(take what it shows, not how it is drawn)" in p
+    assert "identical skin tone, face, hair and clothes" not in p and "Match the characters' faces, hair and wardrobe exactly" not in p
+    assert "the characters drawn in a different style from the rest of the picture" in p
+
+
+def test_a_scene_in_a_look_of_its_own_is_restyled_the_same_way():
+    p = restyle_request({**FILM_3D, "scenes": {"6": "low-poly"}})
+    assert "Whole-picture style, no exceptions" in p and "identical skin tone" not in p
+
+
+def test_a_shot_in_the_films_own_look_is_written_exactly_as_before():
+    for look in (FILM_3D, {**FILM_3D, "shots": {"S09-09": "low-poly"}}, {**FILM_3D, "shots": {"S06-02": "no-such-look"}}):
+        p = restyle_request(look)
+        assert "identical skin tone, face, hair and clothes" in p and "Match the characters' faces, hair and wardrobe exactly" in p
+        assert "Whole-picture style" not in p and "take what it shows" not in p and "keep who they are" not in p
+
+
+def test_keeping_the_cast_changes_only_the_world():
+    p = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}, "keep_cast": {"S06-02": True}})
+    assert "Only the setting is in this look" in p and "the characters keep their own rendering from the reference pictures" in p
+    assert "identical skin tone, face, hair and clothes" in p and "Whole-picture style" not in p and "take what it shows" not in p
+    other = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}, "keep_cast": {"S01-01": True}})
+    assert "Whole-picture style, no exceptions" in other                                  # another shot's choice does not apply here
+
+
+def test_the_shot_before_is_used_fully_when_it_is_in_the_same_look_and_only_for_layout_when_it_is_not():
+    prev = lambda look: [{"label": "reference for Sarah (face)", "url": "u1"}, {"label": "the previous shot of this scene (match its set and light)", "url": "u3", "kind": "continuity", "look": look}]
+    look = {**FILM_3D, "shots": {"S06-02": "low-poly"}}
+    same = restyle_request(look, prev("low-poly"))
+    other = restyle_request(look, prev("feature-3d"))
+    assert "match its set and light) (use only its set layout" not in same and "the previous shot of this scene (match its set and light)" in same
+    assert "(use only its set layout and light; redraw everything in the new look)" in other
+
+
+def test_the_wording_leaves_the_prompt_budget_alone(tmp_path):
+    p = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}})
+    assert len(p) < len(restyle_request(FILM_3D)) + 900                                   # a few sentences, not a rewrite
+
+
+# ---------------------------------------------------------------- keep the cast: set, read, clear
+
+def test_keeping_the_cast_is_a_setting_per_shot_that_is_saved_read_and_cleared(tmp_path):
+    d = project(tmp_path, {**FILM, "shots": {"S06-02": "anime"}})
+    r = SB.set_keep_cast(d, "S06-02", True)
+    assert r["keep_cast"] == {"S06-02": True} and saved_look(d)["keep_cast"] == {"S06-02": True} and saved_look(d)["shots"] == {"S06-02": "anime"}
+    assert SB.set_keep_cast(d, "S06-02", False)["keep_cast"] == {} and "keep_cast" not in saved_look(d)
+    SB.set_keep_cast(d, "S06-03", True)
+    assert SB.set_keep_cast(d, "S06-03", "yes")["keep_cast"] == {}                         # only a real true keeps it
+
+
+@pytest.mark.security
+def test_keeping_the_cast_refuses_bad_ids_and_folders_and_never_renders(tmp_path, monkeypatch):
+    d = project(tmp_path, FILM)
+    before = open(d + "/project.json", "rb").read()
+    monkeypatch.setattr(R, "enqueue", lambda *a, **k: pytest.fail("a setting must never queue a render"))
+    for bad in ("../x", "", None, 7, "a b"):
+        with pytest.raises(SystemExit):
+            SB.set_keep_cast(d, bad, True)
+    empty = tmp_path / "nothing"
+    empty.mkdir()
+    with pytest.raises(SystemExit):
+        SB.set_keep_cast(str(empty), "S01-01", True)
+    assert open(d + "/project.json", "rb").read() == before and os.listdir(empty) == []
+
+
+def test_the_command_line_sets_keep_cast(tmp_path, capsys):
+    d = project(tmp_path, FILM)
+    assert SB.main(["set_shot_options", d, "--data", json.dumps({"shot": "S06-02", "keep_cast": True})]) == 0
+    assert json.loads(capsys.readouterr().out)["data"]["keep_cast"] == {"S06-02": True}

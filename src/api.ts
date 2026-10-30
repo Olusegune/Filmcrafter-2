@@ -109,7 +109,7 @@ export type NudgeState = { shot: string; nudges: { id: string; label: string; le
 export type PDAction = "characters_get" | "character_set" | "character_clear" | "breakdown_get" | "breakdown_set" | "breakdown_reset" | "breakdown_accept" | "beats_suggest" | "nudges_get" | "nudge_set";
 export type Look = { style: string; notes?: string; prompt?: string; avoid?: string };
 /** A look for one scene or one shot (stylebible.py). `scenes[].style` and `shots[id]` are the scene's and the shot's own look ids; absent means the film's. */
-export type StyleBibleRead = { style: { id: string; name: string; prompt: string }; styles: { id: string; name: string; group: string; description: string }[]; scenes: { scene: number; heading: string | null; style: string | null }[]; shots: Record<string, string>; precedence: string[] };
+export type StyleBibleRead = { style: { id: string; name: string; prompt: string }; styles: { id: string; name: string; group: string; description: string }[]; scenes: { scene: number; heading: string | null; style: string | null }[]; shots: Record<string, string>; keep_cast?: Record<string, boolean>; precedence: string[] };
 
 /** What reading the finished file back found: faults (the film is wrong), things worth a look, and notes. `ok` is null when the check could not run. */
 export type ExportCheck = { ok: boolean | null; checked: boolean; findings: { level: "fix" | "look" | "note"; what: string; from?: number; to?: number }[]; frames?: number; has_sound?: boolean; picture_seconds?: number };
@@ -213,7 +213,7 @@ export const api = {
     invoke<T>("overlays", { dir, action, data }),
   refgen: <T = RefGenStatus>(dir: string, action: "candidates" | "estimate" | "queue" | "use" | "discard" | "status" | "cards" | "own", data: Record<string, unknown> = {}) =>
     invoke<T>("refgen", { dir, action, data }),
-  stylebible: (dir: string, action: "read" | "set_scene" | "set_shot", data: Record<string, unknown> = {}) => invoke<StyleBibleRead>("stylebible", { dir, action, data }),
+  stylebible: (dir: string, action: "read" | "set_scene" | "set_shot" | "set_shot_options", data: Record<string, unknown> = {}) => invoke<StyleBibleRead>("stylebible", { dir, action, data }),
   lighting: <T = LightingPlan>(dir: string, action: "plan" | "apply" | "undo" | "moods", data: Record<string, unknown> = {}) => invoke<T>("lighting", { dir, action, data }),
   camera: <T = ShotCamera>(dir: string, action: "vocab" | "get" | "set" | "reset" | "suggest" | "suggest_apply", data: Record<string, unknown> = {}) => invoke<T>("camera", { dir, action, data }),
   editorExport: <T = EditorPackage>(dir: string, target: "premiere" | "resolve", film?: string) =>

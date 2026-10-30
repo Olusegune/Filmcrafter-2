@@ -260,6 +260,10 @@ Looked at in a real browser (Edge, the screenshot harness), screen by screen: Ho
 
 **NOT checked:** the real Studio with real data (its browser preview needs the `mock-data/` folder that is not in the repository), so the header and rail were checked on the harness's made-up film; people using the app for the first time (the most important test of "intuitive"); a screen reader or keyboard-only use by a person; macOS and other window scales; the narrow-window (under 1100 px) layout; the other screens (Cast & World, Shots, Compose, Sound plan and the rest) were not reviewed for flow in this pass.
 
+### A look of its own reaches the characters (unreleased, after 0.31.1)
+
+`test_stylebible` (26, 10 new): the prompt of a shot or scene in a look of its own keeps who the people are but draws them in the look, tags the references as content-only, and no longer says "identical skin tone, face, hair and clothes"; a shot in the film's look is written exactly as before; keeping the cast changes only the world; the shot before is used fully only when it is in the same look; the option is saved, read and cleared per shot and refused for bad ids and non-projects. `shotlook` component and browser tests cover the option and the new wording. **NOT checked:** a real model's picture. The cause (the prompt and the reference labels pulling the characters back to the film's look) was found by reading the compiled prompt, and the fix changes the words and the reference labels; how strongly a given model then restyles the characters is not known until a real keyframe is made. If a model still keeps the characters' old rendering, the next step is a reference sheet made in the new look (one per character per look).
+
 ## Not tested (be honest about these)
 
 - **A human walk-through of the installed app** (in particular the Guide, bringing materials in from a real storyboard, the Action scene sheet, and the player's Play on a film with no sound file). Everything above was driven by tests, a headless browser and scripts. Nobody has used the installed Windows app end to end for a real film.

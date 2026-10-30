@@ -4,6 +4,7 @@ A film has one look. This lets one scene (a memory) or one shot (a dream) be pla
 
     look.scenes  {"6": "live-action"}     a scene's own look; the film's look everywhere else
     look.shots   {"S06-02": "claymation"} one shot's own look; beats its scene's look
+    look.keep_cast {"S06-02": true}        for a shot in a look of its own: change only the world, keep the characters as the reference pictures draw them
 
 Order of precedence, strongest first (what a later prompt line may not override):
     1. the shot's own look
@@ -78,6 +79,7 @@ def read(d: str) -> dict:
                        for s in lib.values() if s.get("family") != "genre"],
             "scenes": [{**s, "style": render.own_look_id({"scenes": own_scenes}, scene=s["scene"])} for s in _scenes(d)],
             "shots": {k: v for k, v in own_shots.items() if isinstance(v, str) and render.own_look_id({"shots": own_shots}, shot=k)},
+            "keep_cast": {k: True for k, v in (look.get("keep_cast") or {}).items() if v is True} if isinstance(look.get("keep_cast"), dict) else {},
             "precedence": PRECEDENCE}
 
 
@@ -110,6 +112,31 @@ def set_scene(d: str, scene: int, style: str | None) -> dict:
     return _set(d, "scenes", str(scene), _choosable(style), clear_if_film=True)
 
 
+def set_keep_cast(d: str, shot: str, keep: bool) -> dict:
+    """For a shot played in a look of its own: True keeps the characters as they are drawn in the reference pictures (only the world changes); False (the default) redraws them in the new
+    look too, keeping who they are. Changing it never renders anything."""
+    from .safe import check_id
+    sid = check_id(shot if isinstance(shot, str) else "")
+    if not os.path.isfile(_project_path(d)):
+        raise SystemExit("This folder is not a project.")
+
+    def change(project):
+        look = _look_of(project)
+        kept = dict(look.get("keep_cast") or {}) if isinstance(look.get("keep_cast"), dict) else {}
+        if keep is True:
+            kept[sid] = True
+        else:
+            kept.pop(sid, None)
+        if kept:
+            look["keep_cast"] = kept
+        else:
+            look.pop("keep_cast", None)
+        project["look"] = look
+        return project
+    safeio.update_json(_project_path(d), change, {})
+    return read(d)
+
+
 def set_shot(d: str, shot: str, style: str | None) -> dict:
     """Play one shot in another look than its scene's and the film's (None goes back). The id goes through the same plain-id check as every shot id from outside."""
     from .safe import check_id
@@ -119,7 +146,7 @@ def set_shot(d: str, shot: str, style: str | None) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-stylebible")
-    ap.add_argument("action", choices=["read", "set_scene", "set_shot"])
+    ap.add_argument("action", choices=["read", "set_scene", "set_shot", "set_shot_options"])
     ap.add_argument("project")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -128,7 +155,7 @@ def main(argv: list[str]) -> int:
         if not isinstance(x, dict):
             raise SystemExit("Bad request.")
         res = {"read": lambda: read(a.project), "set_scene": lambda: set_scene(a.project, x.get("scene"), x.get("style")),
-               "set_shot": lambda: set_shot(a.project, x.get("shot"), x.get("style"))}[a.action]()
+               "set_shot": lambda: set_shot(a.project, x.get("shot"), x.get("style")), "set_shot_options": lambda: set_keep_cast(a.project, x.get("shot"), x.get("keep_cast"))}[a.action]()
         print(json.dumps({"event": "result", "data": res}, ensure_ascii=False), flush=True)
         return 0
     except SystemExit as e:

@@ -89,3 +89,28 @@ describe("the panel", () => {
     expect(container.querySelector("details")).toHaveAttribute("open");
   });
 });
+
+describe("keeping the characters", () => {
+  it("is offered only for a shot with a look of its own, and saves for that shot only", async () => {
+    invoke.mockResolvedValue({ ...read, shots: { "S01-01": "anime" }, keep_cast: { "S01-01": true } });
+    const onChanged = vi.fn();
+    const none = render(<ShotLook dir="p" shotId="S01-01" own={read} filmLook="claymation" sceneLook="claymation" onChanged={onChanged} />);
+    expect(screen.queryByLabelText(/Keep the characters/)).not.toBeInTheDocument();
+    none.unmount();
+    render(<ShotLook dir="p" shotId="S01-01" own={{ ...read, shots: { "S01-01": "anime" } }} filmLook="claymation" sceneLook="claymation" onChanged={onChanged} />);
+    const box = screen.getByLabelText(/Keep the characters as they look in the film/);
+    expect(box).not.toBeChecked();
+    fireEvent.click(box);
+    await waitFor(() => expect(onChanged).toHaveBeenCalled());
+    expect(invoke).toHaveBeenCalledTimes(1);
+    expect(invoke).toHaveBeenCalledWith("stylebible", { dir: "p", action: "set_shot_options", data: { shot: "S01-01", keep_cast: true } });
+  });
+  it("says what each choice means, and that nothing is made until a new keyframe is", () => {
+    const { rerender } = render(<ShotLook dir="p" shotId="S01-01" own={{ ...read, shots: { "S01-01": "anime" } }} filmLook="claymation" sceneLook="claymation" onChanged={() => {}} />);
+    expect(screen.getByText(/the characters too: they keep who they are/)).toBeInTheDocument();
+    expect(screen.getByText(/the price is shown first/)).toBeInTheDocument();
+    rerender(<ShotLook dir="p" shotId="S01-01" own={{ ...read, shots: { "S01-01": "anime" }, keep_cast: { "S01-01": true } }} filmLook="claymation" sceneLook="claymation" onChanged={() => {}} />);
+    expect(screen.getByLabelText(/Keep the characters/)).toBeChecked();
+    expect(screen.getByText(/Only the world is made in this look/)).toBeInTheDocument();
+  });
+});
