@@ -86,6 +86,17 @@ npx playwright test e2e/a11y.spec.ts
 
 The browser tests drive the **screenshot harness** (`http://localhost:1420/docshots.html?scene=...`), which answers the app's backend calls with made-up data held in memory: no engine, no provider, nothing can be charged. Locally they use the Microsoft Edge that Windows already has (`PW_CHANNEL=chrome` or `msedge` to choose); in CI use `npx playwright install chromium`. They do **not** drive the whole Studio: its browser preview (`?mock`) needs a `mock-data/` folder that is not in the repository (it is in `.gitignore`). The harness removes its own `docshot` class in these tests, because that class un-scrolls long lists for screenshots. Animations are switched off first: a sheet that is still fading in gives axe a colour that is not real (a first run reported 22 screens with low contrast that were not).
 
+### Seedream sizes, BytePlus and the first-run screens (after 0.31.1)
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`, `e2e`) and shell |
+|---|---|---|
+| **Unit** | `test_picture_size` (sizes, price per size), `test_byteplus` (sizes, prices, request, errors) | `modelpickersize.test.tsx`, `byteplus.test.ts`; `cargo test` (key slot, name, no free pass) |
+| **Component** (jsdom, clicked) | none | `component/keyrows.dom.test.tsx` (the grouped keys: save, Enter, remove, a refused key, never shown in clear) |
+| **Integration** | BytePlus queued, sent (HTTP replaced), finished and counted | none |
+| **End to end** (Playwright, Edge) | none | `e2e/ux.spec.ts` (no top-bar icon covers the inspector's title at 1100, 1280, 1440 and 1920 px; the rail shows the path and keeps the rest behind More, remembers it, Director Mode shows all; Connections is grouped and its rows keep their shape) |
+| **Accessibility** | none | `e2e/a11y.spec.ts` now also scans the Settings screen (44 harness scenes + 1) |
+| **Security** | BytePlus: no key, bad references, every error, no key in a message | none |
+
 ### Checks outside the test suites
 
 - `python -m tests.speech_check` (in `analysis/`, Windows): measures how well the voice/effects split works on synthesized speech with effects and music at known levels, and prints the numbers quoted in the guide. `test_split_speech` guards them.

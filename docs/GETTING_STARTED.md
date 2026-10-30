@@ -5,7 +5,7 @@ FilmCrafter turns a story into a film. You bring a screenplay, a logline or an i
 ## Before you start
 
 - **Install** with the `.exe` or `.msi` installer. The first launch sets up the engine (a few minutes, once).
-- **Keys.** Open **Settings** (the gear, or Ctrl+,) and paste the keys for the services you want to use: a picture and video provider (fal or Kie), and optionally an AI brain for the optional writing help and for checking pictures (OpenAI or OpenRouter), or a local one (Ollama, LM Studio, ComfyUI). Keys are stored in the system keychain, never in a film's folder.
+- **Keys.** Open **Settings** (the gear, or Ctrl+,). The keys are grouped by what they are for: under **Pictures and video** you need one provider to make anything (Kie.ai is the easiest start; fal, Google and BytePlus are the others); the other groups are optional. Paste the key and press Save. Optionally add an AI brain for the optional writing help and for checking pictures (OpenAI or OpenRouter), or a local one (Ollama, LM Studio, ComfyUI). Keys are stored in the system keychain, never in a film's folder.
 - **Without any key** you can still write and structure a whole film (story, cast, shots), bring your own pictures and videos, edit the timeline and export, all free.
 - **Money.** Pictures and video are billed by the provider. FilmCrafter shows the price of every generation before it starts, and the Plan & budget sheet (Settings) sets a limit.
 - **Where films live.** Each film is a folder in `Documents\FilmCrafter` that you can open, copy and back up like any other. To move a whole film to another computer, use **File > Save a Copy as One File (.filmpack)…** (from any screen of the film): one file with the story, cast, shots, your recordings and every picture and video made. Opening a `.filmpack` (double-click it, or File > Open Film…) unpacks it as a new film beside your others and never overwrites one. Saved files show the FilmCrafter film icon.
@@ -115,6 +115,8 @@ Each shot is a **Shot Contract** that doesn't depend on any AI model:
 Move, duplicate, split, join and take out shots freely (a shot you take out is moved aside, not deleted). Running the breakdown again only drafts scenes that have no shots; shots you have edited are never changed. A shot whose storyboard is locked can't have its framing, people or place changed until you unlock it.
 
 ## The Studio: one place to make the film
+
+**The left rail.** It shows the path first: **Home, Project, Library, Studio, Looks, Review, Export**. Seven tools a first film does not need (**Supervisor, Acting, Continuity, Layers, Lighting, Colour match, Clean up**) sit behind one **More** button; press it to show them (it then says **Fewer**), and the rail remembers how you left it. **Director Mode** (in the top bar's **More** menu) always shows them. Every tool is also in the command palette (Ctrl+K). When the top bar is short of room, **Ask the Director** moves into its **More** menu.
 
 Along the top of a film there are five steps: **Story, Cast & World, Shots, Studio, Export**. The **Studio** is where pictures and video are made, and you can see it two ways with the **Cards | Timeline** switch at the top right (or press **‹ Film** in the timeline to go back to the story, cast and shots):
 
@@ -537,7 +539,7 @@ AI pictures and video have habits of their own: a yellow, orange or golden tint 
 
 **1. When a picture or video is asked for (automatic, free, on by default).** Every request now carries one plain line: natural, true-to-life colour with a neutral white balance (whites look white, skin shows its real tone, no yellow, orange, sepia or golden cast); natural skin with visible pores and small imperfections, never smooth, waxy, plastic or airbrushed; a clean, sharp image with no digital noise, heavy grain or over-sharpening. Models that take a *negative prompt* are also told what to avoid in words. A shot that is warm on purpose (golden hour, sunset, candlelight, firelight, a warm look) keeps its warmth: the colour part is left out for it. The "What would be sent" list shows the line. This only changes pictures and video made from now on, and wording lowers the odds rather than removing them: no model is reliable here. You can switch it off for a film in **Colour match**.
 
-**2. When the film is put together (Colour match, free, for pictures already made).** Open **Colour match** (Timeline view, on the left rail), press **Look at the shots**, then:
+**2. When the film is put together (Colour match, free, for pictures already made).** Open **Colour match** (Timeline view, on the left rail under **More**), press **Look at the shots**, then:
 
 - **Take out a colour cast that runs through the whole film.** Matching shots to each other cannot remove a tint that *every* shot shares, because the typical shot has it too. This measures the film's average colour against neutral, says what it found ("This film leans yellow"), and moves every shot back by one shared amount (you choose how much, 20 to 100%). Each shot keeps its own differences: a night scene stays blue and a sunset stays warm. A small cast (under about 3 on the colour scale) is left alone, and one correction never moves the colour by more than 18.
 - **Reduce noise a little.** A light, temporal denoise.

@@ -1752,3 +1752,22 @@ select option, select optgroup { background: #12171e; color: var(--frost); }
 .shot-look select:focus-visible { outline: none; border-color: var(--ignite); box-shadow: 0 0 0 3px var(--ignite-wash); }
 .flag { align-items: flex-start; }
 .flag > svg { flex: none; margin-top: 2px; }
+/* Connections: the keys by what they are for; a row never changes shape */
+.key-group { margin-top: 22px; }
+.key-group > h3 { margin: 0 0 2px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet, #8f99a8); }
+.key-hint { margin: 0 0 12px; font-size: 12.5px; }
+.key-field { margin-bottom: 14px; }
+.key-head { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.key-head label { margin: 0; min-width: 0; }
+.key-state { display: inline-flex; align-items: baseline; gap: 12px; flex-shrink: 0; white-space: nowrap; }
+.status-ok, .status-missing { white-space: nowrap; }
+.key-remove { font-size: 12.5px; color: var(--text-quiet, #8f99a8); }
+.key-remove:hover { color: var(--frost); }
+/* the Studio's top bar has two icon buttons (the timeline and the inspector) that sit over the left end of the inspector's header: leave room for both, and let a long look name shrink */
+.inspector-head { padding-left: calc(var(--bar-over, 92px) + 20px); }
+.insp-title .t { flex-shrink: 0; }
+.look-chip { flex: 0 1 auto; min-width: 48px; }
+/* the rail: the tools a first film does not need sit behind one button */
+.rail button.rail-more { color: var(--text-quiet, #8f99a8); }
+.rail button.rail-more[aria-expanded="true"] { color: var(--frost); }
+.rail .rail-sep { width: 28px; height: 1px; margin: 4px 0; background: var(--line); flex: none; }

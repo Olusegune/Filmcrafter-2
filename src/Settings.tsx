@@ -8,35 +8,24 @@ import { LocalModelsPanel } from "./Routing";
 import { ComfyInstallCard } from "./ComfyInstall";
 import { savedScale, setScale, UI_SCALES } from "./uiScale";
 import { Check, Close } from "./icons";
+import { KeyGroups } from "./KeyRows";
 
 const PROVIDERS: { id: keyof KeyStatus; name: string; purpose: string }[] = [
-  { id: "kie", name: "Kie.ai", purpose: "Video, images and upscaling · the first choice: most models, lowest prices" },
-  { id: "openai", name: "OpenAI", purpose: "The writing helper and picture checks: story steps, shot suggestions, hands and faces" },
-  { id: "openrouter", name: "OpenRouter", purpose: "One key for hundreds of cheaper AI models for the writing helper and picture checks (pick it under AI brain)" },
+  { id: "kie", name: "Kie.ai", purpose: "Video, images and upscaling" },
+  { id: "openai", name: "OpenAI", purpose: "OpenAI's own models" },
+  { id: "openrouter", name: "OpenRouter", purpose: "One key for hundreds of cheaper models (choose it under AI brain)" },
   { id: "fal", name: "fal.ai", purpose: "Video, images and upscaling" },
   { id: "google", name: "Google Gemini", purpose: "Veo video and Nano Banana images, direct from Google" },
-  { id: "byteplus", name: "BytePlus (Seedream)", purpose: "Seedream 5.0 Pro, 5.0 Lite, 4.5 and 4.0 pictures, direct from ByteDance at their published price (4K on Seedream 4.5 and 5.0 Lite)" },
+  { id: "byteplus", name: "BytePlus (Seedream)", purpose: "Seedream pictures direct from ByteDance, at their published price" },
   { id: "elevenlabs", name: "ElevenLabs", purpose: "Custom voices: choose, design or clone one for each character, and have lines spoken in it" },
 ];
 
 /** Keys go straight to the Windows Credential Manager / macOS Keychain; they never touch project files. */
 export function Settings({ onClose, onHelp }: { onClose: () => void; onHelp?: () => void }) {
   const [status, setStatus] = useState<KeyStatus>({ openai: false, fal: false, kie: false, google: false, elevenlabs: false, openrouter: false });
-  const [draft, setDraft] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState<Record<string, string>>({});
 
   const refresh = () => api.keyStatus().then((k) => { setStatus(k); window.dispatchEvent(new Event("pf-keys-changed")); });
   useEffect(() => { refresh(); }, []);
-
-  const save = async (id: string) => {
-    try {
-      await api.setKey(id, draft[id] ?? "");
-      setDraft((d) => ({ ...d, [id]: "" }));
-      setMsg((m) => ({ ...m, [id]: "" }));
-      refresh();
-    } catch (e) { setMsg((m) => ({ ...m, [id]: errorText(e) })); }
-  };
-  const remove = async (id: string) => { await api.deleteKey(id); refresh(); };
 
   return (
     <Sheet label="Settings" onDismiss={onClose}>
@@ -50,23 +39,9 @@ export function Settings({ onClose, onHelp }: { onClose: () => void; onHelp?: ()
             <button className="icon-btn" onClick={onClose} aria-label="Close"><Close /></button>
           </div>
         </div>
-        {PROVIDERS.map((p) => (
-          <div className="field" key={p.id}>
-            <label htmlFor={`k-${p.id}`} style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>{p.name} <span className="opt">{p.purpose}</span></span>
-              {status[p.id] ? <span className="status-ok"><Check size={14} /> Connected</span> : <span className="status-missing">Not connected</span>}
-            </label>
-            <div className="key-row">
-              <input id={`k-${p.id}`} type="password" autoComplete="off" spellCheck={false} className="text-input"
-                     placeholder={status[p.id] ? "Replace key…" : "Paste your API key"}
-                     value={draft[p.id] ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [p.id]: e.target.value }))}
-                     onKeyDown={(e) => e.key === "Enter" && save(p.id)} />
-              <button className="btn sel" onClick={() => save(p.id)} disabled={!(draft[p.id] ?? "").trim()}>Save</button>
-              {status[p.id] && <button className="btn ghost" onClick={() => remove(p.id)}>Remove</button>}
-            </div>
-            {msg[p.id] && <div className="error-text">{msg[p.id]}</div>}
-          </div>
-        ))}
+        <KeyGroups providers={PROVIDERS} status={status}
+                   onSave={async (id, key) => { await api.setKey(id, key); await refresh(); }}
+                   onRemove={async (id) => { await api.deleteKey(id); await refresh(); }} />
         <InterfaceSize />
         <BrainPanel openaiKey={status.openai} openrouterKey={!!status.openrouter} />
         <ComfyPanel />
@@ -422,9 +397,9 @@ function InterfaceSize() {
   const [now, setNow] = useState<number | null>(null);
   return (
     <div className="field">
-      <label>Interface size <span className="dim">(for large screens and TVs)</span></label>
+      <label htmlFor="ui-scale">Interface size <span className="dim">(for large screens and TVs)</span></label>
       <div className="wiz-row">
-        <select className="text-input" style={{ maxWidth: 280 }} value={v}
+        <select id="ui-scale" className="text-input" style={{ maxWidth: 280 }} value={v}
                 onChange={async (e) => { setV(e.target.value); setNow(await setScale(e.target.value)); }}>
           {UI_SCALES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
         </select>

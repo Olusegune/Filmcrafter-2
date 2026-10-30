@@ -37,6 +37,7 @@ import { SupervisorSheet } from "../Supervisor";
 import { PerformanceSheet } from "../Performance";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
+import { Settings } from "../Settings";
 import { NewFilm } from "../NewFilm";
 import { FilmView } from "../FilmView";
 import { CastWorld } from "../CastWorld";
@@ -280,7 +281,7 @@ mockIPC((cmd, a) => {
       { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", modified: now - 86400 * 2 },
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
-    case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false };
+    case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false, byteplus: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
     case "model_registry": return x.action === "in_use" ? { models: [], warnings: [] } : x.action === "refresh" ? { results: { elevenlabs: { ok: true, models: 6 }, kie: { ok: false, error: "no network" } }, kept: "Anything that could not be refreshed keeps what it had." }
@@ -433,6 +434,7 @@ const card = (children: ReactNode, width = 480) => <div className="sheet glass" 
 const scenes: Record<string, () => ReactNode> = {
   layers: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={DIR} selected="l1" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layerlanes: () => <div style={{ width: 900, height: 120, position: "relative", background: "#10131a", overflow: "hidden" }}><LayerLanes dir={DIR} pps={40} duration={30} selected="l1" onSelect={noop} snap={[]} top={0} time={3} onSeek={noop} /></div>,
+  settings: () => <Settings onClose={noop} onHelp={noop} />,
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,

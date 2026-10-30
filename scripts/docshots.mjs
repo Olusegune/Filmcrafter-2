@@ -27,7 +27,7 @@ const click = (sel, text) => `{ const el = [...document.querySelectorAll(${JSON.
 const openStudio = `${wait(2500)} { const el = [...document.querySelectorAll("*")].find((e) => e.children.length === 0 && e.textContent === "Exit Plan"); if (!el) throw new Error("sample project not found"); el.click(); } ${wait(3500)}
   [...document.querySelectorAll("button")].find((b) => b.textContent === "Skip")?.click(); ${wait(500)}`;
 const pickShot = (n) => `{ const c = [...document.querySelectorAll(".shot-card")].find((e) => e.textContent.includes(${JSON.stringify(n)})); if (!c) throw new Error("shot not found"); c.click(); } ${wait(1200)}`;
-const rail = (label) => `{ const b = [...document.querySelectorAll(".rail button")].find((x) => x.textContent.trim().startsWith(${JSON.stringify(label)})); if (!b) throw new Error("rail button not found: ${label}"); b.click(); } ${wait(1500)}`;
+const rail = (label) => `{ const find = () => [...document.querySelectorAll(".rail button")].find((x) => x.textContent.trim().startsWith(${JSON.stringify(label)})); let b = find(); if (!b) { const more = [...document.querySelectorAll(".rail button")].find((x) => x.textContent.trim() === "More"); if (more) more.click(); } await new Promise((r) => setTimeout(r, 300)); b = find(); if (!b) throw new Error("rail button not found: ${label}"); b.click(); } ${wait(1500)}`;
 const home = (text) => `${wait(2500)} { const b = [...document.querySelectorAll("button, a")].find((x) => x.textContent.trim().includes(${JSON.stringify(text)})); if (!b) throw new Error("not found: ${text}"); b.click(); } ${wait(2500)}`;
 const tab = (t) => `${click("[role=tab]", t)}`;
 const scrollTo = (sel) => `document.querySelector(${JSON.stringify(sel)}).scrollIntoView({ block: "center" }); ${wait(500)}`;

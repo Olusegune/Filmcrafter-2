@@ -225,7 +225,7 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 | **Security** | a bad shot id (`../x`, `..`, empty, a slash, a space, 80 characters, a number), a bad scene number, an unknown look, a genre feel and a folder that is not a project are refused and nothing is written; a damaged project file is left exactly as it was | none |
 | **Money** | changing a look never calls `enqueue` or `run` and never touches `jobs.json` (a test makes either call fail the run) | the save call asks the app for the look only: no render, no price |
 
-Whole suites after this change: `pytest` **2,187 passed**, 6 skipped (after the BytePlus provider); `vitest` **650 passed** (82 files); `playwright` **51 passed** (7 look tests, 44 accessibility); `cargo test` **13 passed**; `cargo clippy -D warnings`, `tsc --noEmit` and `npm run build` clean. `rafter secrets .` finds one test fixture in `src/docshots/main.tsx` (a placeholder, unchanged); `rafter run` could not run (the plan's scan allowance for the period was used up).
+Whole suites after this change: `pytest` **2,187 passed**, 6 skipped (after the BytePlus provider); `vitest` **658 passed** (83 files); `playwright` **63 passed** (7 look tests, 45 accessibility, 11 first-run); `cargo test` **14 passed**; `cargo clippy -D warnings`, `tsc --noEmit` and `npm run build` clean. `rafter secrets .` finds one test fixture in `src/docshots/main.tsx` (a placeholder, unchanged); `rafter run` could not run (the plan's scan allowance for the period was used up).
 
 Bugs found by this pass and fixed: (1) **`make.sync` wiped the scene and shot looks** each time the render project was rebuilt from the Bible (a failing test first); (2) a shot picked in the look it already inherited was stored as its own look and got the gold chip; (3) the app could make a `project.json` out of a folder that was not a project; (4) choosing another film look in the picker replaced the whole look setting, dropping scene and shot looks (found earlier, test in `cargo test`); (5) the picture check and the take review judged a shot in its own look against the film's look.
 
@@ -253,6 +253,12 @@ What was checked against the providers' own published schemas on 2026-10-30 (not
 | **Regression** | a price such as 4.5 cents was shown and counted as 4 | none |
 
 **NOT checked:** a real picture from BytePlus (endpoint, key header, sizes and the `b64_json` reply are from their documentation, read 2026-10-30, and the tests replace the HTTP call); Seedream 5.0 Flash's size limits (BytePlus lists its levels as Pro's, and the same range is assumed); a BytePlus account's regional or sign-up requirements; what a refused picture or a long wait really costs; BytePlus's own rate limits.
+
+### First-run UX pass (unreleased, after 0.31.1)
+
+Looked at in a real browser (Edge, the screenshot harness), screen by screen: Home, New film, the story workspace, Make, Export, Studio, Choose your picture model and Connections (Settings). Most were already built around one orange next step, prices shown first and "Let FilmCrafter choose"; the problems found and fixed: (1) **the Studio's top-bar icons covered the inspector's title** at every window width (the bar's content is wider than its column; a fixed padding had been left for one icon, there are now three); (2) **Connections** was one flat list in no order with a wrapping "Not connected" and rows that changed width; (3) **the rail** showed fifteen buttons, every advanced tool equal to the path; (4) **a critical accessibility fault**: the Interface size dropdown had no name. Tests: `e2e/ux.spec.ts` (11), `keyrows.dom.test.tsx` (8), and the accessibility scan now includes Settings. Playwright: **63 passed**.
+
+**NOT checked:** the real Studio with real data (its browser preview needs the `mock-data/` folder that is not in the repository), so the header and rail were checked on the harness's made-up film; people using the app for the first time (the most important test of "intuitive"); a screen reader or keyboard-only use by a person; macOS and other window scales; the narrow-window (under 1100 px) layout; the other screens (Cast & World, Shots, Compose, Sound plan and the rest) were not reviewed for flow in this pass.
 
 ## Not tested (be honest about these)
 

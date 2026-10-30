@@ -213,6 +213,9 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [pendingKf, setPendingKf] = useState<Record<string, string>>({});
   const [approvingKf, setApprovingKf] = useState(false);
   const styles = useStyles();
+  // the rail shows the path (Studio, Review, Export) and keeps the other tools behind "More" until Director Mode, which always shows them; the choice is remembered
+  const [moreTools, setMoreTools] = useState(() => { try { return localStorage.getItem("pf-rail-more") === "1"; } catch { return false; } });
+  const toggleMoreTools = () => setMoreTools((v) => { try { localStorage.setItem("pf-rail-more", v ? "0" : "1"); } catch { /* remembering it is a convenience only */ } return !v; });
   // the shots and scenes that are played in a look of their own (stylebible.py); a read, never a render
   const [ownLooks, setOwnLooks] = useState<StyleBibleRead | null>(null);
   const [shotLookFor, setShotLookFor] = useState<string | null>(null);
@@ -489,16 +492,21 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
         <RailBtn icon={<I.Assets />} label="Library" onClick={() => setLibraryOpen(true)} />
         <RailBtn icon={<I.Studio />} label="Studio" active />
         <RailBtn icon={<I.Mountain />} label={isFilm ? "Looks" : "Directions"} onClick={() => setDlOpen(true)} />
-        <RailBtn icon={<I.Wand />} label="Supervisor" onClick={() => setSupOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
-        <RailBtn icon={<I.User />} label="Acting" onClick={() => setPerfOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
-        <RailBtn icon={<I.Film />} label="Continuity" onClick={() => setContOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
         <RailBtn icon={<I.Review />} label="Review" onClick={() => setReviewing(true)} disabled={!plan}
                  badge={shots.filter((s) => needsAttention(takes.get(s.id))).length} />
         <RailBtn icon={<I.Export />} label="Export" onClick={() => setExporting(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
-        <RailBtn icon={<I.Layers />} label="Layers" onClick={() => setLayersOpen((v) => !v)} active={layersOpen} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
-        <RailBtn icon={<I.Light />} label="Lighting" onClick={() => setLightOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
-        <RailBtn icon={<I.Lens />} label="Colour match" onClick={() => setColourOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
-        <RailBtn icon={<I.Trash />} label="Clean up" onClick={() => setCleanOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+        {!director && <RailBtn icon={<I.Sliders />} label={moreTools ? "Fewer" : "More"} onClick={toggleMoreTools} expanded={moreTools} className="rail-more"
+                               why="The tools a first film does not need: Supervisor, Acting, Continuity, Layers, Lighting, Colour match and Clean up. Director Mode always shows them." />}
+        {(director || moreTools || layersOpen) && <>
+          <div className="rail-sep" role="separator" />
+          <RailBtn icon={<I.Wand />} label="Supervisor" onClick={() => setSupOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.User />} label="Acting" onClick={() => setPerfOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Film />} label="Continuity" onClick={() => setContOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Layers />} label="Layers" onClick={() => setLayersOpen((v) => !v)} active={layersOpen} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Light />} label="Lighting" onClick={() => setLightOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Lens />} label="Colour match" onClick={() => setColourOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Trash />} label="Clean up" onClick={() => setCleanOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+        </>}
         <div className="spacer" />
         <RailBtn icon={<I.Gear />} label="Settings" onClick={onSettings} />
       </nav>
@@ -549,9 +557,10 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                 <b>Moving stills from keyframes ({stillable})</b><span>Shots with a keyframe but no video get a slow camera move. Free.</span></button>
             </div>}
           </div>}
-          {plan && <button className="btn ghost cmd-btn" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
+          {plan && !narrowBar && <button className="btn ghost cmd-btn" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
           {narrowBar ? <div className="menu-wrap"><button className="btn ghost" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-haspopup="menu">More ▾</button>
             {moreOpen && <div className="menu glass tb-more" role="menu" onClick={() => setMoreOpen(false)} onMouseLeave={() => setMoreOpen(false)}>
+          {plan && <button className="btn" role="menuitem" onClick={() => setCommanding(true)} title="Tell the Director what to change, in plain words (Ctrl+K)">Ask the Director <kbd>Ctrl K</kbd></button>}
           {isFilm && <button className="btn" role="menuitem" aria-pressed={director} onClick={() => setDirector(!director)} title="Show the set, wardrobe, continuity and every scene note in the inspector">{director ? "Director Mode: on" : "Director Mode: off"}</button>}
           {Object.keys(pendingKf).length > 0 && <button className="btn" onClick={() => setApprovingKf(true)}
                       title="Approve the newest keyframe for every shot without one">Approve {Object.keys(pendingKf).length} keyframes</button>}
@@ -837,11 +846,11 @@ const aspectNum = (r?: string) => {
 };
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function RailBtn({ icon, label, active, disabled, onClick, badge, why }: {
-  icon: React.ReactNode; label: string; active?: boolean; disabled?: boolean; onClick?: () => void; badge?: number; why?: string;
+function RailBtn({ icon, label, active, disabled, onClick, badge, why, expanded, className }: {
+  icon: React.ReactNode; label: string; active?: boolean; disabled?: boolean; onClick?: () => void; badge?: number; why?: string; expanded?: boolean; className?: string;
 }) {
-  return <button className={active ? "active" : ""} data-k={label.toLowerCase()} disabled={disabled} onClick={onClick}
-                 title={disabled && why ? `${label}: ${why}` : label} aria-current={active ? "page" : undefined}>
+  return <button className={[active ? "active" : "", className ?? ""].filter(Boolean).join(" ")} data-k={label.toLowerCase()} disabled={disabled} onClick={onClick}
+                 title={(disabled || expanded !== undefined) && why ? `${label}: ${why}` : label} aria-current={active ? "page" : undefined} aria-expanded={expanded}>
     {icon}<span>{label}</span>{badge ? <i className="rail-badge" aria-label={`${badge} need attention`}>{badge}</i> : null}</button>;
 }
 
@@ -1060,6 +1069,8 @@ function useBarFold(ref: React.RefObject<HTMLElement | null>, deps: unknown[]): 
       if (el.clientWidth < 100) return;                                  // hidden or not laid out yet: nothing to measure
       if (!fold && el.scrollWidth > el.clientWidth + 1) { need.current = el.scrollWidth; setFold(true); }
       else if (fold && el.clientWidth >= need.current + 8) setFold(false);
+      // what the bar still spills over the inspector's header (its last icons): the header leaves exactly that much room, so a title is never covered
+      (el.closest(".studio") as HTMLElement | null)?.style.setProperty("--bar-over", `${Math.max(0, el.scrollWidth - el.clientWidth)}px`);
     };
     check();
     const ro = new ResizeObserver(check);
