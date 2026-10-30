@@ -95,6 +95,9 @@ The **Direction library** (Studio, *Directions*, or from the film) has 48 filmma
 
 Taking an entry out never destroys it: the Bible before each change is kept (the newest 30).
 
+### The Performance sheet (Performance Director)
+Open **Acting** from the Studio's left rail (under *More*). **Scenes** shows a draft of what each scene is for and what each person wants, hides and shows, and flags spoken lines that may mean more than they say. A draft is only a draft: it is marked **Draft** and is never sent to a model. Press **Keep this** to adopt it or type your own and press **Save**; marked **Yours**, it is used. **Back to the draft** undoes it. **People** holds what each person is like, shown beside what the cast already says. On a shot, **Suggest beats (free)** drafts the beats without charge, and the direction buttons (more restrained, more vulnerable, hold the reaction longer, ...) apply to that shot only. None of this costs anything.
+
 ## Shots
 
 Open **Shots** along the top and press **Break down the story**. FilmCrafter drafts the shots for every scene, like a director's first pass: a wide to open the scene, coverage for each exchange of dialogue, an insert for a detail that matters. It is a starting point: change anything.

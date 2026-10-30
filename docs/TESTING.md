@@ -91,6 +91,8 @@ The browser tests drive the **screenshot harness** (`http://localhost:1420/docsh
 | Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`, `e2e`) and shell |
 |---|---|---|
 | **Unit** | `test_picture_size` (sizes, price per size), `test_byteplus` (sizes, prices, request, errors) | `modelpickersize.test.tsx`, `byteplus.test.ts`; `cargo test` (key slot, name, no free pass) |
+| **Component** (jsdom, clicked) | none | `component/performancedirector.dom.test.tsx` (draft vs yours, keep/undo/reset, the right path saved per line and per person, directions step up and off, free beat suggestion), `e2e/performance.spec.ts` (the same in a real browser engine on the `acting` and `shotacting` harness scenes; both are also in the accessibility scan) |
+
 | **Component** (jsdom, clicked) | none | `component/keyrows.dom.test.tsx` (the grouped keys: save, Enter, remove, a refused key, never shown in clear) |
 | **Integration** | BytePlus queued, sent (HTTP replaced), finished and counted | none |
 | **End to end** (Playwright, Edge) | none | `e2e/ux.spec.ts` (no top-bar icon covers the inspector's title at 1100, 1280, 1440 and 1920 px; the rail shows the path and keeps the rest behind More, remembers it, Director Mode shows all; Connections is grouped and its rows keep their shape) |

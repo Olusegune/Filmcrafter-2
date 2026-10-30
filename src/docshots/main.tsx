@@ -34,7 +34,7 @@ import { LayersPanel } from "../Layers";
 import { LayerLanes } from "../LayerLanes";
 import { ColourMatchSheet } from "../ColourMatch";
 import { SupervisorSheet } from "../Supervisor";
-import { PerformanceSheet } from "../Performance";
+import { PerformanceSheet, ShotPerformance } from "../Performance";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
 import { Settings } from "../Settings";
@@ -275,6 +275,7 @@ mockIPC((cmd, a) => {
       { shot: "S02-01", scene: 2, start: 31, end: 33, duration: 2, check: false, risks: [], note: "", sources: [{ id: "S02-01", cue: [], people: ["Sege"], description: "Intimate profile of their kiss." }, { id: "S02-02", cue: [], people: ["Amara"], description: "Close-up of Amara laughing gently." }] }] } : null;
     case "review_backlog": return { unchecked: 0 };
     case "lipsync_check": return { shots: 0 };
+    case "performance_director": return pdCall(x);
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
     case "list_projects": return [
@@ -409,6 +410,55 @@ const noop = () => {};
 // a look for one shot: the made-up looks and the one shot that has its own (set in memory, so the select can be tried)
 const sbShots: Record<string, string> = scene === "shotlook-own" ? { "S01-04": "anime" } : {};
 const sbKeep: Record<string, boolean> = {};
+
+// the Performance Director's made-up film: one scene with two people and a line that may mean more than it says; every edit is kept in memory so the screens can be tried
+type PdField = { value: string; source: "auto" | "you"; from: string };
+const pdf = (value: string, from = "", source: "auto" | "you" = "auto"): PdField => ({ value, source, from: value ? from : "" });
+const pdScenes = [
+  { number: 1, heading: "INT. KITCHEN - MORNING", shots: ["S01-01", "S01-02"],
+    fields: { purpose: pdf("She cannot ask him to stay.", "the shots' story purposes"), start: pdf("Brittle calm", "shot S01-01"), end: pdf("", ""), tension: pdf("Sarah and John: she wants him to stay and will not say so.", "the cast notes") },
+    people: [{ name: "Sarah", wants: pdf("To keep him from leaving", "the story beats of S01-01"), obstacle: pdf("Pride", "the story beats of S01-01"), outward: pdf("", ""), inner: pdf("Afraid he is already gone", "the story beats of S01-01"), hiding: pdf("", "") },
+      { name: "John", wants: pdf("", ""), obstacle: pdf("", ""), outward: pdf("", ""), inner: pdf("", ""), hiding: pdf("", "") }],
+    subtext: [{ id: "S01-02:0", shot: "S01-02", person: "Sarah", says: "I'm fine.", means: pdf("Sarah may be hiding how they really feel", "the words of shot S01-01"), confidence: "medium" as const,
+      why: "The line (\"I'm fine\") is a deflection, and shot S01-01 mentions \"shaking\". This is a reading, not a fact: say what it means." }],
+    turning_points: [], nonverbal: [{ shot: "S01-01", what: "Sarah pours tea. Her hands are shaking and she will not look at him." }], reactions: [{ shot: "S01-03", person: "John", what: "listens to Sarah" }] },
+  { number: 2, heading: "EXT. PLATFORM - NIGHT", shots: ["S02-01"], fields: { purpose: pdf("Show where we are: Platform.", "the shots' story purposes"), start: pdf(""), end: pdf(""), tension: pdf("") },
+    people: [{ name: "John", wants: pdf(""), obstacle: pdf(""), outward: pdf(""), inner: pdf(""), hiding: pdf("") }], subtext: [], turning_points: [], nonverbal: [{ shot: "S02-01", what: "Rain on the roof. John waits alone." }], reactions: [] },
+];
+const pdProfiles: Record<string, Record<string, string>> = { Sarah: {}, John: {} };
+const pdNudges: Record<string, number> = {};
+const NUDGE_DEFS: [string, string, number][] = [["restrained", "More restrained", 2], ["grounded", "Less exaggerated", 1], ["vulnerable", "More vulnerable", 1], ["hesitant", "More hesitant", 1], ["playful", "More playful", 1],
+  ["tense", "More tension", 1], ["still_body", "Reduce body movement", 1], ["eyes", "Let the eyes tell the story", 1], ["hold", "Hold the reaction longer", 1]];
+const pdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { scene?: number; path?: string; value?: string; person?: string; fields?: Record<string, string>; nudge?: string; level?: number };
+  const sc = pdScenes.find((s) => s.number === Number(d.scene));
+  const slot = (path: string): PdField | null => {
+    if (!sc) return null;
+    const p = path.split(".");
+    if (p.length === 1) return (sc.fields as Record<string, PdField>)[p[0]] ?? null;
+    if (p[0] === "people") return ((sc.people.find((x) => x.name === p[1]) as unknown as Record<string, PdField>) ?? {})[p[2]] ?? null;
+    if (p[0] === "subtext") return sc.subtext.find((x) => x.id === p[1])?.means ?? null;
+    return null;
+  };
+  switch (a.action) {
+    case "breakdown_get": return { has_contracts: true, scenes: pdScenes };
+    case "breakdown_set": case "breakdown_accept": { const s = slot(String(d.path)); if (!s) throw new Error("That is not a part of this scene's breakdown.");
+      s.value = a.action === "breakdown_set" ? String(d.value ?? "") : s.value; s.source = "you"; s.from = "your edit"; return sc; }
+    case "breakdown_reset": { const s = slot(String(d.path)); if (!s) throw new Error("That is not a part of this scene's breakdown."); s.source = "auto"; s.from = "the draft"; return sc; }
+    case "characters_get": return { fields: ["personality", "desire", "fears", "triggers", "contradictions", "defenses", "speech_rhythm", "carriage", "stress", "state_now"],
+      people: Object.keys(pdProfiles).map((n) => ({ name: n, profile: { personality: "", desire: "", fears: "", triggers: "", contradictions: "", defenses: "", speech_rhythm: "", carriage: "", stress: "", state_now: "", ...pdProfiles[n] },
+        known: n === "Sarah" ? { role: "Lead", relationships: "Wants John to stay" } : {}, style: n === "Sarah" ? "restrained" : "", gestures: n === "Sarah" ? [{ when: "flustered", do: "touches the front of her collar" }] : [] })) };
+    case "character_set": { const n = String(d.person); pdProfiles[n] = { ...pdProfiles[n], ...Object.fromEntries(Object.entries(d.fields ?? {}).filter(([, v]) => v)) }; return pdCall({ action: "characters_get" }); }
+    case "character_clear": { pdProfiles[String(d.person)] = {}; return pdCall({ action: "characters_get" }); }
+    case "beats_suggest": return { shot: "S01-02", seconds: 4.2, basis: "A rule-based starting point from the feeling (brittle calm), Sarah's acting style (restrained). Edit it freely; nothing is saved until you save.",
+      beats: [{ t0: 0, t1: 1.47, what: "Sarah registers what is happening before reacting", eyes: "toward John", change: "the moment arrives", source: "auto", confidence: "low" },
+        { t0: 1.47, t1: 2.94, what: "Sarah reacts: brittle calm, in a small readable way", face: "lips press into a tight smile", change: "brittle calm begins to show", source: "auto", confidence: "low" },
+        { t0: 2.94, t1: 4.2, what: "Sarah holds the moment still; the feeling stays in the eyes and the breath", change: "the feeling settles", source: "auto", confidence: "low" }] };
+    case "nudges_get": return { shot: "S01-02", nudges: NUDGE_DEFS.map(([id, label, levels]) => ({ id, label, level: pdNudges[id] ?? 0, levels })) };
+    case "nudge_set": { if (d.level) pdNudges[String(d.nudge)] = Number(d.level); else delete pdNudges[String(d.nudge)]; return { ...(pdCall({ action: "nudges_get" }) as object), beats: { shot: "S01-02", beats: [] } }; }
+    default: throw new Error("Unknown action.");
+  }
+};
 const sbRead = (): StyleBibleRead => ({ style: { id: "claymation", name: "Claymation", prompt: "" }, scenes: [], shots: { ...sbShots }, keep_cast: { ...sbKeep }, precedence: [],
   styles: [{ id: "claymation", name: "Claymation", group: "", description: "" }, { id: "anime", name: "Shonen action anime", group: "", description: "" }, { id: "noir", name: "Film noir", group: "", description: "" }] });
 const ShotLookDemo = () => {
@@ -454,6 +504,7 @@ const scenes: Record<string, () => ReactNode> = {
   shots: () => <div style={{ width: "min(1240px, 100vw)", height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: "min(1200px, 100vw)", height: Number(q.get("h")) || 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
+  shotacting: () => <aside className="inspector" style={{ width: 380, padding: 14 }} aria-label="Inspector"><ShotPerformance dir={DIR} shotId="S01-02" onChanged={noop} /></aside>,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,
   acting: () => <PerformanceSheet dir={DIR} scenes={[{ number: 1, heading: "INT. SEGE'S BEDROOM - BEFORE DAWN" }, { number: 2, heading: "INT. SEGE'S KITCHEN - MORNING" }]} characters={["Sege", "Amara", "Young Sege"]} onClose={noop} onChanged={noop} />,

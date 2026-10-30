@@ -43,7 +43,8 @@ export function BeatsView({ seconds, source, beats, dirty, busy, err, note, onCh
               <button className="icon-btn" onClick={() => onChange(beats.filter((_, k) => k !== i))} aria-label={`Remove beat ${i + 1}`} title="Remove this beat"><I.Close size={14} /></button>
             </div>
             <input className="text-input beat-what" value={b.what} maxLength={240} placeholder="What she does, for example: lifts her hand slowly to the glasses" aria-label={`Beat ${i + 1}: what happens`} onChange={(e) => set(i, { what: e.target.value })} />
-            <details className="beat-more" open={DETAILS.some(([k]) => !!b[k]) || undefined}><summary>Face, eyes, gaze, hands, breath, what changes</summary>
+            {DETAILS.some(([k]) => !!b[k]) && <p className="dim beat-sum">{DETAILS.filter(([k]) => !!b[k]).map(([k, label]) => `${label.toLowerCase()}: ${b[k]}`).join(" · ")}</p>}
+            <details className="beat-more"><summary>Face, eyes, gaze, hands, breath, what changes</summary>
               <div className="beat-details">{DETAILS.map(([k, label]) => (
                 <label key={k}>{label}<input className="text-input" value={(b[k] as string) ?? ""} maxLength={k === "change" ? 160 : 120} aria-label={`Beat ${i + 1}: ${label.toLowerCase()}`} onChange={(e) => set(i, { [k]: e.target.value })} /></label>))}</div>
               <label className="beat-carry"><input type="checkbox" checked={!!b.continues} onChange={(e) => set(i, { continues: e.target.checked })} /> Carries on into the next shot <span className="dim">(the feeling does not reset at the cut)</span></label>
