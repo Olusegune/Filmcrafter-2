@@ -5,7 +5,7 @@ import { ModelPicker } from "./ModelPicker";
 import { ask } from "./ask";
 import * as I from "./icons";
 
-const PROVIDERS = [["kie", "Kie.ai"], ["fal", "fal.ai"], ["google", "Google"], ["openai", "OpenAI"]] as const;
+const PROVIDERS = [["kie", "Kie.ai"], ["fal", "fal.ai"], ["google", "Google"], ["openai", "OpenAI"], ["byteplus", "BytePlus"]] as const;
 const KIND: Record<string, string> = { character: "Character", wardrobe: "Outfit", prop: "Prop", set: "Place" };
 const STATE: Record<string, string> = { queued: "Waiting", submitting: "Sending…", submitted: "Making…", ready: "Ready", failed: "Failed", uncertain: "Check provider" };
 const ACTIVE = ["queued", "submitting", "submitted"];

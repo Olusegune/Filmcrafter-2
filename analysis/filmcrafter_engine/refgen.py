@@ -233,6 +233,9 @@ def estimate(d: str, ids: list[str], provider: str, model: str, redo: list[str] 
     for m, n in used.items():
         man = R.manifest(provider, m)
         payload = {man["roles"].get("prompt", "prompt"): chosen[0]["prompt"]}
+        if provider == "byteplus" and man["model"] in R.BYTEPLUS_MODELS:    # priced exactly: the size and the reference pictures that will be sent
+            payload["size"] = R.byteplus_size(man["model"], {"quality": "standard", "aspect_ratio": (ASPECT.get(chosen[0].get("kind"), ("1:1",))[0])})
+            payload["image_urls"] = ["x"] * max(len(c.get("refs") or []) for c in chosen)
         try:
             e = R.estimate_payload(provider, man["model"], man, payload)
         except Exception:
@@ -339,6 +342,8 @@ def build_payload(d: str, p, j: dict, man: dict) -> dict:
         payload[f["name"]] = urls if f["type"] == "array" else urls[0]
     if j.get("asset_aspect") and "aspect_ratio" in roles:
         payload[roles["aspect_ratio"]] = j["asset_aspect"]
+    if man.get("provider") == "byteplus" and man["model"] in R.BYTEPLUS_MODELS:    # a reference picture does not need the film's biggest size: the model's standard (a draft: its smallest)
+        payload["size"] = R.byteplus_size(man["model"], {"quality": "draft" if j.get("asset_draft") else "standard", "aspect_ratio": j.get("asset_aspect") or "1:1"})
     if j.get("asset_draft") and any(f["name"] == "quality" and "low" in (f.get("enum") or []) for f in man["inputs"]):
         payload["quality"] = "low"                       # a draft: cheaper, and good enough to judge the design
     payload = R.fill_required(man, payload, up)

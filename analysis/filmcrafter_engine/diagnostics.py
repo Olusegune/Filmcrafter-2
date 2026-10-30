@@ -17,8 +17,8 @@ import requests
 from .render import ERROR_KINDS, classify_error
 
 UA = {"User-Agent": "FilmCrafter"}
-KEY_VARS = {"openai": "FILMCRAFTER_OPENAI_KEY", "fal": "FAL_KEY", "kie": "KIE_KEY", "google": "GEMINI_API_KEY"}
-NAMES = {"openai": "OpenAI", "fal": "fal", "kie": "Kie", "google": "Google (Veo, Nano Banana)"}
+KEY_VARS = {"openai": "FILMCRAFTER_OPENAI_KEY", "fal": "FAL_KEY", "kie": "KIE_KEY", "google": "GEMINI_API_KEY", "byteplus": "BYTEPLUS_KEY"}
+NAMES = {"openai": "OpenAI", "fal": "fal", "kie": "Kie", "google": "Google (Veo, Nano Banana)", "byteplus": "BytePlus (Seedream)"}
 
 RECOVERY = {
     "no_key": "Add the key in Settings → Keys.",
@@ -63,6 +63,8 @@ def _probe(provider: str, key: str) -> tuple[str, str, int | None]:
                 ids = [m["name"].split("/")[-1] for m in r.json().get("models", [])]
                 veo = [i for i in ids if "veo" in i or "image" in i]
                 return "ok", f"Signed in. {len(ids)} models; video/image: {', '.join(veo[:6]) or 'none listed'}.", 200
+        elif provider == "byteplus":       # BytePlus has no free request that proves a key, and a picture is the only call that can be billed: the first picture tests it
+            return "unchecked", "Saved. BytePlus has no free key check; the first picture tests it.", None
         else:
             return "error", "Unknown provider.", None
         return "error", (r.text or r.reason)[:300], r.status_code
@@ -112,9 +114,9 @@ def run(root: str | None, extra: list[str] | None = None) -> dict:
             status, msg, kind = "unavailable", "No key saved.", "no_key"
         else:
             st, msg, code = _probe(p, key)
-            kind = None if st == "ok" else ("offline" if st == "offline" else classify_error(msg, code if isinstance(code, int) else None))
+            kind = None if st in ("ok", "unchecked") else ("offline" if st == "offline" else classify_error(msg, code if isinstance(code, int) else None))
             # verified = signed in now AND at least one real render finished; mocked tests never count
-            status = "unavailable" if kind in ("auth", "offline") else ("verified" if st == "ok" and h["ready"] else
+            status = "unavailable" if kind in ("auth", "offline") else ("verified" if st in ("ok", "unchecked") and h["ready"] else
                                                                          "blocked" if kind == "credits" else "unverified")
         rows.append({"provider": p, "name": NAMES[p], "status": status, "message": msg,
                      "error_kind": kind, "explanation": ERROR_KINDS.get(kind or "", ""),

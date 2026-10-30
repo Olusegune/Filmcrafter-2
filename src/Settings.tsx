@@ -15,6 +15,7 @@ const PROVIDERS: { id: keyof KeyStatus; name: string; purpose: string }[] = [
   { id: "openrouter", name: "OpenRouter", purpose: "One key for hundreds of cheaper AI models for the writing helper and picture checks (pick it under AI brain)" },
   { id: "fal", name: "fal.ai", purpose: "Video, images and upscaling" },
   { id: "google", name: "Google Gemini", purpose: "Veo video and Nano Banana images, direct from Google" },
+  { id: "byteplus", name: "BytePlus (Seedream)", purpose: "Seedream 5.0 Pro, 5.0 Lite, 4.5 and 4.0 pictures, direct from ByteDance at their published price (4K on Seedream 4.5 and 5.0 Lite)" },
   { id: "elevenlabs", name: "ElevenLabs", purpose: "Custom voices: choose, design or clone one for each character, and have lines spoken in it" },
 ];
 

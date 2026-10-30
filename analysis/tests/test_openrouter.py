@@ -194,6 +194,6 @@ def test_a_local_brain_is_still_free_and_openrouter_is_never_called_free(cfg):
 # ---------------------------------------------------------------- the app shell
 def test_the_key_is_kept_in_the_keychain_and_the_engine_gets_it_only_when_it_is_the_chosen_brain():
     lib = open(os.path.join(os.path.dirname(__file__), "..", "..", "src-tauri", "src", "lib.rs"), encoding="utf-8").read()
-    assert '"elevenlabs", "openrouter"]' in lib                                                  # a provider whose key can be saved and read
+    assert '"elevenlabs", "openrouter", "byteplus"]' in lib                                                  # a provider whose key can be saved and read
     assert 'brain_provider() == "openrouter"' in lib and 'FILMCRAFTER_OPENROUTER_KEY' in lib
     assert 'matches!(brain_provider().as_str(), "ollama" | "lmstudio")' in lib                    # OpenRouter is not "local": it needs its key

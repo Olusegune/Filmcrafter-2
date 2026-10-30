@@ -23,7 +23,7 @@ const ERROR_LABEL: Record<string, string> = {
   download: "Download failed", missing_input: "Missing input",
 };
 
-export const PROVIDER_NAME: Record<string, string> = { fal: "fal.ai", kie: "Kie.ai", google: "Google", openai: "OpenAI", comfyui: "ComfyUI" };
+export const PROVIDER_NAME: Record<string, string> = { fal: "fal.ai", kie: "Kie.ai", google: "Google", openai: "OpenAI", byteplus: "BytePlus", comfyui: "ComfyUI" };
 export const ACTIVE_STATES = ["queued", "submitting", "submitted"];
 
 /** Latest non-dismissed job for each shot of the current plan. */

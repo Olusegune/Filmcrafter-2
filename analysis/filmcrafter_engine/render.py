@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import io
 from .safe import sha1 as _sha1
 import json
 import math
@@ -44,6 +45,7 @@ AUTO_IMAGE = {
     "kie": "google/nano-banana-edit",
     "google": "gemini-nano-banana-2.1",
     "openai": "gpt-image-2.5-flare",
+    "byteplus": "dola-seedream-5-0-pro-260628",
 }
 
 
@@ -431,6 +433,80 @@ def openai_manifest(model: str) -> dict:
     return _finish("openai", model, title, "image", fields)
 
 
+# ---------------------------------------------------------------- BytePlus ModelArk: ByteDance's own Seedream API (pictures only)
+# Everything below is from BytePlus's published documentation, read 2026-10-30 (docs.byteplus.com/en/docs/modelark: the Seedream tutorial, the image tutorial and the pricing page); none of it
+# has been proved by a real render here. Prices are per picture made, in USD. "pixels" is the allowed total pixels (width x height) for an exact size.
+BYTEPLUS_URL = "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations"
+BYTEPLUS_MODELS = {
+    "dola-seedream-5-0-pro-260628": {"title": "Seedream 5.0 Pro", "refs": 10, "png": True, "pixels": (921_600, 4_624_220),
+                                     "price": None, "tier": (2_610_000, 0.045, 0.09), "extra_ref": 0.003,        # 1.5K or lower $0.045, higher $0.09; the first reference picture is free
+                                     "sizes": {"draft": "1K", "standard": "1.5K", "high": "2K", "max": "2K"}},   # 1.5K costs the same as 1K and looks better (BytePlus says so)
+    "dola-seedream-5-0-flash-260915": {"title": "Seedream 5.0 Flash", "refs": 10, "png": True, "pixels": (921_600, 4_624_220), "price": 0.018,         # the size limits of Pro are assumed: BytePlus lists the same levels
+                                       "sizes": {"draft": "1K", "standard": "1.5K", "high": "2K", "max": "2K"}},
+    "seedream-5-0-260128": {"title": "Seedream 5.0 Lite", "refs": 14, "png": True, "pixels": (3_686_400, 16_777_216), "price": 0.035,
+                            "sizes": {"draft": "2K", "standard": "2K", "high": "4K", "max": "4K"}},
+    "seedream-4-5-251128": {"title": "Seedream 4.5", "refs": 14, "png": False, "pixels": (3_686_400, 16_777_216), "price": 0.04,
+                            "sizes": {"draft": "2K", "standard": "2K", "high": "4K", "max": "4K"}},
+    "seedream-4-0-250828": {"title": "Seedream 4.0", "refs": 14, "png": False, "pixels": (921_600, 16_777_216), "price": 0.03,
+                            "sizes": {"draft": "1K", "standard": "2K", "high": "4K", "max": "4K"}},
+}
+_LEVEL_PIXELS = {"1K": 1024 ** 2, "1.5K": 1536 ** 2, "2K": 2048 ** 2, "3K": 3072 ** 2, "4K": 4096 ** 2}
+
+
+def byteplus_size(model: str, project: dict) -> str:
+    """The exact "WIDTHxHEIGHT" to ask for: the film's shape at the size level the quality tier maps to, inside the model's published pixel range (multiples of 16)."""
+    info = BYTEPLUS_MODELS[model]
+    level = info["sizes"].get(project.get("quality", "standard"), info["sizes"]["standard"])
+    lo, hi = info["pixels"]
+    ratio = min(16.0, max(1 / 16, _ratio(project)))
+    budget = float(_LEVEL_PIXELS[level])
+    for _ in range(60):                                          # nudge until the rounded size is inside the allowed range
+        w = max(16, int((budget * ratio) ** 0.5) // 16 * 16)
+        h = max(16, int((budget / ratio) ** 0.5) // 16 * 16)
+        if w * h > hi:
+            budget *= 0.98
+        elif w * h < lo:
+            budget *= 1.02
+        else:
+            return f"{w}x{h}"
+    raise SystemExit(f"No size in {info['title']}'s range fits this film's shape.")
+
+
+def byteplus_price(model: str, payload: dict) -> dict:
+    """What one picture costs on BytePlus (their published price, which is exact for the size and the reference pictures sent)."""
+    info = BYTEPLUS_MODELS.get(model)
+    if not info:
+        return {"usd": None, "basis": "BytePlus has not published a price for this model here."}
+    m = re.fullmatch(r"(\d+)x(\d+)", str(payload.get("size") or ""))
+    pixels = int(m.group(1)) * int(m.group(2)) if m else None
+    if info.get("tier"):
+        if pixels is None:
+            return {"usd": None, "basis": "The size is not chosen yet, and the price depends on it."}
+        limit, low, high = info["tier"]
+        usd, basis = (low, f"${low} for a picture up to {limit / 1e6:.2f} million pixels") if pixels <= limit else (high, f"${high} for a picture over {limit / 1e6:.2f} million pixels")
+    else:
+        usd, basis = info["price"], f"${info['price']} per picture"
+    refs = len(payload.get("image_urls") or [])
+    extra = max(0, refs - 1) * info.get("extra_ref", 0.0)
+    if extra:
+        usd += extra
+        basis += f" + ${extra:.3f} for {refs - 1} extra reference picture{'s' if refs > 2 else ''}"
+    return {"usd": round(usd, 4), "basis": f"{basis} (BytePlus's published price; a picture its moderation refuses is not billed)"}
+
+
+def byteplus_manifest(model: str) -> dict:
+    """BytePlus ModelArk Images API (direct, with your BytePlus key). References are sent inside the request as base64 pictures."""
+    info = BYTEPLUS_MODELS.get(model)
+    if not info:
+        raise SystemExit(f"{model} is not a BytePlus picture model FilmCrafter knows.")
+    fields = [
+        _g("prompt", "string", "What the image shows.", required=True),
+        _g("image_urls", "array", f"Reference images (characters, set, the previous shot). Up to {info['refs']}.", items="string", max_items=info["refs"]),
+        _g("size", "string", "Output size as WIDTHxHEIGHT. FilmCrafter asks for your project's shape at the size its quality setting maps to."),
+    ]
+    return _finish("byteplus", model, info["title"], "image", fields)
+
+
 GOOGLE_MODELS = [
     ("veo-3.1-generate-preview", "video"), ("veo-3.1-fast-generate-preview", "video"), ("veo-3.1-lite-generate-preview", "video"),
     ("gemini-nano-banana-2.1", "image"), ("gemini-3.1-flash-image", "image"), ("gemini-3-pro-image", "image"), ("gemini-3.1-flash-lite-image", "image"),
@@ -474,6 +550,8 @@ def manifest(provider: str, model: str, refresh: bool = False) -> dict:
         return google_manifest(model)
     if provider == "openai":
         return openai_manifest(model)
+    if provider == "byteplus":
+        return byteplus_manifest(model)
     if provider == "comfyui":
         from . import comfy
         return comfy.manifest(model)
@@ -580,6 +658,8 @@ def _catalog(provider: str, kind: str = "video") -> list[dict]:
     if provider == "openai":
         return [{"provider": "openai", "model": m, "category": "image", "title": openai_manifest(m)["title"]}
                 for m in OPENAI_IMAGE_MODELS] if kind == "image" else []
+    if provider == "byteplus":
+        return [{"provider": "byteplus", "model": m, "category": "image", "title": i["title"]} for m, i in BYTEPLUS_MODELS.items()] if kind == "image" else []
     if provider == "comfyui":
         from . import comfy
         return [{"provider": "comfyui", "model": w["model"], "category": f"workflow-{w['kind']}", "title": w["title"]}
@@ -1278,6 +1358,8 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
             payload["size"] = min(dims)[1]
     if "resolution" in roles:
         payload[roles["resolution"]] = _pick_quality(fields[roles["resolution"]], project.get("quality", "standard"))
+    if man.get("provider") == "byteplus" and man["model"] in BYTEPLUS_MODELS:
+        payload["size"] = byteplus_size(man["model"], project)           # BytePlus: the film's shape at the size the quality tier maps to
     payload.update(picture_size_plan(man, project)["payload"])          # High and Max: the largest picture size the model offers (its price is remembered under that size)
     if project.get("quality") == "max" and "bitrate_mode" in fields and "high" in (fields["bitrate_mode"].get("enum") or []):
         payload["bitrate_mode"] = "high"
@@ -1560,7 +1642,88 @@ class OpenAIImages:
     def poll(self, model: str, rid: str, meta: dict | None = None) -> dict:
         return {"state": "done", "url": "file:" + (meta or {}).get("file", "")}
 
-PROVIDERS = {"fal": Fal, "kie": Kie, "google": Google, "comfyui": ComfyUI, "openai": OpenAIImages}
+class BytePlusImages:
+    """Keyframes from ByteDance's own Seedream models with your BytePlus ModelArk key. Synchronous: the picture comes back in the reply (base64), so no link has to be fetched before it expires."""
+    name = "byteplus"
+
+    def __init__(self):
+        self.key = os.environ.get("BYTEPLUS_KEY")
+        if not self.key:
+            raise SystemExit("Add your BytePlus key in Settings to make keyframes with BytePlus.")
+        self.h = {}
+
+    def upload(self, path: str) -> str:
+        return "file:" + os.path.abspath(path)
+
+    @staticmethod
+    def _as_image(ref: str) -> str:
+        """A reference as BytePlus takes it: an https link as it is, a file as data:image/<format>;base64,... (the format in lower case)."""
+        if ref.startswith("https://"):
+            return ref
+        if "://" in ref or ref.startswith("data:"):
+            raise ProviderError("BytePlus takes a reference picture as a file or an https link only.", 400)
+        path = ref[5:] if ref.startswith("file:") else ref
+        from PIL import Image
+        try:
+            with Image.open(path) as im:
+                fmt = (im.format or "PNG").lower()
+                raw_ok = fmt in ("jpeg", "png", "webp", "bmp", "tiff", "gif", "heic", "heif") and os.path.getsize(path) <= 8 * 1024 * 1024
+                if raw_ok:
+                    with open(path, "rb") as fh:
+                        data = fh.read()
+                else:                                       # too large for one request, or a format it does not read: a JPEG copy
+                    buf = io.BytesIO()
+                    im.convert("RGB").save(buf, format="JPEG", quality=92)
+                    data, fmt = buf.getvalue(), "jpeg"
+        except (OSError, ValueError) as e:                  # a missing file, or one that is not a picture: nothing has been sent yet
+            raise ProviderError("A reference picture could not be read, so nothing was sent.", 400) from e
+        return f"data:image/{fmt};base64,{base64.b64encode(data).decode()}"
+
+    def submit(self, model: str, payload: dict) -> dict:
+        info = BYTEPLUS_MODELS.get(model)
+        if not info:
+            raise ProviderError(f"{model} is not a BytePlus picture model FilmCrafter knows.", 400)
+        refs = [self._as_image(u) for u in (payload.get("image_urls") or [])[: info["refs"]]]
+        body = {"model": model, "prompt": payload.get("prompt", ""), "size": payload.get("size") or "2048x2048", "response_format": "b64_json",
+                "watermark": False, "sequential_image_generation": "disabled", "stream": False}
+        if info["png"]:
+            body["output_format"] = "png"                  # the 5.x models can; 4.x makes JPEG only
+        if refs:
+            body["image"] = refs[0] if len(refs) == 1 else refs
+        try:
+            r = requests.post(BYTEPLUS_URL, headers={"Authorization": f"Bearer {self.key}", "Content-Type": "application/json", **UA}, json=body, timeout=300)
+        except requests.Timeout as e:
+            raise ProviderError("BytePlus did not answer in time. The picture may still have been made and billed: check your BytePlus usage before trying again.", 504) from e
+        except requests.RequestException as e:
+            raise ProviderError(f"Could not reach BytePlus ({type(e).__name__}).", 503) from e
+        try:
+            reply = r.json()
+        except ValueError:
+            reply = {}
+        if r.status_code != 200:
+            msg = ((reply.get("error") or {}).get("message") if isinstance(reply.get("error"), dict) else None) or (r.text or r.reason or "")[:300]
+            raise ProviderError(f"BytePlus: {msg}", r.status_code)
+        item = (reply.get("data") or [None])[0] or {}
+        if isinstance(item.get("error"), dict):
+            raise ProviderError("BytePlus: " + str(item["error"].get("message") or "the picture was refused"), 422)
+        raw = base64.b64decode(item["b64_json"]) if item.get("b64_json") else None
+        if raw is None and str(item.get("url") or "").startswith("https://"):
+            raw = requests.get(item["url"], timeout=120).content
+        if not raw:
+            raise ProviderError("BytePlus returned no picture (it may have been blocked by its moderation).", 422)
+        tmp = os.path.join(os.path.expanduser("~"), ".filmcrafter", "incoming")
+        os.makedirs(tmp, exist_ok=True)
+        ext = ".png" if raw[:4] == b"\x89PNG" else ".jpg"
+        path = os.path.join(tmp, uuid.uuid4().hex + ext)
+        with open(path, "wb") as fh:
+            fh.write(raw)
+        return {"id": "inline-" + os.path.basename(path), "file": path}
+
+    def poll(self, model: str, rid: str, meta: dict | None = None) -> dict:
+        return {"state": "done", "url": "file:" + (meta or {}).get("file", "")}
+
+
+PROVIDERS = {"fal": Fal, "kie": Kie, "google": Google, "comfyui": ComfyUI, "openai": OpenAIImages, "byteplus": BytePlusImages}
 
 
 class ProviderError(RuntimeError):
@@ -2968,6 +3131,8 @@ def _estimate_payload(provider: str, model: str, man: dict, payload: dict) -> di
         return {"usd": 0.0, "basis": "Runs on your ComfyUI: no provider charge."}
     if provider == "openai":
         return {"usd": None, "basis": "OpenAI bills per image by size and quality; see your OpenAI usage page."}
+    if provider == "byteplus":
+        return byteplus_price(model, payload)
     if provider == "google":
         return {"usd": None, "basis": "Google bills per second of video / per image; see your Google AI Studio usage."}
     if provider != "fal":
@@ -3085,8 +3250,8 @@ def estimate(d: str, shot_ids: list[str], provider: str, model: str | None, kind
             unknown += 1
         else:
             total += e["usd"]
-    out = {"provider": provider, "model": man["model"], "shots": len(shot_ids), "usd": round(total, 2) if not unknown else None,
-           "usd_known": round(total, 2), "unknown": unknown, "basis": per[0]["basis"] if per else "",
+    out = {"provider": provider, "model": man["model"], "shots": len(shot_ids), "usd": round(total + 1e-9, 2) if not unknown else None,        # half-up: 4.5 cents is shown as 5, never as 4
+           "usd_known": round(total + 1e-9, 2), "unknown": unknown, "basis": per[0]["basis"] if per else "",
            "lipsync_shots": lip_shots, "end_frame_models": swapped, "end_frame_unsupported": no_end, "native_blocked": blocked_native,
            "native_shots": native_shots, "native_crowded": crowded_native,
            **({"native_note": f"{native_shots} shot(s) are spoken by the model, so they are rendered with sound on. Some models charge more with "

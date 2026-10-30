@@ -96,10 +96,22 @@ fn confirm_spend(dir: String, shots: Vec<String>, provider: String, kind: Option
     Ok(l.mint(token, key, std::time::Instant::now()))
 }
 
-const PROVIDERS: [&str; 6] = ["openai", "fal", "kie", "google", "elevenlabs", "openrouter"];
+const PROVIDERS: [&str; 7] = ["openai", "fal", "kie", "google", "elevenlabs", "openrouter", "byteplus"];
 
 fn err<E: std::fmt::Display>(e: E) -> String {
     e.to_string()
+}
+
+/// A provider's name as the person knows it, for the message that asks for its key.
+fn provider_name(provider: &str) -> &'static str {
+    match provider {
+        "fal" => "fal.ai",
+        "kie" => "Kie.ai",
+        "google" => "Google Gemini",
+        "openai" => "OpenAI",
+        "byteplus" => "BytePlus",
+        _ => "provider",
+    }
 }
 
 fn projects_root(app: &AppHandle) -> Result<PathBuf, String> {
@@ -672,7 +684,7 @@ async fn direct_project(app: AppHandle, dir: String) -> Result<(), String> {
 fn provider_env() -> Vec<(&'static str, String)> {
     let mut env = vec![];
     // OpenAI powers the visual review of finished takes.
-    for (provider, var) in [("fal", "FAL_KEY"), ("kie", "KIE_KEY"), ("openai", "FILMCRAFTER_OPENAI_KEY"), ("google", "GEMINI_API_KEY"), ("elevenlabs", "ELEVENLABS_KEY")] {
+    for (provider, var) in [("fal", "FAL_KEY"), ("kie", "KIE_KEY"), ("openai", "FILMCRAFTER_OPENAI_KEY"), ("google", "GEMINI_API_KEY"), ("elevenlabs", "ELEVENLABS_KEY"), ("byteplus", "BYTEPLUS_KEY")] {
         if let Ok(k) = keyring::Entry::new(KEY_SERVICE, provider).and_then(|e| e.get_password()) {
             env.push((var, k));
         }
@@ -767,8 +779,7 @@ async fn queue_render(app: AppHandle, dir: String, shots: Vec<String>, provider:
     // ComfyUI runs locally with no key; the engine checks that it's reachable.
     let key_ok = provider == "comfyui" || keyring::Entry::new(KEY_SERVICE, &provider).and_then(|e| e.get_password()).is_ok();
     if !key_ok {
-        let name = match provider.as_str() { "fal" => "fal.ai", "kie" => "Kie.ai", "google" => "Google Gemini", _ => "provider" };
-        return Err(format!("Add your {name} key in Settings first."));
+        return Err(format!("Add your {} key in Settings first.", provider_name(&provider)));
     }
     let dir = project_dir(&dir)?.to_string_lossy().to_string();
     redeem_spend(spend_token.as_deref(), &dir, &provider, kind.as_deref().unwrap_or("video"), &shots)?;
@@ -1180,8 +1191,7 @@ async fn retry_cheaper(app: AppHandle, dir: String, action: String, data: Value)
     if action == "retry" {
         let provider = data["provider"].as_str().unwrap_or("").to_string();
         if provider != "comfyui" && keyring::Entry::new(KEY_SERVICE, &provider).and_then(|e| e.get_password()).is_err() {
-            let name = match provider.as_str() { "fal" => "fal.ai", "kie" => "Kie.ai", "google" => "Google Gemini", "openai" => "OpenAI", _ => "provider" };
-            return Err(format!("Add your {name} key in Settings first."));
+            return Err(format!("Add your {} key in Settings first.", provider_name(&provider)));
         }
     }
     let d = project_dir(&dir)?.to_string_lossy().to_string();
@@ -2443,13 +2453,22 @@ mod tests {
     }
 
     #[test]
+    fn byteplus_has_a_key_slot_a_name_and_no_free_pass() {
+        assert!(PROVIDERS.contains(&"byteplus"));
+        assert_eq!(provider_name("byteplus"), "BytePlus");
+        assert_eq!(provider_name("kie"), "Kie.ai");
+        assert_eq!(provider_name("something else"), "provider");
+        assert!(redeem_spend(None, "d", "byteplus", "image", &["s1".into()]).is_err(), "no token, no spending");
+    }
+
+    #[test]
     fn tokens_are_random_hex_and_only_comfyui_is_exempt() {
         let (a, b) = (new_spend_token().unwrap(), new_spend_token().unwrap());
         assert_eq!(a.len(), 32);
         assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
         assert_ne!(a, b);
         assert!(spend_free("comfyui"));
-        for p in ["fal", "kie", "google", "openai", "own", ""] {
+        for p in ["fal", "kie", "google", "openai", "byteplus", "own", ""] {
             assert!(!spend_free(p), "{p}");
         }
         assert!(redeem_spend(None, "d", "comfyui", "video", &[]).is_ok());

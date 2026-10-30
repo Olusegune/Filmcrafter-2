@@ -52,7 +52,7 @@ export type Concept = {
 };
 export type JobState = "queued" | "submitting" | "submitted" | "ready" | "failed" | "uncertain" | "dismissed";
 export type Job = {
-  id: string; shot_id: string; plan: string; provider: "fal" | "kie" | "google"; model: string; state: JobState; kind?: "video" | "image" | "lipsync" | "asset"; source_job?: string | null;
+  id: string; shot_id: string; plan: string; provider: "fal" | "kie" | "google" | "byteplus"; model: string; state: JobState; kind?: "video" | "image" | "lipsync" | "asset"; source_job?: string | null;
   overrides: Record<string, unknown>; payload?: Record<string, unknown>; provider_job_id: string | null;
   output: string | null; error: string | null; cost: number | null; cost_unit?: string | null;
   created: number; updated: number; attempts: number; shot_start: number; shot_end: number; look?: string;
@@ -89,6 +89,7 @@ export const AUTO_IMAGE_MODEL: Record<string, string> = {
   fal: "fal-ai/nano-banana/edit",
   kie: "google/nano-banana-edit",
   google: "gemini-nano-banana-2.1",
+  byteplus: "dola-seedream-5-0-pro-260628",
 };
 
 export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string; family?: string };
@@ -109,7 +110,7 @@ export type ShotLevels = { shot: string; layers: Record<string, number | null>; 
 export type ShotSound = { shot: string; native: boolean; take: { id: string; model?: string; output: string } | null; has_audio: boolean; silent: boolean; split: boolean; changed: boolean;
   layers: SoundLayer[]; note?: string };
 
-export type KeyStatus = { openai: boolean; fal: boolean; kie: boolean; google: boolean; elevenlabs: boolean; openrouter?: boolean };
+export type KeyStatus = { openai: boolean; fal: boolean; kie: boolean; google: boolean; elevenlabs: boolean; openrouter?: boolean; byteplus?: boolean };
 export type EngineEvent = { task: string; event: string; job?: unknown; stage?: string; progress?: number; message?: string; [k: string]: unknown };
 
 export type RefKind = "character" | "set" | "prop" | "wardrobe" | "lighting" | "style" | "video" | "audio";
@@ -158,7 +159,7 @@ export type Brain = { provider: "openai" | "openrouter" | "ollama" | "lmstudio";
 
 export type Balance = { provider: string; amount: number | null; unit: "usd" | "credits" | null; known: boolean; usd?: number };
 export type BudgetStatus = { balances: Record<string, Balance>;
-  spent: { fal_usd: number; kie_credits: number; kie_usd: number; total_usd: number; renders: number; openai_images: number } | null;
+  spent: { fal_usd: number; kie_credits: number; kie_usd: number; byteplus_usd?: number; total_usd: number; renders: number; openai_images: number } | null;
   fits: Record<string, { fits: boolean | null; short?: number; reason?: string }> };
 
 /** The engine commands that change a shot's settings and can be undone (shothistory.py): after one of them succeeds the Studio is told, so it can offer Undo. */

@@ -32,7 +32,10 @@ RECOMMENDED_IMAGE = ["google/nanobanana-2-1", "google/pro-image-to-image", "gpt/
 RECOMMENDED_IMAGE_FAL = ["bytedance/seedream/v5/pro/edit"]
 # The largest picture size a model's published settings offer (what the provider documents, read 2026-10-30; not proved by a real render here). Seedream 5 Pro stops at 2K on both
 # providers (Kie: basic 1K, high 2K; fal: up to about 4.6 million pixels); Seedream 4.5 reaches 4K (Kie: high; fal: auto_4K).
-MAX_PICTURE_SIZE = [(re.compile(r"seedream/5-pro|seedream/v5/pro", re.I), "2K"), (re.compile(r"seedream/4-5|seedream/v4\.5", re.I), "4K")]
+# BytePlus (direct): 5.0 Pro and Flash 1K / 1.5K / 2K, 5.0 Lite 2K / 3K / 4K, 4.5 2K / 4K, 4.0 1K / 2K / 4K.
+MAX_PICTURE_SIZE = [(re.compile(r"seedream/5-pro|seedream/v5/pro|dola-seedream-5-0-(?:pro|flash)", re.I), "2K"),
+                    (re.compile(r"seedream/4-5|seedream/v4\.5|^seedream-4-5-|^seedream-4-0-|^seedream-5-0-26", re.I), "4K")]
+RECOMMENDED_IMAGE_BYTEPLUS = ["dola-seedream-5-0-pro-260628", "seedream-4-5-251128", "seedream-5-0-260128"]
 RECOMMENDED_VIDEO = ["kling/kling-3-0", "kling/v3-turbo-image-to-video", "kling/v3-omni-image-to-video", "bytedance/seedance-2", "bytedance/seedance-2-5",
                      "minimax-h3/image-to-video", "wan/3-0-video", "happyhorse-1-1/image-to-video"]
 # picture-to-video: a video model that only takes text cannot start from your keyframe either
@@ -115,7 +118,10 @@ def decorate(items: list[dict], provider: str, kind: str, cache_dir: str) -> lis
         slug = it["model"]
         it["sees"] = sees_pictures(slug, kind) if provider == "kie" else True
         it["text"] = good_at_text(slug) if provider == "kie" else False
-        it["rec"] = rank(slug, kind) if provider == "kie" else (RECOMMENDED_IMAGE_FAL.index(slug) if provider == "fal" and kind == "image" and slug in RECOMMENDED_IMAGE_FAL else None)
+        it["rec"] = rank(slug, kind) if provider == "kie" else (RECOMMENDED_IMAGE_FAL.index(slug) if provider == "fal" and kind == "image" and slug in RECOMMENDED_IMAGE_FAL
+                                                                  else RECOMMENDED_IMAGE_BYTEPLUS.index(slug) if provider == "byteplus" and slug in RECOMMENDED_IMAGE_BYTEPLUS else None)
+        if provider == "byteplus":
+            it["text"] = slug.startswith("dola-seedream-5-0-pro")
         if max_size(slug, kind):
             it["max_size"] = max_size(slug, kind)
     mark_fresh(items, provider, kind, cache_dir)

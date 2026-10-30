@@ -38,7 +38,7 @@ def spent(d: str) -> dict:
         jobs = json.load(open(os.path.join(d, "jobs.json"), encoding="utf-8"))["jobs"]
     except (OSError, ValueError):
         jobs = []
-    out = {"fal_usd": 0.0, "kie_credits": 0.0, "openai_images": 0, "google_jobs": 0, "renders": 0}
+    out = {"fal_usd": 0.0, "kie_credits": 0.0, "byteplus_usd": 0.0, "openai_images": 0, "google_jobs": 0, "renders": 0}
     for j in jobs:
         if j["state"] not in ("ready", "submitted"):   # refused/failed-before-sending jobs cost nothing
             continue
@@ -47,13 +47,17 @@ def spent(d: str) -> dict:
             out["fal_usd"] += float(j.get("estimate_usd") or 0)
         elif j["provider"] == "kie":
             out["kie_credits"] += float(j.get("cost") or 0)
+        elif j["provider"] == "byteplus":
+            out["byteplus_usd"] += float(j.get("estimate_usd") or 0)      # BytePlus's published price for the size and references sent
         elif j["provider"] == "openai":
             out["openai_images"] += 1
         elif j["provider"] == "google":
             out["google_jobs"] += 1
     out["fal_usd"] = round(out["fal_usd"], 2)
     out["kie_usd"] = round(out["kie_credits"] * KIE_USD_PER_CREDIT, 2)
-    out["total_usd"] = round(out["fal_usd"] + out["kie_usd"], 2)
+    bp = out["byteplus_usd"]
+    out["byteplus_usd"] = round(bp + 1e-9, 4)                         # BytePlus prices are fractions of a cent (4.5 cents a picture): never round them down to the cent
+    out["total_usd"] = round(out["fal_usd"] + out["kie_usd"] + bp + 1e-9, 2)
     return out
 
 

@@ -131,7 +131,7 @@ export function KeyframePanel({ dir, shot, plan, jobs, keys, director, approved,
         {director ? (
           <>
             <div className="seg" role="group" aria-label="Image provider">
-              {(["fal", "kie", "google", "openai"] as const).map((p) => (
+              {(["fal", "kie", "google", "openai", "byteplus"] as const).map((p) => (
                 <button key={p} className={provider === p ? "on" : ""} onClick={() => { setProvider(p); setModel(AUTO_IMAGE_MODEL[p]); setPins({}); }}>
                   <i className={`key-dot ${keys[p] ? "on" : ""}`} title={keys[p] ? "Key added" : "No key yet"} />{PROVIDER_NAME[p]}</button>
               ))}

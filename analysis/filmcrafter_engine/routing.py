@@ -244,7 +244,7 @@ def models(kind: str) -> list[dict]:
     for key, fam in FAMILIES.items():
         if fam.get("kind") != kind:
             continue
-        for p in ("kie", "fal", "google", "openai"):
+        for p in ("kie", "fal", "google", "openai", "byteplus"):
             m = fam.get(p)
             if m and available(p):
                 out.append({"label": fam["label"], "provider": p, "model": m, "price_usd": shot_price(p, m),

@@ -225,7 +225,7 @@ Done with the engine from the released code on a **throwaway film** (not a real 
 | **Security** | a bad shot id (`../x`, `..`, empty, a slash, a space, 80 characters, a number), a bad scene number, an unknown look, a genre feel and a folder that is not a project are refused and nothing is written; a damaged project file is left exactly as it was | none |
 | **Money** | changing a look never calls `enqueue` or `run` and never touches `jobs.json` (a test makes either call fail the run) | the save call asks the app for the look only: no render, no price |
 
-Whole suites after this change: `pytest` **2,159 passed**, 6 skipped (after the picture-size change); `vitest` **648 passed** (81 files); `playwright` **51 passed** (7 look tests, 44 accessibility); `cargo test` **13 passed**; `cargo clippy -D warnings`, `tsc --noEmit` and `npm run build` clean. `rafter secrets .` finds one test fixture in `src/docshots/main.tsx` (a placeholder, unchanged); `rafter run` could not run (the plan's scan allowance for the period was used up).
+Whole suites after this change: `pytest` **2,187 passed**, 6 skipped (after the BytePlus provider); `vitest` **650 passed** (82 files); `playwright` **51 passed** (7 look tests, 44 accessibility); `cargo test` **13 passed**; `cargo clippy -D warnings`, `tsc --noEmit` and `npm run build` clean. `rafter secrets .` finds one test fixture in `src/docshots/main.tsx` (a placeholder, unchanged); `rafter run` could not run (the plan's scan allowance for the period was used up).
 
 Bugs found by this pass and fixed: (1) **`make.sync` wiped the scene and shot looks** each time the render project was rebuilt from the Bible (a failing test first); (2) a shot picked in the look it already inherited was stored as its own look and got the gold chip; (3) the app could make a `project.json` out of a folder that was not a project; (4) choosing another film look in the picker replaced the whole look setting, dropping scene and shot looks (found earlier, test in `cargo test`); (5) the picture check and the take review judged a shot in its own look against the film's look.
 
@@ -242,6 +242,17 @@ Bugs found by this pass and fixed: (1) **`make.sync` wiped the scene and shot lo
 | **Money** | a price learned at the basic size is never shown for a bigger one; a bigger size with no price says so and is counted at a high price; queued big pictures count at their own price; fal is priced on the pixels asked for; each job records its size | none |
 
 What was checked against the providers' own published schemas on 2026-10-30 (not a render): Kie lists Seedream 5.0 Pro (text and image) with `quality` basic (1K) or high (2K) and Seedream 4.5 with basic 2K / high 4K; fal lists Seedream 5.0 Pro with `image_size` up to about 4.6 million pixels and Seedream 4.5 up to `auto_4K` (4096 on a side). **NOT checked:** a real picture at these sizes from either provider; what a 2K or 4K Seedream picture costs on Kie or fal (fal's price list needs your key; Kie shows a price only after a render); whether fal's `{width, height}` form is accepted for these models in practice (the schema allows it); whether Kie's `high` really returns 2K / 4K pixels.
+
+### BytePlus ModelArk (Seedream direct) (unreleased, after 0.31.1)
+
+| Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`) and shell |
+|---|---|---|
+| **Unit** | `test_byteplus` (28): every size inside the published pixel range for 9 shapes and 4 tiers; the tier to level map; the published prices, the exact 2.61-million-pixel step, the extra-reference fee; the manifest's reference limits (10 or 14); the catalog and its *up to 2K / 4K* marks | `byteplus.test.ts` (the name and the automatic model); `cargo test`: the key slot, the name and no free pass |
+| **Integration** | the request body BytePlus documents (endpoint, Bearer header, `b64_json`, `watermark` false, `output_format` only for the 5.x models); references as lower-case base64 pictures, a list for several, at most the model's limit, a JPEG copy for a large file; queued, sent, finished and counted at the exact price, with the HTTP call replaced | none |
+| **Security** | no key: nothing is sent; `http://`, `ftp://`, `data:`, a missing file and a file that is not a picture are refused before any request; 401, 429, 400, 500, a non-JSON error page, a moderation refusal, an empty answer, a timeout (said to be possibly billed) and a connection error, none of them showing the key; a refused send costs nothing and the job records no key; the health check makes no call | none |
+| **Regression** | a price such as 4.5 cents was shown and counted as 4 | none |
+
+**NOT checked:** a real picture from BytePlus (endpoint, key header, sizes and the `b64_json` reply are from their documentation, read 2026-10-30, and the tests replace the HTTP call); Seedream 5.0 Flash's size limits (BytePlus lists its levels as Pro's, and the same range is assumed); a BytePlus account's regional or sign-up requirements; what a refused picture or a long wait really costs; BytePlus's own rate limits.
 
 ## Not tested (be honest about these)
 

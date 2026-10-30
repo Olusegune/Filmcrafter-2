@@ -30,8 +30,9 @@ FAMILIES: dict[str, dict] = {
     "hailuo-fast": {"label": "Hailuo 02 Fast", "kind": "video", "fal": "fal-ai/minimax/hailuo-02-fast/image-to-video",
                     "kie": "hailuo/02-image-to-video-standard"},
     "flux-klein": {"label": "FLUX.2 Klein", "kind": "image", "fal": "fal-ai/flux-2/klein/4b/edit"},
-    "seedream-flash": {"label": "Seedream 5 Flash", "kind": "image", "fal": "bytedance/seedream/v5/flash/edit"},
-    "seedream": {"label": "Seedream 4.5", "kind": "image", "fal": "fal-ai/bytedance/seedream/v4.5/edit", "kie": "seedream/4-5-edit"},
+    "seedream-flash": {"label": "Seedream 5 Flash", "kind": "image", "fal": "bytedance/seedream/v5/flash/edit", "byteplus": "dola-seedream-5-0-flash-260915"},
+    "seedream": {"label": "Seedream 4.5", "kind": "image", "fal": "fal-ai/bytedance/seedream/v4.5/edit", "kie": "seedream/4-5-edit", "byteplus": "seedream-4-5-251128"},
+    "seedream-pro": {"label": "Seedream 5.0 Pro", "kind": "image", "fal": "bytedance/seedream/v5/pro/edit", "kie": "seedream/5-pro-image-to-image", "byteplus": "dola-seedream-5-0-pro-260628"},
     "qwen-edit": {"label": "Qwen Image Edit", "kind": "image", "fal": "fal-ai/qwen-image-edit-2511", "kie": "qwen2/image-edit"},
     "nano-banana": {"label": "Nano Banana", "kind": "image", "fal": "fal-ai/nano-banana/edit", "kie": "google/nano-banana-edit",
                     "google": "gemini-nano-banana-2.1"},
@@ -43,7 +44,7 @@ ALIASES = {
     "sunburst": "gpt-image-sunburst", "gpt image sunburst": "gpt-image-sunburst",
     "nano banana": "nano-banana", "nanobanana": "nano-banana", "gemini image": "nano-banana",
     "vidu": "vidu-turbo", "pixverse": "pixverse", "wan turbo": "wan-turbo", "wan 2.2": "wan-turbo", "hailuo fast": "hailuo-fast",
-    "flux": "flux-klein", "klein": "flux-klein", "seedream flash": "seedream-flash", "seedream": "seedream", "qwen": "qwen-edit",
+    "flux": "flux-klein", "klein": "flux-klein", "seedream flash": "seedream-flash", "seedream": "seedream", "seedream pro": "seedream-pro", "seedream 5 pro": "seedream-pro", "seedream 5.0 pro": "seedream-pro", "qwen": "qwen-edit",
 }
 # Real end-to-end renders (not mocks). Update only after a live test.
 VERIFIED = {  # where the real render happened
@@ -75,9 +76,9 @@ VERIFIED = {  # where the real render happened
     ("kie", "qwen2/image-edit"): "model test S04-02 (5.6 credits)",
     ("kie", "pixverse/image-to-video"): "model test S04-02 (28.8 credits)",
 }
-PROVIDER_ORDER = ["fal", "kie", "google", "openai", "comfyui"]
-PROVIDER_NAMES = {"fal": "fal.ai", "kie": "Kie.ai", "google": "Google", "openai": "OpenAI", "comfyui": "ComfyUI"}
-KEY_ENV = {"fal": "FAL_KEY", "kie": "KIE_KEY", "google": "GEMINI_API_KEY", "openai": "FILMCRAFTER_OPENAI_KEY"}
+PROVIDER_ORDER = ["fal", "kie", "google", "openai", "byteplus", "comfyui"]
+PROVIDER_NAMES = {"fal": "fal.ai", "kie": "Kie.ai", "google": "Google", "openai": "OpenAI", "byteplus": "BytePlus", "comfyui": "ComfyUI"}
+KEY_ENV = {"fal": "FAL_KEY", "kie": "KIE_KEY", "google": "GEMINI_API_KEY", "openai": "FILMCRAFTER_OPENAI_KEY", "byteplus": "BYTEPLUS_KEY"}
 
 
 def available(provider: str) -> bool:
@@ -97,7 +98,7 @@ def find_family(text: str) -> str | None:
 
 def find_provider(text: str) -> str | None:
     t = text.lower()
-    for p, words in {"fal": ["fal"], "kie": ["kie"], "google": ["google", "gemini api"], "openai": ["openai directly", "on openai", "with openai"], "comfyui": ["comfy", "comfyui", "local", "locally", "my gpu", "my machine"]}.items():
+    for p, words in {"fal": ["fal"], "kie": ["kie"], "google": ["google", "gemini api"], "openai": ["openai directly", "on openai", "with openai"], "byteplus": ["byteplus", "modelark", "bytedance directly"], "comfyui": ["comfy", "comfyui", "local", "locally", "my gpu", "my machine"]}.items():
         if any(re.search(rf"\b{w}\b", t) for w in words):
             return p
     return None
