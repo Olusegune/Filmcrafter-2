@@ -14,12 +14,6 @@ describe("controls are not nested inside controls", () => {
   it("the strip of light, which holds buttons, is a group and not a picture", () => {
     expect(src("Lighting.tsx")).toContain('className="lt-strip" role="group"');
   });
-  it("the directions are real radios with a label, and the fold is outside the radio", () => {
-    const d = src("Directions.tsx");
-    expect(d).toContain('type="radio"');
-    expect(d).not.toMatch(/<div[^>]*role="radio"/);
-    expect(d.indexOf("</label>")).toBeLessThan(d.indexOf('<details className="dir-more"'));
-  });
   it("the Advanced button sits beside the inspector's tab list, not inside it", () => {
     const s = src("Studio.tsx");
     const tabs = s.slice(s.indexOf('role="tablist" aria-label="Shot sections"'), s.indexOf('className="insp-adv"'));

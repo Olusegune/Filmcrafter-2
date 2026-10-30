@@ -38,7 +38,6 @@ const SCENES = {
   selectzoom: ["selectpreview.png", "scene=selectreview&clickcss=.sr2-zoom"],
   compare: ["comparetakes.png", "scene=compare"],
   dirlib: ["directionlib.png", "scene=directionlibrary&clickcss=.dl-card:nth-child(2)"],
-  directions: ["directions.png", "scene=directions"],
   looks: ["looks.png", "scene=looks"],
   lighting: ["lighting.png", "scene=lighting&clickcss=.lt-run:nth-of-type(3) > summary"],
   cleanup: ["cleanup.png", "scene=cleanup"],

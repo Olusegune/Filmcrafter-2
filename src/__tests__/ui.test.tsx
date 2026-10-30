@@ -5,24 +5,7 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(), convertFileSrc: (p: st
 vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn() }));
 
 import { Dialog, defaults } from "../ask";
-import { GoldenStrip } from "../GoldenStrip";
-import { TOUR, Tour, tourSeen } from "../Tour";
-
-const input = { hasSong: true, shots: [{ id: "a" }, { id: "b" }], keyframes: { a: "x" }, videoReady: new Set<string>(), pending: 1, people: { total: 2, withPicture: 2 }, exported: false };
-
-describe("Golden Path strip markup", () => {
-  const html = renderToStaticMarkup(<GoldenStrip input={input} spent={1.5} budget={20} onGo={() => {}} onTour={() => {}} />);
-  it("shows every step, the current one, the paid marks and the spend", () => {
-    for (const label of ["Song", "Plan", "References", "Keyframes", "Video", "Export"]) expect(html).toContain(`<b>${label}</b>`);
-    expect(html).toContain('class="current"');
-    expect((html.match(/class="g-paid"/g) ?? []).length).toBe(2);
-    expect(html).toContain("$1.50 / $20");
-    expect(html).toContain("Show the welcome tour");
-  });
-  it("shows no spend when the project has none to report", () => {
-    expect(renderToStaticMarkup(<GoldenStrip input={input} spent={null} budget={null} onGo={() => {}} />)).not.toContain("g-spent");
-  });
-});
+import { updateText } from "../Updates";
 
 describe("in-app confirmation", () => {
   it("uses the first line as the title and the rest as paragraphs, with the OK word you give", () => {
@@ -42,24 +25,6 @@ describe("in-app confirmation", () => {
   });
 });
 
-describe("welcome tour", () => {
-  it("has four cards that start with the path and stay short", () => {
-    expect(TOUR).toHaveLength(4);
-    expect(TOUR[0].title).toMatch(/path/i);
-    for (const t of TOUR) expect(t.text.length).toBeLessThan(260);
-  });
-  it("opens on the first card and can always be skipped", () => {
-    const html = renderToStaticMarkup(<Tour onClose={() => {}} />);
-    expect(html).toContain(TOUR[0].title);
-    expect(html).toContain(">Skip</button>");
-    expect(html).toContain(">Next</button>");
-  });
-  it("counts as seen when storage is unavailable, so it never nags", () => {
-    expect(tourSeen()).toBe(true);
-  });
-});
-
-import { updateText } from "../Updates";
 describe("update messages", () => {
   const base = { current: "1.10.0", latest: null, url: "u", notes: "", published: null, prerelease: false };
   it("says what happened in plain words", () => {

@@ -661,24 +661,6 @@ fn load_project(app: AppHandle, dir: String) -> Result<Value, String> {
     }))
 }
 
-#[tauri::command]
-async fn direct_project(app: AppHandle, dir: String) -> Result<(), String> {
-    let env = openai_env()?;
-    tauri::async_runtime::spawn_blocking(move || {
-        let d = project_dir(&dir)?;
-        if !d.join("production.json").exists() {
-            return Err("This project has no script plan to direct yet.".into());
-        }
-        let p = |k: &str| d.join(k).to_string_lossy().to_string();
-        run_engine(&app, "director", &["-m".into(), "filmcrafter_engine.director".into(),
-                                       p("production.json"), p("songmap.json"), "--out".into(), p("directed.json")],
-                   &env)?;
-        update_project(&d, json!({"state": "directed"}))
-    })
-    .await
-    .map_err(err)?
-}
-
 // ---------- rendering ----------
 
 fn provider_env() -> Vec<(&'static str, String)> {
@@ -2220,31 +2202,6 @@ async fn ai_brain(app: AppHandle, action: String, data: Option<Value>) -> Result
     }).await.map_err(err)?
 }
 
-/// Three distinct visual directions for the song (PRD §10).
-#[tauri::command]
-async fn creative_directions(app: AppHandle, dir: String, notes: Option<String>) -> Result<Value, String> {
-    let env = openai_env()?;
-    let d = project_dir(&dir)?.to_string_lossy().to_string();
-    tauri::async_runtime::spawn_blocking(move || {
-        run_engine_result(&app, "concepts", &["-m".into(), "filmcrafter_engine.concepts".into(), "directions".into(), d,
-                                              "--notes".into(), notes.unwrap_or_default()], &env)
-    }).await.map_err(err)?
-}
-
-/// Develop the chosen direction into a treatment and a beat-timed shot plan (PRD §11–13).
-#[tauri::command]
-async fn write_treatment(app: AppHandle, dir: String, index: u32, notes: Option<String>) -> Result<Value, String> {
-    let env = openai_env()?;
-    let d = project_dir(&dir)?;
-    let ds = d.to_string_lossy().to_string();
-    let res = tauri::async_runtime::spawn_blocking(move || {
-        run_engine_result(&app, "treatment", &["-m".into(), "filmcrafter_engine.concepts".into(), "treatment".into(), ds,
-                                               "--index".into(), index.to_string(), "--notes".into(), notes.unwrap_or_default()], &env)
-    }).await.map_err(err)??;
-    update_project(&d, json!({"state": "analyzed"}))?;
-    Ok(res)
-}
-
 // ---------- director command ----------
 
 /// A natural-language note re-directs the matching shots (never story, order or timing). Undoable.
@@ -2395,9 +2352,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             key_status, set_key, delete_key, splash_close, list_projects, load_project,
-            direct_project, ensure_renderer, render_catalog, render_preview,
+            ensure_renderer, render_catalog, render_preview,
             queue_render, confirm_spend, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
-            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_materials, film_choreography, film_placecare, film_audioplan, film_readiness, film_pacing, film_composition, film_spending, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
+            save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_materials, film_choreography, film_placecare, film_audioplan, film_readiness, film_pacing, film_composition, film_spending, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, director_command, undo_command, library, parse_action, providers,
             set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, stylebible, performance_director, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())

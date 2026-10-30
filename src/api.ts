@@ -264,9 +264,6 @@ export const api = {
   setProjectSettings: (dir: string, settings: Partial<ProjectSettings>) => invoke<void>("set_project_settings", { dir, settings }),
   importReference: (dir: string, path: string) =>
     invoke<{ ref: string; kind: string; name: string; path: string }>("import_reference", { dir, path }),
-  creativeDirections: (dir: string, notes = "") => invoke<{ concepts: Concept[] }>("creative_directions", { dir, notes }),
-  writeTreatment: (dir: string, index: number, notes = "") =>
-    invoke<{ scenes: number; shots: number; title: string }>("write_treatment", { dir, index, notes }),
   directorCommand: (dir: string, note: string, selected: string | null, playhead: number | null) =>
     invoke<{ id: string | null; summary: string; not_done: string; changed: string[] }>("director_command", { dir, note, selected, playhead }),
   undoCommand: (dir: string, id: string) => invoke<{ id: string; restored: string[] }>("undo_command", { dir, id }),
@@ -324,7 +321,6 @@ export const api = {
   listStyles: () => invoke<Style[]>("list_styles"),
   setLook: (dir: string, look: Look) => invoke<void>("set_look", { dir, look }),
   loadProject: (dir: string) => invoke<LoadedProject>("load_project", { dir }),
-  directProject: (dir: string) => invoke<void>("direct_project", { dir }),
   ensureRenderer: (dir: string) => invoke<void>("ensure_renderer", { dir }),
   renderCatalog: (provider: string, kind: "video" | "image" | "lipsync" | "upscale" = "video", refresh = false) => invoke<CatalogItem[]>("render_catalog", { provider, kind, refresh }),
   setKeyframe: (dir: string, plan: string, shot: string, image: string | null) => invoke<void>("set_keyframe", { dir, plan, shot, image }),

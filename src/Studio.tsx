@@ -5,7 +5,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { toggleShotSound } from "./ShotSound";
 import { Palette, type Command } from "./Palette";
 import { PlayerOverlays } from "./PlayerOverlays";
-import { api, errorText, fmtTime, type BoardShot, type EngineEvent, type LoadedProject, type Plan, type Scene, type Shot, type SongMap } from "./api";
+import { api, errorText, fmtTime, type BoardShot, type LoadedProject, type Plan, type Scene, type Shot, type SongMap } from "./api";
 import * as I from "./icons";
 import { ACTIVE_STATES, ConfirmRender, defaultProvider, JobChip, latestJobs, RenderPanel } from "./Render";
 import { AUTO_MODEL, type Job, type KeyStatus, type Overlay, type ShotHistory, type StyleBibleRead } from "./api";
@@ -26,9 +26,6 @@ import { addMediaToTimeline, OwnMediaPanel, StillPreview } from "./OwnMedia";
 import { ContinuitySheet, ShotContinuity } from "./Continuity";
 import { PerformanceSheet, ShotPerformance } from "./Performance";
 import { RouteChip, RoutingSheet, useRouting } from "./Routing";
-import { GoldenStrip } from "./GoldenStrip";
-import { pickTestShot } from "./testShot";
-import { Tour, tourSeen } from "./Tour";
 import { ShotRefs } from "./ShotRefs";
 import { SupervisorSheet } from "./Supervisor";
 import { CleanupSheet } from "./Cleanup";
@@ -45,9 +42,7 @@ import { ColourMatchSheet } from "./ColourMatch";
 import { beatGrid } from "./overlayMotion";
 import { UpgradePanel } from "./Upgrade";
 import { DirectionLibrarySheet } from "./DirectionLibrary";
-import { CreativeDirections } from "./Directions";
 import { CommandToast, DirectorCommand, type CommandResult } from "./Command";
-import { MaterialsPanel } from "./Materials";
 import { ApproveKeyframes, LibrarySheet, ShotViewer, StoryCards, useBoard } from "./Board";
 import { SelectReview } from "./SelectReview";
 import { ScriptSheet } from "./ScriptSheet";
@@ -104,7 +99,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const setTlCompact = (v: boolean | ((x: boolean) => boolean)) => setTlCompactState((cur) => { const n = typeof v === "function" ? v(cur) : v; writeLayout(project.dir, { compact: n }); return n; });
   const [tlEdit, setTlEditState] = useState(() => !!readLayout(project.dir).edit);               // the full, flexible timeline (Edit) or the calm Film strip (the default), remembered for this project
   const setTlEdit = (v: boolean) => { setTlEditState(v); writeLayout(project.dir, { edit: v }); };
-  const [job, setJob] = useState<{ title: string; detail: string } | null>(null);
   const [error, setError] = useState("");
   const [jobs, setJobs] = useState<Job[]>(project.jobs ?? []);
   const [keys, setKeys] = useState<KeyStatus>({ openai: false, fal: false, kie: false, google: false, elevenlabs: false });
@@ -246,7 +240,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   };
   const planName = project.directed ? "directed" : "production";
   const isFilm = !!(project.project as { film?: boolean }).film;                       // a film's render project: no song to plan from, so the song-first guides and the Director are not offered
-  const [tourOpen, setTourOpen] = useState(() => !isFilm && !tourSeen());
   const goCards = (to?: string) => { if (to && onFilm) onFilm(to); else onHome(); };                  // back to the film workspace (optionally straight to a step of it)
   const filmSwitch = isFilm ? (
     <>
@@ -452,18 +445,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
     ? capLines.find((l) => !l.hidden && time >= l.start && time <= l.end)
     : map?.lyrics.find((l) => l.start != null && l.end != null && time >= l.start && time <= l.end + 0.3);
 
-  const directVideo = async () => {
-    if (!(await api.aiReady())) { onSettings(); return; }
-    setError("");
-    setJob({ title: "Directing", detail: "Reading the script" });
-    const un = await api.onEngine((e: EngineEvent) => {
-      if (e.task === "director" && e.stage) setJob({ title: "Directing", detail: capital(e.stage) });
-    });
-    try { await api.directProject(project.dir); onReload(); }
-    catch (e) { setError(errorText(e)); }
-    finally { un(); setJob(null); }
-  };
-
   const needsLook = new Set(shots.filter((s) => (s.flags?.length ?? 0) > 0 || needsAttention(latest.get(s.id)) || boardShot.get(s.id)?.keyframe_check === "fail").map((s) => s.id));
   needsRef.current = needsLook;
   const flagged = needsLook.size;
@@ -579,30 +560,11 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           {plan && (keys.fal || keys.kie) && toRender.length > 0 && <button className={`btn ${project.directed ? "hero" : ""}`} onClick={() => setConfirmAll(true)}
                                    disabled={toRender.length === 0}>Render {toRender.length === shots.length ? "all" : toRender.length} shots</button>}
             </>}
-          {plan && !isFilm && <button className={`btn ${project.directed && (keys.fal || keys.kie) && toRender.length > 0 ? "ghost" : "hero"}`} onClick={directVideo} disabled={!!job}
-                           title={project.directed ? "Plan the shots again (your edits to the plan are asked about first)" : "Plan every shot (free)"}>
-            {project.directed ? "Direct Again" : "Direct My Video"}</button>}
           <button className="icon-btn" onClick={() => setFocusMode(true)} title="Full screen: just the video (F)" aria-label="Full screen">⛶</button>
           <button className="icon-btn" onClick={() => setTimelineOpen((v) => !v)} title={timelineOpen ? "Hide the timeline (Ctrl+J)" : "Show the timeline (Ctrl+J)"} aria-label={timelineOpen ? "Hide the timeline" : "Show the timeline"} aria-pressed={timelineOpen}><I.PanelBottom /></button>
           <button className="icon-btn" onClick={() => setInspector((v) => !v)} title="Inspector" aria-label="Toggle inspector"><I.Panel /></button>
         </header>
-        {plan && !isFilm && <GoldenStrip onTour={() => setTourOpen(true)}
-          test={pickTestShot(shots.map((x) => ({ id: x.id, start: x.start, end: x.end, framing: x.framing, performers: x.performers, emotion: x.emotion, text: [x.description, x.performance, x.movement].filter(Boolean).join(" ") })),
-                             keyframes[planName] ?? {}, new Set([...takes.entries()].filter(([, j]) => j.state === "ready").map(([id]) => id)), map?.lyrics ?? [])} spent={route?.spent_usd ?? null} budget={route?.budget_usd ?? null}
-          input={{ hasSong: !!map, shots, keyframes: keyframes[planName] ?? {}, videoReady: new Set([...takes.entries()].filter(([, j]) => j.state === "ready").map(([id]) => id)),
-                   pending: Object.keys(pendingKf).length, exported: false,
-                   people: (() => { const ppl = (board?.library.items ?? []).filter((i) => i.kind === "character" && !i.sheet); return { total: ppl.length, withPicture: ppl.filter((i) => i.files.length > 0).length }; })() }}
-          onGo={(step) => {
-            const open = (id: string | undefined, tab: string) => { if (!id) return; setSel({ kind: "shot", id }); setInspector(true); setTimeout(() => window.dispatchEvent(new CustomEvent("pf-open-tab", { detail: tab })), 30); };
-            if (step.startsWith("test:")) open(step.slice(5), "video");
-            else if (step === "refs") setLibraryOpen(true);
-            else if (step === "export") setExporting(true);
-            else if (step === "keyframes") open((shots.find((x) => !(keyframes[planName] ?? {})[x.id]) ?? shots[0])?.id, "keyframe");
-            else if (step === "video") open((shots.find((x) => (keyframes[planName] ?? {})[x.id] && takes.get(x.id)?.state !== "ready") ?? shots[0])?.id, "video");
-          }} />}
-
-
-        {!plan && <CreativeDirections project={project} onPlanned={onReload} onSettings={onSettings} />}
+        {!plan && <div className="empty" style={{ padding: 40 }}>This film has no shots yet. Make them in the film's Shots step, then open the Studio again.</div>}
         <div className="viewer-wrap" style={plan ? undefined : { display: "none" }}>
           <div className="stage">
           <div className="viewer" style={{ ["--ar" as string]: aspectNum(project.project.aspect_ratio) }}>
@@ -646,7 +608,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
         <div className="insp-host" style={layersOpen ? { display: "none" } : { display: "contents" }}>
         <Inspector key={histTick} sel={sel} shots={shots} scenes={scenes} map={map} plan={plan} director={director} project={project}
                    onClose={() => setSel(null)} lookLabel={lookName(styles, look)} onLook={() => setLookOpen(true)}
-                   onOpenLibrary={() => setLibraryOpen(true)} onLibraryChanged={reloadBoard}
                    renderPanel={(s: Shot): ShotTabs => {
                      const pj = jobs.filter((j) => j.plan === planName && j.shot_id === s.id && j.state !== "dismissed");
                      const vid = pj.filter((j) => j.kind !== "image");
@@ -690,7 +651,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
         </div>
       </aside>
 
-      {tourOpen && plan && <Tour right={(inspector ? inspW : 0) + 28} onClose={() => setTourOpen(false)} />}
       {!timelineOpen && <button className="tl-restore" onClick={() => setTimelineOpen(true)} aria-label="Show the timeline" title="Show the timeline (Ctrl+J)"><I.PanelBottom size={14} /> Show the timeline <span className="dim num">{fmtTime(time)}{map ? ` / ${fmtTime(map.duration)}` : ""}</span></button>}
       {timelineOpen && <Timeline key={project.dir} edit={tlEdit} onEdit={setTlEdit} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={board?.shots ?? []} thumbs={thumbs} want={want}
                 layerSel={layerSel} onLayerSelect={(id) => { setLayerSel(id); if (id) setLayersOpen(true); }} onBoardChanged={reloadBoard}
@@ -765,7 +725,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
         onShot={(id) => { const sh = shots.find((x) => x.id === id); setSel({ kind: "shot", id }); setInspector(true); if (sh) seek(sh.start); }}
         commands={([
           plan && { id: "director", label: "Ask the Director", hint: "Change the video in plain words", keys: "Ctrl+K", run: () => setCommanding(true) },
-          plan && !isFilm && { id: "direct", label: project.directed ? "Direct again" : "Direct my video", hint: "Plan every shot on the beat (free)", run: directVideo },
           plan && (keys.fal || keys.kie) && toRender.length > 0 && { id: "render", label: `Render ${toRender.length === shots.length ? "all" : toRender.length} shots`, hint: "Shows the price first", run: () => setConfirmAll(true) },
           plan && board && { id: "select", label: "Select & review", hint: "Choose shots, approve keyframes, pay for video where it is right", run: () => setSelecting(true) },
           plan && { id: "preview", label: "Preview the next seconds", hint: "A small quick version with layers and sound", run: () => { if (playing) toggle(); setPreviewOpen(true); } },
@@ -813,13 +772,6 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
       {kfTools && <KeyframeTools dir={project.dir} onClose={() => setKfTools(false)} onChanged={() => { reloadBoard(); api.loadProject(project.dir).then((p) => { if (p.keyframes) setKeyframes(p.keyframes); }).catch(() => {}); window.dispatchEvent(new Event("pf-shot-changed")); }} />}
       {route && !route.online && <div className="offline-banner" role="status">Offline: cloud renders wait until you are back online. Your own media,
         moving stills, continuity, acting and export all keep working{route.brain.local ? ", and so does the local AI brain" : ""}.</div>}
-      {job && (
-        <div className="toast glass" role="status">
-          <div className="t">{job.title}</div>
-          <div className="s">{job.detail}</div>
-          <div className="progress indet"><i /></div>
-        </div>
-      )}
       {songError && <div className="toast glass" role="alert" style={{ borderColor: "rgba(239,107,115,0.4)" }}>
         <div className="t" style={{ color: "var(--error)" }}>Can't play</div><div className="s">{songError}</div>
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><button className="btn" onClick={() => setSongError("")}>OK</button></div>
@@ -844,7 +796,6 @@ const aspectNum = (r?: string) => {
   const m = r?.match(/^([\d.]+):([\d.]+)$/);
   return m ? String(Number(m[1]) / Number(m[2])) : String(16 / 9);
 };
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function RailBtn({ icon, label, active, disabled, onClick, badge, why, expanded, className }: {
   icon: React.ReactNode; label: string; active?: boolean; disabled?: boolean; onClick?: () => void; badge?: number; why?: string; expanded?: boolean; className?: string;
@@ -896,10 +847,9 @@ function Storyboard({ shot, scene, job, hidden }: { shot: Shot; scene?: Scene; j
 
 // ---------------- inspector ----------------
 
-function Inspector({ sel, shots, scenes, map, plan, director, project, onClose, renderPanel, lookLabel, onLook, onOpenLibrary, onLibraryChanged }: {
+function Inspector({ sel, shots, scenes, map, plan, director, project, onClose, renderPanel, lookLabel, onLook }: {
   sel: Selection; shots: Shot[]; scenes: Scene[]; map: SongMap | null; plan: Plan | null; director: boolean;
   project: LoadedProject; onClose: () => void; renderPanel: (s: Shot) => ShotTabs; lookLabel: string; onLook: () => void;
-  onOpenLibrary: () => void; onLibraryChanged: () => void;
 }) {
   if (sel?.kind === "shot") {
     const s = shots.find((x) => x.id === sel.id);
@@ -930,14 +880,12 @@ function Inspector({ sel, shots, scenes, map, plan, director, project, onClose, 
       <div className="inspector-body">
         <div className="insp-section"><div className="kv">
           <span className="k">Title</span><span className="v">{project.project.title}</span>
-          {map && <>{!(project.project as { film?: boolean }).film && <><span className="k">Tempo</span><span className="v num">{map.bpm.toFixed(1)} BPM</span></>}
-            <span className="k">Length</span><span className="v num">{fmtTime(map.duration)}</span>
+          {map && <><span className="k">Length</span><span className="v num">{fmtTime(map.duration)}</span>
             <span className="k">{(project.project as { film?: boolean }).film ? "Scenes" : "Sections"}</span><span className="v num">{map.sections.length}</span>
             {map.lyric_match != null && <><span className="k">Lyrics heard</span><span className="v num">{Math.round(map.lyric_match * 100)}%</span></>}</>}
           <span className="k">Shots</span><span className="v num">{shots.length}</span>
           <span className="k">Renderer</span><span className="v">Auto</span>
         </div></div>
-        {!(project.project as { film?: boolean }).film && <MaterialsPanel project={project} hasPlan={!!plan} onChanged={onLibraryChanged} onOpenLibrary={onOpenLibrary} />}
         <ProjectSettingsRow project={project} />
         <div className="insp-section look-row">
           <h4>Look</h4>
@@ -1331,11 +1279,6 @@ function ProjectSettingsRow({ project }: { project: LoadedProject }) {
           <option value="closeups">Close-ups get a dedicated lip-sync pass</option>
           <option value="off">Off</option>
         </select>
-        {!(project.project as { film?: boolean }).film && <><span className="k">Who sings</span>
-        <select className="text-input" value={s.vocalist} onChange={(e) => change("vocalist", e.target.value)} aria-label="Who sings the vocal">
-          <option value="onscreen">The people on screen (the lead, in medium shots and closer)</option>
-          <option value="offscreen">A narrator or voice-over: nobody on screen sings</option>
-        </select></>}
       </div>
       <p className="dim" style={{ marginTop: 6 }}>Applies to new takes. Each model uses its closest supported option.</p>
       {err && <div className="error-text">{err}</div>}

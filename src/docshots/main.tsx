@@ -22,7 +22,6 @@ import { HandFix } from "../HandFix";
 import { RoutingSheet } from "../Routing";
 import { SelectReview } from "../SelectReview";
 import { DirectionLibrarySheet } from "../DirectionLibrary";
-import { CreativeDirections } from "../Directions";
 import { LookPicker } from "../Looks";
 import { LightingSheet } from "../Lighting";
 import { CleanupSheet } from "../Cleanup";
@@ -518,7 +517,6 @@ const scenes: Record<string, () => ReactNode> = {
   selectreview: () => <SelectReview dir={DIR} shots={ids.map((id, i) => ({ id, scene: N > 8 ? Number(id.slice(1, 3)) : 1, start: i * 6, end: i * 6 + 5, framing: ["Close-up", "Wide", "Medium", "Over the shoulder"][i % 4], beat: "", performers: [], status: "ready", locked: false, approved: null, thumb_src: null, thumb_source: "keyframe", preview: null, keyframe: still(i), versions: [], references: [] })) as never} sections={[{ label: "verse", group: "Verse 1", start: 0, end: 24 }, { label: "chorus", group: "Chorus", start: 24, end: 48 }] as never} initial={ids.slice(0, 4)} onClose={noop} onQueued={noop} />,
   compare: () => <div className="sheet glass viewer-sheet" style={{ width: 920 }}><div className="vs-head"><h2 className="num">Shot S01-03</h2></div><CompareLazy /></div>,
   directionlibrary: () => <DirectionLibrarySheet dir={DIR} onClose={noop} onApplied={noop} />,
-  directions: () => <div style={{ maxWidth: 1180, margin: "0 auto", padding: 24 }}><CreativeDirections project={project} onPlanned={noop} onSettings={noop} /></div>,
   looks: () => <LookPicker value={{ style: "auto" }} director={false} onCancel={noop} onSave={noop} />,
   shotlook: () => <ShotLookDemo />,
   "shotlook-own": () => <ShotLookDemo />,
