@@ -194,7 +194,7 @@ def test_the_director_writes_beats_one_shot_at_a_time_and_marks_them_as_its_own(
     good = {"beats": [{"t0": 0, "t1": 2, "what": "Her eyes sweep the room", "face": "a raised brow", "eyes": "left to right", "hands": "", "breath": "slow"},
                       {"t0": 2, "t1": 4, "what": "She settles on Zara", "face": "", "eyes": "steady", "hands": "", "breath": ""}]}
     b = brain([good, good])
-    out = A.beats_write(d, ["S01-01", "S01-02"], notes="keep it small")
+    out = A.beats_write(d, ["S01-01", "S01-02"], notes="keep it small", confirmed=True)
     assert out["written"] == ["S01-01", "S01-02"] and out["failed"] == {} and len(b.asked) == 2
     got = A.beats_get(d, "S01-01")
     assert got["source"] == "director" and got["beats"][0]["what"] == "Her eyes sweep the room" and got["beats"][0]["breath"] == "slow" and "hands" not in got["beats"][0]
@@ -206,23 +206,23 @@ def test_the_director_writes_beats_one_shot_at_a_time_and_marks_them_as_its_own(
 def test_one_shot_failing_does_not_lose_the_others(d, brain):
     good = {"beats": [{"t0": 0, "t1": 2, "what": "ok", "face": "", "eyes": "", "hands": "", "breath": ""}]}
     brain([Exception("Error code: 429 - rate limit"), good])
-    out = A.beats_write(d, ["S01-01", "S01-02"])
+    out = A.beats_write(d, ["S01-01", "S01-02"], confirmed=True)
     assert out["written"] == ["S01-02"] and "S01-01" in out["failed"] and "limiting requests" in out["failed"]["S01-01"]
     assert A.beats_get(d, "S01-01")["beats"] == []
 
 
 def test_a_shot_the_director_answered_badly_for_is_reported_not_saved(d, brain):
     brain([{"beats": [{"t0": 0, "t1": 1, "what": "", "face": "", "eyes": "", "hands": "", "breath": ""}]}])
-    out = A.beats_write(d, ["S01-01"])
+    out = A.beats_write(d, ["S01-01"], confirmed=True)
     assert out["written"] == [] and "S01-01" in out["failed"] and A.beats_get(d, "S01-01")["beats"] == []
 
 
 def test_beats_you_wrote_are_not_replaced_unless_you_say_so(d, brain):
     b = brain([{"beats": [{"t0": 0, "t1": 2, "what": "theirs", "face": "", "eyes": "", "hands": "", "breath": ""}]}])
     A.beats_set(d, "S01-01", [{"t0": 0, "t1": 2, "what": "mine"}])
-    out = A.beats_write(d, ["S01-01"])
+    out = A.beats_write(d, ["S01-01"], confirmed=True)
     assert out["written"] == [] and b.asked == [] and A.beats_get(d, "S01-01")["beats"][0]["what"] == "mine"
-    out = A.beats_write(d, ["S01-01"], overwrite=True)
+    out = A.beats_write(d, ["S01-01"], overwrite=True, confirmed=True)
     assert out["written"] == ["S01-01"] and A.beats_get(d, "S01-01")["beats"][0]["what"] == "theirs"
 
 
@@ -238,7 +238,7 @@ def test_the_director_writes_an_arc_on_the_songs_sections_for_the_characters_ask
                                                                 {"section": "Bridge 9", "emotion": "ignored", "intensity": 5, "note": ""},
                                                                 {"section": "chorus 1", "emotion": "flustered", "intensity": 12, "note": ""}]},
                                {"name": "Stranger", "points": [{"section": "Verse 1", "emotion": "x", "intensity": 3, "note": ""}]}]}])
-    out = A.arc_write(d, ["Beatrice"])
+    out = A.arc_write(d, ["Beatrice"], confirmed=True)
     assert out["written"] == ["Beatrice"]
     pts = out["arcs"]["Beatrice"]["points"]
     assert [(p["section"], p["intensity"]) for p in pts] == [("Verse 1", 4), ("Chorus 1", 10)] and out["arcs"]["Beatrice"]["source"] == "director" and out["arcs"]["Zara"]["points"] == []
@@ -250,7 +250,7 @@ def test_an_arc_needs_a_listened_to_song(d, brain):
     brain([])
     os.remove(os.path.join(d, "songmap.json"))
     with pytest.raises(SystemExit, match="not been listened to"):
-        A.arc_write(d)
+        A.arc_write(d, confirmed=True)
     with pytest.raises(SystemExit, match="not been listened to"):
         A.arc_set(d, "Beatrice", [{"section": "Verse 1", "emotion": "x"}])
 
@@ -258,7 +258,7 @@ def test_an_arc_needs_a_listened_to_song(d, brain):
 def test_an_online_failure_while_writing_an_arc_is_explained_in_words(d, brain):
     brain([Exception("Error code: 429 - {'error': {'type': 'insufficient_quota', 'code': 'credit_balance_exhausted'}}")])
     with pytest.raises(SystemExit, match="out of credits"):
-        A.arc_write(d)
+        A.arc_write(d, confirmed=True)
 
 
 # ---------------------------------------------------------------- feeling-specific micro-motion

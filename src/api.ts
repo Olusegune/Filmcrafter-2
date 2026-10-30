@@ -93,6 +93,20 @@ export const AUTO_IMAGE_MODEL: Record<string, string> = {
 };
 
 export type Style = { id: string; name: string; group: string; description: string; prompt: string; avoid: string; fit?: string; family?: string };
+/** The Performance Director (performance_director.py): free and local. A field is "auto" (a draft from the film) or "you" (written or accepted by you; only these reach a prompt). */
+export type PField = { value: string; source: "auto" | "you"; from: string };
+export type PersonProfile = Record<string, string>;
+export type CastPerson = { name: string; profile: PersonProfile; known: Record<string, string | { label: string; age: string }[]>; style: string; gestures: { when: string; do: string }[] };
+export type CastProfiles = { fields: string[]; people: CastPerson[] };
+export type SceneBreakdown = {
+  number: number; heading: string; shots: string[]; fields: Record<"purpose" | "start" | "end" | "tension", PField>;
+  people: ({ name: string } & Record<"wants" | "obstacle" | "outward" | "inner" | "hiding", PField>)[];
+  subtext: { id: string; shot: string; person: string; says: string; means: PField; confidence: "low" | "medium" | "high"; why: string }[];
+  turning_points: { shot: string; person: string; what: string }[]; nonverbal: { shot: string; what: string }[]; reactions: { shot: string; person: string; what: string }[];
+};
+export type Breakdown = { has_contracts: boolean; scenes: SceneBreakdown[] };
+export type NudgeState = { shot: string; nudges: { id: string; label: string; level: number; levels: number }[] };
+export type PDAction = "characters_get" | "character_set" | "character_clear" | "breakdown_get" | "breakdown_set" | "breakdown_reset" | "breakdown_accept" | "beats_suggest" | "nudges_get" | "nudge_set";
 export type Look = { style: string; notes?: string; prompt?: string; avoid?: string };
 /** A look for one scene or one shot (stylebible.py). `scenes[].style` and `shots[id]` are the scene's and the shot's own look ids; absent means the film's. */
 export type StyleBibleRead = { style: { id: string; name: string; prompt: string }; styles: { id: string; name: string; group: string; description: string }[]; scenes: { scene: number; heading: string | null; style: string | null }[]; shots: Record<string, string>; precedence: string[] };
@@ -227,6 +241,7 @@ export const api = {
   customFrame: <T = CustomFrameState>(dir: string, action: "state" | "insert" | "remove", data: Record<string, unknown> = {}) => invoke<T>("custom_frame", { dir, action, data }),
   layerKit: <T = { styles: LayerStyle[] }>(dir: string, action: "styles" | "save" | "apply" | "delete_style" | "lyrics" | "lyrics_remove" | "templates" | "template_save" | "template_apply" | "template_delete" | "template_remove", data: Record<string, unknown> = {}) => invoke<T>("layer_kit", { dir, action, data }),
   shotSound: (dir: string, action: "get" | "set" | "delete" | "restore" | "reset" | "split", data: Record<string, unknown>) => invoke<ShotSound>("shot_sound", { dir, action, data }),
+  performanceDirector: <T = unknown>(dir: string, action: PDAction, data: Record<string, unknown> = {}) => invoke<T>("performance_director", { dir, action, data }),
   acting: <T = unknown>(dir: string, action: "get" | "beats_get" | "beats_set" | "beats_clear" | "beats_estimate" | "beats_write" | "arc_set" | "arc_clear" | "arc_estimate" | "arc_write" | "business_set",
                         data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),

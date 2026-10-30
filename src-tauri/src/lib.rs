@@ -1717,6 +1717,19 @@ async fn acting(app: AppHandle, dir: String, action: String, data: Value) -> Res
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "acting", &args, &[])).await.map_err(err)?
 }
 
+/// The Performance Director (filmcrafter_engine.performance_director): what a person wants and hides, the scene Performance Breakdown, suggested beats and nudges. Free and local: nothing is sent
+/// anywhere and nothing is rendered or charged; the screenplay, the shots and the Bible are only read.
+#[tauri::command]
+async fn performance_director(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 10] = ["characters_get", "character_set", "character_clear", "breakdown_get", "breakdown_set", "breakdown_reset", "breakdown_accept", "beats_suggest", "nudges_get", "nudge_set"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let d = project_dir(&dir)?.to_string_lossy().to_string();
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.performance_director".into(), action, d, "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "performance_director", &args, &[])).await.map_err(err)?
+}
+
 /// Sound layers for each shot (filmcrafter_engine.shotsound): get | set | delete | restore | reset | split | overview | levels. Free and local: a take's own sound is kept
 /// apart from its picture and mixed at export; `split` separates voices from effects and music on this computer. The takes themselves are never changed.
 #[tauri::command]
@@ -2385,7 +2398,7 @@ pub fn run() {
             direct_project, ensure_renderer, render_catalog, render_preview,
             queue_render, confirm_spend, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
             save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_materials, film_choreography, film_placecare, film_audioplan, film_readiness, film_pacing, film_composition, film_spending, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, creative_directions, write_treatment, director_command, undo_command, library, parse_action, providers,
-            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, stylebible, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
+            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, stylebible, performance_director, title_card, cleanup, custom_frame, layer_kit, colour_match, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

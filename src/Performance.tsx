@@ -4,6 +4,7 @@ import { api, errorText } from "./api";
 import * as I from "./icons";
 import { PanelHead } from "./Dock";
 import { ArcSection, BeatsPanel, GesturesSection } from "./ActingDepth";
+import { NudgeRow, PeopleProfiles, SceneNotes } from "./PerformanceDirector";
 
 export type PerfData = { profiles: { id: string; label: string; blurb: string }[]; default: string;
   scenes: Record<string, string>; characters: Record<string, string>; shots: Record<string, string>; set: boolean };
@@ -25,12 +26,20 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
 }) {
   const { perf, setPerf } = usePerformance(dir);
   const [err, setErr] = useState("");
+  const [tab, setTab] = useState<"scenes" | "people" | "style">("scenes");
   const set = async (data: Record<string, unknown>) => { setErr(""); try { await setPerf(data); onChanged(); } catch (e) { setErr(errorText(e)); } };
   const label = (id: string) => perf?.profiles.find((x) => x.id === id)?.label ?? id;
+  const TABS: ["scenes" | "people" | "style", string][] = [["scenes", "Scenes"], ["people", "People"], ["style", "Style & arcs"]];
   return (
-    <Sheet label="Acting" className="perf-sheet" onDismiss={onClose}>
-        <div className="vs-head"><h2>Acting</h2><div style={{ flex: 1 }} />
+    <Sheet label="Acting and Performance Director" className="perf-sheet" onDismiss={onClose}>
+        <div className="vs-head"><h2>Acting <span className="dim pd-sub">Performance Director</span></h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
+        <div className="pd-tabs" role="tablist" aria-label="Acting">
+          {TABS.map(([id, text]) => <button key={id} type="button" role="tab" id={`pd-tab-${id}`} aria-selected={tab === id} aria-controls={`pd-panel-${id}`} className={tab === id ? "on" : ""} onClick={() => setTab(id)}>{text}</button>)}
+        </div>
+        {tab === "scenes" && <div role="tabpanel" id="pd-panel-scenes" aria-labelledby="pd-tab-scenes"><SceneNotes dir={dir} onChanged={onChanged} /></div>}
+        {tab === "people" && <div role="tabpanel" id="pd-panel-people" aria-labelledby="pd-tab-people"><PeopleProfiles dir={dir} onChanged={onChanged} /></div>}
+        {tab === "style" && <div role="tabpanel" id="pd-panel-style" aria-labelledby="pd-tab-style">
         <p className="sub">How big the performances are, with the small living motion between actions: blinks, breathing, weight shifts. It goes into every new keyframe and video prompt. Free to change.</p>
         {err && <div className="error-text">{err}</div>}
         {!perf ? <div className="dim">Loading…</div> : <>
@@ -67,6 +76,7 @@ export function PerformanceSheet({ dir, scenes, characters, onClose, onChanged }
           <details className="perf-more"><summary>Signature gestures <span className="dim">the small habits that make a character themselves</span></summary>
             <GesturesSection dir={dir} onChanged={onChanged} /></details>
         </>}
+        </div>}
     </Sheet>
   );
 }
@@ -80,6 +90,7 @@ export function ShotPerformance({ dir, shotId, onChanged }: { dir: string; shotI
                          onProfile={async (v) => { await setPerf({ shots: { [shotId]: v } }); onChanged(); }}
                          onUseNatural={async () => { await setPerf({ default: "natural" }); onChanged(); }} />
     <BeatsPanel dir={dir} shotId={shotId} onChanged={onChanged} />
+    <NudgeRow dir={dir} shotId={shotId} onChanged={onChanged} />
   </>;
 }
 

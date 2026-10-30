@@ -4,7 +4,8 @@ import { ask } from "./ask";
 import * as I from "./icons";
 import "./acting.css";
 
-export type Beat = { t0: number; t1: number; what: string; face?: string; eyes?: string; hands?: string; breath?: string };
+export type Beat = { t0: number; t1: number; what: string; face?: string; eyes?: string; gaze?: string; head?: string; posture?: string; hands?: string; breath?: string;
+  change?: string; link?: string; continues?: boolean; source?: "you" | "auto"; confidence?: "low" | "medium" | "high" };
 export type BeatsData = { shot: string; seconds: number; beats: Beat[]; source: "you" | "director" | null };
 export type AiPrice = { calls: number; usd: number; local: boolean; note: string; shots?: string[]; characters?: string[] };
 export type ArcPoint = { section: string; emotion: string; intensity: number; note: string };
@@ -17,11 +18,11 @@ const confirmText = (what: string, e: AiPrice) => `${what}\n\nPrice: ${priceText
 
 // ---------------------------------------------------------------- beats
 
-const DETAILS: [keyof Beat, string][] = [["face", "Face"], ["eyes", "Eyes"], ["hands", "Hands"], ["breath", "Breath"]];
+const DETAILS: [keyof Beat, string][] = [["face", "Face"], ["eyes", "Eyes"], ["gaze", "Looks at"], ["head", "Head"], ["posture", "Posture"], ["hands", "Hands"], ["breath", "Breath"], ["change", "What changes"]];
 
-export function BeatsView({ seconds, source, beats, dirty, busy, err, onChange, onSave, onClear, onWrite }: {
-  seconds: number; source: BeatsData["source"]; beats: Beat[]; dirty: boolean; busy: string; err: string;
-  onChange: (b: Beat[]) => void; onSave: () => void; onClear: () => void; onWrite: () => void;
+export function BeatsView({ seconds, source, beats, dirty, busy, err, note, onChange, onSave, onClear, onWrite, onSuggest }: {
+  seconds: number; source: BeatsData["source"]; beats: Beat[]; dirty: boolean; busy: string; err: string; note?: string;
+  onChange: (b: Beat[]) => void; onSave: () => void; onClear: () => void; onWrite: () => void; onSuggest?: () => void;
 }) {
   const set = (i: number, patch: Partial<Beat>) => onChange(beats.map((b, k) => (k === i ? { ...b, ...patch } : b)));
   const add = () => { const last = beats[beats.length - 1]; const t0 = last ? Math.min(seconds, last.t1) : 0; onChange([...beats, { t0, t1: Math.min(seconds, t0 + Math.max(0.5, seconds / 3)), what: "" }]); };
@@ -42,18 +43,22 @@ export function BeatsView({ seconds, source, beats, dirty, busy, err, onChange, 
               <button className="icon-btn" onClick={() => onChange(beats.filter((_, k) => k !== i))} aria-label={`Remove beat ${i + 1}`} title="Remove this beat"><I.Close size={14} /></button>
             </div>
             <input className="text-input beat-what" value={b.what} maxLength={240} placeholder="What she does, for example: lifts her hand slowly to the glasses" aria-label={`Beat ${i + 1}: what happens`} onChange={(e) => set(i, { what: e.target.value })} />
-            <details className="beat-more" open={DETAILS.some(([k]) => !!b[k]) || undefined}><summary>Face, eyes, hands, breath</summary>
+            <details className="beat-more" open={DETAILS.some(([k]) => !!b[k]) || undefined}><summary>Face, eyes, gaze, hands, breath, what changes</summary>
               <div className="beat-details">{DETAILS.map(([k, label]) => (
-                <label key={k}>{label}<input className="text-input" value={(b[k] as string) ?? ""} maxLength={120} aria-label={`Beat ${i + 1}: ${label.toLowerCase()}`} onChange={(e) => set(i, { [k]: e.target.value })} /></label>))}</div>
+                <label key={k}>{label}<input className="text-input" value={(b[k] as string) ?? ""} maxLength={k === "change" ? 160 : 120} aria-label={`Beat ${i + 1}: ${label.toLowerCase()}`} onChange={(e) => set(i, { [k]: e.target.value })} /></label>))}</div>
+              <label className="beat-carry"><input type="checkbox" checked={!!b.continues} onChange={(e) => set(i, { continues: e.target.checked })} /> Carries on into the next shot <span className="dim">(the feeling does not reset at the cut)</span></label>
+              {b.source === "auto" && <p className="dim beat-auto">Suggested automatically{b.confidence ? ` (${b.confidence} confidence)` : ""}: change it freely.</p>}
             </details>
           </li>))}
       </ol>
       <div className="beats-actions">
         {beats.length < 6 && <button className="btn small" onClick={add} disabled={!!busy}>+ Add a beat</button>}
         <button className="btn small primary" onClick={onSave} disabled={!!busy || !dirty || beats.every((b) => !b.what.trim())}>Save beats</button>
+        {onSuggest && <button className="btn small" onClick={onSuggest} disabled={!!busy} title="A free starting point made on this computer from the feeling of the shot. Nothing is saved until you press Save beats.">Suggest beats (free)</button>}
         <button className="btn small ghost" onClick={onWrite} disabled={!!busy} title="The Director writes beats for this shot. The price is shown first.">{busy === "write" ? "Writing…" : "Write with the Director…"}</button>
         {(source || beats.length > 0) && <button className="btn small ghost" onClick={onClear} disabled={!!busy}>Clear</button>}
       </div>
+      {note && <p className="dim beat-note" role="status">{note}</p>}
       {err && <p className="error-text" role="alert">{err}</p>}
     </section>
   );
@@ -65,7 +70,12 @@ export function BeatsPanel({ dir, shotId, onChanged }: { dir: string; shotId: st
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
+  const [note, setNote] = useState("");
   const load = useCallback(() => api.acting<BeatsData>(dir, "beats_get", { shot: shotId }).then((r) => { setData(r); setDraft(r.beats ?? []); setDirty(false); }).catch((e) => setErr(errorText(e))), [dir, shotId]);
+  const suggest = async () => {      // free, local; fills the editor and saves nothing
+    setErr(""); setNote("");
+    try { const r = await api.performanceDirector<{ beats: Beat[]; basis: string }>(dir, "beats_suggest", { shot: shotId }); if (r.beats.length) { setDraft(r.beats); setDirty(true); } setNote(r.basis); } catch (e) { setErr(errorText(e)); }
+  };
   useEffect(() => { setData(null); setErr(""); load(); }, [load]);
   const run = async (what: string, fn: () => Promise<unknown>) => { setBusy(what); setErr(""); try { await fn(); await load(); onChanged?.(); } catch (e) { setErr(errorText(e)); } finally { setBusy(""); } };
   const write = async () => {
@@ -73,12 +83,12 @@ export function BeatsPanel({ dir, shotId, onChanged }: { dir: string; shotId: st
     try {
       const est = await api.acting<AiPrice>(dir, "beats_estimate", { shots: [shotId], overwrite: true });
       if (!await ask(confirmText(`The Director will write acting beats for ${shotId}.${draft.some((b) => b.what.trim()) ? " Your current beats will be replaced." : ""}`, est), { ok: "Write beats" })) return;
-      await run("write", () => api.acting(dir, "beats_write", { shots: [shotId], overwrite: true }).then((r) => {
+      await run("write", () => api.acting(dir, "beats_write", { shots: [shotId], overwrite: true, confirmed: true }).then((r) => {
         const f = (r as { failed?: Record<string, string> }).failed?.[shotId]; if (f) throw new Error(f); }));
     } catch (e) { setErr(errorText(e)); }
   };
   if (!data) return err ? <p className="error-text" role="alert">{err}</p> : null;
-  return <BeatsView seconds={data.seconds} source={data.source} beats={draft} dirty={dirty} busy={busy} err={err}
+  return <BeatsView seconds={data.seconds} source={data.source} beats={draft} dirty={dirty} busy={busy} err={err} note={note} onSuggest={suggest}
                     onChange={(b) => { setDraft(b); setDirty(true); }}
                     onSave={() => run("save", () => api.acting(dir, "beats_set", { shot: shotId, beats: draft }))}
                     onClear={() => run("clear", () => api.acting(dir, "beats_clear", { shot: shotId }))} onWrite={write} />;
@@ -153,7 +163,7 @@ export function ArcSection({ dir, onChanged }: { dir: string; onChanged?: () => 
       const est = await api.acting<AiPrice>(dir, "arc_estimate", {});
       const replacing = data.characters.some((c) => (data.arcs[c]?.points.length ?? 0) > 0);
       if (!await ask(confirmText(`The Director will write an emotional arc for ${data.characters.length} character${data.characters.length === 1 ? "" : "s"} across the film's scenes.${replacing ? " Arcs that exist will be replaced." : ""}`, est), { ok: "Write the arcs" })) return;
-      await run("write", () => api.acting(dir, "arc_write", {}));
+      await run("write", () => api.acting(dir, "arc_write", { confirmed: true }));
     } catch (e) { setErr(errorText(e)); }
   };
   if (!data) return err ? <p className="error-text" role="alert">{err}</p> : <p className="dim">Loading…</p>;

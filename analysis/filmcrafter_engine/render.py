@@ -1175,6 +1175,15 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         blocks.append((7, shot["arc_text"]))
     if "duration" in roles and shot.get("business_text") and not custom:
         blocks.append((6, shot["business_text"]))
+    if not custom:                                  # the Performance Director's lines: each is the first to go when the prompt is too long
+        if shot.get("acting_nudges"):
+            blocks.append((8, shot["acting_nudges"]))
+        if "duration" in roles and shot.get("acting_carry"):
+            blocks.append((8, shot["acting_carry"]))
+        if shot.get("inner_text"):
+            blocks.append((7, shot["inner_text"]))
+        if shot.get("psychology_text"):
+            blocks.append((5, shot["psychology_text"]))
     if shot.get("continuity") and not only:   # Continuity Director: blocking, 180-degree line, eyelines, wardrobe, light
         blocks.append((7, shot["continuity"]))
     if shot.get("locked_design"):   # canonical assets (e.g. from a Producer package)
@@ -2686,8 +2695,11 @@ def _with_movement(d: str, shot: dict) -> dict:
         pass
     try:   # timed performance beats, where this person is in their arc, their signature gestures (acting.py)
         from . import acting
+        from . import character_performance, performance_analysis       # the Performance Director: what you wrote about the people, never a draft
         for key, text in (("acting_beats", acting.beats_text(d, shot, "video")), ("acting_beats_pose", acting.beats_text(d, shot, "image")),
-                          ("arc_text", acting.arc_text(d, shot)), ("business_text", acting.business_text(d, shot))):
+                          ("arc_text", acting.arc_text(d, shot)), ("business_text", acting.business_text(d, shot)),
+                          ("acting_nudges", acting.nudge_text(d, shot)), ("acting_carry", acting.carry_text(d, shot)),
+                          ("psychology_text", character_performance.prompt_text(d, shot)), ("inner_text", performance_analysis.inner_text(d, shot))):
             if text:
                 extra[key] = text
     except Exception:

@@ -10,6 +10,14 @@
 Everything is kept in <project>/acting.json, a file that can travel with a project from somewhere else, so it is read defensively: wrong shapes are dropped and every text and
 number is bounded.
 
+Version 2 of the file (the Performance Director): a beat may also say where the person looks (`gaze`), the head and the posture, what changes in them (`change`), which line or
+dramatic beat it belongs to (`link`), whether it carries on into the next shot (`continues`), who wrote it (`source`) and how sure an automatic suggestion is (`confidence`); and a
+shot may carry "nudges" (More restrained, Hold the reaction longer...): named, structured choices that add one specific piece of direction. A version-1 file opens unchanged, and
+anything in the file this version does not know is kept when it is saved.
+
+The two AI actions (`beats_write`, `arc_write`) are refused by the engine unless the call says `confirmed: true`: the screen shows the price and asks first, and the engine does not
+trust that.
+
   python -m filmcrafter_engine.acting <action> <project> --data '{...}'
   actions: get | beats_set | beats_clear | beats_estimate | beats_write | arc_set | arc_clear | arc_estimate | arc_write | business_set
 """
@@ -23,7 +31,11 @@ import sys
 import time
 
 FILE = "acting.json"
+SCHEMA = 2
+KNOWN = ("schema", "beats", "arc", "business", "nudges")
 MAX_BEATS, MAX_POINTS, MAX_GESTURES = 6, 24, 8
+BEAT_TEXT = ("face", "eyes", "gaze", "head", "posture", "hands", "breath")        # what a beat can say about the body, in the order a prompt reads it
+CONFIDENCE = ("low", "medium", "high")
 SHOTS_PER_CALL = 12
 # A rough price for the AI brain (OpenAI list prices per million tokens, as of writing): shown as an estimate, never as a promise. A local model costs nothing.
 IN_USD_PER_MTOK, OUT_USD_PER_MTOK = 1.25, 10.0
@@ -76,13 +88,23 @@ def load(d: str) -> dict:
     s = _read(os.path.join(d, FILE), {})
     s = s if isinstance(s, dict) else {}
     group = lambda k: {str(a): b for a, b in (s.get(k) if isinstance(s.get(k), dict) else {}).items() if isinstance(b, (dict, list))}
-    return {"beats": {k: v for k, v in group("beats").items() if isinstance(v, dict)},
-            "arc": {k: v for k, v in group("arc").items() if isinstance(v, dict)},
-            "business": {k: v for k, v in group("business").items() if isinstance(v, list)}}
+    out = {"beats": {k: v for k, v in group("beats").items() if isinstance(v, dict)},
+           "arc": {k: v for k, v in group("arc").items() if isinstance(v, dict)},
+           "business": {k: v for k, v in group("business").items() if isinstance(v, list)}}
+    nudges = {str(k): {a: b for a, b in v.items() if a in NUDGES and isinstance(b, (int, dict))} for k, v in (s.get("nudges") if isinstance(s.get("nudges"), dict) else {}).items() if isinstance(v, dict)}
+    if any(nudges.values()):
+        out["nudges"] = {k: v for k, v in nudges.items() if v}
+    extra = {k: v for k, v in s.items() if k not in KNOWN}                    # a newer version's keys, or another tool's: kept as they are
+    if extra:
+        out["_extra"] = extra
+    return out
 
 
 def save(d: str, s: dict) -> None:
-    _write(os.path.join(d, FILE), s)
+    data = {**(s.get("_extra") or {}), "schema": SCHEMA, **{k: s[k] for k in ("beats", "arc", "business") if k in s}}
+    if s.get("nudges"):
+        data["nudges"] = s["nudges"]
+    _write(os.path.join(d, FILE), data)
 
 
 def _plan(d: str) -> dict:
@@ -131,7 +153,10 @@ def clean_beats(raw, seconds: float) -> list[dict]:
         t0 = max(0.0, start)
         t1 = _num(b.get("t1"), min(seconds, t0 + 1.0), 0.0, seconds)
         beat = {"t0": round(t0, 2), "t1": round(max(t1, min(seconds, t0 + 0.3)), 2), "what": _txt(b.get("what"), 240),
-                **{k: _txt(b.get(k), 120) for k in ("face", "eyes", "hands", "breath") if _txt(b.get(k), 120)}}
+                **{k: _txt(b.get(k), 120) for k in BEAT_TEXT if _txt(b.get(k), 120)},
+                **({"change": _txt(b.get("change"), 160)} if _txt(b.get("change"), 160) else {}), **({"link": _txt(b.get("link"), 60)} if _txt(b.get("link"), 60) else {}),
+                **({"continues": True} if b.get("continues") is True else {}),
+                **({"source": b["source"]} if b.get("source") in ("you", "auto") else {}), **({"confidence": b["confidence"]} if b.get("confidence") in CONFIDENCE else {})}
         (loose if start < 0 and not _is_zero(b.get("t0")) else out).append(beat)
     out.sort(key=lambda x: x["t0"])
     out += loose                                                       # these follow the others in the order given
@@ -169,7 +194,7 @@ def beats_clear(d: str, shot_id: str) -> dict:
 
 
 def _detail(b: dict) -> str:
-    bits = [f"{k}: {b[k]}" for k in ("face", "eyes", "hands", "breath") if b.get(k)]
+    bits = [f"{k}: {b[k]}" for k in BEAT_TEXT if b.get(k)]
     return f" ({'; '.join(bits)})" if bits else ""
 
 
@@ -186,6 +211,113 @@ def beats_text(d: str, shot: dict, kind: str = "video") -> str | None:
         return f"Opening moment: {b['what'].rstrip('.')}{_detail(b)}."
     text = "Performance beats, in order: " + "; ".join(f"{b['t0']:g} to {b['t1']:g} s: {b['what'].rstrip('.')}{_detail(b)}" for b in beats) + "."
     return text if len(text) <= 900 else "Performance beats, in order: " + "; ".join(f"{b['t0']:g} to {b['t1']:g} s: {b['what'].rstrip('.')}" for b in beats) + "."
+
+
+# ---------------------------------------------------------------- nudges: a named choice that adds one specific piece of direction
+
+NUDGES = {
+    "restrained": {"label": "More restrained", "levels": 2, "text": ("Underplay it: hold more back; the feeling leaks through the eyes and the breath, not through big gestures.",
+                                                                      "Underplay it strongly: almost no gesture, stillness is the performance; the feeling shows only in the eyes, the breath and the jaw.")},
+    "grounded": {"label": "Less exaggerated", "text": "Keep it grounded and small: nothing larger than the moment needs, no mugging, no stage gestures."},
+    "vulnerable": {"label": "More vulnerable", "text": "Let the guard down: softer eyes, a smaller posture, the breath a little unsteady; the person lets themselves be seen."},
+    "hesitant": {"label": "More hesitant", "text": "A hesitation before each action: it starts, stops, and starts again; the eyes check before the body commits."},
+    "playful": {"label": "More playful", "text": "A lightness in the performance: quick, loose movement, a trace of a smile, eyes bright, an easy rhythm."},
+    "tense": {"label": "More tension", "text": "Held tension: stillness before each move, a tight jaw and shoulders, the breath held and let go in small pieces."},
+    "still_body": {"label": "Reduce body movement", "text": "Keep the body almost still: only the eyes, the breath and the smallest shifts move."},
+    "eyes": {"label": "Let the eyes tell the story", "text": "Let the eyes carry the feeling: the face stays quiet and the gaze does the acting, moving, holding and lingering on purpose."},
+    "hold": {"label": "Hold the reaction longer", "text": "Hold the final reaction: stay on the moment and let it finish before anything else happens; do not cut away early."},
+}
+
+
+def _nudge_state(d: str, shot_id: str) -> dict:
+    return load(d).get("nudges", {}).get(str(shot_id), {})
+
+
+def nudges_get(d: str, shot_id: str) -> dict:
+    _shot(d, shot_id)
+    st = _nudge_state(d, shot_id)
+    return {"shot": shot_id, "nudges": [{"id": k, "label": v["label"], "level": int(st.get(k) or 0) if not isinstance(st.get(k), dict) else 1, "levels": v.get("levels", 1)} for k, v in NUDGES.items()]}
+
+
+def _hold_beats(beats: list[dict], seconds: float) -> list[dict]:
+    """Give the last beat more of the shot: it starts earlier (at most a quarter of the shot), the beat before it ends sooner, no beat shorter than 0.3 s."""
+    if len(beats) < 2:
+        return beats
+    out = [dict(b) for b in beats]
+    last, prev = out[-1], out[-2]
+    room = max(0.0, (prev["t1"] - prev["t0"]) - 0.3)
+    take = round(min(room, 0.25 * seconds), 2)
+    if take > 0:
+        prev["t1"] = round(prev["t1"] - take, 2)
+        last["t0"] = round(last["t0"] - take, 2)
+    return out
+
+
+def nudge_set(d: str, shot_id: str, nudge: str, level: int = 1) -> dict:
+    """Turn one named choice on (level 1, or 2 for the ones that have two strengths) or off (0). Holding the reaction also moves the beats' times, and turning it off puts them back."""
+    if nudge not in NUDGES:
+        raise SystemExit("That is not one of the choices.")
+    sh = _shot(d, shot_id)
+    level = int(_num(level, 0, 0, NUDGES[nudge].get("levels", 1)))
+    s = load(d)
+    mine = dict(s.get("nudges", {}).get(str(shot_id), {}))
+    if nudge == "hold":
+        e = s["beats"].get(shot_id)
+        beats = clean_beats((e or {}).get("beats"), _seconds(sh)) if e else []
+        if level and "hold" not in mine:
+            held = _hold_beats(beats, _seconds(sh))
+            if held != beats and e:
+                mine["hold"] = {"restore": [[b["t0"], b["t1"]] for b in beats]}
+                e["beats"] = held
+                e["updated"] = int(time.time())
+            else:
+                mine["hold"] = {"restore": []}
+        elif not level and "hold" in mine:
+            old = (mine.pop("hold") or {}).get("restore") or []
+            if e and len(old) == len(beats):
+                e["beats"] = [{**b, "t0": o[0], "t1": o[1]} for b, o in zip(beats, old)]
+                e["updated"] = int(time.time())
+    elif level:
+        mine[nudge] = level
+    else:
+        mine.pop(nudge, None)
+    s.setdefault("nudges", {})
+    if mine:
+        s["nudges"][str(shot_id)] = mine
+    else:
+        s["nudges"].pop(str(shot_id), None)
+    save(d, s)
+    return {**nudges_get(d, shot_id), "beats": beats_get(d, shot_id)}
+
+
+def nudge_text(d: str, shot: dict) -> str | None:
+    """The chosen nudges as one line of prompt direction. None when there are none."""
+    st = load(d).get("nudges", {}).get(str(shot.get("id")), {})
+    parts = []
+    for k, spec in NUDGES.items():
+        v = st.get(k)
+        if not v:
+            continue
+        text = spec["text"][min(int(v) if isinstance(v, int) else 1, len(spec["text"])) - 1] if isinstance(spec["text"], tuple) else spec["text"]
+        parts.append(text)
+    return ("Direction for this shot: " + " ".join(parts)) if parts else None
+
+
+def carry_text(d: str, shot: dict) -> str | None:
+    """When the shot before this one (in the same scene) ended on a beat marked as carrying on, say so, so the feeling does not reset at the cut."""
+    try:
+        plan = _plan(d)
+    except SystemExit:
+        return None
+    for sc in plan.get("scenes", []):
+        ids = [x["id"] for x in sc.get("shots", []) if isinstance(x, dict) and x.get("id")]
+        if shot.get("id") in ids and ids.index(shot["id"]) > 0:
+            prev_id = ids[ids.index(shot["id"]) - 1]
+            prev = next(x for x in sc["shots"] if x.get("id") == prev_id)
+            beats = clean_beats((load(d)["beats"].get(prev_id) or {}).get("beats"), _seconds(prev))
+            if beats and beats[-1].get("continues"):
+                return f"Carrying on from the shot before: {beats[-1]['what'].rstrip('.')}. The feeling does not reset at the cut."
+    return None
 
 
 # ---------------------------------------------------------------- the arc
@@ -397,8 +529,15 @@ def beats_estimate(d: str, shot_ids, overwrite: bool = False) -> dict:
     return {**_estimate(chars, len(todo), 350), "shots": [s["id"] for s in todo]}
 
 
-def beats_write(d: str, shot_ids, notes: str = "", overwrite: bool = False) -> dict:
-    """Ask the Director for beats, one shot at a time. Beats you wrote yourself are kept unless `overwrite`."""
+def _need_yes(confirmed: bool) -> None:
+    """The AI brain's calls can cost money (an OpenAI or OpenRouter key): the engine refuses without the person's yes, whatever the screen did."""
+    if confirmed is not True:
+        raise SystemExit("This asks the Director (an AI call) and needs your confirmation first. Nothing was sent.")
+
+
+def beats_write(d: str, shot_ids, notes: str = "", overwrite: bool = False, confirmed: bool = False) -> dict:
+    """Ask the Director for beats, one shot at a time. Beats you wrote yourself are kept unless `overwrite`. Needs `confirmed`."""
+    _need_yes(confirmed)
     from .director import DEFAULT_MODEL, openai_error, resolve_model
     plan = _plan(d)
     todo = _pick_shots(d, shot_ids, overwrite)
@@ -461,7 +600,8 @@ def arc_estimate(d: str, characters=None) -> dict:
     return {**_estimate(len(json.dumps(_arc_brief(d, chars), ensure_ascii=False)) + len(ARC_SYSTEM), 1, 120 * len(chars) + 100), "characters": chars}
 
 
-def arc_write(d: str, characters=None, notes: str = "") -> dict:
+def arc_write(d: str, characters=None, notes: str = "", confirmed: bool = False) -> dict:
+    _need_yes(confirmed)
     from .director import DEFAULT_MODEL, openai_error, resolve_model
     allc = _characters(_plan(d))
     chars = [c for c in (characters or list(allc)) if c in allc]
@@ -526,7 +666,7 @@ def main(argv: list[str]) -> int:
         elif act == "beats_estimate":
             res = beats_estimate(d, x.get("shots"), bool(x.get("overwrite")))
         elif act == "beats_write":
-            res = beats_write(d, x.get("shots"), str(x.get("notes", "")), bool(x.get("overwrite")))
+            res = beats_write(d, x.get("shots"), str(x.get("notes", "")), bool(x.get("overwrite")), x.get("confirmed") is True)
         elif act == "arc_set":
             res = arc_set(d, str(x.get("character", "")), x.get("points"))
         elif act == "arc_clear":
@@ -534,7 +674,7 @@ def main(argv: list[str]) -> int:
         elif act == "arc_estimate":
             res = arc_estimate(d, x.get("characters"))
         elif act == "arc_write":
-            res = arc_write(d, x.get("characters"), str(x.get("notes", "")))
+            res = arc_write(d, x.get("characters"), str(x.get("notes", "")), x.get("confirmed") is True)
         else:
             res = business_set(d, str(x.get("character", "")), x.get("items"))
         emit(event="result", data=res)
