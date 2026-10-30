@@ -126,7 +126,9 @@
       "description": "3D animation rendered to look hand-drawn, with flat colour and ink outlines.",
       "prompt": "Cel-shaded 3D animation: 3D characters and sets rendered with flat toon shading, crisp ink outlines, limited shadow tones and a hand-drawn comic finish.",
       "avoid": "soft realistic shading, photorealism, painterly blur",
-      "family": "3d"
+      "family": "3d",
+      "figures": "people are cel-shaded: hard-edged two-tone shadows on skin, hair and clothes, bold clean outlines, flat colour areas, no soft gradients",
+      "figures_avoid": "soft gradient shading, skin pores, photoreal detail"
     },
     {
       "id": "low-poly",
@@ -135,7 +137,9 @@
       "description": "Faceted, geometric 3D with a clean modern-game feel.",
       "prompt": "Low-poly 3D style: faceted geometric characters and environments, flat-shaded polygons, clean gradient lighting, minimal textures.",
       "avoid": "smooth high-detail surfaces, photorealism",
-      "family": "3d"
+      "family": "3d",
+      "figures": "every face, head, hand and body is built from visible flat-shaded polygon facets: a faceted angular jaw, nose and cheek planes, hair as chunky polygon slabs with no strands, clothes as flat-coloured faceted panels, eyes as simple flat shapes; hard edges between facets, no smooth surface anywhere",
+      "figures_avoid": "smooth skin, smooth rounded faces, individual hair strands, soft subsurface shading, realistic fabric texture, glossy detail"
     },
     {
       "id": "painterly-3d",
@@ -153,7 +157,9 @@
       "description": "Digital modelling clay with fingerprints and handmade stop-motion charm.",
       "prompt": "Clay-look 3D: digitally rendered characters that look sculpted from modelling clay, thumbprints and tool marks in the surface, soft rounded forms, slightly stepped timing, handmade miniature feeling.",
       "avoid": "glossy plastic, photorealistic skin, smooth perfect surfaces, flat 2D",
-      "family": "3d"
+      "family": "3d",
+      "figures": "people look moulded from soft clay: rounded simple forms, visible thumbprints and slight lumps, matte clay skin, hair and clothes sculpted as clay shapes",
+      "figures_avoid": "glossy skin, individual hair strands, fabric weave, photoreal detail"
     },
     {
       "id": "cozy-diorama-3d",
@@ -198,7 +204,9 @@
       "description": "Collectible-figure look: smooth surfaces and simple, charming features.",
       "prompt": "Vinyl toy 3D: characters like collectible designer figures, smooth glossy vinyl surfaces, simple rounded features with minimal detail, bold flat colours, studio-light product feel and tiny painted accents.",
       "avoid": "realistic skin, fine hair, photorealism, rough textures",
-      "family": "3d"
+      "family": "3d",
+      "figures": "people look like glossy vinyl designer toys: simplified smooth moulded forms, oversized heads, painted-on features, seam lines",
+      "figures_avoid": "realistic skin pores, hair strands, fabric weave"
     },
     {
       "id": "papercraft-3d",
@@ -207,7 +215,9 @@
       "description": "Folded-paper objects, crisp edges and handcrafted geometric worlds.",
       "prompt": "Papercraft 3D: everything appears folded and cut from coloured paper, crisp creases and layered edges, visible paper grain, soft shadows between layers, geometric handcrafted environments.",
       "avoid": "smooth CGI, photorealism, glossy plastic, organic realistic textures",
-      "family": "3d"
+      "family": "3d",
+      "figures": "people are folded and cut paper: faces, hair and clothes are paper shapes with visible folds, creases and paper grain, flat paper colours",
+      "figures_avoid": "smooth skin, hair strands, soft shading, realistic fabric"
     },
     {
       "id": "voxel",
@@ -216,7 +226,9 @@
       "description": "Worlds and characters built from small coloured cubes.",
       "prompt": "Voxel art: characters and environments constructed from small visible coloured cubes, blocky stepped silhouettes, bright clean colour, soft ambient occlusion, a toy-like three-dimensional pixel world.",
       "avoid": "smooth curved surfaces, photorealism, painterly texture, thin lines",
-      "family": "3d"
+      "family": "3d",
+      "figures": "every person is built from small cubes: blocky head, blocky hands, hair and clothes as stacked cubes, faces as a few square pixels; no curves anywhere",
+      "figures_avoid": "smooth curved surfaces, rounded faces, hair strands"
     },
     {
       "id": "plasticine-3d",
@@ -225,7 +237,9 @@
       "description": "Soft sculpted characters with visible kneading and pliable surfaces.",
       "prompt": "Plasticine 3D: soft sculpted characters with visible kneading and smoothing marks, slightly lumpy pliable surfaces, matte colourful modelling material, gentle imperfections, tactile close-up detail.",
       "avoid": "hard glossy surfaces, photorealism, flat 2D, precise geometry",
-      "family": "3d"
+      "family": "3d",
+      "figures": "people look moulded from plasticine: soft rounded forms, fingerprint marks, matte waxy skin, hair and clothes as moulded plasticine",
+      "figures_avoid": "glossy skin, hair strands, photoreal detail"
     },
     {
       "id": "creature-real",
@@ -261,7 +275,9 @@
       "description": "Digital animation with stepped poses and simulated handmade materials.",
       "prompt": "Stop-motion-look CGI: digitally animated but deliberately stepped on twos with slight jitter, felt, wood and clay textures with visible fibres and fingerprints, practical-looking miniature lighting.",
       "avoid": "smooth fluid motion, glossy perfect CGI, photorealism, flat 2D",
-      "family": "3d"
+      "family": "3d",
+      "figures": "people have the hand-made look of stop-motion puppets: slightly uneven sculpted surfaces, visible seams and tiny imperfections",
+      "figures_avoid": "perfectly smooth CGI skin, hair strands"
     },
     {
       "id": "hand-drawn-2d",
@@ -270,7 +286,9 @@
       "description": "Characters redrawn frame by frame, with fluid lines and expressive changes in shape.",
       "prompt": "Traditional hand-drawn 2D animation: pencil-and-ink line art with subtle line boil, hand-painted cel colours, painted watercolour backgrounds, fluid squash-and-stretch, animated on twos.",
       "avoid": "3D render, CGI shading, photorealism, vector-perfect lines",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are hand-drawn: visible ink or pencil linework around faces, hair and clothes, flat painted colour, no 3D rendering",
+      "figures_avoid": "3D rendering, smooth CGI surfaces, photoreal detail"
     },
     {
       "id": "digital-2d",
@@ -351,7 +369,9 @@
       "description": "Soft pigment washes, textured paper and a dreamy illustrated feel.",
       "prompt": "Watercolour storybook illustration: soft translucent pigment washes that bleed at the edges, visible textured paper, gentle pencil contours, muted harmonious colour, dreamy light and unfinished edges.",
       "avoid": "hard digital edges, photorealism, glossy 3D, heavy black outlines",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are painted in watercolour: soft washes of colour, visible paper grain, loose edges, hair and clothes as brushed washes, no hard CGI edges",
+      "figures_avoid": "3D rendering, sharp digital detail, glossy surfaces"
     },
     {
       "id": "flat-vector",
@@ -360,7 +380,9 @@
       "description": "Crisp silhouettes, minimal shading and simple colour.",
       "prompt": "Flat vector animation: crisp clean-edged shapes, minimal or no shading, limited bold palette, simple geometric character design, strong readable silhouettes, graphic storytelling.",
       "avoid": "gradients and realistic shading, textured brushwork, photorealism, 3D rendering",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are flat vector shapes: solid colour fills, clean edges, no gradients or shading, simple geometric faces, hair and clothes as flat coloured shapes",
+      "figures_avoid": "gradients, soft shading, skin texture, hair strands, 3D rendering"
     },
     {
       "id": "saturday-cartoon",
@@ -423,7 +445,9 @@
       "description": "Expressive ink lines, fluid shading and painterly washes.",
       "prompt": "Ink-and-wash animation: expressive calligraphic brush lines, fluid grey and black ink washes on rice paper, soft gradients that fade into empty space, sparse restrained colour accents.",
       "avoid": "hard digital edges, saturated colour, photorealism, 3D rendering",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are ink wash paintings: brush strokes of black ink in varied wet tones, loose forms, white paper left bare",
+      "figures_avoid": "3D rendering, sharp digital detail, saturated colour"
     },
     {
       "id": "charcoal",
@@ -441,7 +465,9 @@
       "description": "Visible construction lines and sketchbook energy.",
       "prompt": "Pencil sketch animation: graphite lines with visible construction marks and loose hatching, line boil, sketchbook paper texture, unfinished shading, spontaneous energetic drawing.",
       "avoid": "clean polished lines, saturated colour fills, photorealism, 3D rendering",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are pencil sketches: visible graphite lines, hatching for shadows, paper grain, no colour fills",
+      "figures_avoid": "3D rendering, colour fills, digital smoothness"
     },
     {
       "id": "gouache",
@@ -459,7 +485,9 @@
       "description": "Graphic outlines, panel framing, halftones and dynamic action.",
       "prompt": "Comic-book animation: bold black ink outlines, halftone dot shading, flat saturated colour, panel-style framing with dramatic angles, onomatopoeia-style impact effects.",
       "avoid": "soft painterly blending, photorealism, 3D rendering, thin outlines",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are inked comic-book drawings: bold black outlines, flat colour with halftone dots, hatched shadows on faces and clothes",
+      "figures_avoid": "3D rendering, soft gradients, photoreal detail"
     },
     {
       "id": "woodcut",
@@ -468,7 +496,9 @@
       "description": "Strong carved marks, folk-art texture and dramatic graphic shapes.",
       "prompt": "Woodcut animation: bold carved gouge marks, stark black-and-white or two-colour print, rough ink texture, folk-art stylisation and dramatic graphic contrast.",
       "avoid": "soft gradients, photorealism, 3D rendering, delicate thin lines",
-      "family": "2d"
+      "family": "2d",
+      "figures": "people are woodcut prints: carved black linework, solid ink areas, a few flat colours, no gradients, rough carved edges",
+      "figures_avoid": "soft shading, gradients, 3D rendering, photoreal detail"
     },
     {
       "id": "2-5d",
@@ -531,7 +561,9 @@
       "description": "Photographs, illustration, type and paper textures layered together.",
       "prompt": "Mixed-media collage: cut-out photographs layered with drawn illustration, typography, torn paper edges and paper textures, animated objects overlapping in a handmade scrapbook composition.",
       "avoid": "single clean medium, photorealism, smooth CGI",
-      "family": "hybrid"
+      "family": "hybrid",
+      "figures": "people are cut-out collage pieces: torn paper edges, mixed textures, visible glued layers",
+      "figures_avoid": "smooth rendering, soft shading"
     },
     {
       "id": "paper-theater",
@@ -585,7 +617,9 @@
       "description": "Flat characters built from movable pieces, paper or digital.",
       "prompt": "Cutout animation: flat characters assembled from jointed paper or card pieces, visible edges and textures, puppet-like jointed movement.",
       "avoid": "smooth 3D render, photorealism, fluid drawn animation",
-      "family": "craft"
+      "family": "craft",
+      "figures": "people are flat cut-out puppets: jointed paper shapes with visible edges and no volume",
+      "figures_avoid": "volumetric shading, smooth skin, hair strands"
     },
     {
       "id": "stop-motion",
@@ -603,7 +637,9 @@
       "description": "Sculpted clay characters with soft forms and visible material texture.",
       "prompt": "Claymation: characters sculpted from plasticine clay with visible fingerprints and tool marks, soft rounded forms, miniature handmade sets, stepped stop-motion movement.",
       "avoid": "smooth CGI surfaces, photorealism, 2D drawing",
-      "family": "craft"
+      "family": "craft",
+      "figures": "people are clay figures: sculpted rounded forms, fingerprint marks, matte clay skin, hair and clothes made of moulded clay",
+      "figures_avoid": "glossy skin, strands of hair, photoreal detail, smooth CGI surfaces"
     },
     {
       "id": "puppet",
@@ -621,7 +657,9 @@
       "description": "Physical paper shapes animated on a flat surface or layered miniature set.",
       "prompt": "Paper cutout stop motion: layered coloured paper and card shapes with torn edges and paper grain, shallow miniature depth, frame-by-frame movement.",
       "avoid": "3D render, photorealism, smooth digital motion",
-      "family": "craft"
+      "family": "craft",
+      "figures": "people are cut paper figures: flat paper shapes with visible edges, paper grain and slight shadows between layers",
+      "figures_avoid": "smooth skin, soft shading, hair strands, 3D rendering"
     },
     {
       "id": "brickfilm",
@@ -630,7 +668,9 @@
       "description": "Building-brick figures and sets: playful, modular and visibly physical.",
       "prompt": "Brickfilm stop motion: minifigure-style characters and sets built from plastic building bricks, glossy plastic surfaces, modular architecture, stepped stop-motion movement.",
       "avoid": "realistic humans, organic shapes, 2D drawing",
-      "family": "craft"
+      "family": "craft",
+      "figures": "people are plastic brick-toy figures: cylindrical heads, claw hands, printed faces, moulded plastic hair and clothes, visible seams",
+      "figures_avoid": "human skin, hair strands, fabric, realistic proportions"
     },
     {
       "id": "diorama",
@@ -675,7 +715,9 @@
       "description": "Soft textile characters, visible fibres and cosy miniature worlds.",
       "prompt": "Felt and wool stop-motion: characters and sets made of felt, wool and knitted fabric with visible fibres and stitches, soft tactile lighting, small handmade imperfections, stepped frame-by-frame movement.",
       "avoid": "smooth CGI, hard plastic, photorealism, 2D drawing",
-      "family": "craft"
+      "family": "craft",
+      "figures": "people are felt and wool figures: fuzzy fibres on skin, hair and clothes, stitched seams, button eyes or stitched features",
+      "figures_avoid": "smooth skin, glossy surfaces, hair strands, photoreal detail"
     },
     {
       "id": "pixilation",
@@ -702,7 +744,9 @@
       "description": "Retro video-game pixels with limited palettes.",
       "prompt": "Pixel-art animation: low-resolution sprite characters and tiled backgrounds, crisp square pixels, limited retro colour palette, stepped sprite animation.",
       "avoid": "smooth gradients, anti-aliased lines, 3D render, photorealism",
-      "family": "art"
+      "family": "art",
+      "figures": "people are drawn as pixel art: visible square pixels, a limited colour palette, faces as a few pixels, hair and clothes as flat pixel blocks, no smooth gradients",
+      "figures_avoid": "smooth gradients, anti-aliased soft edges, photoreal detail, high-resolution skin"
     },
     {
       "id": "motion-graphics",
@@ -911,7 +955,9 @@
       "description": "Imagery assembled from coloured tiles, stone or glass.",
       "prompt": "Mosaic animation: everything built from small coloured tesserae of stone and glass with visible grout lines, glittering gold tiles and shifting patterns of tiny pieces.",
       "avoid": "smooth continuous gradients, photorealism",
-      "family": "art"
+      "family": "art",
+      "figures": "people are made of mosaic tiles: small visible tesserae with grout lines, flat tile colours",
+      "figures_avoid": "smooth skin, hair strands, soft shading"
     },
     {
       "id": "stained-glass",
@@ -920,7 +966,9 @@
       "description": "Luminous jewel-toned imagery inside dark dividing lines.",
       "prompt": "Stained-glass animation: jewel-toned translucent panes divided by thick dark leading lines, backlit glow with light spilling across surfaces, flat segmented shapes and sacred luminous colour.",
       "avoid": "opaque matte surfaces, soft gradients, photorealism",
-      "family": "art"
+      "family": "art",
+      "figures": "people are made of stained glass: coloured glass pieces separated by thick dark lead lines, flat translucent colours",
+      "figures_avoid": "smooth skin, hair strands, soft shading"
     },
     {
       "id": "illuminated-ms",

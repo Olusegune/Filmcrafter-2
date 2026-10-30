@@ -293,7 +293,7 @@ def test_the_shot_before_is_used_fully_when_it_is_in_the_same_look_and_only_for_
 
 def test_the_wording_leaves_the_prompt_budget_alone(tmp_path):
     p = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}})
-    assert len(p) < len(restyle_request(FILM_3D)) + 900                                   # a few sentences, not a rewrite
+    assert len(p) < len(restyle_request(FILM_3D)) + 1300                                  # a few sentences (and how the people are built in the look), not a rewrite
 
 
 # ---------------------------------------------------------------- keep the cast: set, read, clear
@@ -326,3 +326,14 @@ def test_the_command_line_sets_keep_cast(tmp_path, capsys):
     d = project(tmp_path, FILM)
     assert SB.main(["set_shot_options", d, "--data", json.dumps({"shot": "S06-02", "keep_cast": True})]) == 0
     assert json.loads(capsys.readouterr().out)["data"]["keep_cast"] == {"S06-02": True}
+
+
+def test_a_restyled_shot_says_how_the_people_themselves_are_built_in_that_look():
+    low = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}})
+    assert "flat-shaded polygon facets" in low
+    clay = restyle_request({**FILM_3D, "shots": {"S06-02": "claymation"}})
+    assert "clay figures" in clay and "polygon facets" not in clay
+    plain = restyle_request({**FILM_3D, "shots": {"S06-02": "anime-3d"}})                # a look with no wording of its own gets the general rule
+    assert "nothing smoother, glossier or more detailed than the rest" in plain
+    keep = restyle_request({**FILM_3D, "shots": {"S06-02": "low-poly"}, "keep_cast": {"S06-02": True}})
+    assert "flat-shaded polygon facets" not in keep                                       # keeping the cast leaves the people as they are

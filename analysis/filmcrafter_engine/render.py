@@ -1125,8 +1125,12 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
     keep_cast = restyle and bool((_lk.get("keep_cast") or {}).get(str(shot.get("id"))))
     full = restyle and not keep_cast
     look_name = look["prompt"].split(":")[0].rstrip(".")
-    if full:
-        look = {**look, "avoid": ", ".join(x for x in (look.get("avoid"), "the characters drawn in a different style from the rest of the picture") if x)}
+    fig = fig_avoid = ""
+    if full:     # how the people themselves are built in this look (faceted, clay, pixels...): the reference pictures show them smooth, and a model follows a picture before words
+        _s = styles().get(look["id"], {})
+        fig = _s.get("figures") or "their skin, hair, clothes and faces carry exactly the same surface and shading treatment as the set around them, with nothing smoother, glossier or more detailed than the rest"
+        fig_avoid = _s.get("figures_avoid") or ""
+        look = {**look, "avoid": ", ".join(x for x in (look.get("avoid"), fig_avoid, "the characters drawn in a different style from the rest of the picture") if x)}
     from . import styleguard as SG   # a stylised look is kept: words that ask for a photograph, from elsewhere in the prompt, are reworded (see styleguard.py)
     style = SG.sanitize(plan.get("meta", {}).get("VISUAL STYLE", ""), project, look["id"])
     blocks: list[tuple[int, str]] = []  # (priority, text); lowest priority is dropped first if too long
@@ -1145,7 +1149,7 @@ def compile_request(shot: dict, scene: dict | None, plan: dict, project: dict, m
         ident = ""
         if shot.get("performers") and full:    # who they are, not how they are drawn: the reference pictures are in another look
             ident = ("Same people as the reference images (" + ", ".join(shot["performers"]) + "): keep who they are (face shape, features, hair design, build, skin tone, outfit design) "
-                     "and draw them entirely in this look, their skin, hair, clothes and faces rendered the same way as everything else in the picture. "
+                     "and draw them entirely in this look: " + fig.rstrip(".") + ". "
                      "Do not copy how the reference pictures are drawn, lit or rendered. ")
         elif shot.get("performers"):  # identity up front too: close framings (hands, fragments) otherwise drift
             ident = "Same people as the reference images (" + ", ".join(shot["performers"]) + "): identical skin tone, face, hair and clothes. "
