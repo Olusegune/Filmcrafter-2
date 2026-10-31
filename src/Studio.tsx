@@ -584,7 +584,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
               <StillPreview src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.preview}`)} motion={boardShot.get(shown.id)!.preview_motion} drift={boardShot.get(shown.id)!.preview_drift} playing={playing}
                             duration={shown.end - shown.start} offset={time - shown.start} /> :
              shown && boardShot.get(shown.id)?.preview && /\.(mp4|mov|webm|m4v)$/i.test(boardShot.get(shown.id)!.preview!) ?
-              <Clip src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.preview}`)} offset={time - shown.start + ((shown as { src_in?: number }).src_in ?? 0)} playing={playing} /> :
+              <Clip src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.preview_proxy ?? boardShot.get(shown.id)!.preview}`)} offset={time - shown.start + ((shown as { src_in?: number }).src_in ?? 0)} playing={playing} /> :
               shown && boardShot.get(shown.id)?.keyframe ? <img className="clip" alt="" src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.keyframe}`)} /> : null}
             {shown ? <Storyboard shot={shown} scene={scenes.find((s) => s.number === shown.scene)} job={latest.get(shown.id)}
                                  hidden={!!boardShot.get(shown.id)?.preview || !!boardShot.get(shown.id)?.keyframe} /> :

@@ -103,6 +103,9 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 ## Performance Director screens (2026-10-30)
 Checked on the harness, no provider: 16 jsdom component tests, 3 browser tests, and the axe scan over the two new scenes (no violations). Visual fixes found by looking: oversized text boxes made the Scenes tab long, and the beat editor ran too tall (details are now folded behind a summary line). Not checked: the sheets in the installed desktop app, or with a real film's breakdown.
 
+## Preview copies and recovery (2026-11-03)
+Checked with real ffmpeg: a 1280x960 take gets a 540-line copy, a small take none; the exported film is frame-for-frame the same with and without copies; a damaged edit record comes back from its backup with the damaged bytes kept, and with no backup every read and write stops with a plain message. Not checked: the player scrubbing a real 4K take (the copy is made and offered; smoothness was not measured), how long a copy takes for a long clip, and the button in the installed app.
+
 ## The rest of the Studio follows the cut (2026-11-03)
 Checked on the harness: after a delete the shot's card and the shot count change, and Undo brings them back; unit tests cover where each shot sits for a trimmed shot, a shot cut in two, a shot with no clip and a hidden track, and where voices and sound start (a shot's own time zero). Not checked: playing a trimmed shot in the real player against a real take (the offset arithmetic is covered, not watched); a shot cut in two whose halves were moved apart (the player assumes they run on); layers and captions after a ripple (they stay where they were and are flagged only when they fall past the end).
 

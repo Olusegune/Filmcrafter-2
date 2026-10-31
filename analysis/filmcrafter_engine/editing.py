@@ -45,11 +45,13 @@ def _view(seq: dict) -> dict:
 
 
 def get(d: str) -> dict:
+    notes: list[str] = []
+    G.load(d, notes)                                               # a damaged record is put back from its backup here, and the person is told
     seq, stored = current(d)
     _, plan, _ = D.plan_of(d)
     shots = [sh["id"] for sh, _ in D.shots_of(plan)]
     st = G.state(d)
-    return {"stored": stored, "sequence": _view(seq), **Q.status(seq, shots), "can_undo": st["can_undo"], "can_redo": st["can_redo"], "history": st["history"]}
+    return {"stored": stored, "sequence": _view(seq), "notes": notes, **Q.status(seq, shots), "can_undo": st["can_undo"], "can_redo": st["can_redo"], "history": st["history"]}
 
 
 def _t(seq: dict, v, name: str) -> int:

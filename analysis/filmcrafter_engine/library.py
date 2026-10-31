@@ -359,6 +359,17 @@ def lock(d: str, shot_id: str, on: bool = True) -> dict:
     return set_shot(d, shot_id, locked=bool(on))
 
 
+def _proxy_of(d: str, take: dict | None) -> str | None:
+    """The preview copy of the take the player shows, if one was made (the Studio's player may use it; the export never does)."""
+    if not take or (take.get("media_kind") or "video") == "image" or not take.get("output"):
+        return None
+    try:
+        from . import proxies
+        return proxies.existing(d, take["output"]) if os.path.isdir(proxies.folder(d)) else None
+    except Exception:                                          # a copy that cannot be found is no reason to lose the board
+        return None
+
+
 def chosen_take(d: str, shot_id: str, plan_name: str, jobs: list[dict], state: dict | None = None) -> dict | None:
     """The take the video uses: the approved one; if none approved yet, the latest finished take."""
     st = (state if state is not None else shot_state(d)).get(shot_id, {})
@@ -569,6 +580,7 @@ def storyboard(d: str) -> dict:
                 "thumb_src": thumb, "thumb_source": source, "preview": chosen["output"] if chosen else None,
                 "keyframe": kf_rel, "keyframe_check": kf_check, "keyframe_model": (kf_job or {}).get("model"), "versions": versions, "transition": st.get("transition", "cut"), "transition_s": st.get("transition_s"),
                 "preview_kind": (chosen.get("media_kind") or "video") if chosen else None,
+                "preview_proxy": _proxy_of(d, chosen),
                 "preview_motion": chosen.get("motion") if chosen else None,
                 "preview_drift": _drift(p, {**sh, "scene": sh.get("scene", sc.get("number"))}) if chosen and chosen.get("media_kind") == "image" else None,
                 "references": [{"id": i["id"], "kind": i["kind"], "name": i["name"], "from": i["from"]}

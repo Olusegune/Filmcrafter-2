@@ -18,6 +18,7 @@ export function useCut(dir: string, enabled: boolean, time: number) {
   const [selected, setSelected] = useState<string | null>(null);
   const [ripple, setRipple] = useState(false);
   const [snap, setSnap] = useState(true);
+  const [info, setInfo] = useState("");
   const timeRef = useRef(time);
   timeRef.current = time;
 
@@ -63,7 +64,18 @@ export function useCut(dir: string, enabled: boolean, time: number) {
     return () => window.removeEventListener("pf-cut-key", on);
   }, [enabled]);
 
-  return { cut, err, setErr, busy, selected, setSelected, ripple, setRipple, snap, setSnap, run, edit, key, reload: load };
+  /** Preview copies of big clips, for the player only (the export never reads them). */
+  const proxy = useCallback(async (action: "status" | "build" | "clear") => {
+    setBusy(true); setErr(""); setInfo(action === "build" ? "Making preview copies…" : "");
+    try {
+      const r = await api.proxies(dir, action);
+      setInfo(action === "build" ? `${r.made ? `Made ${r.made} preview cop${r.made === 1 ? "y" : "ies"}. ` : "Nothing new to make. "}${r.ready} of ${r.big} big clip${r.big === 1 ? "" : "s"} ${r.ready === 1 ? "has" : "have"} one.`
+        : action === "clear" ? `Removed ${r.removed ?? 0} preview cop${r.removed === 1 ? "y" : "ies"}.` : `${r.ready} of ${r.big} big clip${r.big === 1 ? "" : "s"} ${r.ready === 1 ? "has" : "have"} a preview copy.`);
+      window.dispatchEvent(new Event("pf-media-changed"));
+    } catch (e) { setErr(errorText(e)); setInfo(""); } finally { setBusy(false); }
+  }, [dir]);
+
+  return { cut, err, setErr, info, setInfo, proxy, busy, selected, setSelected, ripple, setRipple, snap, setSnap, run, edit, key, reload: load };
 }
 export type CutState = ReturnType<typeof useCut>;
 
@@ -130,6 +142,8 @@ export function CutLane({ s, pps, top, time, width, onSeek, free }: { s: CutStat
             <button type="button" className="btn small" onClick={() => sel && void s.edit("close_gap", { clip: sel.id })} disabled={s.busy || locked || !sel} title="Bring the chosen clip, and what follows, back to the clip before it">Close the gap before it</button>
             <button type="button" className="btn small" onClick={() => void s.key("marker")} disabled={s.busy} title="Put a marker at the playhead (B)">Marker</button>
             <button type="button" className="btn small" onClick={() => void s.edit("track_set", { track: cut.sequence.tracks[0].id, locked: !locked })} disabled={s.busy} aria-pressed={locked}>{locked ? "Unlock the track" : "Lock the track"}</button>
+            <button type="button" className="btn small" onClick={() => void s.proxy("build")} disabled={s.busy} title="Make small copies of big clips so the player scrubs smoothly. The finished film never uses them.">Make preview copies of big clips</button>
+            <button type="button" className="btn small" onClick={() => void s.proxy("clear")} disabled={s.busy} title="Remove the preview copies (your takes are not touched)">Remove preview copies</button>
             <label><input type="checkbox" checked={s.ripple} onChange={(e) => s.setRipple(e.target.checked)} /> Ripple: what follows moves with an edit</label>
             <label><input type="checkbox" checked={s.snap} onChange={(e) => s.setSnap(e.target.checked)} /> Snap to cuts, markers and the playhead</label>
           </div>
@@ -137,6 +151,8 @@ export function CutLane({ s, pps, top, time, width, onSeek, free }: { s: CutStat
         {cut.unplaced.length > 0 && <button type="button" className="btn small" onClick={() => void s.run("place_missing")} disabled={s.busy} title="Put every shot that has no clip on the end of the film">Place {cut.unplaced.length === 1 ? "it" : "them"}</button>}
         <span className="tl-cutinfo dim">{edited ? "Edited" : "As planned"} · {clockTime(cut.sequence.length_s)}{s.ripple ? " · ripple" : ""}</span>
         {s.err && <span className="tl-cuterr" role="alert">{s.err}</span>}
+        {!s.err && s.info && <span className="tl-cutnote tl-cutinfo2" role="status">{s.info}</span>}
+        {(cut.notes?.length ?? 0) > 0 && <span className="tl-cuterr" role="status">{cut.notes![0]}</span>}
         {!s.err && notes.length > 0 && <span className="tl-cutnote" role="status">{notes[0]}{notes.length > 1 ? ` (+${notes.length - 1} more)` : ""}</span>}
       </div>
       <div className="tl-cutclips" ref={lane} style={{ width: Math.max(width, cut.sequence.length_s * pps) }}>

@@ -100,11 +100,10 @@ def _refuse_newer(s) -> None:
         raise SystemExit("This film's edit record was made by a newer FilmCrafter. Update FilmCrafter to open it; nothing has been changed.")
 
 
-def load(d: str) -> dict:
-    try:
-        s = safeio.read_json(_path(d), {})
-    except SystemExit:
-        s = {}
+def load(d: str, notes: list | None = None) -> dict:
+    """The edit record. A damaged one is put back from its backup when there is one (and `notes` says so); with no good backup it STOPS with a plain message rather than read as 'never edited',
+    which would quietly turn the film back into the plan."""
+    s = safeio.read_json(_path(d), {}, notes=notes)
     s = s if isinstance(s, dict) else {}
     _refuse_newer(s)
     g = s.get("grades") if isinstance(s.get("grades"), dict) else {}

@@ -153,7 +153,7 @@ export type Version = { id: string; n: number; state: string; provider: string; 
 export type BoardShot = { id: string; scene: number; heading?: string; start: number; end: number; framing?: string; beat: string;
   performers: string[]; status: ShotStatus; locked: boolean; approved: string | null; end_mode?: "none" | "own" | "next"; thumb_src: string | null;
   thumb_source: "render" | "keyframe" | "storyboard" | "placeholder"; preview: string | null; keyframe: string | null;
-  transition?: string; transition_s?: number | null; preview_drift?: { amp: number; period: number } | null; preview_kind?: "image" | "video" | null; preview_motion?: string | null; keyframe_check?: "fail" | "look" | "pass" | null; keyframe_model?: string | null;
+  transition?: string; transition_s?: number | null; preview_drift?: { amp: number; period: number } | null; preview_kind?: "image" | "video" | null; preview_proxy?: string | null; preview_motion?: string | null; keyframe_check?: "fail" | "look" | "pass" | null; keyframe_model?: string | null;
   versions: Version[]; references: { id: string; kind: RefKind; name: string; from: string }[] };
 export type Board = { plan: string; shots: BoardShot[]; library: Library };
 
@@ -249,6 +249,7 @@ export const api = {
   acting: <T = unknown>(dir: string, action: "get" | "beats_get" | "beats_set" | "beats_clear" | "beats_estimate" | "beats_write" | "arc_set" | "arc_clear" | "arc_estimate" | "arc_write" | "business_set",
                         data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
+  proxies: (dir: string, action: "status" | "build" | "clear", data: Record<string, unknown> = {}) => invoke<ProxyStatus>("proxies", { dir, action, data }),
   editing: <T = Cut>(dir: string, action: CutAction, data: Record<string, unknown> = {}) => invoke<T>("editing", { dir, action, data }),
   grading: <T = GradingState>(dir: string, action: GradingAction, data: Record<string, unknown> = {}) => invoke<T>("grading", { dir, action, data }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
@@ -423,10 +424,11 @@ export type GradingAction = "state" | "set_grade" | "clear_grade" | "lut_import"
 /** The film's cut (editing.py): clips on a track, in whole ticks (254,016,000,000 a second) and whole frames; `_s` fields are seconds for showing. */
 export type CutClip = { id: string; shot: string; start: number; source_in: number; duration: number; take: string | null; start_s: number; duration_s: number; source_in_s: number; start_frame: number; frames: number };
 export type CutTrack = { id: string; kind: "video"; locked: boolean; hidden: boolean; muted: boolean; clips: CutClip[] };
-export type Cut = { stored: boolean; unplaced: string[]; orphans: string[]; can_undo: boolean; can_redo: boolean; history: { rev: number; at: number; what: string }[];
+export type Cut = { stored: boolean; notes?: string[]; unplaced: string[]; orphans: string[]; can_undo: boolean; can_redo: boolean; history: { rev: number; at: number; what: string }[];
   sequence: { fps: number[]; frame_ticks: number; ticks_per_second: number; length: number; length_s: number; tracks: CutTrack[]; markers: { id: string; at: number; at_s: number; name: string }[];
     ranges: { id: string; start: number; end: number; start_s: number; end_s: number; name: string }[] } };
 export type CutOp = "split" | "trim" | "delete" | "move" | "roll" | "close_gap" | "place" | "marker_set" | "marker_remove" | "range_set" | "range_remove" | "track_set";
+export type ProxyStatus = { rows: { shot: string; take: string; output: string; big: boolean; proxy: string | null }[]; big: number; ready: number; bytes: number; made?: number; removed?: number };
 export type CutAction = "sequence_get" | "edit" | "place_missing" | "snap" | "undo" | "redo";
 export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
   rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[];

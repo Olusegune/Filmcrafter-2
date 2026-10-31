@@ -109,6 +109,23 @@ describe("the cut lane", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
   });
 
+  it("makes preview copies of big clips on request and says how many there are, without touching the cut", async () => {
+    invoke.mockImplementation((_n: string, a: { action: string }) => a.action === "build" ? Promise.resolve({ rows: [], big: 3, ready: 3, bytes: 1, made: 2 }) : Promise.resolve(cut()));
+    render(<Host />);
+    await screen.findByRole("button", { name: /^S1 from/ });
+    fireEvent.click(screen.getByText("More"));
+    fireEvent.click(screen.getByRole("button", { name: "Make preview copies of big clips" }));
+    expect(await screen.findByText("Made 2 preview copies. 3 of 3 big clips have one.")).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith("proxies", { dir: "p", action: "build", data: {} });
+    expect(edits()).toEqual([]);
+  });
+
+  it("tells the person when the edit record was damaged and has been put back from its backup", async () => {
+    invoke.mockImplementation(answer(cut({ notes: ["edit.json was damaged and has been restored from its backup. The damaged copy is kept as edit.json.corrupt-1."] })));
+    render(<Host />);
+    expect(await screen.findByText(/restored from its backup/)).toBeInTheDocument();
+  });
+
   it("Alt and an arrow key nudge a clip a frame, and Shift makes it a second", async () => {
     invoke.mockImplementation(answer(cut()));
     render(<Host />);
