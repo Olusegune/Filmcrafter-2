@@ -594,7 +594,7 @@ def _pass(d: str, video: str, out: str, first_frame: int | None, frames: int | N
     return None
 
 
-def burn(d: str, video: str, W: int, H: int, fps: int = 24, duration: float | None = None, origin: float = 0.0) -> dict:
+def burn(d: str, video: str, W: int, H: int, fps: int = 24, duration: float | None = None, origin: float = 0.0, safe_bottom: float = 0.0) -> dict:
     """Draw the lyric captions (one stream) and every enabled, placed overlay onto the finished video (re-encoded once; the sound is
     copied). With many layers the film is drawn in time slices, each holding only the layers that are up during it, and the slices are joined without
     another re-encode (a stream for every layer over a whole film used about 17 GB of memory for 87 layers). The original file is only replaced when the
@@ -611,7 +611,7 @@ def burn(d: str, video: str, W: int, H: int, fps: int = 24, duration: float | No
     cap = None
     if duration:
         try:
-            cap = captions.track(d, W, H, duration + origin)
+            cap = captions.track(d, W, H, duration + origin, safe_bottom)
         except SystemExit as e:
             return {"count": 0, "captions": 0, "error": str(e)}
     if not placed and not cap:

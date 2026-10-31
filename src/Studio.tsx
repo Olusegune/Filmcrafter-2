@@ -41,6 +41,7 @@ import { PreviewSheet } from "./PreviewSheet";
 import { ColourMatchSheet } from "./ColourMatch";
 import { ColorStudioSheet } from "./ColorStudio";
 import { SmartEditorSheet } from "./SmartEditor";
+import { PresetsSheet } from "./PresetLibrary";
 import { CUT_H, CutLane, useCut, type CutKey, type CutState } from "./CutLane";
 import { applyCut } from "./cutMath";
 import { beatGrid } from "./overlayMotion";
@@ -165,6 +166,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [colourOpen, setColourOpen] = useState(false);
   const [colorOpen, setColorOpen] = useState(false);
   const [smartOpen, setSmartOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(false);
   const [layerSel, setLayerSel] = useState<string | null>(null);
   const [focusLayer, setFocusLayer] = useState<Overlay | null>(null);
   const [focus, setFocus] = useState(false);
@@ -498,6 +500,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           <RailBtn icon={<I.Film />} label="Continuity" onClick={() => setContOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
           <RailBtn icon={<I.Layers />} label="Layers" onClick={() => setLayersOpen((v) => !v)} active={layersOpen} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
           <RailBtn icon={<I.Light />} label="Lighting" onClick={() => setLightOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Wand />} label="Presets" onClick={() => setPresetsOpen(true)} disabled={!plan} why="Needs a shot plan first." />
           <RailBtn icon={<I.Sliders />} label="Color" onClick={() => setColorOpen(true)} disabled={!plan} why="Needs a shot plan first." />
           <RailBtn icon={<I.Lens />} label="Colour match" onClick={() => setColourOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
           <RailBtn icon={<I.Trash />} label="Clean up" onClick={() => setCleanOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
@@ -727,6 +730,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                     model={route?.video.provider ? route.video.label! : AUTO_MODEL[defaultProvider(keys)]} onCancel={() => setConfirmAll(false)} onConfirm={renderAll}
                                     dir={project.dir} shots={toRender.map((s) => s.id)} modelId={route?.video.provider ? route.video.model! : AUTO_MODEL[defaultProvider(keys)]} />}
       {colourOpen && <ColourMatchSheet dir={project.dir} onClose={() => setColourOpen(false)} />}
+      {presetsOpen && <PresetsSheet dir={project.dir} onClose={() => setPresetsOpen(false)} onChanged={() => { reloadBoard(); onReload(); }} />}
       {smartOpen && <SmartEditorSheet dir={project.dir} onClose={() => setSmartOpen(false)} onChanged={reloadBoard} />}
       {colorOpen && <ColorStudioSheet dir={project.dir} onClose={() => setColorOpen(false)} onChanged={() => { reloadBoard(); window.dispatchEvent(new Event("pf-cut-changed")); }} />}
       {previewOpen && <PreviewSheet dir={project.dir} from={time} duration={map?.duration ?? 0} onClose={() => setPreviewOpen(false)} />}
@@ -746,6 +750,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           plan && { id: "preview", label: "Preview the next seconds", hint: "A small quick version with layers and sound", run: () => { if (playing) toggle(); setPreviewOpen(true); } },
           plan && { id: "export", label: "Export the film", keys: "Ctrl+E", run: () => setExporting(true) },
           plan && { id: "layers", label: layersOpen ? "Close the Layers panel" : "Open the Layers panel", hint: "Text, pictures, shapes drawn over the film", keys: "Y", run: () => setLayersOpen((v) => !v) },
+          plan && { id: "presets", label: "Presets", hint: "Stack a style, acting, editing, colour and delivery in one go; make a vertical version", run: () => setPresetsOpen(true) },
           plan && isFilm && { id: "smart", label: "Smart Editor", hint: "Suggestions for the cut, explained and previewable", run: () => setSmartOpen(true) },
           plan && { id: "color", label: "Color Studio", hint: "Grade a shot, a scene or the film; LUTs", run: () => setColorOpen(true) },
           plan && { id: "colour", label: "Colour match", hint: "Even out brightness and colour between shots", run: () => setColourOpen(true) },

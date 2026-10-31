@@ -1738,6 +1738,31 @@ async fn smart_editor(app: AppHandle, dir: String, action: String, data: Value) 
     tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "smart_editor", &args, &[])).await.map_err(err)?
 }
 
+/// Creative presets (filmcrafter_engine.presets): a catalog of named settings that are previewed before they are applied, never overwrite your own choices, and can be undone, saved and shared as a file.
+/// Free and local: only the film's own settings change; nothing is regenerated, no provider is called, nothing is sent anywhere.
+#[tauri::command]
+async fn presets(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 11] = ["catalog", "plan", "apply", "undo", "save_mine", "delete_mine", "favorite", "export", "import_file", "stack_get", "reframe_set"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let d = project_dir(&dir)?.to_string_lossy().to_string();
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.presets".into(), action, d, "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "presets", &args, &[])).await.map_err(err)?
+}
+
+/// A series plan for a micro-drama (filmcrafter_engine.series): an editable scaffold made from an idea. Free and local; it writes the plan in the film's presets folder and nothing else.
+#[tauri::command]
+async fn series(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
+    const ACTIONS: [&str; 8] = ["get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown"];
+    if !ACTIONS.contains(&action.as_str()) {
+        return Err("Unknown action.".into());
+    }
+    let d = project_dir(&dir)?.to_string_lossy().to_string();
+    let args: Vec<String> = vec!["-m".into(), "filmcrafter_engine.series".into(), action, d, "--data".into(), data.to_string()];
+    tauri::async_runtime::spawn_blocking(move || run_engine_result(&app, "series", &args, &[])).await.map_err(err)?
+}
+
 /// Acting depth (filmcrafter_engine.acting): timed performance beats per shot, an emotional arc per character, signature gestures. Reading and editing are free and local;
 /// `beats_write` and `arc_write` ask the Director (an AI call), and the screen shows their estimated price and asks first.
 #[tauri::command]
@@ -2408,7 +2433,7 @@ pub fn run() {
             ensure_renderer, render_catalog, render_preview,
             queue_render, confirm_spend, resolve_job, export_project, list_styles, set_look, app_ready, render_estimate,
             save_project, save_project_as, pack_film, backups, film_backup, frames, film, film_bible, film_shots, film_make, film_voice, film_cast_voice, film_voice_direct, film_audio, film_cues, film_audiogen, film_mix, film_materials, film_choreography, film_placecare, film_audioplan, film_readiness, film_pacing, film_composition, film_spending, film_outdated, model_registry, prepare_update, save_voice_take, film_check, film_assist, film_interchange, is_film, launch_path, engine_status, setup_engine, engine_setup_size, set_project_settings, import_reference, set_keyframe, director_command, undo_command, library, parse_action, providers,
-            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, stylebible, performance_director, title_card, cleanup, custom_frame, layer_kit, colour_match, grading, editing, proxies, smart_editor, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
+            set_onboarding, adopt_script, lighting, ai_brain, budget, diagnostics, media, continuity, performance, routing, local_models, supervisor, direction_library, recents, hidden_count, pack_project, open_pulse, golden, lipsync_check, review_backlog, comfy_setup, comfy_install, compose, overnight, refgen, overlays, captions, director_audit, fonts, editor_export, camera, check_update, stylebible, performance_director, title_card, cleanup, custom_frame, layer_kit, colour_match, grading, editing, proxies, smart_editor, presets, series, shot_sound, acting, track, upscale, proof, shot_history, retry_cheaper, keyframe_set, hand_fix
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

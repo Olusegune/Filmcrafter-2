@@ -117,11 +117,19 @@ def caption_text(o: dict, style: dict) -> str:
 
 # ---------------------------------------------------------------- drawing
 
-def _frame_png(d: str, o: dict, style: dict, W: int, H: int) -> str:
+def safe_y(y: float, size: float, safe_bottom: float) -> float:
+    """Where a caption's centre may sit: no lower than the bottom margin (a fraction of the frame kept clear for a phone's buttons and descriptions) leaves room for the line itself."""
+    if safe_bottom <= 0:
+        return y
+    return min(y, max(0.05, 1.0 - safe_bottom - size / 2))
+
+
+def _frame_png(d: str, o: dict, style: dict, W: int, H: int, safe_bottom: float = 0.0) -> str:
     """One caption as a transparent full-frame still (so it needs no position of its own at export)."""
     from PIL import Image
     from . import overlays as O
     style = {**style, **(o.get("look") or {})}
+    style = {**style, "y": safe_y(style["y"], style["size"], safe_bottom)}
     text = caption_text(o, style)
     from . import fonts
     spec = {"kind": "text", "text": text, "size": style["size"], "color": style["color"], "font": style.get("font") or ""}
@@ -146,7 +154,7 @@ def _blank(d: str, W: int, H: int) -> str:
     return out
 
 
-def track(d: str, W: int, H: int, duration: float) -> str | None:
+def track(d: str, W: int, H: int, duration: float, safe_bottom: float = 0.0) -> str | None:
     """A concat list (ffconcat) that holds each caption still for its time and a blank between, covering the whole film; None when
     captions are off or there is nothing to show."""
     cfg = load(d)
@@ -168,7 +176,7 @@ def track(d: str, W: int, H: int, duration: float) -> str | None:
         if end <= start:
             continue
         add(blank, start - t)
-        add(_frame_png(d, o, cfg["style"], W, H), end - start)
+        add(_frame_png(d, o, cfg["style"], W, H, safe_bottom), end - start)
         t = end
     add(blank, duration - t + 0.5)
     lst = os.path.join(work, "track.ffconcat")

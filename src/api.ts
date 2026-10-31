@@ -251,6 +251,8 @@ export const api = {
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
   proxies: (dir: string, action: "status" | "build" | "clear", data: Record<string, unknown> = {}) => invoke<ProxyStatus>("proxies", { dir, action, data }),
   smartEditor: <T = unknown>(dir: string, action: "recipes" | "suggest" | "ask" | "accept" | "reject" | "reset_rejected" | "preview", data: Record<string, unknown> = {}) => invoke<T>("smart_editor", { dir, action, data }),
+  presets: <T = PresetCatalog>(dir: string, action: PresetAction, data: Record<string, unknown> = {}) => invoke<T>("presets", { dir, action, data }),
+  series: <T = SeriesState>(dir: string, action: "get" | "create" | "set_season" | "set_episode" | "reset_field" | "resize" | "report" | "export_markdown", data: Record<string, unknown> = {}) => invoke<T>("series", { dir, action, data }),
   editing: <T = Cut>(dir: string, action: CutAction, data: Record<string, unknown> = {}) => invoke<T>("editing", { dir, action, data }),
   grading: <T = GradingState>(dir: string, action: GradingAction, data: Record<string, unknown> = {}) => invoke<T>("grading", { dir, action, data }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
@@ -433,6 +435,23 @@ export type ProxyStatus = { rows: { shot: string; take: string; output: string; 
 /** The Smart Editor (smart_editor.py): a suggestion says what, why, which clips, and carries the edits it would make. */
 export type Suggestion = { id: string; kind: "tighten" | "react"; title: string; what: string; why: string; clips: string[]; shots: string[]; saves: number; window: number[]; ops: Record<string, unknown>[] };
 export type Suggestions = { recipe: { id: string; label: string; for?: string }; proposals: Suggestion[]; kept: { kind: string; shot: string; clip: string; why: string }[] };
+/** Creative presets (presets.py): named settings, previewed before they are applied; a choice you made yourself is kept unless you say otherwise. */
+export type PresetRow = { id: string; type: string; group: string; name: string; description: string; use: string; version: number; thumbnail: string | null; includes: string[]; settings: Record<string, unknown>;
+  complexity: number; series?: string; mine: boolean; favorite: boolean; recent: boolean; in_stack: boolean };
+export type PresetCatalog = { presets: PresetRow[]; stack: string[]; types: string[]; applied: number; current: Record<string, { value: unknown; set: boolean }>; is_film: boolean };
+export type PresetChange = { key: string; status: "new" | "same" | "yours" | "replace" | "unavailable"; now: unknown; to: unknown; by: string; set?: boolean; why?: string };
+export type PresetPlan = { stack: string[]; order: string[]; changes: PresetChange[]; notes: string[] };
+export type PresetApplied = { changed: string[]; kept: string[]; same: string[]; plan: PresetPlan };
+export type PresetStack = { stack: string[]; reframe: Record<string, number>; editing: string | null; delivery: { export: string; safe: { top: number; bottom: number; side: number }; captions: boolean } | null; duration_hint_s: number | null;
+  applied: { at: number; stack: string[]; changed: string[]; kept: string[] }[] };
+export type PresetAction = "catalog" | "plan" | "apply" | "undo" | "save_mine" | "delete_mine" | "favorite" | "export" | "import_file" | "stack_get" | "reframe_set";
+export type SeriesField = { value: string; source: "scaffold" | "you" };
+export type SeriesEpisode = { n: number; title: string; seconds: number; role: string; hook: SeriesField; escalation: SeriesField; turning_point: SeriesField; ending: SeriesField; continuity: SeriesField; cliffhanger: boolean; budget_usd: number | null };
+export type SeriesPlan = { idea: string; preset: string; hero: string; cast: string[]; places: string[]; episodes: SeriesEpisode[];
+  season: { logline: SeriesField; genre: string; tone: SeriesField; rules: SeriesField; ending: SeriesField; season_budget_usd: number | null } };
+export type SeriesState = { plan: SeriesPlan | null; exists: boolean; note: string };
+export type SeriesReport = { episodes: number; total_seconds: number; written: number; cliffhangers: number; cast: Record<string, number[]>; places: Record<string, number[]>; budget_total_usd: number | null; season_budget_usd: number | null;
+  notes: { level: string; episode: number | null; what: string }[] };
 export type CutAction = "sequence_get" | "edit" | "place_missing" | "snap" | "undo" | "redo";
 export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
   rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[];

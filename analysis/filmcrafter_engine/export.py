@@ -297,7 +297,11 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None, cu
     transition_len = {sh["id"]: state.get(sh["id"], {}).get("transition_s") for sh, _ in shots}
     shot_segs = [s for s in segments if s[0] == "shot"]
     next_of = {a[1]["id"]: b[1]["id"] for a, b in zip(shot_segs, shot_segs[1:])}
-    vf_fill = (f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1,fps={FPS},format=yuv420p")
+    portrait = h > w
+    from . import presets as _presets
+    focus_of = (lambda sid: _presets.reframe_for(d, sid)) if portrait else (lambda sid: 0.5)       # a portrait version of a wide film keeps the part of each shot you chose; the middle by default
+    fill_for = lambda f: (f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}" if abs(f - 0.5) < 0.0005 else f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}:x=(iw-{w})*{f:.3f}:y=(ih-{h})/2") + f",setsar=1,fps={FPS},format=yuv420p"
+    vf_fill = fill_for(0.5)
     # every part is labelled the same way (HD colour, studio range): parts labelled differently made players and ffmpeg re-set themselves where one met the next
     enc = ["-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv", "-an"]
     parts, rendered = [], 0
@@ -326,6 +330,8 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None, cu
             else:
                 tout, tout_s = "cut", None
         src_in = (clip or {}).get("src_in", 0)                          # frames of the take given up at the start of this clip (a trim)
+        focus = focus_of(sh["id"]) if sh else 0.5
+        fill = fill_for(focus) if focus != 0.5 else vf_fill
         motion = take.get("motion") if take and take.get("media_kind") == "image" else None
         from .performance import drift_for
         drift = drift_for(project, sh) if motion is not None else None
@@ -337,7 +343,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None, cu
             creative = grading.filter_for(d, sh["id"], sc.get("number") if sc else None)
             grade = ",".join(x for x in (grade, creative) if x)
         key = _sha1(json.dumps([ENCODING, grade, kind, sh and sh["id"], src, src and os.path.getmtime(src), frames, w, h, tin, tout, tin_s, tout_s, motion, own_clip, drift, parts[-1] if tin not in ("cut", "black", "white") and parts else None,
-                                       sh and (sh.get("visual_prompt") or sh.get("beats")), *(["trim", src_in] if src_in else [])], default=str).encode()).hexdigest()[:12]
+                                       sh and (sh.get("visual_prompt") or sh.get("beats")), *(["trim", src_in] if src_in else []), *(["focus", focus] if focus != 0.5 else [])], default=str).encode()).hexdigest()[:12]
         out = os.path.join(work, f"{i:04d}_{key}.mp4")
         if not os.path.exists(out):
             fades = _fades(tin, tout, frames, tin_s, tout_s)
@@ -348,7 +354,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None, cu
                 loop = ["-stream_loop", "-1"] if own_clip else []   # your own short clip repeats to fill the shot
                 hold = "" if own_clip else ",tpad=stop_mode=clone:stop=-1"   # a take shorter than its shot holds its last frame
                 cut_in = f",trim=start_frame={src_in},setpts=PTS-STARTPTS" if src_in else ""     # frame-exact, counted on the film's own 24 frames, not a time that could land half a frame off
-                _run([*loop, "-i", src, "-vf", vf_fill + cut_in + (f",{grade}" if grade else "") + hold + fades, "-frames:v", str(frames), *enc, out + ".tmp.mp4"])
+                _run([*loop, "-i", src, "-vf", fill + cut_in + (f",{grade}" if grade else "") + hold + fades, "-frames:v", str(frames), *enc, out + ".tmp.mp4"])
             else:
                 img = out + ".png"
                 if sh:
@@ -415,7 +421,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None, cu
     from . import captions
     if any(o.get("enabled", True) for o in overlays.load(d)) or captions.load(d)["enabled"]:
         emit(event="progress", stage="adding on-screen text", progress=0.97)
-    ov = overlays.burn(d, out_path, w, h, FPS, length, origin=base / FPS)
+    ov = overlays.burn(d, out_path, w, h, FPS, length, origin=base / FPS, safe_bottom=_presets.delivery_safe_bottom(d) if portrait else 0.0)
     if win:                                    # cut the assembled pieces down to exactly the part asked for
         cut = out_path + ".cut.mp4"
         _run(["-ss", f"{win[0] - base / FPS:.4f}", "-i", out_path, "-t", f"{win[1] - win[0]:.3f}", "-c:v", "libx264", "-crf", "20", "-preset", "veryfast", "-pix_fmt", "yuv420p",

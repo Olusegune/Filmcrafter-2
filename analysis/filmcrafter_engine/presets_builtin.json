@@ -1,0 +1,655 @@
+{
+ "schema": 1,
+ "note": "The built-in presets. Thumbnails are the concept illustrations that came with the preset pack (not frames from generated films).",
+ "presets": [
+  {
+   "id": "vertical_micro_drama",
+   "type": "production",
+   "group": "Production",
+   "name": "Vertical Micro-Drama",
+   "description": "Serialized drama, emotional hooks, revelations, cliffhangers",
+   "use": "A serialized story told in short vertical episodes.",
+   "version": 1,
+   "thumbnail": "presets/vertical_micro_drama.png",
+   "includes": [
+    "restrained_emotional_acting",
+    "suspenseful_character_drama",
+    "muted_cinematic_contrast",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 90
+   },
+   "complexity": 4,
+   "series": "micro_drama"
+  },
+  {
+   "id": "tiktok_story_short",
+   "type": "production",
+   "group": "Production",
+   "name": "TikTok Story Short",
+   "description": "Fast visual narrative with expressive hooks, accessible captions and portrait-safe framing",
+   "use": "A fast story with a strong first second and clear captions.",
+   "version": 1,
+   "thumbnail": "presets/tiktok_story_short.png",
+   "includes": [
+    "punchy_social_cut",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 45
+   },
+   "complexity": 2
+  },
+  {
+   "id": "youtube_shorts",
+   "type": "production",
+   "group": "Production",
+   "name": "YouTube Shorts",
+   "description": "Short narrative, explainer or teaser optimized for vertical delivery",
+   "use": "A short story, explainer or teaser for the Shorts shelf.",
+   "version": 1,
+   "thumbnail": "presets/youtube_shorts.png",
+   "includes": [
+    "punchy_social_cut",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 45
+   },
+   "complexity": 2
+  },
+  {
+   "id": "instagram_reels",
+   "type": "production",
+   "group": "Production",
+   "name": "Instagram Reels",
+   "description": "Polished mobile-native story, creator promos and visual sequences",
+   "use": "A polished mobile story or creator promo.",
+   "version": 1,
+   "thumbnail": "presets/instagram_reels.png",
+   "includes": [
+    "punchy_social_cut",
+    "warm_storybook_balanced",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 30
+   },
+   "complexity": 2
+  },
+  {
+   "id": "animated_short",
+   "type": "production",
+   "group": "Production",
+   "name": "Animated Short Film",
+   "description": "Character-centered storytelling, emotional acting, consistent animation",
+   "use": "A character-centred animated film.",
+   "version": 1,
+   "thumbnail": "presets/animated_short.png",
+   "includes": [
+    "expressive_animation_acting",
+    "widescreen_16_9"
+   ],
+   "settings": {
+    "aspect": "16:9",
+    "duration_hint_s": 300
+   },
+   "complexity": 4
+  },
+  {
+   "id": "historical_explainer",
+   "type": "production",
+   "group": "Production",
+   "name": "Historical Storybook",
+   "description": "Illustrated historical explainer with cinematic environments and maps",
+   "use": "An illustrated history with cinematic places and maps.",
+   "version": 1,
+   "thumbnail": "presets/historical_explainer.png",
+   "includes": [
+    "storybook_historical",
+    "restrained_emotional_acting",
+    "intimate_dialogue",
+    "warm_storybook_balanced",
+    "widescreen_16_9"
+   ],
+   "settings": {
+    "aspect": "16:9",
+    "duration_hint_s": 240
+   },
+   "complexity": 3
+  },
+  {
+   "id": "commercial_product",
+   "type": "production",
+   "group": "Production",
+   "name": "Product Commercial",
+   "description": "Product focus, features, motion typography and visual payoff",
+   "use": "A product, its features and a visual payoff.",
+   "version": 1,
+   "thumbnail": "presets/commercial_product.png",
+   "includes": [
+    "punchy_social_cut",
+    "widescreen_16_9"
+   ],
+   "settings": {
+    "aspect": "16:9",
+    "duration_hint_s": 30
+   },
+   "complexity": 2
+  },
+  {
+   "id": "documentary",
+   "type": "production",
+   "group": "Production",
+   "name": "Documentary / Interview",
+   "description": "Interview, B-roll, restrained editing and archival storytelling",
+   "use": "Interviews, B-roll and restrained editing.",
+   "version": 1,
+   "thumbnail": "presets/documentary.png",
+   "includes": [
+    "natural_acting",
+    "intimate_dialogue",
+    "widescreen_16_9"
+   ],
+   "settings": {
+    "aspect": "16:9",
+    "duration_hint_s": 300
+   },
+   "complexity": 3
+  },
+  {
+   "id": "romantic_micro_drama",
+   "type": "production",
+   "group": "Micro-drama",
+   "name": "Romantic Micro-Drama",
+   "description": "Intimate relationships, reversals and emotional reaction shots",
+   "use": "Relationships, reversals and reaction shots.",
+   "version": 1,
+   "thumbnail": "presets/romantic_micro_drama.png",
+   "includes": [
+    "restrained_emotional_acting",
+    "intimate_dialogue",
+    "warm_storybook_balanced",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 90
+   },
+   "complexity": 4,
+   "series": "micro_drama"
+  },
+  {
+   "id": "mystery_micro_drama",
+   "type": "production",
+   "group": "Micro-drama",
+   "name": "Mystery / Thriller",
+   "description": "Secrets, clues, suspense and controlled revelations",
+   "use": "Secrets, clues and controlled revelations.",
+   "version": 1,
+   "thumbnail": "presets/mystery_micro_drama.png",
+   "includes": [
+    "restrained_emotional_acting",
+    "suspenseful_character_drama",
+    "muted_cinematic_contrast",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 90
+   },
+   "complexity": 4,
+   "series": "micro_drama"
+  },
+  {
+   "id": "fantasy_micro_drama",
+   "type": "production",
+   "group": "Micro-drama",
+   "name": "Fantasy / Historical",
+   "description": "Palace intrigue, mythical worlds and serial continuity",
+   "use": "Palace intrigue and mythical worlds across many episodes.",
+   "version": 1,
+   "thumbnail": "presets/fantasy_micro_drama.png",
+   "includes": [
+    "storybook_fantasy",
+    "restrained_emotional_acting",
+    "suspenseful_character_drama",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 90
+   },
+   "complexity": 5,
+   "series": "micro_drama"
+  },
+  {
+   "id": "animated_micro_drama",
+   "type": "production",
+   "group": "Micro-drama",
+   "name": "Animated Micro-Drama",
+   "description": "Stylized acting in compact episodes with reusable assets",
+   "use": "Stylised acting in compact episodes with reusable assets.",
+   "version": 1,
+   "thumbnail": "presets/animated_micro_drama.png",
+   "includes": [
+    "storybook_2_5d_style",
+    "expressive_animation_acting",
+    "punchy_social_cut",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 90
+   },
+   "complexity": 4,
+   "series": "micro_drama"
+  },
+  {
+   "id": "hook_reveal",
+   "type": "production",
+   "group": "Short form",
+   "name": "Hook + Reveal",
+   "description": "Immediate intrigue, progressive disclosure, satisfying reveal",
+   "use": "Intrigue first, then the reveal.",
+   "version": 1,
+   "thumbnail": "presets/hook_reveal.png",
+   "includes": [
+    "punchy_social_cut",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 30
+   },
+   "complexity": 2
+  },
+  {
+   "id": "mini_story",
+   "type": "production",
+   "group": "Short form",
+   "name": "Mini Story",
+   "description": "Setup, conflict and payoff in a compact sequence",
+   "use": "Setup, conflict and payoff in a minute.",
+   "version": 1,
+   "thumbnail": "presets/mini_story.png",
+   "includes": [
+    "restrained_emotional_acting",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 60
+   },
+   "complexity": 2
+  },
+  {
+   "id": "educational_quick",
+   "type": "production",
+   "group": "Short form",
+   "name": "Quick Explainer",
+   "description": "Simple educational narrative with graphics and captions",
+   "use": "A simple explainer with graphics and captions.",
+   "version": 1,
+   "thumbnail": "presets/educational_quick.png",
+   "includes": [
+    "storybook_educational",
+    "natural_acting",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 60
+   },
+   "complexity": 2
+  },
+  {
+   "id": "cinematic_teaser",
+   "type": "production",
+   "group": "Short form",
+   "name": "Cinematic Teaser",
+   "description": "Suspenseful visual excerpts, titles and selective reveals",
+   "use": "Selective glimpses that make people want more.",
+   "version": 1,
+   "thumbnail": "presets/cinematic_teaser.png",
+   "includes": [
+    "muted_cinematic_contrast",
+    "suspenseful_character_drama",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 30
+   },
+   "complexity": 3
+  },
+  {
+   "id": "inspirational_short",
+   "type": "production",
+   "group": "Short form",
+   "name": "Inspirational Short",
+   "description": "Reflective personal story, mood progression and hopeful close",
+   "use": "A reflective personal story with a hopeful close.",
+   "version": 1,
+   "thumbnail": "presets/inspirational_short.png",
+   "includes": [
+    "warm_storybook_balanced",
+    "restrained_emotional_acting",
+    "vertical_social_9_16"
+   ],
+   "settings": {
+    "aspect": "9:16",
+    "duration_hint_s": 45
+   },
+   "complexity": 2
+  },
+  {
+   "id": "storybook_2_5d_style",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Cinematic Storybook 2.5D",
+   "description": "Angular stylized characters, matte painterly surfaces, graphic shadows and atmospheric depth",
+   "use": "Angular stylised figures, matte painted surfaces, graphic shadows, layered depth and warm light shafts.",
+   "version": 1,
+   "thumbnail": "presets/storybook_2_5d_style.png",
+   "includes": [],
+   "settings": {
+    "look": "cinematic-storybook-25d"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "storybook_historical",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Storybook: historical",
+   "description": "The storybook look for the ancient and historical world.",
+   "use": "The storybook look for the ancient and historical world.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "look": "historical-storybook"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "storybook_epic",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Storybook: epic illustration",
+   "description": "The storybook look at epic scale with dramatic light.",
+   "use": "The storybook look at epic scale with dramatic light.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "look": "biblical-epic-illustration"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "storybook_urban",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Storybook: modern urban",
+   "description": "The storybook look in a present-day city.",
+   "use": "The storybook look in a present-day city.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "look": "modern-urban-storybook"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "storybook_folktale",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Storybook: folktale illustration",
+   "description": "The storybook look for village and folk tales.",
+   "use": "The storybook look for village and folk tales.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "look": "african-folktale-illustration"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "storybook_fantasy",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Storybook: fantasy",
+   "description": "The storybook look for invented lands and twilight colour.",
+   "use": "The storybook look for invented lands and twilight colour.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "look": "fantasy-storybook"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "storybook_educational",
+   "type": "visual",
+   "group": "Visual",
+   "name": "Storybook: educational documentary",
+   "description": "The storybook look for explainers, with room for labels and maps.",
+   "use": "The storybook look for explainers, with room for labels and maps.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "look": "educational-documentary-illustration"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "natural_acting",
+   "type": "performance",
+   "group": "Performance",
+   "name": "Natural acting",
+   "description": "Small, true, lived-in performances.",
+   "use": "Small, true, lived-in performances.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "acting": "natural"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "restrained_emotional_acting",
+   "type": "performance",
+   "group": "Performance",
+   "name": "Restrained emotional acting",
+   "description": "Feeling held back and shown in the eyes, the breath and small changes.",
+   "use": "Feeling held back and shown in the eyes, the breath and small changes.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "acting": "restrained"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "expressive_animation_acting",
+   "type": "performance",
+   "group": "Performance",
+   "name": "Expressive animation acting",
+   "description": "Bigger, readable poses for animated stories.",
+   "use": "Bigger, readable poses for animated stories.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "acting": "expressive"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "suspenseful_character_drama",
+   "type": "editing",
+   "group": "Editing",
+   "name": "Suspenseful character drama",
+   "description": "Unhurried cuts that leave room for silence and for listening. Uses the closest built editing style (Restrained character drama): a dedicated suspense style is not built yet.",
+   "use": "Unhurried cuts that leave room for silence and for listening. Uses the closest built editing style (Restrained character drama): a dedicated suspense style is not built yet.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "editing": "restrained_drama"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "intimate_dialogue",
+   "type": "editing",
+   "group": "Editing",
+   "name": "Intimate dialogue",
+   "description": "Two people talking close: room to listen.",
+   "use": "Two people talking close: room to listen.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "editing": "intimate_conversation"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "punchy_social_cut",
+   "type": "editing",
+   "group": "Editing",
+   "name": "Punchy social cut",
+   "description": "Quick, tight cuts for short vertical videos.",
+   "use": "Quick, tight cuts for short vertical videos.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "editing": "rhythmic_montage"
+   },
+   "complexity": 1
+  },
+  {
+   "id": "muted_cinematic_contrast",
+   "type": "color",
+   "group": "Color",
+   "name": "Muted cinematic contrast",
+   "description": "A little more contrast, a little less colour, calm highlights.",
+   "use": "A little more contrast, a little less colour, calm highlights.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "grade": {
+     "contrast": 0.15,
+     "saturation": -0.15,
+     "highlights": -0.1,
+     "shadows": 0.05
+    }
+   },
+   "complexity": 1
+  },
+  {
+   "id": "warm_storybook_balanced",
+   "type": "color",
+   "group": "Color",
+   "name": "Warm storybook balance",
+   "description": "A touch warmer and richer, never a wash over everything.",
+   "use": "A touch warmer and richer, never a wash over everything.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "grade": {
+     "temperature": 0.1,
+     "saturation": 0.05,
+     "contrast": 0.05
+    }
+   },
+   "complexity": 1
+  },
+  {
+   "id": "vertical_social_9_16",
+   "type": "delivery",
+   "group": "Delivery",
+   "name": "Vertical social 9:16",
+   "description": "A 1080 x 1920 version for phones, with margins kept clear of the buttons and captions on. Your film keeps its own shape; this is made as a separate version.",
+   "use": "A 1080 x 1920 version for phones, with margins kept clear of the buttons and captions on. Your film keeps its own shape; this is made as a separate version.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "delivery": {
+     "export": "vertical",
+     "safe": {
+      "top": 0.08,
+      "bottom": 0.2,
+      "side": 0.05
+     },
+     "captions": true
+    }
+   },
+   "complexity": 1
+  },
+  {
+   "id": "widescreen_16_9",
+   "type": "delivery",
+   "group": "Delivery",
+   "name": "Widescreen 16:9",
+   "description": "The standard film frame, 1920 x 1080.",
+   "use": "The standard film frame, 1920 x 1080.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "delivery": {
+     "export": "youtube",
+     "safe": {
+      "top": 0.05,
+      "bottom": 0.08,
+      "side": 0.05
+     },
+     "captions": false
+    }
+   },
+   "complexity": 1
+  },
+  {
+   "id": "square_1_1",
+   "type": "delivery",
+   "group": "Delivery",
+   "name": "Square 1:1",
+   "description": "A 1080 x 1080 version for feeds.",
+   "use": "A 1080 x 1080 version for feeds.",
+   "version": 1,
+   "thumbnail": null,
+   "includes": [],
+   "settings": {
+    "delivery": {
+     "export": "square",
+     "safe": {
+      "top": 0.06,
+      "bottom": 0.12,
+      "side": 0.06
+     },
+     "captions": true
+    }
+   },
+   "complexity": 1
+  }
+ ]
+}

@@ -36,6 +36,8 @@ import { SupervisorSheet } from "../Supervisor";
 import { PerformanceSheet, ShotPerformance } from "../Performance";
 import { ColorStudioSheet } from "../ColorStudio";
 import { SmartEditorSheet } from "../SmartEditor";
+import { PresetsSheet } from "../PresetLibrary";
+import presetsBuiltin from "../../analysis/filmcrafter_engine/presets_builtin.json";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
 import { Settings } from "../Settings";
@@ -280,6 +282,8 @@ mockIPC((cmd, a) => {
     case "grading": return gdCall(x);
     case "editing": return cutCall(x);
     case "smart_editor": return smartCall(x);
+    case "presets": return presetCall(x);
+    case "series": return seriesCall(x);
     case "proxies": return { rows: [], big: 2, ready: x.action === "build" ? 2 : 0, bytes: 0, ...(x.action === "build" ? { made: 2 } : {}), ...(x.action === "clear" ? { removed: 2 } : {}) };
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
@@ -520,6 +524,73 @@ const smartCall = (a: { action?: string; data?: Record<string, unknown> }): unkn
     default: throw new Error("Unknown action.");
   }
 };
+// The presets' made-up backend: the real built-in catalog, with the stacking, the preview and the "yours is kept" rule worked out here the same way so the sheet can be tried (the engine's own tests prove the real rules)
+type PMock = { id: string; type: string; group: string; name: string; description: string; use: string; version: number; thumbnail: string | null; includes: string[]; settings: Record<string, unknown>; complexity: number; series?: string };
+const pBuiltin = (presetsBuiltin as unknown as { presets: PMock[] }).presets;
+let pNow: Record<string, { value: unknown; set: boolean }> = { look: { value: "claymation", set: true }, acting: { value: "natural", set: false }, grade: { value: {}, set: false }, editing: { value: null, set: false }, delivery: { value: null, set: false },
+  aspect: { value: "16:9", set: false }, duration_hint_s: { value: null, set: false } };
+let pStack: string[] = [];
+let pFav: string[] = [];
+let pMine: (PMock & { mine: true })[] = [];
+let pApplied: { before: Record<string, { value: unknown; set: boolean }>; keys: string[] }[] = [];
+const pAll = () => [...pBuiltin, ...pMine];
+const pExpand = (ids: string[]): string[] => { const out: string[] = []; const visit = (id: string) => { const p = pAll().find((x) => x.id === id); if (!p) throw new Error(`The preset "${id}" is not here.`); p.includes.forEach(visit); if (!out.includes(id)) out.push(id); }; ids.forEach(visit); return out; };
+const pResolve = (ids: string[]) => { const out: Record<string, { value: unknown; by: string }> = {}; for (const id of pExpand(ids)) for (const [k, v] of Object.entries(pAll().find((x) => x.id === id)!.settings)) out[k] = { value: v, by: id }; return out; };
+const pPlan = (stack: string[], replace: string[] = []) => {
+  const want = pResolve(stack);
+  const changes = ["look", "acting", "grade", "editing", "delivery", "aspect", "duration_hint_s"].filter((k) => k in want).map((k) => {
+    const cur = pNow[k]; const same = JSON.stringify(cur.value) === JSON.stringify(want[k].value);
+    return { key: k, status: same ? "same" : !cur.set ? "new" : replace.includes(k) ? "replace" : "yours", now: cur.value, to: want[k].value, by: want[k].by, set: cur.set };
+  });
+  const notes = [...(changes.some((c) => c.key === "delivery" && (c.to as { export: string }).export === "vertical") ? ["Your film keeps its own shape. The vertical version is made as a separate export; the original is never changed."] : []),
+    "Nothing is regenerated and no provider is called: only settings change, and every change can be undone."];
+  return { stack, order: pExpand(stack), changes, notes };
+};
+const pCatalog = () => ({ presets: pAll().map((p) => ({ ...p, series: p.series, mine: "mine" in p, favorite: pFav.includes(p.id), recent: false, in_stack: pStack.includes(p.id) })), stack: pStack, types: ["production", "visual", "performance", "editing", "color", "delivery"], applied: pApplied.length, current: pNow, is_film: true });
+let pReframe: Record<string, number> = {};
+const presetCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { stack?: string[]; replace?: string[]; id?: string; on?: boolean; name?: string; shot?: string; x?: number | null };
+  switch (a.action) {
+    case "catalog": return pCatalog();
+    case "plan": return pPlan(d.stack ?? [], d.replace ?? []);
+    case "apply": { const pl = pPlan(d.stack ?? [], d.replace ?? []); const todo = pl.changes.filter((c) => c.status === "new" || c.status === "replace"); pApplied.push({ before: JSON.parse(JSON.stringify(pNow)), keys: todo.map((c) => c.key) });
+      todo.forEach((c) => { pNow[c.key] = { value: c.to, set: true }; }); pStack = d.stack ?? []; return { changed: todo.map((c) => c.key), kept: pl.changes.filter((c) => c.status === "yours").map((c) => c.key), same: [], plan: pl }; }
+    case "undo": { const last = pApplied.pop(); if (!last) throw new Error("There is nothing to undo."); last.keys.forEach((k) => { pNow[k] = last.before[k]; }); return { restored: last.keys, kept_as_changed_since: [] }; }
+    case "favorite": pFav = pFav.filter((f) => f !== d.id).concat(d.on ? [String(d.id)] : []); return pCatalog();
+    case "save_mine": { const settings = Object.fromEntries(Object.entries(d.stack?.length ? pResolve(d.stack) : Object.fromEntries(Object.entries(pNow).filter(([, v]) => v.set).map(([k, v]) => [k, { value: v.value }]))).map(([k, v]) => [k, (v as { value: unknown }).value]));
+      const id = `mine-${String(d.name).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`; pMine.push({ id, type: "custom", group: "Mine", name: String(d.name), description: "Your own preset.", use: "", version: 1, thumbnail: null, includes: [], settings, complexity: 1, mine: true }); return { saved: id, catalog: pCatalog() }; }
+    case "delete_mine": pMine = pMine.filter((p) => p.id !== d.id); return pCatalog();
+    case "stack_get": return { stack: pStack, reframe: pReframe, editing: null, delivery: pNow.delivery.set ? pNow.delivery.value : null, duration_hint_s: null, applied: [] };
+    case "reframe_set": { if (d.x == null || Math.abs(Number(d.x) - 0.5) < 0.0005) delete pReframe[String(d.shot)]; else pReframe[String(d.shot)] = Number(d.x); return { stack: pStack, reframe: pReframe, editing: null, delivery: null, duration_hint_s: null, applied: [] }; }
+    default: throw new Error("That is not in the screenshot harness.");
+  }
+};
+type SF = { value: string; source: "scaffold" | "you" };
+let serPlan: { idea: string; preset: string; hero: string; cast: string[]; places: string[]; episodes: { n: number; title: string; seconds: number; role: string; hook: SF; escalation: SF; turning_point: SF; ending: SF; continuity: SF; cliffhanger: boolean; budget_usd: number | null }[];
+  season: { logline: SF; genre: string; tone: SF; rules: SF; ending: SF; season_budget_usd: number | null } } | null = null;
+const SER_NOTE = "This is a plan to edit, not a story written for you. The suggestions are marked until you write or keep them. Nothing is sent anywhere and nothing is charged; making the episodes is a separate step that shows its price first.";
+const seriesCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { idea?: string; episodes?: number; seconds?: number; n?: number; key?: string } & Record<string, unknown>;
+  const sf = (v: string, s: "scaffold" | "you" = "scaffold"): SF => ({ value: v, source: s });
+  const out = () => ({ plan: serPlan, exists: serPlan !== null, note: SER_NOTE });
+  const ep = () => { const e = serPlan?.episodes.find((x) => x.n === d.n); if (!e) throw new Error("That episode is not in the plan."); return e; };
+  switch (a.action) {
+    case "get": return out();
+    case "create": { const n = Number(d.episodes ?? 10); const hero = "Sarah";
+      serPlan = { idea: String(d.idea), preset: "vertical_micro_drama", hero, cast: ["Sarah", "John"], places: ["Kitchen", "Platform"], season: { logline: sf(String(d.idea).split(/(?<=[.!?])\s+/)[0]), genre: "drama", tone: sf(""), rules: sf(""), ending: sf("How does the season end, and what does it say?"), season_budget_usd: null },
+        episodes: Array.from({ length: n }, (_, i) => ({ n: i + 1, title: i === 0 ? "Episode 1: the hook" : `Episode ${i + 1}`, seconds: Number(d.seconds ?? 90), role: i === 0 ? "opening" : i === n - 1 ? "close" : i === Math.floor((n - 1) / 2) ? "turn" : i < n / 2 ? "building" : "pressure",
+          hook: sf(`Open on the moment that makes someone stay: ${hero} wants something and cannot have it.`), escalation: sf(`Make it cost ${hero} something to keep going.`), turning_point: sf(`A discovery that changes what ${hero} thinks is true.`), ending: sf("End on a question the next episode answers."), continuity: sf(""), cliffhanger: i % 3 !== 2 && i !== n - 1, budget_usd: null })) };
+      return out(); }
+    case "set_episode": { const e = ep(); for (const k of ["hook", "escalation", "turning_point", "ending", "continuity"] as const) if (k in d) e[k] = sf(String(d[k]), "you"); if ("cliffhanger" in d) e.cliffhanger = !!d.cliffhanger; if ("seconds" in d) e.seconds = Number(d.seconds); if ("budget_usd" in d) e.budget_usd = d.budget_usd as number | null; return out(); }
+    case "set_season": for (const k of ["logline", "tone", "rules", "ending"] as const) if (serPlan && k in d) serPlan.season[k] = sf(String(d[k]), "you"); return out();
+    case "reset_field": { const e = ep(); (e as Record<string, unknown>)[String(d.key)] = sf("End on a question the next episode answers."); return out(); }
+    case "resize": return out();
+    case "report": return { episodes: serPlan?.episodes.length ?? 0, total_seconds: (serPlan?.episodes.length ?? 0) * 90, written: serPlan?.episodes.filter((e) => e.hook.source === "you").length ?? 0, cliffhangers: serPlan?.episodes.filter((e) => e.cliffhanger).length ?? 0, cast: {}, places: {}, budget_total_usd: null, season_budget_usd: null,
+      notes: (serPlan?.episodes ?? []).slice(0, 3).map((e) => ({ level: "todo", episode: e.n, what: `Episode ${e.n}: write your own hook and ending (the suggestion is only a starting point).` })) };
+    case "export_markdown": return { path: "series-plan.md" };
+    default: throw new Error("That is not in the screenshot harness.");
+  }
+};
 const gdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
   const d = (a.data ?? {}) as { scope?: string; key?: string | number; grade?: GradeMock; id?: string; on?: boolean; name?: string; path?: string };
   const table = () => (d.scope === "scene" ? gdGrades.scenes : gdGrades.shots) as Record<string, GradeMock>;
@@ -632,6 +703,7 @@ const scenes: Record<string, () => ReactNode> = {
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
   color: () => <ColorStudioSheet dir={DIR} onClose={noop} />,
   smarteditor: () => <SmartEditorSheet dir={DIR} onClose={noop} />,
+  presets: () => <PresetsSheet dir={DIR} onClose={noop} />,
   shotacting: () => <aside className="inspector" style={{ width: 380, padding: 14 }} aria-label="Inspector"><ShotPerformance dir={DIR} shotId="S01-02" onChanged={noop} /></aside>,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,

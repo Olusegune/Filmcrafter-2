@@ -42,7 +42,7 @@ test.describe("the rail", () => {
     await expect(more).toHaveAttribute("aria-expanded", "false");
     await more.click();
     await expect(more).toHaveAttribute("aria-expanded", "true");
-    expect(await names(page)).toEqual(["Home", "Project", "Library", "Studio", "Looks", "Review", "Export", "Fewer", "Supervisor", "Acting", "Continuity", "Layers", "Lighting", "Color", "Colour match", "Clean up", "Settings"]);
+    expect(await names(page)).toEqual(["Home", "Project", "Library", "Studio", "Looks", "Review", "Export", "Fewer", "Supervisor", "Acting", "Continuity", "Layers", "Lighting", "Presets", "Color", "Colour match", "Clean up", "Settings"]);
     await page.locator(".rail button.rail-more").click();
     expect(await names(page)).toHaveLength(9);
   });
