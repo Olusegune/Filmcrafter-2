@@ -30,7 +30,7 @@ export type Scene = {
 export type Character = { name: string; archetype: string; appearance: string; motivation: string; acting_notes: string };
 export type Plan = { meta: Record<string, string>; characters: Character[]; scenes: Scene[]; model?: string };
 
-export type ProjectSummary = { dir: string; title: string; state: string; modified: number; song?: string; kind?: "film" | "show"; onboarding?: { stage: string } };
+export type ProjectSummary = { dir: string; title: string; state: string; modified: number; aspect?: string; song?: string; kind?: "film" | "show"; onboarding?: { stage: string } };
 export type LoadedProject = {
   dir: string;
   project: { title: string; state: string; song: string; lyrics?: string; script?: string; aspect_ratio?: string; artist?: string; look?: Look | string;
@@ -439,13 +439,13 @@ export type Suggestions = { recipe: { id: string; label: string; for?: string };
 /** Creative presets (presets.py): named settings, previewed before they are applied; a choice you made yourself is kept unless you say otherwise. */
 export type PresetRow = { id: string; type: string; group: string; name: string; description: string; use: string; version: number; thumbnail: string | null; includes: string[]; settings: Record<string, unknown>;
   complexity: number; series?: string; mine: boolean; favorite: boolean; recent: boolean; in_stack: boolean };
-export type PresetCatalog = { presets: PresetRow[]; stack: string[]; types: string[]; applied: number; current: Record<string, { value: unknown; set: boolean }>; is_film: boolean };
+export type PresetCatalog = { presets: PresetRow[]; stack: string[]; types: string[]; applied: number; current: Record<string, { value: unknown; set: boolean }>; is_film: boolean; pending?: string[] };
 export type PresetChange = { key: string; status: "new" | "same" | "yours" | "replace" | "unavailable"; now: unknown; to: unknown; by: string; set?: boolean; why?: string };
 export type PresetPlan = { stack: string[]; order: string[]; changes: PresetChange[]; notes: string[] };
 export type PresetApplied = { changed: string[]; kept: string[]; same: string[]; plan: PresetPlan };
 export type PresetStack = { stack: string[]; reframe: Record<string, number>; editing: string | null; delivery: { export: string; safe: { top: number; bottom: number; side: number }; captions: boolean } | null; duration_hint_s: number | null;
   applied: { at: number; stack: string[]; changed: string[]; kept: string[] }[] };
-export type PresetAction = "catalog" | "plan" | "apply" | "undo" | "save_mine" | "delete_mine" | "favorite" | "export" | "import_file" | "stack_get" | "reframe_set";
+export type PresetAction = "catalog" | "plan" | "apply" | "undo" | "save_mine" | "delete_mine" | "favorite" | "export" | "import_file" | "stack_get" | "reframe_set" | "set_pending";
 export type SeriesField = { value: string; source: "scaffold" | "you" };
 export type SeriesEpisode = { n: number; title: string; seconds: number; role: string; hook: SeriesField; escalation: SeriesField; turning_point: SeriesField; ending: SeriesField; continuity: SeriesField; cliffhanger: boolean; budget_usd: number | null };
 export type SeriesPlan = { idea: string; preset: string; hero: string; cast: string[]; places: string[]; episodes: SeriesEpisode[];

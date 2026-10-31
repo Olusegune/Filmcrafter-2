@@ -619,7 +619,7 @@ fn list_projects(app: AppHandle) -> Result<Vec<Value>, String> {
             let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
             let locked = f["story"]["locked"].is_number();
             let kind = f["story"]["kind"].as_str().unwrap_or("idea");
-            out.push(json!({"title": f["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "film", "state": if locked { "Story locked".to_string() } else if kind == "screenplay" { "Screenplay".to_string() } else { format!("Story: {kind}") }}));
+            out.push(json!({"title": f["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "film", "aspect": f["aspect_ratio"], "state": if locked { "Story locked".to_string() } else if kind == "screenplay" { "Screenplay".to_string() } else { format!("Story: {kind}") }}));
             continue;
         }
         let Ok(meta) = fs::metadata(dir.join("project.json")) else { continue };
@@ -1742,7 +1742,7 @@ async fn smart_editor(app: AppHandle, dir: String, action: String, data: Value) 
 /// Free and local: only the film's own settings change; nothing is regenerated, no provider is called, nothing is sent anywhere.
 #[tauri::command]
 async fn presets(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 11] = ["catalog", "plan", "apply", "undo", "save_mine", "delete_mine", "favorite", "export", "import_file", "stack_get", "reframe_set"];
+    const ACTIONS: [&str; 12] = ["catalog", "plan", "apply", "undo", "save_mine", "delete_mine", "favorite", "export", "import_file", "stack_get", "reframe_set", "set_pending"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

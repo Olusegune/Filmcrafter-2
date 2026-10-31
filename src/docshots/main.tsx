@@ -307,9 +307,12 @@ mockIPC((cmd, a) => {
     case "proxies": return { rows: [], big: 2, ready: x.action === "build" ? 2 : 0, bytes: 0, ...(x.action === "build" ? { made: 2 } : {}), ...(x.action === "clear" ? { removed: 2 } : {}) };
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
-    case "list_projects": return [
-      { dir: "f1", title: "Last Train", kind: "film", state: "Story locked", modified: now },
-      { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", modified: now - 86400 * 2 },
+    case "list_projects":
+      if (new URLSearchParams(location.search).get("many")) return Array.from({ length: 60 }, (_, i) => ({ dir: `m${i}`, title: `Film number ${i + 1}`, kind: "film", state: "Screenplay", aspect: i % 2 ? "9:16" : "16:9", modified: now - 3600 * i }));
+      if (new URLSearchParams(location.search).get("none")) return [];
+      return [
+      { dir: "f1", title: "Last Train", kind: "film", state: "Story locked", aspect: "9:16", modified: now },
+      { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", aspect: "16:9", modified: now - 86400 * 2 },
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false, byteplus: false };
@@ -729,6 +732,7 @@ const scenes: Record<string, () => ReactNode> = {
   layerlanes: () => <div style={{ width: 900, height: 120, position: "relative", background: "#10131a", overflow: "hidden" }}><LayerLanes dir={DIR} pps={40} duration={30} selected="l1" onSelect={noop} snap={[]} top={0} time={3} onSeek={noop} /></div>,
   settings: () => <Settings onClose={noop} onHelp={noop} />,
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
+  homeflow: () => <Home onNewFilm={(o) => { ((window as unknown as { __home?: unknown[] }).__home ??= []).push({ new: o ?? {} }); }} onOpen={(d) => { ((window as unknown as { __home?: unknown[] }).__home ??= []).push({ open: d }); }} onChooseProject={() => { ((window as unknown as { __home?: unknown[] }).__home ??= []).push({ choose: true }); }} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
   studio: () => <Studio project={{ dir: DIR, ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,

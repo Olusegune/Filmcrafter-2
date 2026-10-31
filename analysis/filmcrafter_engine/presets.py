@@ -34,6 +34,7 @@ SCHEMA = 1
 TYPES = ("production", "visual", "performance", "editing", "color", "delivery")
 KEYS = ("look", "acting", "grade", "editing", "delivery", "aspect", "duration_hint_s")
 MAX_MINE, MAX_APPLIED, MAX_INCLUDES, MAX_DEPTH = 100, 30, 8, 3
+MAX_PENDING = 5
 MAX_FILE = 64 * 1024
 FORMAT = "filmcrafter.preset"
 ACTIONS = ("catalog", "plan", "apply", "undo", "save_mine", "delete_mine", "favorite", "export", "import_file", "stack_get", "reframe_set")
@@ -156,7 +157,7 @@ def parse_state(s) -> dict:
         except SystemExit:
             continue                                        # a damaged preset of yours is left out, not fatal
     ids = lambda x: [i for i in (x if isinstance(x, list) else []) if isinstance(i, str)][:200]
-    return {"schema": SCHEMA, "stack": ids(s.get("stack")), "editing": s.get("editing") if isinstance(s.get("editing"), str) else None, "delivery": s.get("delivery") if isinstance(s.get("delivery"), dict) else None,
+    return {"schema": SCHEMA, "stack": ids(s.get("stack")), "pending": ids(s.get("pending"))[:MAX_PENDING], "editing": s.get("editing") if isinstance(s.get("editing"), str) else None, "delivery": s.get("delivery") if isinstance(s.get("delivery"), dict) else None,
             "duration_hint_s": s.get("duration_hint_s") if isinstance(s.get("duration_hint_s"), int) and not isinstance(s.get("duration_hint_s"), bool) else None,
             "applied": [a for a in (s.get("applied") if isinstance(s.get("applied"), list) else []) if isinstance(a, dict)][-MAX_APPLIED:], "favorites": ids(s.get("favorites")), "recent": ids(s.get("recent"))[-12:],
             "mine": mine, "reframe": {str(k)[:40]: round(max(0.0, min(1.0, float(v))), 3) for k, v in (s.get("reframe") if isinstance(s.get("reframe"), dict) else {}).items()
@@ -335,6 +336,7 @@ def apply(d: str, stack: list[str], replace: list[str] | None = None) -> dict:
             if x["key"] in ("editing", "delivery", "duration_hint_s"):
                 cur[x["key"]] = x["after"]
         cur["stack"] = [s for s in stack if isinstance(s, str)][:20]
+        cur["pending"] = [p for p in cur["pending"] if p not in stack]
         cur["recent"] = ([r for r in cur["recent"] if r not in stack] + stack)[-12:]
         cur["applied"] = (cur["applied"] + [{"at": int(time.time()), "stack": cur["stack"], "changes": done, "kept": [c["key"] for c in pl["changes"] if c["status"] == "yours"]}])[-MAX_APPLIED:]
     _write(d, change)
@@ -380,7 +382,7 @@ def catalog(d: str) -> dict:
     for p in ps.values():
         rows.append({**{k: p.get(k) for k in ("id", "type", "group", "name", "description", "use", "version", "thumbnail", "includes", "settings", "complexity", "series")}, "mine": bool(p.get("mine")),
                      "favorite": p["id"] in st["favorites"], "recent": p["id"] in st["recent"], "in_stack": p["id"] in st["stack"]})
-    return {"presets": rows, "stack": st["stack"], "types": list(TYPES), "applied": len(st["applied"]), "current": {k: v for k, v in current(d).items()}, "is_film": film_of(d) is not None}
+    return {"presets": rows, "stack": st["stack"], "types": list(TYPES), "applied": len(st["applied"]), "current": {k: v for k, v in current(d).items()}, "is_film": film_of(d) is not None, "pending": st["pending"]}
 
 
 def save_mine(d: str, name: str, stack: list[str] | None = None) -> dict:
@@ -516,6 +518,20 @@ def delivery_safe_bottom(d: str) -> float:
     return float((dv.get("safe") or {}).get("bottom") or 0.0) if dv.get("export") in ("vertical", "portrait", "tall", "ultratall") else 0.0
 
 
+def set_pending(d: str, stack: list[str]) -> dict:
+    """Remember the preset(s) chosen when a film was made, to be previewed and applied once the film has its shots (a preset sets up the render project, which a new film does not have yet).
+    Nothing is changed in the film by this: it only records what was chosen."""
+    known = all_presets(d)
+    good = [i for i in stack if i in known][:MAX_PENDING]
+    if not good:
+        raise SystemExit("Choose a preset from the list.")
+
+    def change(cur):
+        cur["pending"] = good
+    _write(d, change)
+    return {"pending": good}
+
+
 def stack_get(d: str) -> dict:
     st = load_state(d)
     return {"stack": st["stack"], "reframe": st["reframe"], "editing": st["editing"], "delivery": st["delivery"], "duration_hint_s": st["duration_hint_s"], "applied": [{"at": a.get("at"), "stack": a.get("stack"), "changed": [c["key"] for c in a.get("changes", [])],
@@ -542,6 +558,8 @@ def run(d: str, action: str, x: dict) -> dict:
         return export_preset(d, str(x.get("id", ""))[:60], str(x.get("path", "")))
     if action == "import_file":
         return import_file(d, str(x.get("path", "")))
+    if action == "set_pending":
+        return set_pending(d, ids(x.get("stack")))
     if action == "stack_get":
         return stack_get(d)
     if action == "reframe_set":
@@ -551,7 +569,7 @@ def run(d: str, action: str, x: dict) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-presets")
-    ap.add_argument("action", choices=["catalog", "plan", "apply", "undo", "save_mine", "delete_mine", "favorite", "export", "import_file", "stack_get", "reframe_set"])
+    ap.add_argument("action", choices=["catalog", "plan", "apply", "undo", "save_mine", "delete_mine", "favorite", "export", "import_file", "stack_get", "reframe_set", "set_pending"])
     ap.add_argument("project")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)

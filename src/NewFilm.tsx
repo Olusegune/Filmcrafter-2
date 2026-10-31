@@ -4,17 +4,19 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type StoryKind, type StoryPreview } from "./api";
 import * as I from "./icons";
 import { FrameShapes } from "./FrameShapes";
+import { byId, presetAspect, stackedNames } from "./presetShelf";
 import { guessKind, previewLine, STORY_EXT, STORY_KINDS, titleFromFile } from "./storyView";
 
 /**
  * A new film starts with its story, not with a song. Say how the story begins, bring it (paste it, or choose a file), and it is kept exactly as given.
  * FilmCrafter then reads it for scenes, characters and places, and may suggest things; it never rewrites the story.
  */
-export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: string | null; kind?: StoryKind; onClose: () => void; onCreated: (dir: string) => void }) {
+export function NewFilm({ file, kind: startKind, preset: presetId, onClose, onCreated }: { file?: string | null; kind?: StoryKind; preset?: string | null; onClose: () => void; onCreated: (dir: string) => void }) {
+  const preset = presetId ? byId(presetId) ?? null : null;               // a preset chosen on Home: it sets the film up once the film exists
   const [kind, setKind] = useState<StoryKind | null>(startKind ?? null);
   const [stage, setStage] = useState<"pick" | "write">(startKind || file ? "write" : "pick");
   const [title, setTitle] = useState("");
-  const [aspect, setAspect] = useState("16:9");                          // the shape of the frame: widescreen unless the film is vertical, cinema scope, square...
+  const [aspect, setAspect] = useState((preset && presetAspect(preset)) || "16:9");                          // the shape of the frame: widescreen unless the film is vertical, cinema scope, square...
   const [text, setText] = useState("");
   const [source, setSource] = useState<string | null>(null);          // the file the story came from, kept as the original
   const [fileName, setFileName] = useState("");
@@ -50,6 +52,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
     setBusy("create"); setErr("");
     try {
       const r = await api.film<{ dir: string }>("create", null, { title: title.trim() || "Untitled film", kind, text, file: source, aspect_ratio: aspect });
+      if (preset) await api.presets(r.dir, "set_pending", { stack: [preset.id] }).catch(() => {});       // only remembers the choice (free, local); the film is not changed until you preview and apply it in Presets
       onCreated(r.dir);
     } catch (e) { setErr(errorText(e)); setBusy(""); }
   };
@@ -59,6 +62,7 @@ export function NewFilm({ file, kind: startKind, onClose, onCreated }: { file?: 
         <div className="vs-head"><h2>New film</h2><div style={{ flex: 1 }} />
           <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
 
+        {preset && <p className="nf-preset" role="status"><b>{preset.name}</b> is waiting for this film{stackedNames(preset).length ? `, with ${stackedNames(preset).join(", ")}` : ""}. Once the film has its shots, open Presets to see exactly what it would change before anything does. Nothing is made or charged.</p>}
         {stage === "pick" ? <>
           <p className="sub">How does your story begin? Pick the closest; you can change it. Whatever you bring is kept exactly as it is.</p>
           <div className="nf-kinds" role="radiogroup" aria-label="How your story begins">

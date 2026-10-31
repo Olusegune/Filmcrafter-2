@@ -27,7 +27,7 @@ const LEGACY = "This is not a FilmCrafter film. Music-video projects belong in P
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
-  const [creating, setCreating] = useState<{ file?: string; kind?: StoryKind } | null>(null);       // the New film sheet, from Home or the File menu
+  const [creating, setCreating] = useState<{ file?: string; kind?: StoryKind; preset?: string } | null>(null);       // the New film sheet, from Home or the File menu
   const [settings, setSettings] = useState(false);
   const [studioSheet, setStudioSheet] = useState<StudioSheet | null>(null);          // a Studio sheet the guide asked to have open on arrival
   const [error, setError] = useState("");
@@ -120,7 +120,7 @@ export default function App() {
       {engine && !engine.ready && <EngineSetup gpu={engine.gpu} onReady={() => setEngine({ ...engine, ready: true })} />}
       {(!engine || engine.ready) && view.name === "home" && <Home onNewFilm={(o) => setCreating(o ?? {})} onOpen={openProject} onChooseProject={chooseProject}
                                                                      onSettings={() => setSettings(true)} onHelp={() => setHelp(true)} />}
-      {creating && <NewFilm file={creating.file} kind={creating.kind} onClose={() => setCreating(null)} onCreated={(d) => { setCreating(null); openProject(d); }} />}
+      {creating && <NewFilm file={creating.file} kind={creating.kind} preset={creating.preset} onClose={() => setCreating(null)} onCreated={(d) => { setCreating(null); openProject(d); }} />}
       {toast && <div className="toast glass mini" role="status">{toast}</div>}
       {view.name === "film" && <FilmView key={`${view.dir}|${view.stage ?? ""}`} dir={view.dir} initialStage={view.stage} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} onStudio={(rd, sheet) => { setStudioSheet(sheet ?? null); void openProject(rd); }} />}
       {view.name === "studio" && <Studio project={view.project} startSheet={studioSheet} onStartSheetShown={() => setStudioSheet(null)} onHome={() => backFrom(view.project.dir)} onFilm={(st) => backFrom(view.project.dir, st)}

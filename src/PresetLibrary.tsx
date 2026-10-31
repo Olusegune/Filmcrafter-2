@@ -46,6 +46,7 @@ export function PresetsSheet({ dir, onClose, onChanged }: { dir: string; onClose
   const [tab, setTab] = useState<"library" | "series" | "vertical">("library");
   const [cat, setCat] = useState<PresetCatalog | null>(null);
   const [stack, setStack] = useState<string[]>([]);
+  const [pending, setPending] = useState<string[]>([]);                    // chosen when the film was made on Home; shown as the stack, and applied only when you say so
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
   const [plan, setPlan] = useState<PresetPlan | null>(null);
@@ -57,7 +58,7 @@ export function PresetsSheet({ dir, onClose, onChanged }: { dir: string; onClose
 
   const call = useCallback(async <T,>(fn: () => Promise<T>): Promise<T | null> => { setBusy(true); setErr(""); try { return await fn(); } catch (e) { setErr(errorText(e)); return null; } finally { setBusy(false); } }, []);
   const refresh = useCallback(() => api.presets(dir, "catalog").then((c) => { setCat(c); return c; }), [dir]);
-  useEffect(() => { void call(() => refresh().then((c) => setStack(c.stack))); }, [call, refresh]);
+  useEffect(() => { void call(() => refresh().then((c) => { setStack(c.stack.length ? c.stack : c.pending ?? []); setPending(c.stack.length ? [] : c.pending ?? []); })); }, [call, refresh]);
 
   const byId = useMemo(() => new Map((cat?.presets ?? []).map((p) => [p.id, p])), [cat]);
   const shown = (cat?.presets ?? []).filter((p) => {
@@ -96,6 +97,7 @@ export function PresetsSheet({ dir, onClose, onChanged }: { dir: string; onClose
       </div>
       {err && <p className="error-text" role="alert">{err}</p>}
       {msg && <p className="ps-msg" role="status">{msg}</p>}
+      {pending.length > 0 && <p className="ps-msg" role="status">You chose {pending.map((id) => byId.get(id)?.name ?? id).join(", ")} when you made this film. It is already in your stack: press <b>Preview what this changes</b>, and nothing is changed until you apply it.</p>}
       {tab === "library" && (
         <div role="tabpanel" id="ps-panel-library" aria-labelledby="ps-tab-library" className="ps-grid">
           <div className="ps-left">
