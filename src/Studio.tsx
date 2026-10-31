@@ -39,6 +39,7 @@ import { snapPoints } from "./laneMath";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { PreviewSheet } from "./PreviewSheet";
 import { ColourMatchSheet } from "./ColourMatch";
+import { ColorStudioSheet } from "./ColorStudio";
 import { beatGrid } from "./overlayMotion";
 import { UpgradePanel } from "./Upgrade";
 import { DirectionLibrarySheet } from "./DirectionLibrary";
@@ -157,6 +158,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   useEffect(() => { if (layersOpen) setInspector(true); }, [layersOpen]);   // the panel lives in the inspector column, so open it
   const [previewOpen, setPreviewOpen] = useState(false);
   const [colourOpen, setColourOpen] = useState(false);
+  const [colorOpen, setColorOpen] = useState(false);
   const [layerSel, setLayerSel] = useState<string | null>(null);
   const [focusLayer, setFocusLayer] = useState<Overlay | null>(null);
   const [focus, setFocus] = useState(false);
@@ -485,6 +487,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           <RailBtn icon={<I.Film />} label="Continuity" onClick={() => setContOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
           <RailBtn icon={<I.Layers />} label="Layers" onClick={() => setLayersOpen((v) => !v)} active={layersOpen} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
           <RailBtn icon={<I.Light />} label="Lighting" onClick={() => setLightOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
+          <RailBtn icon={<I.Sliders />} label="Color" onClick={() => setColorOpen(true)} disabled={!plan} why="Needs a shot plan first." />
           <RailBtn icon={<I.Lens />} label="Colour match" onClick={() => setColourOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
           <RailBtn icon={<I.Trash />} label="Clean up" onClick={() => setCleanOpen(true)} disabled={!plan} why="Needs a shot plan first: press Direct My Video." />
         </>}
@@ -713,6 +716,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                     model={route?.video.provider ? route.video.label! : AUTO_MODEL[defaultProvider(keys)]} onCancel={() => setConfirmAll(false)} onConfirm={renderAll}
                                     dir={project.dir} shots={toRender.map((s) => s.id)} modelId={route?.video.provider ? route.video.model! : AUTO_MODEL[defaultProvider(keys)]} />}
       {colourOpen && <ColourMatchSheet dir={project.dir} onClose={() => setColourOpen(false)} />}
+      {colorOpen && <ColorStudioSheet dir={project.dir} onClose={() => setColorOpen(false)} onChanged={reloadBoard} />}
       {previewOpen && <PreviewSheet dir={project.dir} from={time} duration={map?.duration ?? 0} onClose={() => setPreviewOpen(false)} />}
       {frameOpen && <InsertFrameSheet dir={project.dir} shot={sel?.kind === "shot" ? sel.id : undefined} onClose={() => setFrameOpen(false)}
                                       onDone={(id) => { setFrameOpen(false); onReload(); if (id) setSel({ kind: "shot", id }); }} />}
@@ -730,6 +734,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           plan && { id: "preview", label: "Preview the next seconds", hint: "A small quick version with layers and sound", run: () => { if (playing) toggle(); setPreviewOpen(true); } },
           plan && { id: "export", label: "Export the film", keys: "Ctrl+E", run: () => setExporting(true) },
           plan && { id: "layers", label: layersOpen ? "Close the Layers panel" : "Open the Layers panel", hint: "Text, pictures, shapes drawn over the film", keys: "Y", run: () => setLayersOpen((v) => !v) },
+          plan && { id: "color", label: "Color Studio", hint: "Grade a shot, a scene or the film; LUTs", run: () => setColorOpen(true) },
           plan && { id: "colour", label: "Colour match", hint: "Even out brightness and colour between shots", run: () => setColourOpen(true) },
           plan && { id: "clean", label: "Clean up unused videos and pictures", run: () => setCleanOpen(true) },
           plan && { id: "frame", label: "Insert a frame", hint: "A card, picture, clip or generated shot", run: () => setFrameOpen(true) },

@@ -510,6 +510,142 @@
       "family": "hybrid"
     },
     {
+      "id": "cinematic-storybook-25d",
+      "name": "Cinematic Storybook 2.5D",
+      "group": "Hybrid 2D/3D",
+      "description": "Illustrated storybook frames with layered depth: tall stylised figures, matte painted shapes, graphic shadows and warm light shafts.",
+      "prompt": "Cinematic Storybook 2.5D: stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette warm sand, ochre, terracotta and cream, cooled with dusty blue, turquoise and slate in shadow and sky; small accents of red and cobalt in trim and pottery; one clear motivated light, often low sun through a window or doorway making visible shafts with floating dust; warm light against cool shadow; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise",
+      "dna": {
+        "character_design": "stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern",
+        "body_proportions": "elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs",
+        "facial_proportions": "large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows",
+        "line_weight": "no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands",
+        "outline": "none, or very thin and irregular; never a uniform thick contour",
+        "surface_texture": "matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss",
+        "palette": "warm sand, ochre, terracotta and cream, cooled with dusty blue, turquoise and slate in shadow and sky; small accents of red and cobalt in trim and pottery",
+        "shadow_construction": "graphic shadow shapes: hard-edged flat cast shadows (palm fronds, beams, window grids) across floors and walls, the shaded side of forms one flat cooler tone",
+        "lighting": "one clear motivated light, often low sun through a window or doorway making visible shafts with floating dust; warm light against cool shadow",
+        "rendering_material": "flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+        "background_design": "simplified blocky architecture in layered planes; patterned pots, baskets, awnings and rugs as set dressing; painted ornament bands",
+        "environmental_depth": "2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance",
+        "camera_language": "composed like an illustrated storybook frame: clear staging, wide establishing views, foreground objects framing the action, restrained slow push-ins and parallax drifts",
+        "animation_style": "limited, deliberate animation: held poses, slow gestures, small eye and brow changes; the camera and the light do most of the moving",
+        "motion_frequency": "low: animated on twos or threes with long holds",
+        "expressiveness": "restrained but readable: posture, eyes and brows, not broad grimaces",
+        "post_treatment": "soft matte finish, a fine gentle grain, light bloom only in the light shafts; no overall colour wash",
+        "negatives": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame"
+      }
+    },
+    {
+      "id": "historical-storybook",
+      "name": "Storybook: historical",
+      "group": "Hybrid 2D/3D",
+      "description": "The storybook look for the ancient and historical world: mud-brick towns, rivers, temples. A visual interpretation, not a reconstruction.",
+      "prompt": "Storybook: historical: stylised angular human figures in simple wrapped linen and tunics with geometric trim; jewellery and hair shown as simple graphic shapes; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette warm sand, ochre, terracotta and cream with river blue and turquoise; small accents of red, cobalt and gold in trim; one clear motivated light, often low sun through a window or doorway making visible shafts with floating dust; warm light against cool shadow; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures in simple wrapped linen and tunics with geometric trim; jewellery and hair shown as simple graphic shapes; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise",
+      "dna": {
+        "inherits": "cinematic-storybook-25d",
+        "background_design": "mud-brick and white-plaster towns, riverbanks with reeds and sails, temples with painted ornament bands; woven mats, clay pots and linen as set dressing",
+        "character_design": "stylised angular human figures in simple wrapped linen and tunics with geometric trim; jewellery and hair shown as simple graphic shapes",
+        "palette": "warm sand, ochre, terracotta and cream with river blue and turquoise; small accents of red, cobalt and gold in trim"
+      }
+    },
+    {
+      "id": "biblical-epic-illustration",
+      "name": "Storybook: epic illustration",
+      "group": "Hybrid 2D/3D",
+      "description": "The storybook look at epic scale: robed figures, vast desert and sky, dramatic light. A visual interpretation, not a reconstruction.",
+      "prompt": "Storybook: epic illustration: stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette deep ochre, burnt sienna and cream with night indigo and slate; sparing accents of crimson and gold; dramatic motivated light: low sun, firelight and torchlight, strong shafts and long graphic shadows; deep cool shadow against a warm key; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise",
+      "dna": {
+        "inherits": "cinematic-storybook-25d",
+        "background_design": "monumental simple architecture and wide desert, hills and skies; tents, stone steps, simple furnishings; scale shown by small figures against vast shapes",
+        "lighting": "dramatic motivated light: low sun, firelight and torchlight, strong shafts and long graphic shadows; deep cool shadow against a warm key",
+        "camera_language": "wide, composed frames with figures small against the land, low angles, slow push-ins; stillness and scale over rapid cutting",
+        "palette": "deep ochre, burnt sienna and cream with night indigo and slate; sparing accents of crimson and gold"
+      }
+    },
+    {
+      "id": "modern-urban-storybook",
+      "name": "Storybook: modern urban",
+      "group": "Hybrid 2D/3D",
+      "description": "The storybook look in a present-day city: contemporary clothes and streets, the same figures and matte painted shapes.",
+      "prompt": "Storybook: modern urban: stylised angular human figures in contemporary clothing with clean geometric details; bags, headphones and sneakers drawn as simple flat shapes; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette warm concrete and brick, teal, mustard and coral with cool blue shadow; small accents of red and cobalt in clothing; one clear motivated light, often low sun through a window or doorway making visible shafts with floating dust; warm light against cool shadow; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures in contemporary clothing with clean geometric details; bags, headphones and sneakers drawn as simple flat shapes; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise",
+      "dna": {
+        "inherits": "cinematic-storybook-25d",
+        "background_design": "simplified blocky city streets, shopfronts, stairs, balconies and rooftops with no readable signs; bikes, market stalls, wires and plants as set dressing",
+        "character_design": "stylised angular human figures in contemporary clothing with clean geometric details; bags, headphones and sneakers drawn as simple flat shapes",
+        "palette": "warm concrete and brick, teal, mustard and coral with cool blue shadow; small accents of red and cobalt in clothing"
+      }
+    },
+    {
+      "id": "african-folktale-illustration",
+      "name": "Storybook: folktale illustration",
+      "group": "Hybrid 2D/3D",
+      "description": "The storybook look for village and folk tales: compounds, open land, woven and patterned cloth, told as an illustrated story.",
+      "prompt": "Storybook: folktale illustration: stylised angular human figures in wrapped cloth and simple garments with bold printed pattern bands; hair and head wraps as clear graphic shapes; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette earth red, ochre and cream with saturated indigo and deep green; small accents of yellow and turquoise in cloth pattern; one clear motivated light, often low sun through a window or doorway making visible shafts with floating dust; warm light against cool shadow; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures in wrapped cloth and simple garments with bold printed pattern bands; hair and head wraps as clear graphic shapes; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise",
+      "dna": {
+        "inherits": "cinematic-storybook-25d",
+        "background_design": "village compounds of earth walls and thatch, open land with large trees, courtyards, market mats and gourds; woven and printed cloth pattern as ornament",
+        "character_design": "stylised angular human figures in wrapped cloth and simple garments with bold printed pattern bands; hair and head wraps as clear graphic shapes",
+        "palette": "earth red, ochre and cream with saturated indigo and deep green; small accents of yellow and turquoise in cloth pattern"
+      }
+    },
+    {
+      "id": "fantasy-storybook",
+      "name": "Storybook: fantasy",
+      "group": "Hybrid 2D/3D",
+      "description": "The storybook look for invented lands: towers, floating lights, simplified creatures, twilight colour.",
+      "prompt": "Storybook: fantasy: stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette twilight teal, violet and slate with warm amber light; small accents of coral and gold for magic; twilight or magical light kept to a few clear shapes: lantern glow, soft shafts and glowing edges, with the rest quiet and cool; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic detail, an overall colour wash, heavy bloom across the whole frame, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text or logos in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic detail, an overall colour wash, heavy bloom across the whole frame, inconsistent proportions between shots",
+      "dna": {
+        "inherits": "cinematic-storybook-25d",
+        "background_design": "invented simplified towers, bridges, floating stones and forests in layered planes; lanterns, banners and creatures drawn as clean flat shapes",
+        "lighting": "twilight or magical light kept to a few clear shapes: lantern glow, soft shafts and glowing edges, with the rest quiet and cool",
+        "palette": "twilight teal, violet and slate with warm amber light; small accents of coral and gold for magic",
+        "negatives": "waxy or plastic skin, glossy surfaces, photorealistic detail, an overall colour wash, heavy bloom across the whole frame, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text or logos in the frame"
+      }
+    },
+    {
+      "id": "educational-documentary-illustration",
+      "name": "Storybook: educational documentary",
+      "group": "Hybrid 2D/3D",
+      "description": "The storybook look for explainers: clear staging, calm light, room left for labels, maps and graphics.",
+      "prompt": "Storybook: educational documentary: stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; matte painted flat shapes with fine dry-brush grain and subtle paper texture; hatched marks for fabric folds; no gloss; palette warm sand, cream and terracotta with calm blue and teal; one clear accent colour for what the viewer should notice; even, soft, readable light with gentle shadows; nothing dramatic that would hide a detail the viewer must see; 2D illustration with 3D-like depth: foreground framing objects, midground action, background buildings and distant haze, with gentle atmospheric perspective that lightens and cools the distance.",
+      "avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise, inconsistent proportions between shots, face morphing, smooth 3D-render faces, thick black outlines, text, logos or a video player interface in the frame",
+      "family": "hybrid",
+      "figures": "stylised angular human figures, simplified but expressive, readable as a silhouette; simple draped clothing trimmed with bands of repeating geometric pattern; elongated: small head on a long neck, narrow shoulders, long slim arms, hands and legs; large readable eyes with small dark pupils, strong simple brow, nose and jaw planes, small quiet mouth; feeling carried by the eyes and brows; no heavy outlines: shapes are defined by edges of flat colour, with a few thin dark accent lines for folds, brows and hands; flat painted shapes with a tactile grain; mud-brick, plaster, woven reed, linen and pottery all read as matte",
+      "figures_avoid": "waxy or plastic skin, glossy surfaces, photorealistic skin and hair, a uniform yellow or golden tint over everything, heavy bloom, random texture noise",
+      "dna": {
+        "inherits": "cinematic-storybook-25d",
+        "background_design": "clean simplified places with clear readable shapes and uncluttered planes; maps, cutaways and diagrams drawn in the same flat painted style",
+        "lighting": "even, soft, readable light with gentle shadows; nothing dramatic that would hide a detail the viewer must see",
+        "camera_language": "clear, steady, well-framed views with empty space left for labels, captions and graphics; slow, even pans and push-ins",
+        "palette": "warm sand, cream and terracotta with calm blue and teal; one clear accent colour for what the viewer should notice"
+      }
+    },
+    {
       "id": "motion-comic",
       "name": "Motion comics",
       "group": "Hybrid 2D/3D",

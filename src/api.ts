@@ -249,6 +249,7 @@ export const api = {
   acting: <T = unknown>(dir: string, action: "get" | "beats_get" | "beats_set" | "beats_clear" | "beats_estimate" | "beats_write" | "arc_set" | "arc_clear" | "arc_estimate" | "arc_write" | "business_set",
                         data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
+  grading: <T = GradingState>(dir: string, action: GradingAction, data: Record<string, unknown> = {}) => invoke<T>("grading", { dir, action, data }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
   checkUpdate: () => invoke<UpdateInfo>("check_update"),
   setOnboarding: (dir: string, value: Onboarding) => invoke<void>("set_onboarding", { dir, value }),
@@ -408,6 +409,16 @@ export type ProducerPlanView = { stage: "start" | "assets" | "shots" | "built"; 
   approved: string[]; moves: Record<string, PlanMoveView[]>;
   script: { name: string; characters: number; scenes: number; logline: string } | null };
 export type UpdateInfo = { status: "update" | "up_to_date" | "offline" | "unavailable" | "disabled"; current: string; latest: string | null; url: string; notes: string; published: string | null; prerelease: boolean };
+/** Colour Studio (grading.py): a grade is a few named numbers, each inside a range; one grade per scope (film, scene, shot). */
+export type Grade = Partial<Record<"exposure" | "brightness" | "contrast" | "highlights" | "shadows" | "whites" | "blacks" | "saturation" | "vibrance" | "hue" | "temperature" | "tint" | "gamma" | "lift" | "gain", number>>
+  & Partial<Record<"lift_rgb" | "gamma_rgb" | "gain_rgb", number[]>> & { lut?: { id: string; intensity: number }; off?: boolean };
+export type LutInfo = { id: string; name: string; kind: "creative" | "technical"; space_in: string; space_out: string; dims: number; size: number; favorite: boolean };
+export type GradingState = {
+  revision: number; grades: { film: Grade; scenes: Record<string, Grade>; shots: Record<string, Grade> }; luts: LutInfo[]; presets: { name: string; grade: Grade }[];
+  ranges: Record<string, [number, number, number]>; swing: Record<string, { clipped_whites: boolean; crushed_blacks: boolean }>; history: { rev: number; at: number; what: string }[];
+  spaces: string[]; picture_space: string; shots: { id: string; scene: number | null; heading: string }[];
+};
+export type GradingAction = "state" | "set_grade" | "clear_grade" | "lut_import" | "lut_remove" | "lut_favorite" | "preset_save" | "preset_apply" | "preset_delete" | "undo" | "preview";
 export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
   rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[];
   cast: boolean; cast_strength: number; cast_seen: { u: number; v: number; size: number; label: string; noticeable: boolean } | null; cast_fix: { u: number; v: number } | null;

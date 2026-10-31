@@ -295,6 +295,10 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
         own_clip = bool(take and take.get("provider") == "own" and take.get("media_kind") != "image")
         from . import colormatch
         grade = colormatch.filter_for(d, sh["id"]) if sh else ""        # a colour correction for this shot (Colour match), applied here and never to the take itself
+        if sh:                                                          # then the creative grade (Colour Studio: the film's, the scene's, the shot's, and any LUT), on top of the correction
+            from . import grading
+            creative = grading.filter_for(d, sh["id"], sc.get("number") if sc else None)
+            grade = ",".join(x for x in (grade, creative) if x)
         key = _sha1(json.dumps([ENCODING, grade, kind, sh and sh["id"], src, src and os.path.getmtime(src), frames, w, h, tin, tout, tin_s, tout_s, motion, own_clip, drift, parts[-1] if tin not in ("cut", "black", "white") and parts else None,
                                        sh and (sh.get("visual_prompt") or sh.get("beats"))], default=str).encode()).hexdigest()[:12]
         out = os.path.join(work, f"{i:04d}_{key}.mp4")

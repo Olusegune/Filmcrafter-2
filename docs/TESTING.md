@@ -91,6 +91,8 @@ The browser tests drive the **screenshot harness** (`http://localhost:1420/docsh
 | Kind | Engine (`analysis/tests`) | Screen (`src/__tests__`, `e2e`) and shell |
 |---|---|---|
 | **Unit** | `test_picture_size` (sizes, price per size), `test_byteplus` (sizes, prices, request, errors) | `modelpickersize.test.tsx`, `byteplus.test.ts`; `cargo test` (key slot, name, no free pass) |
+| **Component** (jsdom, clicked) | none | `component/colorstudio.dom.test.tsx` (scope, sliders, preview of the unsaved grade, LUT refusal, import and cancel, clipping note, errors), `e2e/color.spec.ts` (the same on the harness, keyboard driven; in the accessibility scan). Engine: `test_grading.py` (each number moves a real exported picture the way its name says, the identity round trip stays within a few levels, a real `.cube` through `lut3d`, the preview frame agrees with the exported film, `.cube` refusals), `test_style_dna.py` |
+| **Component** (jsdom, clicked) | none | `component/performancedirector.dom.test.tsx`
 | **Component** (jsdom, clicked) | none | `component/performancedirector.dom.test.tsx` (draft vs yours, keep/undo/reset, the right path saved per line and per person, directions step up and off, free beat suggestion), `e2e/performance.spec.ts` (the same in a real browser engine on the `acting` and `shotacting` harness scenes; both are also in the accessibility scan) |
 
 | **Component** (jsdom, clicked) | none | `component/keyrows.dom.test.tsx` (the grouped keys: save, Enter, remove, a refused key, never shown in clear) |

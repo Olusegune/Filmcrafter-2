@@ -34,6 +34,7 @@ import { LayerLanes } from "../LayerLanes";
 import { ColourMatchSheet } from "../ColourMatch";
 import { SupervisorSheet } from "../Supervisor";
 import { PerformanceSheet, ShotPerformance } from "../Performance";
+import { ColorStudioSheet } from "../ColorStudio";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
 import { Settings } from "../Settings";
@@ -275,6 +276,7 @@ mockIPC((cmd, a) => {
     case "review_backlog": return { unchecked: 0 };
     case "lipsync_check": return { shots: 0 };
     case "performance_director": return pdCall(x);
+    case "grading": return gdCall(x);
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
     case "list_projects": return [
@@ -427,6 +429,46 @@ const pdScenes = [
 const pdProfiles: Record<string, Record<string, string>> = { Sarah: {}, John: {} };
 const pdNudges: Record<string, number> = {};
 const pdDismissed = new Set<string>();
+
+// Colour Studio's made-up film: grades, LUTs and looks are kept in memory so the sheet can be tried; the preview pictures are two sample stills (the real pictures come from the engine's own filter text)
+type GradeMock = Record<string, unknown>;
+const gdGrades: { film: GradeMock; scenes: Record<string, GradeMock>; shots: Record<string, GradeMock> } = { film: {}, scenes: {}, shots: {} };
+const gdLuts: { id: string; name: string; kind: string; space_in: string; space_out: string; dims: number; size: number; favorite: boolean }[] = [
+  { id: "a1b2c3d4e5f60718", name: "Warm afternoon", kind: "creative", space_in: "rec709", space_out: "rec709", dims: 3, size: 33, favorite: true },
+  { id: "0f1e2d3c4b5a6978", name: "Log to Rec.709", kind: "technical", space_in: "log", space_out: "rec709", dims: 3, size: 33, favorite: false }];
+const gdPresets: { name: string; grade: GradeMock }[] = [];
+const gdHistory: { rev: number; at: number; what: string }[] = [];
+const gdState = () => ({ revision: gdHistory.length, grades: gdGrades, luts: gdLuts, presets: gdPresets, history: gdHistory, spaces: ["rec709", "srgb", "log", "hdr_pq", "hdr_hlg", "dci_p3", "other"], picture_space: "rec709",
+  ranges: { exposure: [-3, 3, 0], brightness: [-1, 1, 0], contrast: [-1, 1, 0], highlights: [-1, 1, 0], shadows: [-1, 1, 0], whites: [-1, 1, 0], blacks: [-1, 1, 0], saturation: [-1, 1, 0], vibrance: [-1, 1, 0], hue: [-180, 180, 0],
+    temperature: [-1, 1, 0], tint: [-1, 1, 0], gamma: [-1, 1, 0], lift: [-1, 1, 0], gain: [-1, 1, 0] },
+  swing: Object.fromEntries([["film", gdGrades.film], ...Object.entries(gdGrades.scenes).map(([k, g]) => [`scene:${k}`, g]), ...Object.entries(gdGrades.shots).map(([k, g]) => [`shot:${k}`, g])]
+    .filter(([, g]) => Object.keys(g as object).length).map(([k, g]) => [k, { clipped_whites: Number((g as GradeMock).exposure ?? 0) > 1.5, crushed_blacks: false }])),
+  shots: [{ id: "S01-01", scene: 1, heading: "INT. KITCHEN - MORNING" }, { id: "S01-02", scene: 1, heading: "INT. KITCHEN - MORNING" }, { id: "S02-01", scene: 2, heading: "EXT. PLATFORM - NIGHT" }] });
+const gdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { scope?: string; key?: string | number; grade?: GradeMock; id?: string; on?: boolean; name?: string; path?: string };
+  const table = () => (d.scope === "scene" ? gdGrades.scenes : gdGrades.shots) as Record<string, GradeMock>;
+  const note = (what: string) => gdHistory.push({ rev: gdHistory.length + 1, at: 0, what });
+  switch (a.action) {
+    case "state": return gdState();
+    case "set_grade": case "clear_grade": {
+      const g = a.action === "clear_grade" ? {} : (d.grade ?? {});
+      const lut = (g as { lut?: { id: string } }).lut;
+      const meta = lut ? gdLuts.find((l) => l.id === lut.id) : undefined;
+      if (meta && meta.space_in !== "rec709") throw new Error(`This LUT expects ${meta.space_in} footage, and FilmCrafter's pictures are Rec.709. It is not applied: using it would change the colours in a way it was not made for.`);
+      if (d.scope === "film") gdGrades.film = g; else if (Object.keys(g).length) table()[String(d.key)] = g; else delete table()[String(d.key)];
+      note(`set the ${d.scope} grade`); return gdState();
+    }
+    case "lut_favorite": { const l = gdLuts.find((x) => x.id === d.id); if (l) l.favorite = !!d.on; return gdState(); }
+    case "lut_remove": { const i = gdLuts.findIndex((x) => x.id === d.id); if (i >= 0) gdLuts.splice(i, 1); return gdState(); }
+    case "lut_import": { gdLuts.push({ id: Math.random().toString(16).slice(2, 18).padEnd(16, "0"), name: "Imported look", kind: "creative", space_in: "rec709", space_out: "rec709", dims: 3, size: 17, favorite: false }); return gdState(); }
+    case "preset_save": { const g = d.scope === "film" ? gdGrades.film : table()[String(d.key)]; if (!g || !Object.keys(g).length) throw new Error("There is nothing set there to save."); gdPresets.push({ name: String(d.name), grade: g }); return gdState(); }
+    case "preset_apply": { const p = gdPresets.find((x) => x.name === d.name); if (p) { if (d.scope === "film") gdGrades.film = p.grade; else table()[String(d.key)] = p.grade; } return gdState(); }
+    case "preset_delete": { const i = gdPresets.findIndex((x) => x.name === d.name); if (i >= 0) gdPresets.splice(i, 1); return gdState(); }
+    case "undo": gdHistory.pop(); return gdState();
+    case "preview": return { before: "s1.png", after: "s3.png" };
+    default: throw new Error("Unknown action.");
+  }
+};
 const NUDGE_DEFS: [string, string, number][] = [["restrained", "More restrained", 2], ["grounded", "Less exaggerated", 1], ["vulnerable", "More vulnerable", 1], ["hesitant", "More hesitant", 1], ["playful", "More playful", 1],
   ["tense", "More tension", 1], ["still_body", "Reduce body movement", 1], ["eyes", "Let the eyes tell the story", 1], ["hold", "Hold the reaction longer", 1]];
 const pdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
@@ -511,6 +553,7 @@ const scenes: Record<string, () => ReactNode> = {
   shots: () => <div style={{ width: "min(1240px, 100vw)", height: 780, display: "flex", background: "#090b0f" }}><ShotLab dir="f1" /></div>,
   cast: () => <div style={{ width: "min(1200px, 100vw)", height: Number(q.get("h")) || 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
+  color: () => <ColorStudioSheet dir={DIR} onClose={noop} />,
   shotacting: () => <aside className="inspector" style={{ width: 380, padding: 14 }} aria-label="Inspector"><ShotPerformance dir={DIR} shotId="S01-02" onChanged={noop} /></aside>,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,

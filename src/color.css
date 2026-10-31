@@ -1,0 +1,43 @@
+.sheet.cs-sheet { width: min(1120px, calc(100vw - 32px)); max-width: none; max-height: 90vh; overflow-y: auto; }
+.cs-grid { display: grid; grid-template-columns: 200px 1fr; gap: 18px; align-items: start; }
+.cs-scope { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 0; max-height: 70vh; overflow-y: auto; }
+.cs-scope > button, .cs-shots > button { text-align: left; padding: 7px 10px; background: transparent; border: 1px solid transparent; border-radius: 3px; color: var(--text, inherit); cursor: pointer; font-size: 12.5px; }
+.cs-scope > button:hover, .cs-shots > button:hover { background: rgba(255,255,255,.05); }
+.cs-scope .on { background: rgba(120,160,255,.14); border-color: rgba(120,160,255,.35); }
+.cs-shots { margin-top: 8px; font-size: 12.5px; }
+.cs-shots summary { cursor: pointer; padding: 6px 10px; color: var(--text-quiet, #8f99a8); }
+.cs-shots > button { display: block; width: 100%; }
+.cs-main { min-width: 0; }
+.cs-preview { margin-bottom: 14px; min-height: 300px; }
+.cs-view { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.cs-view button { padding: 5px 10px; background: transparent; border: 1px solid var(--line); border-radius: 3px; color: inherit; cursor: pointer; font-size: 12px; }
+.cs-view button.on { background: rgba(120,160,255,.16); border-color: rgba(120,160,255,.45); }
+.cs-look { margin-left: auto; font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.cs-frames { display: grid; gap: 8px; }
+.cs-frames.split { grid-template-columns: 1fr 1fr; }
+.cs-frames figure { margin: 0; }
+.cs-ph { min-height: 150px; display: flex; align-items: center; }
+.cs-frames img { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; display: block; border: 1px solid var(--line); border-radius: 2px; background: #000; }
+.cs-frames figcaption { font-size: 11.5px; color: var(--text-quiet, #8f99a8); padding-top: 3px; }
+.cs-sliders { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.cs-sliders fieldset { border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px 10px; margin: 0; min-width: 0; }
+.cs-sliders legend { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 0 4px; color: var(--text-quiet, #8f99a8); }
+.cs-rgb { grid-column: 1 / -1; }
+.cs-rgb summary { cursor: pointer; font-size: 12.5px; padding: 4px 0; }
+.cs-rgb[open] { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.cs-rgb[open] summary { grid-column: 1 / -1; }
+.cs-row { display: grid; grid-template-columns: 78px minmax(70px, 1fr) 40px; align-items: center; gap: 6px; font-size: 12px; margin-top: 4px; }
+.cs-row input[type=range] { width: 100%; min-width: 0; }
+.cs-row output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-quiet, #8f99a8); }
+.cs-row output.on { color: inherit; font-weight: 600; }
+.cs-lut, .cs-mine { margin-top: 16px; }
+.cs-lutrow { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-bottom: 6px; }
+.cs-lutrow label, .cs-q { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.cs-lut select, .cs-mine input, .cs-q input, .cs-look select { min-width: 160px; }
+.cs-lib ul, .cs-mine ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.cs-lib li, .cs-mine li { display: flex; gap: 8px; align-items: center; padding: 4px 0; border-top: 1px solid var(--line); font-size: 12.5px; }
+.cs-lib li > span:first-child, .cs-mine li > span:first-child { flex: 1; min-width: 0; }
+.cs-warn { color: #e6b450; font-size: 12.5px; margin: 10px 0 0; }
+.cs-actions { margin-top: 14px; flex-wrap: wrap; }
+.cs-sp { flex: 1; }
+@media (max-width: 860px) { .cs-grid { grid-template-columns: 1fr; } .cs-scope { position: static; max-height: none; flex-direction: row; flex-wrap: wrap; } .cs-sliders, .cs-rgb[open] { grid-template-columns: 1fr; } .cs-frames.split { grid-template-columns: 1fr; } }

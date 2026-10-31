@@ -103,6 +103,9 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 ## Performance Director screens (2026-10-30)
 Checked on the harness, no provider: 16 jsdom component tests, 3 browser tests, and the axe scan over the two new scenes (no violations). Visual fixes found by looking: oversized text boxes made the Scenes tab long, and the beat editor ran too tall (details are now folded behind a summary line). Not checked: the sheets in the installed desktop app, or with a real film's breakdown.
 
+## Color Studio and Storybook looks (2026-10-31)
+Checked with real ffmpeg on small pictures and a small exported film: each grade number moves the exported picture the way its name says; a natural picture goes to RGB and back within 4 levels (a pure-colour test chart clips by design, because colours outside the RGB range cannot be kept); a real `.cube` is applied through `lut3d` with Windows paths; the preview frame agrees with the exported film within 6 levels; a missing LUT stops the export with a plain message. Not checked: the installed app's own ffmpeg (checked on the development machine only), HDR or log footage (refused by design), a long film's render time, and the Storybook looks with a real image or video model (the wording is tested, the pictures are not).
+
 ## Performance Director steps three to five and the old-code removal (2026-10-30)
 Checked: new engine tests (kinds, prompt wording, honest model labels, delivery hint, arc flags, the allow-lists), 19 component tests, 4 browser tests and the accessibility scan; the full Python suite (2211 passed after the removal), vitest, clippy, cargo test and all browser tests passed after removing the song-first code. Not checked: a real provider run (acting quality is labelled *unverified* on purpose), the installed app on a real film.
 

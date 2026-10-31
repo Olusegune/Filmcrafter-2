@@ -100,6 +100,9 @@ Open **Acting** from the Studio's left rail (under *More*). **Scenes** shows a d
 
 On the **People** tab, *What kind of character* tells the Director when someone is not a person (an animal, a robot, a creature, a cartoon): their feeling is then described through ears, posture, pauses or simple shape changes rather than a human face. Under **Style & arcs**, *Emotional arc* also lists places worth a look (a sudden swing, a stall, a long stretch at full strength); press **Dismiss** on any you disagree with. Looking never changes anything.
 
+### Color Studio
+Open **Color** from the Studio's left rail (under *More*). Choose where the grade goes: the whole film, a scene, or one shot (the film's grade is put on first, then the scene's, then the shot's). Move the sliders (double-click one to put it back to zero) and watch the before and after frame; press **Save grade** when you like it. A grade is added when the film is put together; your takes are never changed, and **Undo last save** puts the previous grade back. **Import a LUT** takes a `.cube` file; each LUT says whether it is creative or technical and which colour space it expects. FilmCrafter's pictures are Rec.709, so a LUT made for log or HDR footage is not applied (it tells you so). Save a grade you like under **My looks** and put it on another scope in one press.
+
 ## Shots
 
 Open **Shots** along the top and press **Break down the story**. FilmCrafter drafts the shots for every scene, like a director's first pass: a wide to open the scene, coverage for each exchange of dialogue, an insert for a detail that matters. It is a starting point: change anything.
@@ -367,6 +370,13 @@ Every look the app offers, by kind of film. Pick the kind, then the look, in **C
 | Look | What it is |
 |---|---|
 | **2.5D animation** | Flat artwork arranged in layers in 3D space: depth with an illustrated look. |
+| **Cinematic Storybook 2.5D** | Illustrated storybook frames with layered depth: tall stylised figures, matte painted shapes, graphic shadows and warm light shafts. |
+| **Storybook: historical** | The storybook look for the ancient and historical world: mud-brick towns, rivers, temples. A visual interpretation, not a reconstruction. |
+| **Storybook: epic illustration** | The storybook look at epic scale: robed figures, vast desert and sky, dramatic light. A visual interpretation, not a reconstruction. |
+| **Storybook: modern urban** | The storybook look in a present-day city: contemporary clothes and streets, the same figures and matte painted shapes. |
+| **Storybook: folktale illustration** | The storybook look for village and folk tales: compounds, open land, woven and patterned cloth, told as an illustrated story. |
+| **Storybook: fantasy** | The storybook look for invented lands: towers, floating lights, simplified creatures, twilight colour. |
+| **Storybook: educational documentary** | The storybook look for explainers: clear staging, calm light, room left for labels, maps and graphics. |
 | **Motion comics** | Comic panels brought to life with camera moves, layered depth and limited character movement. |
 | **Mixed media** | Combines methods, such as 3D characters in painted 2D backgrounds, or collage. |
 | **Comic-book hybrid 3D** | 3D characters with comic outlines, halftone textures and illustrated effects. |

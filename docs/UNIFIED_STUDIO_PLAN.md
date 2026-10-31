@@ -81,6 +81,8 @@ Principle: **one new versioned model beside the existing stores; the existing st
 - **M6 Advanced VFX, prompt-to-motion**: segmentation, tracking, rotoscoping need a library and real footage; prompt-to-motion builds editable layers from the existing primitives and never returns a flattened video when layers can do it.
 - **Preset engine** (the addendum): after M1 and M2 there is something real to configure. First slice: a preset is a named bundle of existing settings (look, acting profile, grade, delivery) applied through the same scope rules, never over a locked or approved choice. The series workflow (micro-drama) is a separate project with its own plan.
 
+**Status (2026-10-31).** Milestone 1 built: `grading.py` and the Color sheet (basic corrections, `.cube` LUTs with colour-space labels, scopes film/scene/shot, saved looks, undo, preview agreeing with the export, clipping note), and Style DNA with the Cinematic Storybook 2.5D looks (`style_dna.py`, written from the owner's own references; the reference pictures are not shipped). Not in M1, as planned: scopes, curves, qualifiers, masks, clip-level grades, proxies, keyframed grades, reference import. The installed app's ffmpeg is still to be checked.
+
 ## 6. Risks
 
 | Risk | Why it matters | Answer |
