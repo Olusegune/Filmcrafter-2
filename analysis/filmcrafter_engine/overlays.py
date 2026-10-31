@@ -310,17 +310,42 @@ def render_image(d: str, o: dict, W: int, H: int):
     return _with_shadow(im) if o.get("shadow", True) else im
 
 
+def apply_effects(im, o: dict, H: int):
+    """A soft glow behind the layer and/or a blur of the layer, drawn into its own transparent picture (so it needs nothing from the video filter graph). Both are numbers from 0 to 1."""
+    from PIL import Image, ImageFilter
+    blur, glow = float(o.get("blur") or 0.0), float(o.get("glow") or 0.0)
+    if blur > 0:
+        im = im.filter(ImageFilter.GaussianBlur(max(1, round(H * 0.03 * min(1.0, blur)))))
+    if glow > 0:
+        g = min(1.0, glow)
+        r = max(2, round(H * 0.025 * (0.4 + g)))
+        pad = r * 3
+        canvas = Image.new("RGBA", (im.width + 2 * pad, im.height + 2 * pad), (0, 0, 0, 0))
+        alpha = Image.new("L", canvas.size, 0)
+        alpha.paste(im.split()[3], (pad, pad))
+        halo = alpha.filter(ImageFilter.GaussianBlur(r)).point(lambda v: min(255, round(v * (0.6 + 1.4 * g))))
+        glow_im = Image.new("RGBA", canvas.size, _hex(o.get("glow_color"), "#ffffff") + (0,))
+        glow_im.putalpha(halo)
+        canvas.alpha_composite(glow_im)
+        canvas.alpha_composite(im, (pad, pad))
+        im = canvas
+    return im
+
+
 def render_png(d: str, o: dict, W: int, H: int) -> tuple[str, tuple[int, int]]:
     """The overlay's picture on disk (cached by what it is made from) and its size."""
     from . import fonts
     key = _sha1(json.dumps([o.get("kind"), o.get("text"), o.get("file"), o.get("size"), o.get("width"), o.get("color"), o.get("color2"), bool(o.get("cover")), W, H,
                                    [o.get(k) for k in ("shape", "icon", "height", "stroke", "stroke_w", "opacity", "rotation", "radius", "filled", "scale", "angle", "gradient", "shadow")],
-                                   fonts.signature(d, o.get("font")) if o.get("kind", "text") == "text" else ""],
+                                   fonts.signature(d, o.get("font")) if o.get("kind", "text") == "text" else "",
+                                   *(["fx", o.get("glow") or 0, o.get("glow_color") if o.get("glow") else None, o.get("blur") or 0] if (o.get("glow") or o.get("blur")) else [])],         # effects join the key only when there are some, so a layer without them keeps its picture
                                   sort_keys=True).encode()).hexdigest()[:14]
     out = os.path.join(d, "cache", "overlays", f"{key}.png")
     if not os.path.exists(out):
         os.makedirs(os.path.dirname(out), exist_ok=True)
         im = render_image(d, o, W, H)
+        if (o.get("glow") or o.get("blur")) and o.get("kind") != "fill" and not o.get("cover"):
+            im = apply_effects(im, o, H)
         im.save(out + ".part.png")
         os.replace(out + ".part.png", out)
         return out, im.size
@@ -724,6 +749,15 @@ def _clean(d: str, x: dict, cur: dict | None = None) -> dict:
         if x.get("icon", o.get("icon", "star")) not in shapes.ICONS:
             raise SystemExit("Choose one of the icons in the list.")
         o["icon"] = x.get("icon", o.get("icon", "star"))
+    for k in ("glow", "blur"):
+        if k in x:
+            v = min(1.0, max(0.0, _f(x[k], k)))
+            if v:
+                o[k] = v
+            else:
+                o.pop(k, None)
+    if x.get("glow_color"):
+        o["glow_color"] = "#%02x%02x%02x" % _hex(str(x["glow_color"]))
     for k, lo, hi in (("height", 0.002, 1.0), ("stroke_w", 0.0, 0.05), ("opacity", 0.05, 1.0), ("rotation", -180.0, 180.0), ("radius", 0.0, 0.5), ("scale", 0.1, 5.0), ("angle", 0.0, 360.0)):
         if k in x:
             o[k] = min(hi, max(lo, _f(x[k], k)))

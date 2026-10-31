@@ -37,6 +37,7 @@ import { PerformanceSheet, ShotPerformance } from "../Performance";
 import { ColorStudioSheet } from "../ColorStudio";
 import { SmartEditorSheet } from "../SmartEditor";
 import { PresetsSheet } from "../PresetLibrary";
+import { MotionGraphicsSheet } from "../MotionGraphics";
 import presetsBuiltin from "../../analysis/filmcrafter_engine/presets_builtin.json";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
@@ -283,6 +284,7 @@ mockIPC((cmd, a) => {
     case "editing": return cutCall(x);
     case "smart_editor": return smartCall(x);
     case "presets": return presetCall(x);
+    case "layer_kit": return layerKitCall(x);
     case "series": return seriesCall(x);
     case "proxies": return { rows: [], big: 2, ready: x.action === "build" ? 2 : 0, bytes: 0, ...(x.action === "build" ? { made: 2 } : {}), ...(x.action === "clear" ? { removed: 2 } : {}) };
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
@@ -591,6 +593,27 @@ const seriesCall = (a: { action?: string; data?: Record<string, unknown> }): unk
     default: throw new Error("That is not in the screenshot harness.");
   }
 };
+// The motion graphics' made-up backend: the eight built-in templates by name (the sheet draws previews from sample pictures here; the engine draws the real ones from your words)
+const MG = [["lower_third", "Lower third", "A name and a role at the bottom of the picture, for whoever has just appeared.", 4.5, 4, [["name", "Name", "Sarah Okafor"], ["role", "Role or place", "Head nurse"]]],
+  ["title_card", "Title card", "The film's title over a dark tint, with a line underneath.", 6, 3, [["title", "Title", "The Last Train"], ["line", "Line under it", "A short film"]]],
+  ["chapter_title", "Chapter title", "A small label and a chapter name, typed in.", 5, 3, [["label", "Label", "CHAPTER ONE"], ["title", "Chapter name", "The Name on the Chart"]]],
+  ["location_tag", "Place and time", "Where and when, small and typed, in the corner.", 4, 1, [["place", "Place and time", "ST. MARY'S HOSPITAL, 3:12 AM"]]],
+  ["callout", "Callout", "Point at something: a label in a box with an arrow.", 4, 3, [["text", "Label", "Look here"]]],
+  ["quote", "Quote", "A line someone said, with who said it.", 6, 3, [["quote", "The words", "I am fine."], ["who", "Said by", "Sarah"]]],
+  ["big_number", "Big number", "One number that matters, with what it means.", 5, 2, [["number", "Number", "86%"], ["what", "What it is", "of patients never learn the name"]]],
+  ["end_card", "End card", "The end, with a closing line.", 6, 3, [["end", "Words", "The End"], ["line", "Closing line", "Thank you for watching"]]]] as const;
+let mgGroups = 0;
+const layerKitCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { id?: string; group?: string };
+  switch (a.action) {
+    case "builtin_list": return { templates: MG.map(([id, name, use, seconds, layers, slots]) => ({ id, name, use, seconds, layers, slots: slots.map(([sid, label, def]) => ({ id: sid, label, default: def })) })) };
+    case "builtin_preview": { const i = MG.findIndex((m) => m[0] === d.id); if (i < 0) throw new Error("That motion graphic is not one of the built-in ones."); return { path: `s${(i % 6) + 1}.png`, id: d.id }; }
+    case "builtin_apply": { const m = MG.find((x) => x[0] === d.id); if (!m) throw new Error("That motion graphic is not one of the built-in ones."); mgGroups += 1; return { made: m[4], group: `tpl:${String(d.id).replace(/_/g, "")}:${mgGroups}`, layers: [], seconds: m[3] }; }
+    case "template_remove": return { removed: 4, layers: [] };
+    case "templates": return { templates: [] };
+    default: return { styles: [] };
+  }
+};
 const gdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
   const d = (a.data ?? {}) as { scope?: string; key?: string | number; grade?: GradeMock; id?: string; on?: boolean; name?: string; path?: string };
   const table = () => (d.scope === "scene" ? gdGrades.scenes : gdGrades.shots) as Record<string, GradeMock>;
@@ -704,6 +727,7 @@ const scenes: Record<string, () => ReactNode> = {
   color: () => <ColorStudioSheet dir={DIR} onClose={noop} />,
   smarteditor: () => <SmartEditorSheet dir={DIR} onClose={noop} />,
   presets: () => <PresetsSheet dir={DIR} onClose={noop} />,
+  motion: () => <MotionGraphicsSheet dir={DIR} time={12.34} onClose={noop} />,
   shotacting: () => <aside className="inspector" style={{ width: 380, padding: 14 }} aria-label="Inspector"><ShotPerformance dir={DIR} shotId="S01-02" onChanged={noop} /></aside>,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,

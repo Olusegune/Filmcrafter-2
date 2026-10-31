@@ -29,7 +29,7 @@ MAX_TEMPLATES, MAX_TEMPLATE_LAYERS = 50, 60
 MAX_STYLES = 100
 GROUP = "lyrics:kinetic"
 # what a style keeps; the first block means the same on any kind of layer, the second only on the same kind (a text size is not a picture width)
-LOOK = ("color", "color2", "gradient", "angle", "stroke", "stroke_w", "shadow", "scale", "rotation", "opacity", "fade", "anim", "font", "keys")
+LOOK = ("color", "color2", "gradient", "angle", "stroke", "stroke_w", "shadow", "scale", "rotation", "opacity", "fade", "anim", "font", "keys", "glow", "glow_color", "blur")
 SAME_KIND = ("size", "width", "height", "radius", "filled", "shape", "icon")
 MOVES = ("fade", "rise", "drop", "slide_left", "slide_right", "zoom_in", "zoom_out", "pushin", "wipe", "typewriter", "bounce", "pop", "pulse", "accent")
 Y = {"top": 0.14, "middle": 0.5, "bottom": 0.86}
@@ -192,6 +192,11 @@ def template_apply(d: str, name, at) -> dict:
     tpl = next((t for t in _templates() if t["name"].lower() == n), None)
     if not tpl:
         raise SystemExit("That template isn't saved.")
+    return put_template(d, tpl, at)
+
+
+def put_template(d: str, tpl: dict, at) -> dict:
+    """The layers of a template (yours, or a built-in one with its words filled in) put down from `at` seconds, as ordinary layers in a group of their own."""
     try:
         start = max(0.0, float(at))
     except (TypeError, ValueError):
@@ -297,7 +302,7 @@ def lyrics_remove(d: str) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-layerkit")
-    ap.add_argument("action", choices=["styles", "save", "apply", "delete_style", "lyrics", "lyrics_remove", "templates", "template_save", "template_apply", "template_delete", "template_remove"])
+    ap.add_argument("action", choices=["styles", "save", "apply", "delete_style", "lyrics", "lyrics_remove", "templates", "template_save", "template_apply", "template_delete", "template_remove", "builtin_list", "builtin_preview", "builtin_apply"])
     ap.add_argument("project")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -321,6 +326,15 @@ def main(argv: list[str]) -> int:
             res = template_delete(x.get("name"))
         elif a.action == "template_remove":
             res = template_remove_group(a.project, x.get("group"))
+        elif a.action == "builtin_list":
+            from . import motion_templates
+            res = motion_templates.list_builtin()
+        elif a.action == "builtin_preview":
+            from . import motion_templates
+            res = motion_templates.preview(a.project, str(x.get("id", "")), x.get("texts"))
+        elif a.action == "builtin_apply":
+            from . import motion_templates
+            res = motion_templates.apply_builtin(a.project, str(x.get("id", "")), x.get("at"), x.get("texts"))
         elif a.action == "lyrics":
             res = lyrics_layers(a.project, x)
         else:

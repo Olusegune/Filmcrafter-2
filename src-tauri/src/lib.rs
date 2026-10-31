@@ -1807,7 +1807,7 @@ async fn shot_sound(app: AppHandle, dir: String, action: String, data: Value) ->
 /// the user's own app folder, lyric layers are on-screen text settings drawn at export.
 #[tauri::command]
 async fn layer_kit(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 11] = ["styles", "save", "apply", "delete_style", "lyrics", "lyrics_remove", "templates", "template_save", "template_apply", "template_delete", "template_remove"];
+    const ACTIONS: [&str; 14] = ["styles", "save", "apply", "delete_style", "lyrics", "lyrics_remove", "templates", "template_save", "template_apply", "template_delete", "template_remove", "builtin_list", "builtin_preview", "builtin_apply"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }

@@ -85,6 +85,8 @@ Principle: **one new versioned model beside the existing stores; the existing st
 
 **Status (2026-11-03).** Milestone 2 is built (the cut, its operations and undo, the export, the cut lane, the studio following the cut, preview copies, damaged-record safety; see UNIFIED_STUDIO_M2_PLAN.md). Milestone 3 has its first operations: the Smart Editor (two explainable rules, three of ten editing styles, previews, accept and reject, plain requests). Not built: more rules and styles, continuity and transition suggestions, motion graphics (M4), compositing (M5), advanced VFX and prompt-to-motion (M6), the preset engine.
 
+**Status (2026-11-04).** Milestone 4 has its first slice: eight built-in motion graphics (lower third, title card, chapter title, place and time, callout, quote, big number, end card) that become ordinary grouped layers, and glow and blur effects on layers (`motion_templates.py`, `overlays.py`, `MotionGraphics.tsx`). Not built: blend modes, masks, parent and child layers, motion paths, keyframe curves beyond the existing animations, and prompt-to-motion.
+
 ## 6. Risks
 
 | Risk | Why it matters | Answer |
