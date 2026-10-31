@@ -40,7 +40,8 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { PreviewSheet } from "./PreviewSheet";
 import { ColourMatchSheet } from "./ColourMatch";
 import { ColorStudioSheet } from "./ColorStudio";
-import { CUT_H, CutLane, useCut, type CutKey } from "./CutLane";
+import { CUT_H, CutLane, useCut, type CutKey, type CutState } from "./CutLane";
+import { applyCut } from "./cutMath";
 import { beatGrid } from "./overlayMotion";
 import { UpgradePanel } from "./Upgrade";
 import { DirectionLibrarySheet } from "./DirectionLibrary";
@@ -68,7 +69,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const map = project.song_map;
   const plan: Plan | null = project.directed ?? project.production;
   const scenes = plan?.scenes ?? [];
-  const shots = useMemo(() => scenes.flatMap((s) => s.shots), [scenes]);
+  const planShots = useMemo(() => scenes.flatMap((s) => s.shots), [scenes]);
   // The project's shape and quality, kept live so every panel (and the preview boxes) follow a change the moment it is made.
   const [frame, setFrame] = useState({ aspect_ratio: project.project.aspect_ratio ?? "16:9", quality: project.project.quality ?? "standard" });
   useEffect(() => { setFrame({ aspect_ratio: project.project.aspect_ratio ?? "16:9", quality: project.project.quality ?? "standard" }); }, [project.dir]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -84,6 +85,8 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const timeRef = useRef(0);
   const [time, setTime] = useState(0);
   timeRef.current = time;
+  const cutState = useCut(project.dir, !!(project.project as { film?: boolean }).film && !!plan, time);         // the film's own cut: where each shot really sits once it has been edited
+  const shots = useMemo(() => applyCut(planShots, cutState.cut), [planShots, cutState.cut]);                       // a film that was never edited reads as the plan, exactly as before
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(() => { try { const v = Number(localStorage.getItem("pf-volume")); return Number.isFinite(v) && localStorage.getItem("pf-volume") !== null ? v : 0.9; } catch { return 0.9; } });
   const [muted, setMuted] = useState(false);
@@ -289,6 +292,9 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [mediaMenu, setMediaMenu] = useState(false);
   const stillable = (board?.shots ?? []).filter((b) => b.keyframe && !b.preview && !b.locked).length;
   const boardShot = useMemo(() => new Map((board?.shots ?? []).map((b) => [b.id, b])), [board]);
+  const cutLane = !!(project.project as { film?: boolean }).film && tlEdit && !tlCompact && timelineOpen;          // the cut lane is on screen, so the cut's keys are live
+  const cutBoard = useMemo(() => applyCut(board?.shots ?? [], cutState.cut), [board, cutState.cut]);                 // the shot cards, transitions and the rest of the timeline sit where the cut puts each shot
+  const cutBoardOrigin = useMemo(() => applyCut(board?.shots ?? [], cutState.cut, true), [board, cutState.cut]);      // voices and planned sound sit where each shot's own time starts
 
   const queue = useQueue(jobs);
   const prevActive = useRef(0), batchSince = useRef(0);
@@ -426,15 +432,15 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
         case "timeline": setTimelineOpen((v) => !v); break;
         case "timeline_compact": if (timelineOpen) setTlCompact((v) => !v); break;
         case "palette": setPaletteOpen((v) => !v); break;
-        case "undo": case "redo": case "redo_y": if (layersOpen) window.dispatchEvent(new CustomEvent("pf-layers-history", { detail: hit.id === "undo" ? "undo" : "redo" })); else window.dispatchEvent(new CustomEvent<CutKey>("pf-cut-key", { detail: hit.id === "undo" ? "undo" : "redo" })); break;      // the cut (and the grades, which share its history) when the layers are not the thing being edited
+        case "undo": case "redo": case "redo_y": if (layersOpen) window.dispatchEvent(new CustomEvent("pf-layers-history", { detail: hit.id === "undo" ? "undo" : "redo" })); else if (cutLane) window.dispatchEvent(new CustomEvent<CutKey>("pf-cut-key", { detail: hit.id === "undo" ? "undo" : "redo" })); break;      // the cut (and the grades, which share its history) when the layers are not the thing being edited
         case "cut_split": case "cut_delete": case "cut_ripple_delete": case "cut_trim_in": case "cut_trim_out": case "cut_marker":
-          window.dispatchEvent(new CustomEvent<CutKey>("pf-cut-key", { detail: hit.id.slice(4) as CutKey })); break;
+          if (cutLane) window.dispatchEvent(new CustomEvent<CutKey>("pf-cut-key", { detail: hit.id.slice(4) as CutKey })); break;
         case "shot_sound": if (cur) toggleShotSound(project.dir, cur.id).then((m) => { say(m); window.dispatchEvent(new Event("pf-media-changed")); }).catch((err) => say(errorText(err))); break;
       }
     };
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
-  }, [toggle, seek, time, focus, setFocusMode, shots, map, plan, layersOpen, layerSel]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [toggle, seek, time, focus, setFocusMode, shots, map, plan, layersOpen, layerSel, cutLane]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = shots.find((s) => time >= s.start && time < s.end) ?? null;
   const shown = sel?.kind === "shot" ? shots.find((s) => s.id === sel.id) ?? current : current;
@@ -578,7 +584,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
               <StillPreview src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.preview}`)} motion={boardShot.get(shown.id)!.preview_motion} drift={boardShot.get(shown.id)!.preview_drift} playing={playing}
                             duration={shown.end - shown.start} offset={time - shown.start} /> :
              shown && boardShot.get(shown.id)?.preview && /\.(mp4|mov|webm|m4v)$/i.test(boardShot.get(shown.id)!.preview!) ?
-              <Clip src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.preview}`)} offset={time - shown.start} playing={playing} /> :
+              <Clip src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.preview}`)} offset={time - shown.start + ((shown as { src_in?: number }).src_in ?? 0)} playing={playing} /> :
               shown && boardShot.get(shown.id)?.keyframe ? <img className="clip" alt="" src={api.mediaUrl(`${project.dir}/${boardShot.get(shown.id)!.keyframe}`)} /> : null}
             {shown ? <Storyboard shot={shown} scene={scenes.find((s) => s.number === shown.scene)} job={latest.get(shown.id)}
                                  hidden={!!boardShot.get(shown.id)?.preview || !!boardShot.get(shown.id)?.keyframe} /> :
@@ -658,7 +664,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
       </aside>
 
       {!timelineOpen && <button className="tl-restore" onClick={() => setTimelineOpen(true)} aria-label="Show the timeline" title="Show the timeline (Ctrl+J)"><I.PanelBottom size={14} /> Show the timeline <span className="dim num">{fmtTime(time)}{map ? ` / ${fmtTime(map.duration)}` : ""}</span></button>}
-      {timelineOpen && <Timeline key={project.dir} edit={tlEdit} onEdit={setTlEdit} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={board?.shots ?? []} thumbs={thumbs} want={want}
+      {timelineOpen && <Timeline key={project.dir} edit={tlEdit} onEdit={setTlEdit} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={cutBoard} boardOrigin={cutBoardOrigin} cut={cutState} thumbs={thumbs} want={want}
                 layerSel={layerSel} onLayerSelect={(id) => { setLayerSel(id); if (id) setLayersOpen(true); }} onBoardChanged={reloadBoard}
                 onOpen={(id) => setViewing(id)}
                 onSeek={seek} onSelect={(s) => { setSel(s); if (s?.kind === "shot") { const sh = shots.find((x) => x.id === s.id); if (sh) seek(sh.start); } }} />}
@@ -1057,9 +1063,10 @@ const CARD_MIN = 96;
 const TL_MIN_SAVED = 300;                                   // an older, shorter saved height gave pictures too small to read, so it is not kept
 const defaultTimelineHeight = () => Math.max(340, Math.min(480, Math.round(window.innerHeight * 0.42)));
 
-function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, sel, flagged, dir, board, thumbs, want, layerSel, onLayerSelect, onBoardChanged, onSeek, onSelect, onOpen }: {
+function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, sel, flagged, dir, board, boardOrigin, cut: cutState, thumbs, want, layerSel, onLayerSelect, onBoardChanged, onSeek, onSelect, onOpen }: {
   edit: boolean; onEdit: (v: boolean) => void; compact: boolean; onCompact: () => void;
   map: SongMap | null; time: number; sel: Selection; flagged: number; dir: string; board: BoardShot[];
+  boardOrigin: BoardShot[]; cut: CutState;
   thumbs: Record<string, string | null>; want: (srcs: string[]) => void;
   layerSel: string | null; onLayerSelect: (id: string | null) => void; onBoardChanged: () => void;
   onSeek: (t: number) => void; onSelect: (s: Selection) => void; onOpen: (id: string) => void;
@@ -1069,7 +1076,6 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
   const { byShot: voiceByShot, st: voiceSt } = useVoiceStatus(voiceFilm);          // a film's recorded voices, shown on the shots
   const cueData = useCues(edit ? voiceFilm : null);                                 // the film's planned sound, shown under the voices in Edit mode
   const cutOn = edit && !compact && !!voiceFilm;                                    // the cut lane: the film's own cut, edited here (Edit mode of a film)
-  const cutState = useCut(dir, cutOn, time);
   const [freeLayers, setFreeLayers] = useState<{ start: number }[]>([]);                // layers sit on the film's clock, so the cut says when one now starts after its end
   useEffect(() => {
     if (!cutOn) return;
@@ -1134,7 +1140,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
     };
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
-  const inner = Math.max(width, dur * pps);
+  const inner = Math.max(width, dur * pps, (cutState.cut?.sequence.length_s ?? 0) * pps);                    // a cut made longer than the soundtrack can still be reached
   const x = (t: number) => t * pps;
   const addLayer = async (data: Record<string, unknown>) => {
     setAddMenu(false); setAddErr("");
@@ -1256,8 +1262,8 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
                         thumbs={thumbs} want={want} onOpen={onOpen} onSelect={(id) => onSelect({ kind: "shot", id })} />
           </div>
           <TransitionHandles dir={dir} shots={board} pps={pps} top={transTop} onChanged={onBoardChanged} />
-          {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={board} pps={pps} top={voiceTop} view={[left, left + width]} rows={voiceRows} open={voicesOpen} onToggle={() => setVoicesOpen(!voicesOpen)} />}
-          {cueKinds.length > 0 && voiceFilm && cueData.list && <CueLanes dir={voiceFilm} list={cueData.list} mix={cueData.mix} shots={board} pps={pps} top={voiceTop + voiceH} view={[left, left + width]} onChanged={cueData.reload} />}
+          {voiceN > 0 && voiceFilm && <VoiceLanes dir={voiceFilm} st={voiceSt} shots={boardOrigin} pps={pps} top={voiceTop} view={[left, left + width]} rows={voiceRows} open={voicesOpen} onToggle={() => setVoicesOpen(!voicesOpen)} />}
+          {cueKinds.length > 0 && voiceFilm && cueData.list && <CueLanes dir={voiceFilm} list={cueData.list} mix={cueData.mix} shots={boardOrigin} pps={pps} top={voiceTop + voiceH} view={[left, left + width]} onChanged={cueData.reload} />}
           {edit && <LayerLanes dir={dir} pps={pps} duration={dur} selected={layerSel} onSelect={onLayerSelect} top={laneTop} onCount={setLaneN} time={time} onSeek={onSeek}
                       snap={snapPoints({ downbeats: map.downbeats, lyrics: map.lyrics, shots: board, playhead: time })} />}
           <div className="playhead" style={{ left: x(time) }} />

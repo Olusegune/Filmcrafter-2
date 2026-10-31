@@ -135,7 +135,7 @@ export function CutLane({ s, pps, top, time, width, onSeek, free }: { s: CutStat
           </div>
         </details>
         {cut.unplaced.length > 0 && <button type="button" className="btn small" onClick={() => void s.run("place_missing")} disabled={s.busy} title="Put every shot that has no clip on the end of the film">Place {cut.unplaced.length === 1 ? "it" : "them"}</button>}
-        <span className="tl-cutinfo dim">{edited ? "Edited (Preview plays the cut)" : "As planned"} · {clockTime(cut.sequence.length_s)}{s.ripple ? " · ripple" : ""}</span>
+        <span className="tl-cutinfo dim">{edited ? "Edited" : "As planned"} · {clockTime(cut.sequence.length_s)}{s.ripple ? " · ripple" : ""}</span>
         {s.err && <span className="tl-cuterr" role="alert">{s.err}</span>}
         {!s.err && notes.length > 0 && <span className="tl-cutnote" role="status">{notes[0]}{notes.length > 1 ? ` (+${notes.length - 1} more)` : ""}</span>}
       </div>

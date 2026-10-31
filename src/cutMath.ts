@@ -37,6 +37,25 @@ export function cutNotes(cut: Cut, free: { start: number }[] = []): string[] {
   return out;
 }
 
+/**
+ * The film's shots as the cut has them: each shot sits where its clips are (first clip's start to last clip's end), a shot with no clip is left out (it is not in the film), and `src_in` is how far into
+ * its take the first clip starts, so the player can show the right moment. With `origin`, a shot starts where ITS OWN time zero falls on the film (a trimmed head still counts), which is where voices and
+ * planned sound cues are placed. A film that was never edited (or no cut yet) gives the shots back as they are.
+ */
+export function applyCut<T extends { id: string; start: number; end: number }>(items: T[], cut: Cut | null, origin = false): (T & { src_in?: number })[] {
+  if (!cut || !cut.stored) return items;
+  const by = new Map<string, CutClip[]>();
+  for (const t of cut.sequence.tracks) if (!t.hidden) for (const c of t.clips) by.set(c.shot, [...(by.get(c.shot) ?? []), c]);
+  const out: (T & { src_in?: number })[] = [];
+  for (const it of items) {
+    const cs = (by.get(it.id) ?? []).sort((a, b) => a.start - b.start);
+    if (!cs.length) continue;
+    const first = cs[0], last = cs[cs.length - 1];
+    out.push({ ...it, start: origin ? Math.min(...cs.map((c) => c.start_s - c.source_in_s)) : first.start_s, end: last.start_s + last.duration_s, src_in: first.source_in_s });
+  }
+  return out;
+}
+
 export const clockTime = (s: number): string => {
   const t = Math.max(0, s);
   const m = Math.floor(t / 60);

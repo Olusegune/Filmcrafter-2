@@ -85,6 +85,19 @@ test.describe("the cut lane", () => {
     await expect.poll(async () => (await clip.boundingBox())!.width).toBeLessThan(b.width - 40);
   });
 
+  test("the shot cards and the shot count follow the cut", async ({ page }) => {
+    await open(page);
+    await expect(page.getByText("5 shots", { exact: false }).first()).toBeVisible();
+    const cards = () => page.locator(".tl-shots").getByText("01-02").count();
+    await expect.poll(cards).toBe(1);
+    await clips(page).nth(1).click();
+    await page.keyboard.press("Delete");
+    await expect.poll(cards).toBe(0);                                                  // the shot that was taken out is no longer a card
+    await expect(page.getByText("4 shots", { exact: false }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect.poll(cards).toBe(1);
+  });
+
   test("B puts a marker at the playhead and Delete on it takes it away", async ({ page }) => {
     await open(page);
     await clips(page).first().click();

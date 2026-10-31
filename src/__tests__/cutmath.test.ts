@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clipAt, clipName, clockTime, cutNotes, frameSeconds, nearest, snapPoints } from "../cutMath";
+import { applyCut, clipAt, clipName, clockTime, cutNotes, frameSeconds, nearest, snapPoints } from "../cutMath";
 import type { Cut } from "../api";
 
 const FT = 254_016_000_000 / 24;
@@ -7,6 +7,31 @@ const clip = (id: string, shot: string, a: number, b: number) => ({ id, shot, st
 const cut = (over: Partial<Cut> = {}): Cut => ({ stored: true, unplaced: [], orphans: [], can_undo: false, can_redo: false, history: [],
   sequence: { fps: [24, 1], frame_ticks: FT, ticks_per_second: 254_016_000_000, length: 240 * FT, length_s: 10, tracks: [{ id: "V1", kind: "video", locked: false, hidden: false, muted: false, clips: [clip("c1", "S1", 0, 96), clip("c2", "S2", 96, 240)] }],
     markers: [{ id: "m1", at: 120 * FT, at_s: 5, name: "turn" }], ranges: [] }, ...over });
+
+describe("the shots as the cut has them", () => {
+  const plan = [{ id: "S1", start: 0, end: 4, n: 1 }, { id: "S2", start: 4, end: 10, n: 2 }, { id: "S3", start: 10, end: 12, n: 3 }];
+  const trimmed = () => { const c = cut(); c.sequence.tracks[0].clips = [clip("c1", "S1", 24, 96), { ...clip("c2", "S2", 96, 240), source_in: 12 * FT, source_in_s: 0.5 }]; return c; };
+  it("gives the plan back untouched for a film that was never edited, or while the cut is still loading", () => {
+    expect(applyCut(plan, null)).toBe(plan);
+    expect(applyCut(plan, { ...cut(), stored: false })).toBe(plan);
+  });
+  it("puts each shot where its clips are, drops a shot that has no clip, and keeps everything else about the shot", () => {
+    const out = applyCut(plan, trimmed());
+    expect(out.map((s) => [s.id, s.start, s.end, s.n])).toEqual([["S1", 1, 4, 1], ["S2", 4, 10, 2]]);                       // S3 is not in the film; S1 now starts a second in
+    expect(out[1].src_in).toBe(0.5);                                                                                          // the player shows the take from half a second in
+  });
+  it("puts a shot cut in two across both its clips, and places voices and sound where the shot's own time starts", () => {
+    const c = cut();
+    c.sequence.tracks[0].clips = [clip("c1", "S1", 0, 48), { ...clip("c3", "S1", 48, 96), source_in: 48 * FT, source_in_s: 2 }, { ...clip("c2", "S2", 120, 240), source_in: 24 * FT, source_in_s: 1 }];
+    expect(applyCut(plan, c).map((s) => [s.id, s.start, s.end])).toEqual([["S1", 0, 4], ["S2", 5, 10]]);
+    expect(applyCut(plan, c, true).map((s) => [s.id, s.start, s.end])).toEqual([["S1", 0, 4], ["S2", 4, 10]]);               // S2's time zero is a second before its clip begins
+  });
+  it("leaves out clips on a hidden track", () => {
+    const c = trimmed();
+    c.sequence.tracks[0].hidden = true;
+    expect(applyCut(plan, c)).toEqual([]);
+  });
+});
 
 describe("the cut lane's helpers", () => {
   it("knows how long a frame is", () => { expect(frameSeconds(cut())).toBeCloseTo(1 / 24, 9); });
