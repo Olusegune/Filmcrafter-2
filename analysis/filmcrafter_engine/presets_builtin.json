@@ -461,7 +461,7 @@
    "description": "Small, true, lived-in performances.",
    "use": "Small, true, lived-in performances.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/natural_acting.png",
    "includes": [],
    "settings": {
     "acting": "natural"
@@ -476,7 +476,7 @@
    "description": "Feeling held back and shown in the eyes, the breath and small changes.",
    "use": "Feeling held back and shown in the eyes, the breath and small changes.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/restrained_emotional_acting.png",
    "includes": [],
    "settings": {
     "acting": "restrained"
@@ -491,7 +491,7 @@
    "description": "Bigger, readable poses for animated stories.",
    "use": "Bigger, readable poses for animated stories.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/expressive_animation_acting.png",
    "includes": [],
    "settings": {
     "acting": "expressive"
@@ -506,7 +506,7 @@
    "description": "Unhurried cuts that leave room for silence and for listening. Uses the closest built editing style (Restrained character drama): a dedicated suspense style is not built yet.",
    "use": "Unhurried cuts that leave room for silence and for listening. Uses the closest built editing style (Restrained character drama): a dedicated suspense style is not built yet.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/suspenseful_character_drama.png",
    "includes": [],
    "settings": {
     "editing": "restrained_drama"
@@ -521,7 +521,7 @@
    "description": "Two people talking close: room to listen.",
    "use": "Two people talking close: room to listen.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/intimate_dialogue.png",
    "includes": [],
    "settings": {
     "editing": "intimate_conversation"
@@ -536,7 +536,7 @@
    "description": "Quick, tight cuts for short vertical videos.",
    "use": "Quick, tight cuts for short vertical videos.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/punchy_social_cut.png",
    "includes": [],
    "settings": {
     "editing": "rhythmic_montage"
@@ -636,7 +636,7 @@
    "description": "A 1080 x 1080 version for feeds.",
    "use": "A 1080 x 1080 version for feeds.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/square_1_1.png",
    "includes": [],
    "settings": {
     "delivery": {
