@@ -119,6 +119,24 @@ const project: LoadedProject = { dir: DIR, project: { title: "Exit Plan", state:
 
 const layer = (id: string, kind: string, text: string, start: number | null, end: number | null, over: Record<string, unknown> = {}) => ({ id, kind, text, source: "own", start, end, x: 0.5, y: 0.5, size: 0.08, width: 0.6, color: "#ffffff", fade: 0.3, enabled: true, placed: start !== null, reason: "", explicit: true, explicit_end: true, ...over });
 const layerList = [layer("l1", "text", "Exit Plan", 2, 7), layer("l2", "icon", "Heart", 4, 9, { icon: "heart" }), layer("l3", "fill", "Warm tint", 0, 30, { color: "#e8b45c", opacity: 0.18 }), layer("l4", "text", "Lagos, 2019", 12, 16)];
+// A picture layer whose mix, mask and cut-out colour can be changed: updates are kept (and cleaned the way the engine cleans them) so the panel can be clicked through
+const MIXDIR = "/mixfilm";
+let mixList = [layer("l5", "image", "Green screen", 1, 6, { file: "assets/x.png" })] as Record<string, unknown>[];
+const mixOverlays = (x: { action?: string; data?: Record<string, unknown> }): unknown => {
+  if (x.action === "update") {
+    const { id, ...rest } = (x.data ?? {}) as { id?: string } & Record<string, unknown>;
+    mixList = mixList.map((l) => {
+      if (l.id !== id) return l;
+      const n: Record<string, unknown> = { ...l, ...rest };
+      if (n.blend === "normal") delete n.blend;
+      if (n.mask === "none") { for (const k of ["mask", "mask_size", "mask_feather", "mask_invert"]) delete n[k]; }
+      else if (n.mask && n.mask_size === undefined) n.mask_size = 0.8;
+      if (n.key_color === "") { for (const k of ["key_color", "key_tol", "key_soft", "key_spill"]) delete n[k]; }
+      return n;
+    });
+  }
+  return mixList;
+};
 const colourState = { enabled: true, strength: 0.7, reference: null, analysed: 12, adjusted: 2, cast: true, cast_strength: 0.85, cast_seen: { u: -14, v: 6, size: 15.2, label: "yellow", noticeable: true }, cast_fix: { u: 12, v: -5 }, denoise: false, grain: false, picture_care: true, rows: ids.map((id, i) => ({ shot: id, distance: i === 2 ? 0.34 : i === 5 ? 0.22 : 0.05 + (i % 3) * 0.02, bright: i === 2 ? 0.3 : -0.2, adjusted: i === 2 || i === 5, is_reference: false })) };
 
 const filmText = ["INT. KITCHEN - MORNING", "", "Sarah pours tea. Her hands are not steady.", "", "SARAH", "(quietly)", "He said he would call.", "", "JOHN (O.S.)", "Did you say something?", "", "EXT. PLATFORM - NIGHT", "", "Rain on the roof. A train waits.", "", "SARAH", "I am going.", "", "JOHN", "Then go.", "", "INT. TRAIN - NIGHT", "", "Sarah sits. She looks at her phone. Nothing."].join(String.fromCharCode(10));
@@ -374,7 +392,10 @@ mockIPC((cmd, a) => {
       if (x.action === "read_file") return { name: "last-train.fountain", text: filmText, truncated: false };
       if (x.action === "preview") return { kind: "screenplay", words: 61, scenes: 3, characters: 2, locations: 3, seconds: 144, has_headings: true };
       return filmStatus;
-    case "overlays": return x.action === "list" ? layerList : null;
+    case "overlays": {
+      if ((a as { dir?: string }).dir === MIXDIR) return mixOverlays(x);
+      return x.action === "list" ? layerList : null;
+    }
     case "colour_match": return colourState;
     case "lighting": return lightingPlan;
     case "cleanup": return cleanupScan;
@@ -703,6 +724,7 @@ const keys = { openai: true, fal: true, kie: true, google: false, elevenlabs: fa
 const take = (id: string, _shot: string, n: number, over: Record<string, unknown> = {}) => ({ id, n, state: "ready", provider: "kie", model: "bytedance/seedance-2", output: `v${n}.mp4`, kind: "video", created: n, cost: n === 1 ? 50 : 38, cost_unit: "credits", approved: n === 1, ...over });
 const card = (children: ReactNode, width = 480) => <div className="sheet glass" style={{ width }}>{children}</div>;
 const scenes: Record<string, () => ReactNode> = {
+  layermix: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={MIXDIR} selected="l5" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layers: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={DIR} selected="l1" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layerlanes: () => <div style={{ width: 900, height: 120, position: "relative", background: "#10131a", overflow: "hidden" }}><LayerLanes dir={DIR} pps={40} duration={30} selected="l1" onSelect={noop} snap={[]} top={0} time={3} onSeek={noop} /></div>,
   settings: () => <Settings onClose={noop} onHelp={noop} />,

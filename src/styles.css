@@ -1773,3 +1773,8 @@ select option, select optgroup { background: #12171e; color: var(--frost); }
 .rail .rail-sep { width: 28px; height: 1px; margin: 4px 0; background: var(--line); flex: none; }
 .shot-look .sl-keep { display: flex; align-items: flex-start; gap: 8px; margin: 8px 0 2px; font-size: 12.5px; }
 .shot-look .sl-keep input { margin-top: 3px; }
+
+.ly-mix { border: 1px solid var(--line); border-radius: var(--r-small); padding: 6px 10px; margin: 6px 0; }
+.ly-mix > summary { cursor: pointer; font-size: 13px; padding: 2px 0; }
+.ly-mix[open] > summary { margin-bottom: 6px; }
+.ly-mixnote { font-size: 12px; margin: 6px 0 0; }

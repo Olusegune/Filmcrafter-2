@@ -295,7 +295,8 @@ def render_image(d: str, o: dict, W: int, H: int):
                 raise SystemExit(f"\"{os.path.basename(path)}\" can't be drawn ({e}). Use a PNG, or a sign made only of text.")
             im = _tight(Image.open(tmp).convert("RGBA"))
         else:
-            im = Image.open(path).convert("RGBA")
+            from . import composite
+            im = composite.apply_key(Image.open(path).convert("RGBA"), o, _hex)
         if o.get("cover"):                      # a backdrop: scaled to fill the whole frame, the overflow cropped
             k = max(W / im.width, H / im.height)
             im = im.resize((max(W, round(im.width * k)), max(H, round(im.height * k))), Image.LANCZOS)
@@ -334,16 +335,16 @@ def apply_effects(im, o: dict, H: int):
 
 def render_png(d: str, o: dict, W: int, H: int) -> tuple[str, tuple[int, int]]:
     """The overlay's picture on disk (cached by what it is made from) and its size."""
-    from . import fonts
+    from . import composite, fonts
     key = _sha1(json.dumps([o.get("kind"), o.get("text"), o.get("file"), o.get("size"), o.get("width"), o.get("color"), o.get("color2"), bool(o.get("cover")), W, H,
                                    [o.get(k) for k in ("shape", "icon", "height", "stroke", "stroke_w", "opacity", "rotation", "radius", "filled", "scale", "angle", "gradient", "shadow")],
                                    fonts.signature(d, o.get("font")) if o.get("kind", "text") == "text" else "",
-                                   *(["fx", o.get("glow") or 0, o.get("glow_color") if o.get("glow") else None, o.get("blur") or 0] if (o.get("glow") or o.get("blur")) else [])],         # effects join the key only when there are some, so a layer without them keeps its picture
+                                   *(["fx", o.get("glow") or 0, o.get("glow_color") if o.get("glow") else None, o.get("blur") or 0] if (o.get("glow") or o.get("blur")) else []), *composite.signature(o)],         # effects, a mask and a key join the key only when there are some, so a layer without them keeps its picture
                                   sort_keys=True).encode()).hexdigest()[:14]
     out = os.path.join(d, "cache", "overlays", f"{key}.png")
     if not os.path.exists(out):
         os.makedirs(os.path.dirname(out), exist_ok=True)
-        im = render_image(d, o, W, H)
+        im = composite.apply_mask(render_image(d, o, W, H), o)
         if (o.get("glow") or o.get("blur")) and o.get("kind") != "fill" and not o.get("cover"):
             im = apply_effects(im, o, H)
         im.save(out + ".part.png")
@@ -562,6 +563,7 @@ def _passes(placed: list[dict], total_frames: int | None, fps: int) -> list[tupl
 def _pass(d: str, video: str, out: str, first_frame: int | None, frames: int | None, layers: list[dict], cap: str | None, W: int, H: int, fps: int, with_sound: bool,
           beat: tuple[float, float] | None, tag: str, joined: bool = False, cap_origin: float = 0.0, accents: list[float] | None = None) -> str | None:
     """One ffmpeg run: the film from `first_frame` for `frames` frames with these layers (and the captions) drawn on it. None when it worked, else what went wrong."""
+    from . import composite
     from .export import ffmpeg
     begin = (first_frame or 0) / fps                    # where this slice of the film starts
     shift = max(0.0, begin - LEAD)                      # the pass reads from here; the layers' times are the film's, so they are moved back by this much
@@ -590,6 +592,10 @@ def _pass(d: str, video: str, out: str, first_frame: int | None, frames: int | N
             pre, pos = motion(o.get("anim"), s, e, f, x, y, size, W, H, shifted_beat, len(str(o.get("text") or "")) if o.get("kind", "text") == "text" else 0, shifted_hits)
         fade_in = f"fade=t=in:st={s:.3f}:d={f:.3f}:alpha=1," if s >= 0 else ""         # a layer up before this pass starts faded in during the lead-in that is cut off
         chains.append(f"[{k}:v]format=rgba,{fade_in}fade=t=out:st={max(0.0, e - f):.3f}:d={f:.3f}:alpha=1{pre}[o{k}]")
+        if o.get("blend") in composite.BLENDS:
+            pieces, prev = composite.graph(k, prev, pos, o["blend"], s, e, W, H, fps)
+            chains += pieces
+            continue
         chains.append(f"[{prev}][o{k}]overlay={pos}:eof_action=pass:enable='between(t,{s:.3f},{e:.3f})'[v{k}]")
         prev = f"v{k}"
     graph = f"{out}.{tag}.graph.txt"
@@ -749,6 +755,8 @@ def _clean(d: str, x: dict, cur: dict | None = None) -> dict:
         if x.get("icon", o.get("icon", "star")) not in shapes.ICONS:
             raise SystemExit("Choose one of the icons in the list.")
         o["icon"] = x.get("icon", o.get("icon", "star"))
+    from . import composite
+    composite.clean(x, o, _hex)
     for k in ("glow", "blur"):
         if k in x:
             v = min(1.0, max(0.0, _f(x[k], k)))

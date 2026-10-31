@@ -29,7 +29,7 @@ MAX_TEMPLATES, MAX_TEMPLATE_LAYERS = 50, 60
 MAX_STYLES = 100
 GROUP = "lyrics:kinetic"
 # what a style keeps; the first block means the same on any kind of layer, the second only on the same kind (a text size is not a picture width)
-LOOK = ("color", "color2", "gradient", "angle", "stroke", "stroke_w", "shadow", "scale", "rotation", "opacity", "fade", "anim", "font", "keys", "glow", "glow_color", "blur")
+LOOK = ("color", "color2", "gradient", "angle", "stroke", "stroke_w", "shadow", "scale", "rotation", "opacity", "fade", "anim", "font", "keys", "glow", "glow_color", "blur", "blend", "mask", "mask_size", "mask_feather", "mask_invert", "key_color", "key_tol", "key_soft", "key_spill")
 SAME_KIND = ("size", "width", "height", "radius", "filled", "shape", "icon")
 MOVES = ("fade", "rise", "drop", "slide_left", "slide_right", "zoom_in", "zoom_out", "pushin", "wipe", "typewriter", "bounce", "pop", "pulse", "accent")
 Y = {"top": 0.14, "middle": 0.5, "bottom": 0.86}

@@ -25,6 +25,44 @@ function Range({ min, max, step, value, onCommit }: { min: number; max: number; 
   return <input type="range" min={min} max={max} step={step} value={v} onChange={(e) => setV(Number(e.target.value))} onPointerUp={done} onKeyUp={done} onBlur={done} />;
 }
 
+const BLENDS: [string, string][] = [["normal", "Normal"], ["multiply", "Multiply (darker)"], ["screen", "Screen (lighter)"], ["overlay", "Overlay"], ["softlight", "Soft light"], ["hardlight", "Hard light"],
+  ["darken", "Darken"], ["lighten", "Lighten"], ["add", "Add (brighter)"], ["difference", "Difference"]];
+const MASKS: [string, string][] = [["none", "None"], ["ellipse", "Oval"], ["rounded", "Rounded box"], ["rect", "Rectangle"]];
+
+/** How the layer mixes with the picture under it, a glow or blur, a shape that hides part of it, and (for a picture) a colour cut out of it. All free; the finished film does the same as the preview here. */
+function MixPanel({ sel, call }: { sel: Overlay; call: (action: "update", data: Record<string, unknown>) => void }) {
+  const set = (data: Record<string, unknown>) => call("update", { id: sel.id, ...data });
+  const solid = sel.kind !== "fill" && !sel.cover;
+  return (
+    <details className="ly-mix">
+      <summary>Mix and effects{sel.blend || sel.glow || sel.blur || sel.mask || sel.key_color ? " (in use)" : ""}</summary>
+      <label className="field"><span>Mix with the picture</span>
+        <select className="text-input" value={sel.blend ?? "normal"} onChange={(e) => set({ blend: e.target.value })}>{BLENDS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
+      {solid && <>
+        <div className="ly-two">
+          <label className="field"><span>Glow</span><Range min={0} max={1} step={0.05} value={sel.glow ?? 0} onCommit={(v) => set({ glow: v })} /></label>
+          <label className="field"><span>Glow colour</span><Colour value={sel.glow_color ?? "#ffffff"} onCommit={(v) => set({ glow_color: v })} /></label></div>
+        <label className="field"><span>Blur</span><Range min={0} max={1} step={0.05} value={sel.blur ?? 0} onCommit={(v) => set({ blur: v })} /></label></>}
+      <label className="field"><span>Show only through a shape</span>
+        <select className="text-input" value={sel.mask ?? "none"} onChange={(e) => set({ mask: e.target.value })}>{MASKS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
+      {sel.mask && <>
+        <div className="ly-two">
+          <label className="field"><span>Shape size</span><Range min={0.05} max={1} step={0.05} value={sel.mask_size ?? 0.8} onCommit={(v) => set({ mask_size: v })} /></label>
+          <label className="field"><span>Soft edge</span><Range min={0} max={1} step={0.05} value={sel.mask_feather ?? 0} onCommit={(v) => set({ mask_feather: v })} /></label></div>
+        <label className="ly-check"><input type="checkbox" checked={!!sel.mask_invert} onChange={(e) => set({ mask_invert: e.target.checked })} /> Hide the inside instead (a vignette)</label></>}
+      {sel.kind === "image" && <>
+        <label className="ly-check"><input type="checkbox" checked={!!sel.key_color} onChange={(e) => set({ key_color: e.target.checked ? "#00ff00" : "" })} /> Cut out a colour (a green screen)</label>
+        {sel.key_color && <>
+          <label className="field"><span>Colour to remove</span><Colour value={sel.key_color} onCommit={(v) => set({ key_color: v })} /></label>
+          <div className="ly-two">
+            <label className="field"><span>How much of it</span><Range min={0} max={1} step={0.05} value={sel.key_tol ?? 0.35} onCommit={(v) => set({ key_tol: v })} /></label>
+            <label className="field"><span>Soft edge</span><Range min={0} max={1} step={0.05} value={sel.key_soft ?? 0.15} onCommit={(v) => set({ key_soft: v })} /></label></div>
+          <label className="field"><span>Take the colour off the edges</span><Range min={0} max={1} step={0.05} value={sel.key_spill ?? 0.6} onCommit={(v) => set({ key_spill: v })} /></label></>}</>}
+      <p className="dim ly-mixnote">The player shows how a layer mixes. Glow, blur, shapes and cut-out colours are drawn when the film is made.</p>
+    </details>
+  );
+}
+
 /** A colour picker that saves when the picker is closed, not on every colour it passes through. */
 function Colour({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
   const ref = useRef<HTMLInputElement>(null);
@@ -262,6 +300,7 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
             <label className="field"><span>Outline width</span><Range min={0} max={0.03} step={0.001} value={sel.stroke_w ?? 0} onCommit={(v) => call("update", { id: sel.id, stroke_w: v })} /></label></div></>}
         {(sel.kind === "text" || sel.kind === "image" || sel.kind === "svg") && !sel.cover &&
           <label className="ly-check"><input type="checkbox" checked={sel.shadow !== false} onChange={(e) => call("update", { id: sel.id, shadow: e.target.checked })} /> Soft shadow</label>}
+        <MixPanel sel={sel} call={call} />
         {sel.kind !== "fill" && !sel.cover && <KeysEditor sel={sel} time={time} save={(keys) => call("update", { id: sel.id, keys })} />}
         {sel.kind !== "fill" && !sel.cover && !sel.keys?.length && <label className="field"><span>Movement</span>
           <select className="text-input" value={sel.anim ?? "fade"} onChange={(e) => call("update", { id: sel.id, anim: e.target.value })}>

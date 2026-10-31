@@ -87,6 +87,8 @@ Principle: **one new versioned model beside the existing stores; the existing st
 
 **Status (2026-11-04).** Milestone 4 has its first slice: eight built-in motion graphics (lower third, title card, chapter title, place and time, callout, quote, big number, end card) that become ordinary grouped layers, and glow and blur effects on layers (`motion_templates.py`, `overlays.py`, `MotionGraphics.tsx`). Not built: blend modes, masks, parent and child layers, motion paths, keyframe curves beyond the existing animations, and prompt-to-motion.
 
+**Status (2026-11-05).** Milestone 5 has its first slice: blend modes, shape masks and a colour key with spill suppression on layers (`composite.py`, the Mix and effects section). Not built: video-clip layers (so no keying of footage), animated or drawn masks, tracking, rotoscoping.
+
 ## 6. Risks
 
 | Risk | Why it matters | Answer |

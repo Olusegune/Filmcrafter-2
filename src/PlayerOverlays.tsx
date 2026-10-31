@@ -85,10 +85,11 @@ export function PlayerOverlays({ dir, time, selected, onSelect, beat, accents }:
         const at = drag?.id === o.id ? drag : cur;
         const sel = o.id === selected;
         const cls = `po-item ${sel ? "po-sel" : ""} ${onSelect ? "po-pick" : ""}`;
+        const bl = o.blend ? { mixBlendMode: ({ multiply: "multiply", screen: "screen", overlay: "overlay", softlight: "soft-light", hardlight: "hard-light", darken: "darken", lighten: "lighten", add: "plus-lighter", difference: "difference" } as Record<string, React.CSSProperties["mixBlendMode"]>)[o.blend] } : {};       // the player shows how it mixes; the finished film does the same arithmetic
         const common = { onPointerDown: onSelect ? (ev: React.PointerEvent) => begin(ev, o, cur) : undefined };
         const grad = `linear-gradient(${o.angle ?? 180}deg, ${o.color}, ${o.color2 || o.color})`;       // 0 is to the top, 90 to the right, 180 to the bottom
         if (o.kind === "fill" || o.cover) {
-          const style = { opacity, transform: `scale(${m.k})`, ...(o.kind === "fill" ? { background: grad } : { objectFit: "cover" as const }) };
+          const style = { ...bl, opacity, transform: `scale(${m.k})`, ...(o.kind === "fill" ? { background: grad } : { objectFit: "cover" as const }) };
           return o.kind === "fill"
             ? <div key={o.id} className={`${cls} po-fill`} style={style} {...common} />
             : <img key={o.id} className={`${cls} po-fill`} alt="" style={style} src={api.mediaUrl(`${dir}/${o.file}`)} draggable={false} {...common} />;
@@ -96,7 +97,7 @@ export function PlayerOverlays({ dir, time, selected, onSelect, beat, accents }:
         const k = o.scale ?? 1, fillOpacity = opacity * (o.opacity ?? 1), painted = !!(o.gradient && o.color2);
         const turnBy = (o.rotation ?? 0) + (kv?.rotation ?? 0);
         const turn = turnBy ? ` rotate(${turnBy}deg)` : "";
-        const pos = { left: `${at.x * 100}%`, top: `${at.y * 100}%`, opacity, clipPath: m.reveal < 1 ? `inset(0 ${(1 - m.reveal) * 100}% 0 0)` : undefined, transform: `translate(calc(-50% + ${m.dx}cqw), calc(-50% + ${m.dy}cqh)) scale(${m.k})${turn}` };
+        const pos = { ...bl, left: `${at.x * 100}%`, top: `${at.y * 100}%`, opacity, clipPath: m.reveal < 1 ? `inset(0 ${(1 - m.reveal) * 100}% 0 0)` : undefined, transform: `translate(calc(-50% + ${m.dx}cqw), calc(-50% + ${m.dy}cqh)) scale(${m.k})${turn}` };
         if (o.kind === "shape") {
           const w = o.width * k, h = (o.height ?? (o.shape === "line" ? 0.006 : 0.2)) * k, sw = o.stroke_w ?? 0;
           const round = o.shape === "circle" ? "50%" : o.shape === "rounded" ? `calc(min(${w * 100}cqw, ${h * 100}cqh) * ${o.radius ?? 0.2})` : 0;
