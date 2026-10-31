@@ -212,7 +212,7 @@ def native_track(d: str, clips: list[tuple[float, float, str]], duration: float,
     return {"path": out, "with_sound": used, "silent": len(clips) - used}
 
 
-def build(d: str, preset_key: str, window: tuple[float, float] | None = None) -> dict:
+def build(d: str, preset_key: str, window: tuple[float, float] | None = None, cut_override: dict | None = None) -> dict:
     """The film. `window` (seconds, start and end): only that part, drawn with its layers, captions and the sound for it (a preview)."""
     preset = PRESETS[preset_key]
     w, h = preset["w"], preset["h"]
@@ -239,7 +239,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
 
     # Timeline of segments in whole frames; gaps (if any) are filled with black.
     from . import editing as _editing
-    cut, edited = _editing.current(d)                                   # the film's own cut when it has been edited (trims, splits, moves); otherwise the plan, laid out as ever
+    cut, edited = (cut_override, True) if cut_override else _editing.current(d)      # the film's own cut when it has been edited (trims, splits, moves); otherwise the plan, laid out as ever. `cut_override`: a cut not saved yet, to preview a suggestion
     edit_notes: list[str] = []
     segments, cursor = [], 0
     if edited:

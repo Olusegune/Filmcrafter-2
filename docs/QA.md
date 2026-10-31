@@ -103,6 +103,9 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 ## Performance Director screens (2026-10-30)
 Checked on the harness, no provider: 16 jsdom component tests, 3 browser tests, and the axe scan over the two new scenes (no violations). Visual fixes found by looking: oversized text boxes made the Scenes tab long, and the beat editor ran too tall (details are now folded behind a summary line). Not checked: the sheets in the installed desktop app, or with a real film's breakdown.
 
+## The Smart Editor (2026-11-03)
+Checked with real exports: a clip that runs 0.8 s past its words is suggested for tightening and accepting it shortens the cut by exactly the frames promised; a listener with spare picture is suggested more time and accepting adds exactly that; a pause you asked for or a beat you wrote is kept and reported; the preview is two real clips, the second shorter, and saves nothing; one undo puts the cut back. Not checked: whether the suggestions are good filmmaking on a real film (the rules are simple readings, not taste: this needs your eye on real scenes), the speech-length estimate against real recorded voices (it assumes about 155 words a minute), the previews in the installed app, and styles beyond the three built. Not built: continuity checks, transitions, camera-movement advice, selective regeneration, and the other seven editing styles.
+
 ## Preview copies and recovery (2026-11-03)
 Checked with real ffmpeg: a 1280x960 take gets a 540-line copy, a small take none; the exported film is frame-for-frame the same with and without copies; a damaged edit record comes back from its backup with the damaged bytes kept, and with no backup every read and write stops with a plain message. Not checked: the player scrubbing a real 4K take (the copy is made and offered; smoothness was not measured), how long a copy takes for a long clip, and the button in the installed app.
 

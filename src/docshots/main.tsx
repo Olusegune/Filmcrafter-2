@@ -35,6 +35,7 @@ import { ColourMatchSheet } from "../ColourMatch";
 import { SupervisorSheet } from "../Supervisor";
 import { PerformanceSheet, ShotPerformance } from "../Performance";
 import { ColorStudioSheet } from "../ColorStudio";
+import { SmartEditorSheet } from "../SmartEditor";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
 import { Settings } from "../Settings";
@@ -278,6 +279,7 @@ mockIPC((cmd, a) => {
     case "performance_director": return pdCall(x);
     case "grading": return gdCall(x);
     case "editing": return cutCall(x);
+    case "smart_editor": return smartCall(x);
     case "proxies": return { rows: [], big: 2, ready: x.action === "build" ? 2 : 0, bytes: 0, ...(x.action === "build" ? { made: 2 } : {}), ...(x.action === "clear" ? { removed: 2 } : {}) };
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
@@ -493,6 +495,31 @@ const cutCall = (a: { action?: string; data?: Record<string, unknown> }): unknow
   cutPast.push(cutNow); cutFuture = []; cutNow = next; cutStored = true;
   return cutView();
 };
+// The Smart Editor's made-up backend: two fixed suggestions that accept, reject and preview in memory (the real rules and previews are in the engine's own tests)
+type SmartMock = { id: string; kind: "tighten" | "react"; title: string; what: string; why: string; clips: string[]; shots: string[]; saves: number; window: number[]; ops: Record<string, unknown>[] };
+let smartLeft: SmartMock[] = [
+  { id: "a1b2c3d4e5", kind: "tighten", title: "Tighten the end of S01-01", clips: ["c1"], shots: ["S01-01"], saves: 1.0, window: [0, 6], ops: [],
+    what: "End S01-01 1.0 s sooner (4.5 s to 3.5 s) and close the gap.",
+    why: "S01-01 has 9 spoken words in 1 line, which take about 3.8 s to say. With a 1.4 s breath after the last word it needs about 5.2 s, and it runs 6.0 s: 0.8 s more. Cutting the dead time keeps the scene moving. It is only a reading: refuse it if the quiet is the point." },
+  { id: "f6a7b8c9d0", kind: "react", title: "Give S01-02 a little more time", clips: ["c2"], shots: ["S01-02"], saves: -0.6, window: [4, 9], ops: [],
+    what: "Hold S01-02 for 0.6 s longer, and move what follows later by the same amount.",
+    why: "S01-02 shows John after S01-01, where words were spoken. A moment on the listener lets the audience take in what was said. The take has more picture for it. Refuse it if the pace is right." }];
+const smartKept = [{ kind: "tighten", shot: "S02-01", clip: "c4", why: "Kept the pause at the end of S02-01: you asked to hold the reaction longer there." }];
+const smartCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { id?: string; text?: string };
+  const recipe = { id: "restrained_drama", label: "Restrained character drama", for: "Quiet scenes where silence and reactions carry the feeling." };
+  switch (a.action) {
+    case "recipes": return { default: "restrained_drama", recipes: [{ id: "restrained_drama", label: "Restrained character drama", for: recipe.for, built: true }, { id: "intimate_conversation", label: "Intimate conversation", for: "Two people talking close.", built: true },
+      { id: "rhythmic_montage", label: "Rhythmic montage", for: "Quick, cut-on-the-beat sequences.", built: true }, { id: "suspense", label: "Suspense and anticipation", for: "", built: false }] };
+    case "suggest": return { recipe, proposals: smartLeft, kept: smartKept };
+    case "ask": return d.text && /tighten|shorter/i.test(d.text) ? { understood: true, message: "Tightening: ending spoken clips a little after the last word. Across the film. Style: Restrained character drama.", recipe, proposals: smartLeft.filter((p) => p.kind === "tighten"), kept: smartKept }
+      : { understood: false, message: "I did not understand that as something I can do yet. I can: tighten (end spoken clips a little after the last word); give a listener more time after someone speaks.", recipe, proposals: [], kept: [] };
+    case "accept": case "reject": { const p = smartLeft.find((x) => x.id === d.id); if (!p) throw new Error("That suggestion no longer applies: the cut has changed since it was made. Ask again."); smartLeft = smartLeft.filter((x) => x.id !== d.id); return { accepted: p.title, rejected: p.title }; }
+    case "reset_rejected": return { cleared: 0 };
+    case "preview": return { before: "s1.png", after: "s2.png" };
+    default: throw new Error("Unknown action.");
+  }
+};
 const gdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
   const d = (a.data ?? {}) as { scope?: string; key?: string | number; grade?: GradeMock; id?: string; on?: boolean; name?: string; path?: string };
   const table = () => (d.scope === "scene" ? gdGrades.scenes : gdGrades.shots) as Record<string, GradeMock>;
@@ -604,6 +631,7 @@ const scenes: Record<string, () => ReactNode> = {
   cast: () => <div style={{ width: "min(1200px, 100vw)", height: Number(q.get("h")) || 760, display: "flex", background: "#090b0f" }}><CastWorld dir="f1" /></div>,
   film: () => <FilmView dir="f1" onHome={noop} onSettings={noop} />,
   color: () => <ColorStudioSheet dir={DIR} onClose={noop} />,
+  smarteditor: () => <SmartEditorSheet dir={DIR} onClose={noop} />,
   shotacting: () => <aside className="inspector" style={{ width: 380, padding: 14 }} aria-label="Inspector"><ShotPerformance dir={DIR} shotId="S01-02" onChanged={noop} /></aside>,
   library: () => <LibrarySheet dir={DIR} scenes={[{ number: 1, heading: "BEDROOM - BEFORE DAWN" }, { number: 2, heading: "KITCHEN - MORNING" }, { number: 3, heading: "MARKET - DAY" }]} onClose={noop} onChanged={noop} />,
   supervisor: () => <SupervisorSheet dir={DIR} onClose={noop} onReview={noop} onChanged={noop} />,

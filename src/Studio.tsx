@@ -40,6 +40,7 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { PreviewSheet } from "./PreviewSheet";
 import { ColourMatchSheet } from "./ColourMatch";
 import { ColorStudioSheet } from "./ColorStudio";
+import { SmartEditorSheet } from "./SmartEditor";
 import { CUT_H, CutLane, useCut, type CutKey, type CutState } from "./CutLane";
 import { applyCut } from "./cutMath";
 import { beatGrid } from "./overlayMotion";
@@ -163,6 +164,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [colourOpen, setColourOpen] = useState(false);
   const [colorOpen, setColorOpen] = useState(false);
+  const [smartOpen, setSmartOpen] = useState(false);
   const [layerSel, setLayerSel] = useState<string | null>(null);
   const [focusLayer, setFocusLayer] = useState<Overlay | null>(null);
   const [focus, setFocus] = useState(false);
@@ -664,7 +666,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
       </aside>
 
       {!timelineOpen && <button className="tl-restore" onClick={() => setTimelineOpen(true)} aria-label="Show the timeline" title="Show the timeline (Ctrl+J)"><I.PanelBottom size={14} /> Show the timeline <span className="dim num">{fmtTime(time)}{map ? ` / ${fmtTime(map.duration)}` : ""}</span></button>}
-      {timelineOpen && <Timeline key={project.dir} edit={tlEdit} onEdit={setTlEdit} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={cutBoard} boardOrigin={cutBoardOrigin} cut={cutState} thumbs={thumbs} want={want}
+      {timelineOpen && <Timeline key={project.dir} edit={tlEdit} onEdit={setTlEdit} compact={tlCompact} onCompact={() => setTlCompact((v) => !v)} map={map} time={time} sel={sel} flagged={flagged} dir={project.dir} board={cutBoard} boardOrigin={cutBoardOrigin} cut={cutState} onSuggest={() => setSmartOpen(true)} thumbs={thumbs} want={want}
                 layerSel={layerSel} onLayerSelect={(id) => { setLayerSel(id); if (id) setLayersOpen(true); }} onBoardChanged={reloadBoard}
                 onOpen={(id) => setViewing(id)}
                 onSeek={seek} onSelect={(s) => { setSel(s); if (s?.kind === "shot") { const sh = shots.find((x) => x.id === s.id); if (sh) seek(sh.start); } }} />}
@@ -725,6 +727,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                     model={route?.video.provider ? route.video.label! : AUTO_MODEL[defaultProvider(keys)]} onCancel={() => setConfirmAll(false)} onConfirm={renderAll}
                                     dir={project.dir} shots={toRender.map((s) => s.id)} modelId={route?.video.provider ? route.video.model! : AUTO_MODEL[defaultProvider(keys)]} />}
       {colourOpen && <ColourMatchSheet dir={project.dir} onClose={() => setColourOpen(false)} />}
+      {smartOpen && <SmartEditorSheet dir={project.dir} onClose={() => setSmartOpen(false)} onChanged={reloadBoard} />}
       {colorOpen && <ColorStudioSheet dir={project.dir} onClose={() => setColorOpen(false)} onChanged={() => { reloadBoard(); window.dispatchEvent(new Event("pf-cut-changed")); }} />}
       {previewOpen && <PreviewSheet dir={project.dir} from={time} duration={map?.duration ?? 0} onClose={() => setPreviewOpen(false)} />}
       {frameOpen && <InsertFrameSheet dir={project.dir} shot={sel?.kind === "shot" ? sel.id : undefined} onClose={() => setFrameOpen(false)}
@@ -743,6 +746,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
           plan && { id: "preview", label: "Preview the next seconds", hint: "A small quick version with layers and sound", run: () => { if (playing) toggle(); setPreviewOpen(true); } },
           plan && { id: "export", label: "Export the film", keys: "Ctrl+E", run: () => setExporting(true) },
           plan && { id: "layers", label: layersOpen ? "Close the Layers panel" : "Open the Layers panel", hint: "Text, pictures, shapes drawn over the film", keys: "Y", run: () => setLayersOpen((v) => !v) },
+          plan && isFilm && { id: "smart", label: "Smart Editor", hint: "Suggestions for the cut, explained and previewable", run: () => setSmartOpen(true) },
           plan && { id: "color", label: "Color Studio", hint: "Grade a shot, a scene or the film; LUTs", run: () => setColorOpen(true) },
           plan && { id: "colour", label: "Colour match", hint: "Even out brightness and colour between shots", run: () => setColourOpen(true) },
           plan && { id: "clean", label: "Clean up unused videos and pictures", run: () => setCleanOpen(true) },
@@ -1063,10 +1067,10 @@ const CARD_MIN = 96;
 const TL_MIN_SAVED = 300;                                   // an older, shorter saved height gave pictures too small to read, so it is not kept
 const defaultTimelineHeight = () => Math.max(340, Math.min(480, Math.round(window.innerHeight * 0.42)));
 
-function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, sel, flagged, dir, board, boardOrigin, cut: cutState, thumbs, want, layerSel, onLayerSelect, onBoardChanged, onSeek, onSelect, onOpen }: {
+function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, sel, flagged, dir, board, boardOrigin, cut: cutState, onSuggest, thumbs, want, layerSel, onLayerSelect, onBoardChanged, onSeek, onSelect, onOpen }: {
   edit: boolean; onEdit: (v: boolean) => void; compact: boolean; onCompact: () => void;
   map: SongMap | null; time: number; sel: Selection; flagged: number; dir: string; board: BoardShot[];
-  boardOrigin: BoardShot[]; cut: CutState;
+  boardOrigin: BoardShot[]; cut: CutState; onSuggest: () => void;
   thumbs: Record<string, string | null>; want: (srcs: string[]) => void;
   layerSel: string | null; onLayerSelect: (id: string | null) => void; onBoardChanged: () => void;
   onSeek: (t: number) => void; onSelect: (s: Selection) => void; onOpen: (id: string) => void;
@@ -1251,7 +1255,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
             ))}
           </div>
           <canvas className="tl-wave" ref={wave} />
-          {cutOn && <CutLane s={cutState} pps={pps} top={118} time={time} width={width} onSeek={onSeek} free={freeLayers} />}
+          {cutOn && <CutLane s={cutState} pps={pps} top={118} time={time} width={width} onSeek={onSeek} free={freeLayers} onSuggest={onSuggest} />}
           <div className="tl-lyrics">
             {map.lyrics.filter((l) => l.start != null && x(l.end ?? l.start!) >= left - 200 && x(l.start!) <= left + width + 200).map((l, i) => (
               <div key={i} className="tl-lyric" title={l.text} style={{ left: x(l.start!), width: Math.max(18, x((l.end ?? l.start!) - l.start!)) }}>{l.text}</div>

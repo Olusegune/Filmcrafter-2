@@ -250,6 +250,7 @@ export const api = {
                         data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
   proxies: (dir: string, action: "status" | "build" | "clear", data: Record<string, unknown> = {}) => invoke<ProxyStatus>("proxies", { dir, action, data }),
+  smartEditor: <T = unknown>(dir: string, action: "recipes" | "suggest" | "ask" | "accept" | "reject" | "reset_rejected" | "preview", data: Record<string, unknown> = {}) => invoke<T>("smart_editor", { dir, action, data }),
   editing: <T = Cut>(dir: string, action: CutAction, data: Record<string, unknown> = {}) => invoke<T>("editing", { dir, action, data }),
   grading: <T = GradingState>(dir: string, action: GradingAction, data: Record<string, unknown> = {}) => invoke<T>("grading", { dir, action, data }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
@@ -429,6 +430,9 @@ export type Cut = { stored: boolean; notes?: string[]; unplaced: string[]; orpha
     ranges: { id: string; start: number; end: number; start_s: number; end_s: number; name: string }[] } };
 export type CutOp = "split" | "trim" | "delete" | "move" | "roll" | "close_gap" | "place" | "marker_set" | "marker_remove" | "range_set" | "range_remove" | "track_set";
 export type ProxyStatus = { rows: { shot: string; take: string; output: string; big: boolean; proxy: string | null }[]; big: number; ready: number; bytes: number; made?: number; removed?: number };
+/** The Smart Editor (smart_editor.py): a suggestion says what, why, which clips, and carries the edits it would make. */
+export type Suggestion = { id: string; kind: "tighten" | "react"; title: string; what: string; why: string; clips: string[]; shots: string[]; saves: number; window: number[]; ops: Record<string, unknown>[] };
+export type Suggestions = { recipe: { id: string; label: string; for?: string }; proposals: Suggestion[]; kept: { kind: string; shot: string; clip: string; why: string }[] };
 export type CutAction = "sequence_get" | "edit" | "place_missing" | "snap" | "undo" | "redo";
 export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
   rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[];

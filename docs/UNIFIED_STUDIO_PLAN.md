@@ -83,6 +83,8 @@ Principle: **one new versioned model beside the existing stores; the existing st
 
 **Status (2026-10-31).** Milestone 1 built: `grading.py` and the Color sheet (basic corrections, `.cube` LUTs with colour-space labels, scopes film/scene/shot, saved looks, undo, preview agreeing with the export, clipping note), and Style DNA with the Cinematic Storybook 2.5D looks (`style_dna.py`, written from the owner's own references; the reference pictures are not shipped). Not in M1, as planned: scopes, curves, qualifiers, masks, clip-level grades, proxies, keyframed grades, reference import. The installed app's ffmpeg is still to be checked.
 
+**Status (2026-11-03).** Milestone 2 is built (the cut, its operations and undo, the export, the cut lane, the studio following the cut, preview copies, damaged-record safety; see UNIFIED_STUDIO_M2_PLAN.md). Milestone 3 has its first operations: the Smart Editor (two explainable rules, three of ten editing styles, previews, accept and reject, plain requests). Not built: more rules and styles, continuity and transition suggestions, motion graphics (M4), compositing (M5), advanced VFX and prompt-to-motion (M6), the preset engine.
+
 ## 6. Risks
 
 | Risk | Why it matters | Answer |

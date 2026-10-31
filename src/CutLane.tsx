@@ -82,7 +82,7 @@ export type CutState = ReturnType<typeof useCut>;
 type Drag = { kind: "in" | "out" | "move" | "roll"; clip: CutClip; at: number; from: number } | null;
 
 /** The lane itself (one row of clips with trim handles) and its toolbar. It sits in the timeline's scrolling area and uses the timeline's zoom (pixels a second). */
-export function CutLane({ s, pps, top, time, width, onSeek, free }: { s: CutState; pps: number; top: number; time: number; width: number; onSeek: (t: number) => void; free: { start: number }[] }) {
+export function CutLane({ s, pps, top, time, width, onSeek, free, onSuggest }: { s: CutState; pps: number; top: number; time: number; width: number; onSeek: (t: number) => void; free: { start: number }[]; onSuggest?: () => void }) {
   const { cut } = s;
   const [drag, setDrag] = useState<Drag>(null);
   const lane = useRef<HTMLDivElement>(null);
@@ -134,6 +134,7 @@ export function CutLane({ s, pps, top, time, width, onSeek, free }: { s: CutStat
         <button type="button" className="btn small" onClick={() => void s.key("redo")} disabled={s.busy || !cut.can_redo} title="Do it again (Ctrl+Shift+Z or Ctrl+Y)">Redo</button>
         <button type="button" className="btn small" onClick={() => void s.key("split")} disabled={s.busy || locked} title="Cut the clip at the playhead (S)">Split</button>
         <button type="button" className="btn small" onClick={() => void s.key("delete")} disabled={s.busy || locked} title="Take the chosen clip out and leave a gap (Delete)">Delete</button>
+        {onSuggest && <button type="button" className="btn small" onClick={onSuggest} title="Suggestions for the cut, each explained and previewable; nothing changes until you accept one">Suggest…</button>}
         <details className="tl-cutmore"><summary>More</summary>
           <div className="tl-cutmenu" onClick={(e) => { if ((e.target as HTMLElement).closest("button")) (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open"); }} onKeyDown={(e) => { if (e.key === "Escape") (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open"); }}>
             <button type="button" className="btn small" onClick={() => void s.key("ripple_delete")} disabled={s.busy || locked} title="Take the clip out and close the gap (Shift+Delete)">Ripple delete</button>
