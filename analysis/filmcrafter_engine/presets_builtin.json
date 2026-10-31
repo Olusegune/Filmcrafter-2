@@ -371,7 +371,7 @@
    "description": "The storybook look for the ancient and historical world.",
    "use": "The storybook look for the ancient and historical world.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/storybook_historical.png",
    "includes": [],
    "settings": {
     "look": "historical-storybook"
@@ -386,7 +386,7 @@
    "description": "The storybook look at epic scale with dramatic light.",
    "use": "The storybook look at epic scale with dramatic light.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/storybook_epic.png",
    "includes": [],
    "settings": {
     "look": "biblical-epic-illustration"
@@ -401,7 +401,7 @@
    "description": "The storybook look in a present-day city.",
    "use": "The storybook look in a present-day city.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/storybook_urban.png",
    "includes": [],
    "settings": {
     "look": "modern-urban-storybook"
@@ -416,7 +416,7 @@
    "description": "The storybook look for village and folk tales.",
    "use": "The storybook look for village and folk tales.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/storybook_folktale.png",
    "includes": [],
    "settings": {
     "look": "african-folktale-illustration"
@@ -431,7 +431,7 @@
    "description": "The storybook look for invented lands and twilight colour.",
    "use": "The storybook look for invented lands and twilight colour.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/storybook_fantasy.png",
    "includes": [],
    "settings": {
     "look": "fantasy-storybook"
@@ -446,7 +446,7 @@
    "description": "The storybook look for explainers, with room for labels and maps.",
    "use": "The storybook look for explainers, with room for labels and maps.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/storybook_educational.png",
    "includes": [],
    "settings": {
     "look": "educational-documentary-illustration"
@@ -551,7 +551,7 @@
    "description": "A little more contrast, a little less colour, calm highlights.",
    "use": "A little more contrast, a little less colour, calm highlights.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/muted_cinematic_contrast.png",
    "includes": [],
    "settings": {
     "grade": {
@@ -571,7 +571,7 @@
    "description": "A touch warmer and richer, never a wash over everything.",
    "use": "A touch warmer and richer, never a wash over everything.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/warm_storybook_balanced.png",
    "includes": [],
    "settings": {
     "grade": {
@@ -590,7 +590,7 @@
    "description": "A 1080 x 1920 version for phones, with margins kept clear of the buttons and captions on. Your film keeps its own shape; this is made as a separate version.",
    "use": "A 1080 x 1920 version for phones, with margins kept clear of the buttons and captions on. Your film keeps its own shape; this is made as a separate version.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/vertical_social_9_16.png",
    "includes": [],
    "settings": {
     "delivery": {
@@ -613,7 +613,7 @@
    "description": "The standard film frame, 1920 x 1080.",
    "use": "The standard film frame, 1920 x 1080.",
    "version": 1,
-   "thumbnail": null,
+   "thumbnail": "presets/widescreen_16_9.png",
    "includes": [],
    "settings": {
     "delivery": {
