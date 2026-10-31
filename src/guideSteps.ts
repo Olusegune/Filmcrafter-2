@@ -1,13 +1,14 @@
 /** "Your first film": the order a film is made in, worked out from what the film already has. No screen code, nothing here spends or changes anything. */
 import type { FilmProgress } from "./api";
 
-export type StepId = "story" | "materials" | "cast" | "voices" | "shots" | "pictures" | "video" | "sound" | "export";
+export type StudioSheet = "presets" | "smart" | "color" | "motion";
+export type StepId = "story" | "materials" | "cast" | "look" | "voices" | "cut" | "grade" | "titles" | "shots" | "pictures" | "video" | "sound" | "export";
 export type StepStatus = "done" | "next" | "later";
 export type Step = {
   id: StepId; title: string; what: string; cost: "free" | "asks" | "your_recordings";
   costWords: string;                           // what it costs, in words: always honest, always says the price is shown first when there is one
   status: StepStatus; optional: boolean;
-  go: "story" | "cast" | "shots" | "make" | "export" | "voice" | "sound" | "materials";          // where the "Take me there" button goes
+  go: `studio:${StudioSheet}` | "story" | "cast" | "shots" | "make" | "export" | "voice" | "sound" | "materials";          // where the "Take me there" button goes
   detail: string;                              // how far along it is, in words ("2 of 3 lines have a voice")
 };
 
@@ -36,6 +37,8 @@ export function buildSteps(f: Facts): Step[] {
       costWords: "Free. Nothing is bought or sent", optional: true, go: "materials", detail: !p ? "" : p.cast.pictures ? "Some of your own pictures are already in." : "Skip it if you only have a script." },
     { id: "cast", title: "Cast & World", what: "The people, the places and one visual style, so every shot looks like the same film. The writing helper can suggest details (its price is shown first).", cost: "free", costWords: "Free",
       optional: false, go: "cast", detail: !p ? "" : `${plural(p.cast.characters, "character")}, ${plural(p.cast.places, "place")}${p.cast.style ? ", a style chosen" : ", no style yet"}.` },
+    { id: "look", title: "Start from a preset (optional)", what: "A preset sets the look, the acting, the colour, the editing style and the frame shape in one go, from a ready-made list (a vertical social version, a micro-drama, a storybook). You see every change first and can undo it.", cost: "free",
+      costWords: "Free. Nothing is made or bought, and it can be undone", optional: true, go: "studio:presets", detail: "Skip it to choose each thing yourself." },
     { id: "voices", title: "Voices", what: "Give each speaking character a voice: record your own lines (free), or choose a voice from your ElevenLabs library (free to choose; speaking a line shows its price first). Voice a whole scene with one price and a cap.",
       cost: "your_recordings", costWords: "Free with your own recordings. Speaking lines: price shown first", optional: false, go: "voice",
       detail: !v ? "" : v.people === 0 ? "Nobody speaks yet." : `${v.recorded} of ${plural(v.people, "line")} have a voice.` },
@@ -47,10 +50,16 @@ export function buildSteps(f: Facts): Step[] {
       costWords: "Asks first: the price is shown before anything is made", optional: false, go: "make", detail: !p ? "" : p.make.shots ? `${p.make.video} of ${plural(p.make.shots, "shot")} have video.` : "No shots to make yet." },
     { id: "sound", title: "Sound and music (optional)", what: "Plan each scene's sound: free quick ideas, or the sound director (price first). Your own sounds and music are free to import. Making new sound with AI shows its price first.", cost: "free",
       costWords: "Free to plan. AI-made sound asks first", optional: true, go: "sound", detail: !s ? "" : s.cues ? `${plural(s.cues, "planned sound")}.` : s.assets ? `${plural(s.assets, "sound")} in the library, none planned yet.` : "Nothing yet. You can skip this." },
+    { id: "cut", title: "Tighten the cut (optional)", what: "The Smart Editor reads your cut and suggests where a pause could be trimmed or a reaction left to breathe. Each suggestion says why, and shows before and after; nothing changes until you accept it.", cost: "free",
+      costWords: "Free. Nothing is made or bought, and it can be undone", optional: true, go: "studio:smart", detail: "After the video." },
+    { id: "grade", title: "Colour (optional)", what: "Give the whole film, a scene or one shot a grade: exposure, contrast, tint, or a look file (.cube). See before and after, and undo it.", cost: "free",
+      costWords: "Free. Nothing is made or bought, and it can be undone", optional: true, go: "studio:color", detail: "After the video." },
+    { id: "titles", title: "Titles and lower thirds (optional)", what: "Add a title card, a name under someone who has just appeared, a place and time, a quote or an end card. Type the words and see how it looks first.", cost: "free",
+      costWords: "Free. They are drawn by FilmCrafter, nothing is generated", optional: true, go: "studio:motion", detail: "After the video." },
     { id: "export", title: "Export the film", what: "Put the pictures, video, voices and sound together into one file, or hand it to an editor.", cost: "free", costWords: "Free", optional: false, go: "export",
       detail: f.exported ? "Exported." : videoDone ? "Ready." : "After the video." },
   ];
-  const doneOf: Record<StepId, boolean> = { story: !!p && p.story.locked, materials: false, cast: castDone, voices: voicesDone, shots: shotsDone, pictures: picsDone, video: videoDone, sound: !!s && s.cues > 0, export: f.exported };
+  const doneOf: Record<StepId, boolean> = { look: false, cut: false, grade: false, titles: false, story: !!p && p.story.locked, materials: false, cast: castDone, voices: voicesDone, shots: shotsDone, pictures: picsDone, video: videoDone, sound: !!s && s.cues > 0, export: f.exported };
   let found = false;
   return raw.map((r) => {
     const done = doneOf[r.id];

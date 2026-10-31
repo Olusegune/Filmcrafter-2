@@ -26,6 +26,20 @@ describe("first-film guide steps", () => {
     expect(requiredCount(s)).toBe(s.filter((x) => !x.optional).length);
     expect(s.find((x) => x.id === "sound")?.optional).toBe(true);
   });
+  it("the finishing tools are optional, free, never block the path, and each opens a Studio sheet that exists", () => {
+    const s = buildSteps(facts({ pro: true }));
+    const finish = s.filter((x) => x.go.startsWith("studio:"));
+    expect(finish.map((x) => x.go).sort()).toEqual(["studio:color", "studio:motion", "studio:presets", "studio:smart"]);
+    expect(finish.every((x) => x.optional && x.cost === "free")).toBe(true);
+    const all = buildSteps(facts({ pro: true, progress: prog({ story: { locked: true, as_is: false }, cast: { characters: 1, places: 1, style: true }, shots: { count: 3 }, make: { shots: 3, keyframe: 3, video: 3 } }), voices: { people: 0, recorded: 0 }, exported: true }));
+    expect(nextStep(all)).toBeNull();                                                      // a finished film is not held up by an optional tool
+    const studio = readFileSync("src/Studio.tsx", "utf8");
+    for (const f of finish) expect(studio).toContain(`${f.go.slice(7)}: set`);               // the Studio opens each one on arrival
+    const order = s.map((x) => x.id);
+    expect(order.indexOf("look")).toBeLessThan(order.indexOf("pictures"));                  // a preset is offered before anything is made
+    expect(order.indexOf("cut")).toBeGreaterThan(order.indexOf("video"));
+    expect(order.indexOf("titles")).toBeLessThan(order.indexOf("export"));
+  });
   it("the guide only reads and points: it never starts paid work", () => {
     for (const f of ["src/FirstFilm.tsx", "src/guideSteps.ts"]) {
       const t = readFileSync(f, "utf8");

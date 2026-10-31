@@ -13,6 +13,7 @@ import { FilmView } from "./FilmView";
 import { filmDirOfDoc, filmDirOfRender, isProducerPackage, isRenderDir } from "./filmPaths";
 import { NewFilm } from "./NewFilm";
 import type { StoryKind } from "./api";
+import type { StudioSheet } from "./guideSteps";
 import "./styles.css";
 import "./motion.css";
 
@@ -28,6 +29,7 @@ export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
   const [creating, setCreating] = useState<{ file?: string; kind?: StoryKind } | null>(null);       // the New film sheet, from Home or the File menu
   const [settings, setSettings] = useState(false);
+  const [studioSheet, setStudioSheet] = useState<StudioSheet | null>(null);          // a Studio sheet the guide asked to have open on arrival
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [help, setHelp] = useState(false);
@@ -120,8 +122,8 @@ export default function App() {
                                                                      onSettings={() => setSettings(true)} onHelp={() => setHelp(true)} />}
       {creating && <NewFilm file={creating.file} kind={creating.kind} onClose={() => setCreating(null)} onCreated={(d) => { setCreating(null); openProject(d); }} />}
       {toast && <div className="toast glass mini" role="status">{toast}</div>}
-      {view.name === "film" && <FilmView key={`${view.dir}|${view.stage ?? ""}`} dir={view.dir} initialStage={view.stage} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} onStudio={(rd) => openProject(rd)} />}
-      {view.name === "studio" && <Studio project={view.project} onHome={() => backFrom(view.project.dir)} onFilm={(st) => backFrom(view.project.dir, st)}
+      {view.name === "film" && <FilmView key={`${view.dir}|${view.stage ?? ""}`} dir={view.dir} initialStage={view.stage} onHome={() => setView({ name: "home" })} onSettings={() => setSettings(true)} onStudio={(rd, sheet) => { setStudioSheet(sheet ?? null); void openProject(rd); }} />}
+      {view.name === "studio" && <Studio project={view.project} startSheet={studioSheet} onStartSheetShown={() => setStudioSheet(null)} onHome={() => backFrom(view.project.dir)} onFilm={(st) => backFrom(view.project.dir, st)}
                                          onSettings={() => setSettings(true)} onReload={() => openProject(view.project.dir)} />}
       {settings && <Settings onClose={() => setSettings(false)} onHelp={() => { setSettings(false); setHelp(true); }} />}
       {help && <HelpSheet onClose={() => setHelp(false)} />}

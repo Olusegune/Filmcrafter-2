@@ -43,6 +43,7 @@ import { ColorStudioSheet } from "./ColorStudio";
 import { SmartEditorSheet } from "./SmartEditor";
 import { PresetsSheet } from "./PresetLibrary";
 import { MotionGraphicsSheet } from "./MotionGraphics";
+import type { StudioSheet } from "./guideSteps";
 import { CUT_H, CutLane, useCut, type CutKey, type CutState } from "./CutLane";
 import { applyCut } from "./cutMath";
 import { beatGrid } from "./overlayMotion";
@@ -66,8 +67,9 @@ import { ask } from "./ask";
 
 type Selection = { kind: "shot"; id: string } | { kind: "section"; index: number } | null;
 
-export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
+export function Studio({ project, onHome, onFilm, onSettings, onReload, startSheet, onStartSheetShown }: {
   project: LoadedProject; onHome: () => void; onFilm?: (stage: string) => void; onSettings: () => void; onReload: () => void;
+  startSheet?: StudioSheet | null; onStartSheetShown?: () => void;           // the guide sends you straight to a sheet: it opens once, on arrival
 }) {
   const map = project.song_map;
   const plan: Plan | null = project.directed ?? project.production;
@@ -169,6 +171,11 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
   const [smartOpen, setSmartOpen] = useState(false);
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [motionOpen, setMotionOpen] = useState(false);
+  useEffect(() => {
+    if (!startSheet) return;
+    ({ presets: setPresetsOpen, smart: setSmartOpen, color: setColorOpen, motion: setMotionOpen })[startSheet](true);
+    onStartSheetShown?.();
+  }, [startSheet]);                                                              // eslint-disable-line react-hooks/exhaustive-deps
   const [layerSel, setLayerSel] = useState<string | null>(null);
   const [focusLayer, setFocusLayer] = useState<Overlay | null>(null);
   const [focus, setFocus] = useState(false);

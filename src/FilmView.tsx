@@ -9,6 +9,7 @@ import { CastWorld } from "./CastWorld";
 import { ShotLab } from "./ShotLab";
 import { MakeFilm, type MakeTab } from "./MakeFilm";
 import { FirstFilm } from "./FirstFilm";
+import type { StudioSheet } from "./guideSteps";
 import { NextStep } from "./NextStep";
 import { SpendingSheet } from "./SpendingSheet";
 import { BringMaterials } from "./BringMaterials";
@@ -19,7 +20,7 @@ import { LADDER, ladderAt, minutes, neighbours, openAdvice, sceneLine, stageBadg
  * A film's story: the script as written, the scenes found in it, and what was noticed. The script is never edited here; a change is a new version,
  * and a version can be locked so the rest of the film is made from one fixed story.
  */
-export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { dir: string; onHome: () => void; onSettings: () => void; onStudio?: (renderDir: string) => void; initialStage?: string }) {
+export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { dir: string; onHome: () => void; onSettings: () => void; onStudio?: (renderDir: string, sheet?: StudioSheet) => void; initialStage?: string }) {
   const [f, setF] = useState<FilmStatus | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState("");
@@ -227,6 +228,11 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
       {costs && <SpendingSheet dir={dir} onClose={() => setCosts(false)} />}
       {guide && <FirstFilm dir={dir} progress={progress} pro={studio} onClose={() => setGuide(false)} onGo={(where) => {
         if (where === "materials") { setMaterials(true); return; }
+        if (where.startsWith("studio:")) {                                  // a Studio sheet (presets, the Smart Editor, colour, titles): get the film ready for it, then open the Studio with that sheet already up
+          const sheet = where.slice(7) as StudioSheet;
+          void (async () => { try { await api.shots("get", dir).then(async (v) => { if (!v.shots.length) await api.shots("breakdown", dir); }); const r = await api.make<{ render_dir: string }>("sync", dir); onStudio?.(r.render_dir, sheet); } catch (e) { setErr(errorText(e)); } })();
+          return;
+        }
         setGoVoice(where === "voice"); setGoSound(where === "sound"); setGoPlaces(false);
         goStage(where === "voice" ? "make" : where === "sound" ? "cast" : where);
       }} />}
