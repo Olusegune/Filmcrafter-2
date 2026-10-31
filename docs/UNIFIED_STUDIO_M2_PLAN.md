@@ -87,6 +87,8 @@ Second set (later in the milestone): `slip`, `slide`. **Deferred, with reasons:*
 | **M2d** | proxies, recovery journal | a killed export or edit is recovered; export never reads a proxy |
 | **later** | speed, ramps, freeze; keyframed transforms; groups and nesting; unified layer undo; slip and slide in the UI | |
 
+**Status (2026-11-01).** M2a and M2b built: `edit_time.py`, `sequence.py`, `sequence_derive.py`, `edit_ops.py`, `editing.py`, the export reading the cut, the audio offsets, one undo and redo, the Rust door and API types. Free layers and captions stay where they are on a ripple (the owner's choice was assumed: recommended default); they are not yet flagged when they fall past the end (to do in M2c, with the controls). Split `source_in` and trims on image takes are not applicable. Not built: M2c (controls, shortcuts, markers UI), M2d (proxies, recovery journal).
+
 ## 5. Risks
 
 | Risk | Answer |

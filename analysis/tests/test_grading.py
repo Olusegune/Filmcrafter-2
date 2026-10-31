@@ -250,13 +250,42 @@ def test_undo_puts_back_the_last_change_and_says_when_there_is_nothing_to_undo(f
     assert G.undo(film)["grades"]["film"] == {}
 
 
+def test_redo_does_again_what_was_undone_until_a_new_change_is_made(film):
+    with pytest.raises(SystemExit, match="nothing to do again"):
+        G.redo(film)
+    G.set_grade(film, "film", None, {"exposure": 0.5})
+    G.set_grade(film, "film", None, {"exposure": 1.5})
+    assert G.undo(film)["can_redo"] is True
+    assert G.redo(film)["grades"]["film"] == {"exposure": 1.5}
+    G.undo(film)
+    G.undo(film)
+    assert G.redo(film)["grades"]["film"] == {"exposure": 0.5}
+    G.set_grade(film, "film", None, {"exposure": 2.0})                                     # a new change ends the redo
+    assert G.state(film)["can_redo"] is False
+    with pytest.raises(SystemExit):
+        G.redo(film)
+
+
 def test_nothing_is_written_until_something_is_changed_and_a_newer_files_extra_keys_survive(film):
     assert not os.path.exists(G._path(film)) and G.state(film)["grades"]["film"] == {}
     assert not os.path.exists(G._path(film))
     os.makedirs(G.edit_dir(film))
-    json.dump({"schema": 9, "future": {"a": 1}}, open(G._path(film), "w"))
+    json.dump({"schema": 2, "future": {"a": 1}}, open(G._path(film), "w"))
     G.set_grade(film, "film", None, {"exposure": 0.1})
     assert json.load(open(G._path(film)))["future"] == {"a": 1}
+
+
+def test_a_record_from_a_newer_version_is_refused_and_not_written_over_and_an_older_one_is_upgraded(film):
+    os.makedirs(G.edit_dir(film))
+    json.dump({"schema": 9, "future": {"a": 1}}, open(G._path(film), "w"))
+    before = open(G._path(film), "rb").read()
+    for call in (lambda: G.state(film), lambda: G.set_grade(film, "film", None, {"exposure": 0.1}), lambda: G.undo(film)):
+        with pytest.raises(SystemExit, match="newer FilmCrafter"):
+            call()
+    assert open(G._path(film), "rb").read() == before
+    json.dump({"schema": 1, "grades": {"film": {"exposure": 0.5}, "scenes": {}, "shots": {}}}, open(G._path(film), "w"))        # what milestone 1 wrote
+    s = G.set_grade(film, "scene", 1, {"contrast": 0.2})
+    assert s["grades"]["film"] == {"exposure": 0.5} and json.load(open(G._path(film)))["schema"] == 2
 
 
 def test_it_lives_in_the_film_not_in_the_render_project(tmp_path):
@@ -313,4 +342,4 @@ def test_the_door_speaks_json_and_refuses_an_unknown_action(film, capsys):
     assert G.main(["set_grade", film, "--data", json.dumps({"scope": "planet"})]) == 1 and "film, a scene or a shot" in capsys.readouterr().out
     with pytest.raises(SystemExit, match="Unknown"):
         G.run(film, "explode", {})
-    assert set(G.ACTIONS) == {"state", "set_grade", "clear_grade", "lut_import", "lut_remove", "lut_favorite", "preset_save", "preset_apply", "preset_delete", "undo", "preview"}
+    assert set(G.ACTIONS) == {"state", "set_grade", "clear_grade", "lut_import", "lut_remove", "lut_favorite", "preset_save", "preset_apply", "preset_delete", "undo", "redo", "preview"}

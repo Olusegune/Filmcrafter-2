@@ -238,16 +238,43 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     os.makedirs(work, exist_ok=True)
 
     # Timeline of segments in whole frames; gaps (if any) are filled with black.
+    from . import editing as _editing
+    cut, edited = _editing.current(d)                                   # the film's own cut when it has been edited (trims, splits, moves); otherwise the plan, laid out as ever
+    edit_notes: list[str] = []
     segments, cursor = [], 0
-    for sh, sc in shots:
-        f0, f1 = max(cursor, round(sh["start"] * FPS)), min(total_frames, round(sh["end"] * FPS))
-        if f0 > cursor:
-            segments.append(("gap", None, None, f0 - cursor))
-        if f1 > f0:
-            segments.append(("shot", sh, sc, f1 - f0))
-        cursor = max(cursor, f1)
-    if cursor < total_frames:
-        segments.append(("gap", None, None, total_frames - cursor))
+    if edited:
+        by_id = {sh["id"]: (sh, sc) for sh, sc in shots}
+        ft = _editing.Q.fps_of(cut).frame_ticks
+        total_frames = cut["length"] // ft
+        duration = total_frames / FPS
+        for track in cut["tracks"]:
+            if track["hidden"]:
+                continue
+            for c in track["clips"]:
+                f0, f1 = c["start"] // ft, (c["start"] + c["duration"]) // ft
+                if c["shot"] not in by_id:
+                    edit_notes.append(f"A clip of {c['shot']} was left out: that shot is no longer in the plan.")
+                    continue
+                if f0 > cursor:
+                    segments.append(("gap", None, None, f0 - cursor, None))
+                segments.append(("shot", by_id[c["shot"]][0], by_id[c["shot"]][1], f1 - f0, {"src_in": c["source_in"] // ft, "clip": c["id"], "muted": track["muted"]}))
+                cursor = f1
+        if cursor < total_frames:
+            segments.append(("gap", None, None, total_frames - cursor, None))
+        placed = {c["shot"] for t in cut["tracks"] for c in t["clips"]}
+        gone = [sh["id"] for sh, _ in shots if sh["id"] not in placed]
+        if gone:
+            edit_notes.append(f"{len(gone)} shot{'s are' if len(gone) != 1 else ' is'} not in the cut ({', '.join(gone[:4])}{'...' if len(gone) > 4 else ''}): place {'them' if len(gone) != 1 else 'it'} to put {'them' if len(gone) != 1 else 'it'} in the film.")
+    else:
+        for sh, sc in shots:
+            f0, f1 = max(cursor, round(sh["start"] * FPS)), min(total_frames, round(sh["end"] * FPS))
+            if f0 > cursor:
+                segments.append(("gap", None, None, f0 - cursor, None))
+            if f1 > f0:
+                segments.append(("shot", sh, sc, f1 - f0, None))
+            cursor = max(cursor, f1)
+        if cursor < total_frames:
+            segments.append(("gap", None, None, total_frames - cursor, None))
 
     base = 0                                   # in a preview: the frame the assembled pieces start at
     win = None
@@ -278,7 +305,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     vo_items: list[dict] = []                             # where each shot sits on the film, for the person's own recordings (a shot with no picture yet still speaks)
     from .render import native_mode
     native = native_mode(d)
-    for i, (kind, sh, sc, frames) in enumerate(segments):
+    for i, (kind, sh, sc, frames, clip) in enumerate(segments):
         emit(event="progress", stage="assembling", progress=round(i / max(1, len(segments)) * 0.9, 3),
              detail=sh["id"] if sh else "gap")
         take = takes.get(sh["id"]) if sh else None
@@ -289,6 +316,16 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
         tout = transition_of.get(next_of.get(sh["id"]), "cut") if sh else "cut"
         tin_s = transition_len.get(sh["id"]) if sh else None
         tout_s = transition_len.get(next_of.get(sh["id"])) if sh else None
+        if edited and sh:                                               # in an edited cut the neighbours are read from the cut itself: a shot cut in two does not dissolve into itself
+            before = segments[i - 1] if i else None
+            after = segments[i + 1] if i + 1 < len(segments) else None
+            if not (before and before[0] == "shot" and before[1]["id"] != sh["id"]):
+                tin, tin_s = "cut", None
+            if after and after[0] == "shot" and after[1]["id"] != sh["id"]:
+                tout, tout_s = transition_of.get(after[1]["id"], "cut"), transition_len.get(after[1]["id"])
+            else:
+                tout, tout_s = "cut", None
+        src_in = (clip or {}).get("src_in", 0)                          # frames of the take given up at the start of this clip (a trim)
         motion = take.get("motion") if take and take.get("media_kind") == "image" else None
         from .performance import drift_for
         drift = drift_for(project, sh) if motion is not None else None
@@ -300,7 +337,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
             creative = grading.filter_for(d, sh["id"], sc.get("number") if sc else None)
             grade = ",".join(x for x in (grade, creative) if x)
         key = _sha1(json.dumps([ENCODING, grade, kind, sh and sh["id"], src, src and os.path.getmtime(src), frames, w, h, tin, tout, tin_s, tout_s, motion, own_clip, drift, parts[-1] if tin not in ("cut", "black", "white") and parts else None,
-                                       sh and (sh.get("visual_prompt") or sh.get("beats"))], default=str).encode()).hexdigest()[:12]
+                                       sh and (sh.get("visual_prompt") or sh.get("beats")), *(["trim", src_in] if src_in else [])], default=str).encode()).hexdigest()[:12]
         out = os.path.join(work, f"{i:04d}_{key}.mp4")
         if not os.path.exists(out):
             fades = _fades(tin, tout, frames, tin_s, tout_s)
@@ -310,7 +347,8 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
             elif src:
                 loop = ["-stream_loop", "-1"] if own_clip else []   # your own short clip repeats to fill the shot
                 hold = "" if own_clip else ",tpad=stop_mode=clone:stop=-1"   # a take shorter than its shot holds its last frame
-                _run([*loop, "-i", src, "-vf", vf_fill + (f",{grade}" if grade else "") + hold + fades, "-frames:v", str(frames), *enc, out + ".tmp.mp4"])
+                cut_in = f",trim=start_frame={src_in},setpts=PTS-STARTPTS" if src_in else ""     # frame-exact, counted on the film's own 24 frames, not a time that could land half a frame off
+                _run([*loop, "-i", src, "-vf", vf_fill + cut_in + (f",{grade}" if grade else "") + hold + fades, "-frames:v", str(frames), *enc, out + ".tmp.mp4"])
             else:
                 img = out + ".png"
                 if sh:
@@ -328,10 +366,10 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
         rendered += 1 if src else 0
         if sh:
             at = (base + sum(s[3] for s in segments[:i])) / FPS
-            vo_items.append({"shot": sh["id"], "start": at, "end": at + frames / FPS, "lead": float(sh.get("dialogue_lead") or 0.0), "tail": float(sh.get("dialogue_tail") or 0.0)})
-        if src and sh and take.get("media_kind") != "image" and take.get("provider") != "own":
+            vo_items.append({"shot": sh["id"], "start": at, "end": at + frames / FPS, "lead": float(sh.get("dialogue_lead") or 0.0), "tail": float(sh.get("dialogue_tail") or 0.0), "offset": src_in / FPS})
+        if src and sh and take.get("media_kind") != "image" and take.get("provider") != "own" and not (clip or {}).get("muted"):
             start = (base + sum(s[3] for s in segments[:i])) / FPS      # the shot's place on the whole song, in whole frames like its picture
-            mix_items.append({"shot": sh["id"], "start": start, "end": start + frames / FPS, "take": take})
+            mix_items.append({"shot": sh["id"], "start": start, "end": start + frames / FPS, "take": take, "offset": src_in / FPS})
         parts.append(out)
 
     emit(event="progress", stage="adding the song", progress=0.93)
@@ -361,7 +399,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
     try:                                                      # the planned soundscape (approved audio cues) is laid on top; a film with none is not touched
         from . import audiomix
         emit(event="progress", stage="adding the planned sound", progress=0.945)
-        planned = audiomix.mix_cues(d, song, {it["shot"]: (it["start"], it["end"]) for it in vo_items}, duration, os.path.join(work, "cues.wav"))
+        planned = audiomix.mix_cues(d, song, _shot_ranges(vo_items), duration, os.path.join(work, "cues.wav"))
         if planned and planned.get("path"):
             song = planned["path"]
     except SystemExit:
@@ -386,7 +424,7 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
         emit(event="progress", stage="done", progress=1.0)
         return {"path": out_path, "preset": preset["label"], "width": w, "height": h, "fps": FPS, "duration": win[1] - win[0], "window": list(win), "shots": 0, "rendered": 0, "draft": True,
                 "loudness": measure_loudness(out_path),
-                "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": None, "preview": True, **({"overlay_error": ov["error"]} if ov.get("error") else {})}
+                "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": None, "preview": True, **({"edit_notes": edit_notes} if edit_notes else {}), **({"overlay_error": ov["error"]} if ov.get("error") else {})}
     srt = captions.write_srt(d, out_path)
     loud = measure_loudness(out_path)
     shot_count = sum(1 for s in segments if s[0] == "shot")
@@ -405,8 +443,18 @@ def build(d: str, preset_key: str, window: tuple[float, float] | None = None) ->
             **({"audio_cues_error": planned["error"]} if planned and planned.get("error") else {}),
             **({"native_sound": sound["with_sound"], "native_silent": sound["silent"]} if sound and native else {}),
             **({"shot_sound": sound["with_sound"], "sound_layers": sound["layers"]} if sound and not native else {}),
-            "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": srt,
+            "overlays": ov.get("count", 0), "captions": ov.get("captions", 0), "subtitles": srt, **({"edit_notes": edit_notes} if edit_notes else {}),
             **({"overlay_error": ov["error"]} if ov.get("error") else {})}
+
+
+def _shot_ranges(items: list[dict]) -> dict:
+    """Where each shot sits on the film for the planned sound: from where its own time starts (a trimmed head still counts, so a cue keeps its place in the shot) to where its last clip ends."""
+    out: dict = {}
+    for it in items:
+        lo, hi = it["start"] - float(it.get("offset") or 0.0), it["end"]
+        a, b = out.get(it["shot"], (lo, hi))
+        out[it["shot"]] = (min(a, lo), max(b, hi))
+    return out
 
 
 def measure_loudness(path: str) -> dict | None:

@@ -312,8 +312,13 @@ def package(d: str, target: str, film: str | None = None) -> dict:
         f.seek(0)
         f.write(body.replace("?>", "?>\n<!DOCTYPE xmeml>", 1))
     os.replace(tmp, out)
+    try:
+        from . import editing
+        edit_note = editing.hand_off_note(d)                    # the cut is not in these files yet, and they say so
+    except Exception:                                           # a note that cannot be made never stops the hand-off
+        edit_note = None
     return {"path": out, "folder": out_dir, "target": target, "app": app, "film": os.path.basename(film), "sequences": (3 if stems else 2) if takes else 1, "sound_tracks": [t["name"] for t in stems] if takes else [],
-            "shot_clips": clips, "missing": sorted(set(missing)), "steps": steps.format(bin=bin_name)}
+            "shot_clips": clips, "missing": sorted(set(missing)), "steps": steps.format(bin=bin_name), **({"edit_note": edit_note} if edit_note else {})}
 
 
 def main(argv: list[str]) -> int:

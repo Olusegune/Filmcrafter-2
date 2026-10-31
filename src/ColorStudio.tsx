@@ -53,7 +53,10 @@ export function ColorStudioSheet({ dir, onClose, onChanged }: { dir: string; onC
   }, [dir, apply, onChanged]);
 
   useEffect(() => { let live = true; api.grading(dir, "state").then((s) => live && apply(s)).catch((e) => live && setErr(errorText(e))); return () => { live = false; }; }, [dir, apply]);
-  useEffect(() => { setDraft(saved); }, [saved]);
+  // the sliders start from the saved grade when the scope changes or when the saved grade itself changes; an unrelated change (a favourite, a saved look) leaves what you are editing alone
+  const bindKey = `${scope.kind}:${scope.key}:${JSON.stringify(saved)}`;
+  const [bound, setBound] = useState(bindKey);
+  if (bound !== bindKey) { setBound(bindKey); setDraft(saved); }
 
   const shots = st?.shots ?? [];
   const scenes = useMemo(() => { const seen = new Map<number, string>(); for (const s of shots) if (s.scene != null && !seen.has(s.scene)) seen.set(s.scene, s.heading); return [...seen]; }, [shots]);

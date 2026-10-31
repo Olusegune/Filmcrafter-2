@@ -534,14 +534,15 @@ def mix_track(d: str, items: list[dict], duration: float, song_path: str | None,
         i0, i1 = int(round(it["start"] * RATE)), min(total, int(round(it["end"] * RATE)))
         if i1 <= i0:
             continue
-        whole = decode(os.path.join(d, it["take"]["output"]), 1)[: i1 - i0]
+        off = int(round(float(it.get("offset") or 0.0) * RATE))          # a trimmed clip starts this far into its take (and into its sound layers)
+        whole = decode(os.path.join(d, it["take"]["output"]), 1)[off: off + i1 - i0]
         r = _rms(whole)
         if r < SILENT_RMS:
             silent += 1
             continue
         level = min(3.0, max(0.4, TARGET_RMS / r))      # one level for the whole take, so voices and effects keep their balance
         for lid, path in e["sources"]:
-            x = decode(path, 2)[: i1 - i0].copy()
+            x = decode(path, 2)[off: off + i1 - i0].copy()
             if len(x) < 2:
                 continue
             g = e["layers"][lid]["gain"]

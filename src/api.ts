@@ -249,6 +249,7 @@ export const api = {
   acting: <T = unknown>(dir: string, action: "get" | "beats_get" | "beats_set" | "beats_clear" | "beats_estimate" | "beats_write" | "arc_set" | "arc_clear" | "arc_estimate" | "arc_write" | "business_set",
                         data: Record<string, unknown> = {}) => invoke<T>("acting", { dir, action, data }),
   shotLevels: (dir: string, shot: string) => invoke<ShotLevels>("shot_sound", { dir, action: "levels", data: { shot } }),
+  editing: <T = Cut>(dir: string, action: CutAction, data: Record<string, unknown> = {}) => invoke<T>("editing", { dir, action, data }),
   grading: <T = GradingState>(dir: string, action: GradingAction, data: Record<string, unknown> = {}) => invoke<T>("grading", { dir, action, data }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
   checkUpdate: () => invoke<UpdateInfo>("check_update"),
@@ -418,7 +419,15 @@ export type GradingState = {
   ranges: Record<string, [number, number, number]>; swing: Record<string, { clipped_whites: boolean; crushed_blacks: boolean }>; history: { rev: number; at: number; what: string }[];
   spaces: string[]; picture_space: string; shots: { id: string; scene: number | null; heading: string }[];
 };
-export type GradingAction = "state" | "set_grade" | "clear_grade" | "lut_import" | "lut_remove" | "lut_favorite" | "preset_save" | "preset_apply" | "preset_delete" | "undo" | "preview";
+export type GradingAction = "state" | "set_grade" | "clear_grade" | "lut_import" | "lut_remove" | "lut_favorite" | "preset_save" | "preset_apply" | "preset_delete" | "undo" | "redo" | "preview";
+/** The film's cut (editing.py): clips on a track, in whole ticks (254,016,000,000 a second) and whole frames; `_s` fields are seconds for showing. */
+export type CutClip = { id: string; shot: string; start: number; source_in: number; duration: number; take: string | null; start_s: number; duration_s: number; source_in_s: number; start_frame: number; frames: number };
+export type CutTrack = { id: string; kind: "video"; locked: boolean; hidden: boolean; muted: boolean; clips: CutClip[] };
+export type Cut = { stored: boolean; unplaced: string[]; orphans: string[]; can_undo: boolean; can_redo: boolean; history: { rev: number; at: number; what: string }[];
+  sequence: { fps: number[]; frame_ticks: number; ticks_per_second: number; length: number; length_s: number; tracks: CutTrack[]; markers: { id: string; at: number; at_s: number; name: string }[];
+    ranges: { id: string; start: number; end: number; start_s: number; end_s: number; name: string }[] } };
+export type CutOp = "split" | "trim" | "delete" | "move" | "roll" | "close_gap" | "place" | "marker_set" | "marker_remove" | "range_set" | "range_remove" | "track_set";
+export type CutAction = "sequence_get" | "edit" | "place_missing" | "snap" | "undo" | "redo";
 export type ColourMatchState = { enabled: boolean; strength: number; reference: string | null; analysed: number | null; adjusted: number;
   rows: { shot: string; distance: number; bright: number; adjusted: boolean; is_reference: boolean }[];
   cast: boolean; cast_strength: number; cast_seen: { u: number; v: number; size: number; label: string; noticeable: boolean } | null; cast_fix: { u: number; v: number } | null;

@@ -34,7 +34,7 @@ import time
 
 from . import safeio
 
-SCHEMA = 1
+SCHEMA = 2                   # 2: the sequence (the film's cut) and a redo list join the grades; a file of schema 1 reads as it is and is written as 2 by the next change
 SPACES = ("rec709", "srgb", "log", "hdr_pq", "hdr_hlg", "dci_p3", "other")
 PICTURE_SPACE = "rec709"
 MAX_LUT_BYTES = 24 * 1024 * 1024
@@ -94,12 +94,19 @@ def clean_grade(raw) -> dict:
     return out
 
 
+def _refuse_newer(s) -> None:
+    """A record made by a newer FilmCrafter is never read halfway or written over."""
+    if isinstance(s, dict) and isinstance(s.get("schema"), int) and not isinstance(s.get("schema"), bool) and s["schema"] > SCHEMA:
+        raise SystemExit("This film's edit record was made by a newer FilmCrafter. Update FilmCrafter to open it; nothing has been changed.")
+
+
 def load(d: str) -> dict:
     try:
         s = safeio.read_json(_path(d), {})
     except SystemExit:
         s = {}
     s = s if isinstance(s, dict) else {}
+    _refuse_newer(s)
     g = s.get("grades") if isinstance(s.get("grades"), dict) else {}
     grades = {"film": clean_grade(g.get("film")),
               "scenes": {str(k): clean_grade(v) for k, v in (g.get("scenes") if isinstance(g.get("scenes"), dict) else {}).items() if clean_grade(v)},
@@ -112,20 +119,41 @@ def load(d: str) -> dict:
             "history": hist, "_extra": extra}
 
 
-def _save(d: str, change, what: str) -> dict:
-    """Read, change, write as one step; the part that changed is kept in the history so the last change can be undone."""
+def snapshot(cur: dict) -> dict:
+    """What one undo puts back: the grades, the saved looks and the sequence (the film's cut). The LUT library is not part of it: a LUT file stays until you remove it."""
+    return {"grades": json.loads(json.dumps(cur["grades"])), "presets": json.loads(json.dumps(cur["presets"])), "sequence": json.loads(json.dumps(cur["_extra"].get("sequence")))}
+
+
+def restore(cur: dict, snap: dict) -> None:
+    cur["grades"] = _normalise({"grades": snap.get("grades") or {}})["grades"]
+    cur["presets"] = {k: clean_grade(v) for k, v in (snap.get("presets") or {}).items()}
+    if snap.get("sequence") is None:
+        cur["_extra"].pop("sequence", None)
+    else:
+        cur["_extra"]["sequence"] = snap["sequence"]
+
+
+def _out(cur: dict) -> dict:
+    return {**cur["_extra"], "schema": SCHEMA, "revision": cur["revision"], "grades": cur["grades"], "luts": cur["luts"], "presets": cur["presets"], "history": cur["history"]}
+
+
+def _save(d: str, change, what: str, keep_redo: bool = False) -> dict:
+    """Read, change, write as one step; what the change replaced is kept in the history so the last change can be undone (and, until a new change is made, done again)."""
     os.makedirs(edit_dir(d), exist_ok=True)
     seen: dict = {}
 
     def run(data):
+        _refuse_newer(data)
         cur = load(d) if not isinstance(data, dict) or not data else None
         cur = cur or _normalise(data)
-        before = {"grades": json.loads(json.dumps(cur["grades"])), "presets": json.loads(json.dumps(cur["presets"]))}
+        before = snapshot(cur)
         change(cur)
+        if not keep_redo:
+            cur["_extra"].pop("redo", None)
         cur["revision"] += 1
         cur["history"] = (cur["history"] + [{"rev": cur["revision"], "at": int(time.time()), "what": what, "before": before}])[-HISTORY:]
         seen.update(cur)
-        return {**cur["_extra"], "schema": SCHEMA, "revision": cur["revision"], "grades": cur["grades"], "luts": cur["luts"], "presets": cur["presets"], "history": cur["history"]}
+        return _out(cur)
     safeio.update_json(_path(d), run, {})
     return state(d)
 
@@ -454,7 +482,7 @@ def state(d: str) -> dict:
                 notes[f"{scope}:{k}" if k else scope] = swing(g)
     return {"revision": s["revision"], "grades": s["grades"], "luts": [{"id": k, **v} for k, v in sorted(s["luts"].items(), key=lambda kv: (not kv[1].get("favorite"), kv[1].get("name", "").lower()))],
             "presets": [{"name": k, "grade": v} for k, v in sorted(s["presets"].items())], "ranges": {k: list(v) for k, v in RANGES.items()}, "swing": notes,
-            "history": [{"rev": h.get("rev"), "at": h.get("at"), "what": h.get("what")} for h in s["history"]][-10:], "spaces": list(SPACES), "picture_space": PICTURE_SPACE,
+            "history": [{"rev": h.get("rev"), "at": h.get("at"), "what": h.get("what")} for h in s["history"]][-10:], "can_undo": bool(s["history"]), "can_redo": bool(s["_extra"].get("redo")), "spaces": list(SPACES), "picture_space": PICTURE_SPACE,
             "shots": _shots(d)}
 
 
@@ -535,19 +563,43 @@ def preset_delete(d: str, name: str) -> dict:
 
 
 def undo(d: str) -> dict:
+    """Put back what the last change replaced: a grade, a saved look, or a cut."""
     s = load(d)
     if not s["history"]:
         raise SystemExit("There is nothing to undo.")
     last = s["history"][-1]
-    before = last.get("before") or {}
 
     def run(data):
+        _refuse_newer(data)
         cur = _normalise(data if isinstance(data, dict) else {})
-        cur["grades"] = _normalise({"grades": before.get("grades") or {}})["grades"]
-        cur["presets"] = {k: clean_grade(v) for k, v in (before.get("presets") or {}).items()}
+        redo = [x for x in (cur["_extra"].get("redo") if isinstance(cur["_extra"].get("redo"), list) else []) if isinstance(x, dict)]
+        redo.append({"what": last.get("what", ""), "after": snapshot(cur)})
+        cur["_extra"]["redo"] = redo[-HISTORY:]
+        restore(cur, last.get("before") or {})
         cur["history"] = cur["history"][:-1]
         cur["revision"] = max(0, cur["revision"] - 1)
-        return {**cur["_extra"], "schema": SCHEMA, "revision": cur["revision"], "grades": cur["grades"], "luts": cur["luts"], "presets": cur["presets"], "history": cur["history"]}
+        return _out(cur)
+    os.makedirs(edit_dir(d), exist_ok=True)
+    safeio.update_json(_path(d), run, {})
+    return state(d)
+
+
+def redo(d: str) -> dict:
+    """Do again what was just undone (until a new change is made)."""
+    s = load(d)
+    stack = [x for x in (s["_extra"].get("redo") if isinstance(s["_extra"].get("redo"), list) else []) if isinstance(x, dict)]
+    if not stack:
+        raise SystemExit("There is nothing to do again.")
+    last = stack[-1]
+
+    def run(data):
+        _refuse_newer(data)
+        cur = _normalise(data if isinstance(data, dict) else {})
+        cur["_extra"]["redo"] = [x for x in cur["_extra"].get("redo", [])][:-1]
+        cur["history"] = (cur["history"] + [{"rev": cur["revision"] + 1, "at": int(time.time()), "what": last.get("what", ""), "before": snapshot(cur)}])[-HISTORY:]
+        restore(cur, last.get("after") or {})
+        cur["revision"] += 1
+        return _out(cur)
     os.makedirs(edit_dir(d), exist_ok=True)
     safeio.update_json(_path(d), run, {})
     return state(d)
@@ -613,7 +665,7 @@ def _lutargs(d: str, st: dict, g: dict):
 
 # ---------------------------------------------------------------- the door
 
-ACTIONS = ("state", "set_grade", "clear_grade", "lut_import", "lut_remove", "lut_favorite", "preset_save", "preset_apply", "preset_delete", "undo", "preview")
+ACTIONS = ("state", "set_grade", "clear_grade", "lut_import", "lut_remove", "lut_favorite", "preset_save", "preset_apply", "preset_delete", "undo", "redo", "preview")
 
 
 def run(d: str, action: str, x: dict) -> dict:
@@ -637,6 +689,8 @@ def run(d: str, action: str, x: dict) -> dict:
         return preset_delete(d, str(x.get("name", "")))
     if action == "undo":
         return undo(d)
+    if action == "redo":
+        return redo(d)
     if action == "preview":
         return preview(d, str(x.get("shot", "")), x.get("grade") if isinstance(x.get("grade"), dict) else None)
     raise SystemExit("Unknown action.")
@@ -644,7 +698,7 @@ def run(d: str, action: str, x: dict) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-grading")
-    ap.add_argument("action", choices=["state", "set_grade", "clear_grade", "lut_import", "lut_remove", "lut_favorite", "preset_save", "preset_apply", "preset_delete", "undo", "preview"])
+    ap.add_argument("action", choices=["state", "set_grade", "clear_grade", "lut_import", "lut_remove", "lut_favorite", "preset_save", "preset_apply", "preset_delete", "undo", "redo", "preview"])
     ap.add_argument("project")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)

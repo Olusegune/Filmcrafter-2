@@ -534,13 +534,16 @@ def mix_into(d: str, base_path: str, items: list[dict], duration: float, out: st
     track[: len(base)] = base
     n = 0
     for it, rows in placed:
-        at = max(0, int(round((it["start"] - max(0.0, float(it.get("lead") or 0.0))) * rate)))          # a J cut: the line starts before its picture
+        lead = max(0.0, float(it.get("lead") or 0.0))
+        offset = max(0.0, float(it.get("offset") or 0.0))                  # a trimmed clip starts this far into its shot, so the line is placed where it would have been and only the part inside the clip is heard
+        at = max(0, int(round((it["start"] - lead) * rate))) if not offset else int(round((it["start"] - offset - lead) * rate))          # a J cut: the line starts before its picture
+        first = max(0, int(round((it["start"] - lead) * rate))) if offset else 0
         stop = min(total, int(round((it["end"] + max(0.0, float(it.get("tail") or 0.0))) * rate)))      # an L cut: it carries on over the next picture
         for r in rows:
             x = shotsound.decode(inside(d, r["path"]) or "", 2)
-            x = x[: max(0, stop - at)]
-            if len(x) and at < total:
-                track[at:at + len(x)] += x
+            lo, hi = max(at, first, 0), min(at + len(x), stop, total)
+            if hi > lo:
+                track[lo:hi] += x[lo - at: hi - at]
                 n += 1
             at += len(x) + int(GAP * rate)
     peak = float(np.max(np.abs(track))) if total else 0.0

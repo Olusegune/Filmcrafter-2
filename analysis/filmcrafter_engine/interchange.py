@@ -251,6 +251,9 @@ def write(d: str) -> dict:
     if stems:
         files["stems"] = "audio/stems"
     problems = handoffcheck.check(out, files, placed, g["total"])
+    from . import editing as _editing
+    if _editing.hand_off_note(rd):
+        problems.append(_editing.hand_off_note(rd))
     handoffcheck.save_report(out, problems)
     return {"dir": out, "problems": problems, "stems": stems, "files": files, "shots": len(rows), "placed": placed, "missing": [r["id"] for r in rows if not r["take"]], "audio": audio_rel, "audio_tracks": [{"name": t["name"], "clips": len(t["clips"])} for t in tracks], "seconds": round(g["total"] / FPS, 1)}
 

@@ -32,6 +32,16 @@ describe("Color Studio", () => {
     await waitFor(() => expect(invoke).toHaveBeenCalledWith("grading", { dir: "p", action: "set_grade", data: { scope: "film", key: null, grade: { exposure: 0.5 } } }));
   });
 
+  it("keeps what you are editing when something unrelated changes, such as starring a LUT", async () => {
+    invoke.mockImplementation(answer(state()));
+    render(<ColorStudioSheet dir="p" onClose={() => {}} />);
+    fireEvent.change(await screen.findByLabelText("Saturation"), { target: { value: "-0.5" } });
+    fireEvent.click(screen.getByText("LUT library"));
+    fireEvent.click(await screen.findByRole("button", { name: "Mark Warm as a favorite" }));
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("grading", { dir: "p", action: "lut_favorite", data: { id: "a1b2c3d4e5f60718", on: true } }));
+    expect(screen.getByLabelText("Saturation")).toHaveValue("-0.5");
+  });
+
   it("a double click puts a slider back to zero, and a slider at zero is not part of the grade", async () => {
     invoke.mockImplementation(answer(state()));
     render(<ColorStudioSheet dir="p" onClose={() => {}} />);
