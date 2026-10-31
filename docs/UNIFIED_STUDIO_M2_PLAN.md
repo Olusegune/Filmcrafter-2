@@ -89,6 +89,8 @@ Second set (later in the milestone): `slip`, `slide`. **Deferred, with reasons:*
 
 **Status (2026-11-01).** M2a and M2b built: `edit_time.py`, `sequence.py`, `sequence_derive.py`, `edit_ops.py`, `editing.py`, the export reading the cut, the audio offsets, one undo and redo, the Rust door and API types. Free layers and captions stay where they are on a ripple (the owner's choice was assumed: recommended default); they are not yet flagged when they fall past the end (to do in M2c, with the controls). Split `source_in` and trims on image takes are not applicable. Not built: M2c (controls, shortcuts, markers UI), M2d (proxies, recovery journal).
 
+**Status (2026-11-02).** M2c built: the cut lane, toolbar and keys in the timeline's Edit mode, with a note when a layer now starts after the end of the cut. The voice, cue and layer lanes still draw at the planned times (they are not yet moved with a ripple); the player still plays the plan, Preview plays the cut. Shortcuts are listed in one table but are not yet remappable by the person. M2d (proxies, recovery journal) is not built.
+
 ## 5. Risks
 
 | Risk | Answer |

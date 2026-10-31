@@ -100,6 +100,9 @@ Open **Acting** from the Studio's left rail (under *More*). **Scenes** shows a d
 
 On the **People** tab, *What kind of character* tells the Director when someone is not a person (an animal, a robot, a creature, a cartoon): their feeling is then described through ears, posture, pauses or simple shape changes rather than a human face. Under **Style & arcs**, *Emotional arc* also lists places worth a look (a sudden swing, a stall, a long stretch at full strength); press **Dismiss** on any you disagree with. Looking never changes anything.
 
+### Editing the cut
+In the timeline's **Edit** mode there is a **Cut** lane: one block for each clip of the film. Click a block to choose it (the playhead goes to its start). **Drag an edge** to trim (it snaps to other cuts, markers and the playhead; **Esc** cancels), **drag the block** to move it into a gap, or hold **Alt** on the end handle to roll the cut between two clips. **S** cuts the clip under the playhead in two, **Delete** takes the chosen clip out and leaves a gap, **Shift+Delete** takes it out and closes the gap, **Q** and **W** trim its start or end to the playhead, **B** puts a marker, and **Ctrl+Z** undoes the last change (to the cut, a grade or a saved look). Under **More**, turn on **Ripple** so that what follows moves with a trim, lock the track, or close a gap. Nothing here changes a take or the shot plan: the cut is kept in the film and the export (and **Preview**) plays it, frame for frame. If a shot is not in the cut the lane says so and offers to place it. The player above the timeline still plays the plan.
+
 ### Color Studio
 Open **Color** from the Studio's left rail (under *More*). Choose where the grade goes: the whole film, a scene, or one shot (the film's grade is put on first, then the scene's, then the shot's). Move the sliders (double-click one to put it back to zero) and watch the before and after frame; press **Save grade** when you like it. A grade is added when the film is put together; your takes are never changed, and **Undo last save** puts the previous grade back. **Import a LUT** takes a `.cube` file; each LUT says whether it is creative or technical and which colour space it expects. FilmCrafter's pictures are Rec.709, so a LUT made for log or HDR footage is not applied (it tells you so). Save a grade you like under **My looks** and put it on another scope in one press.
 
@@ -605,6 +608,17 @@ The same list is in the Studio: press `?` or `Ctrl+/`.
 | `E` | Open this shot's Compose tab (start and end, references, motion) |
 | `R` | Re-render this shot (shows the price first) |
 
+**Cut** (the timeline's Edit mode; the cut lane)
+
+| Press | Does |
+|---|---|
+| `S` | Cut the clip at the playhead (Edit mode) |
+| `Delete` | Take the chosen clip out and leave a gap |
+| `Shift+Delete` | Take the chosen clip out and close the gap |
+| `Q` | Trim the start of the chosen clip to the playhead |
+| `W` | Trim the end of the chosen clip to the playhead |
+| `B` | Put a marker at the playhead |
+
 **Panels**
 
 | Press | Does |
@@ -618,7 +632,7 @@ The same list is in the Studio: press `?` or `Ctrl+/`.
 | `Ctrl+Shift+J` | Compact or full-height timeline (in Edit mode) |
 | `Ctrl+Shift+P` | Command palette: find any action or shot |
 | `?` | This list (also Ctrl+/) |
-| `Ctrl+Z` | Undo the last change to the layers (while the Layers panel is open) |
+| `Ctrl+Z` | Undo the last change to the layers (while the Layers panel is open), otherwise to the cut, a grade or a saved look |
 | `Ctrl+Shift+Z` | Redo it |
 | `Ctrl+Y` | Redo it (same as Ctrl+Shift+Z) |
 

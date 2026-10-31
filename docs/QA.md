@@ -103,6 +103,9 @@ A synthetic 300-shot film: the engine (breakdown 2.2 s; sync 1.0 s; shots view, 
 ## Performance Director screens (2026-10-30)
 Checked on the harness, no provider: 16 jsdom component tests, 3 browser tests, and the axe scan over the two new scenes (no violations). Visual fixes found by looking: oversized text boxes made the Scenes tab long, and the beat editor ran too tall (details are now folded behind a summary line). Not checked: the sheets in the installed desktop app, or with a real film's breakdown.
 
+## The cut lane (2026-11-02)
+Checked on the harness (a made-up film and a small stand-in for the engine; the engine's own tests prove every edit frame by frame): clips, handles, keys, undo and redo, markers, a locked track, dragging with Esc to cancel, and the accessibility scan. Not checked: dragging a clip body, Alt-drag to roll, and ripple from the toolbar in a real browser (the same engine calls are covered in unit tests); the lane in the installed desktop app; a very long film; reflow of the voice, cue and layer lanes (they still sit at the planned times, so after a ripple they no longer line up with the cut).
+
 ## Editing the cut: time, operations and export (2026-11-01)
 Checked with real ffmpeg on 64x64 footage whose every frame carries its own number: a film that was never edited exports every frame in its place; a split changes nothing seen; a trim shows exactly the frames asked for and leaves black where the picture was taken from; a ripple trim shortens the film by exactly the frames given up (5.5 s from 6 s for 12 frames); a ripple delete brings later shots forward; hidden and locked tracks behave; 600 random edits never broke the sequence's rules. Not checked: the on-screen controls (not built yet), a long film's render time, trims on image takes (they have no source time), audio alignment of a trimmed clip against real recorded voices (the arithmetic is covered, a listening check is not), frame rates other than 24.
 

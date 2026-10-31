@@ -1,7 +1,7 @@
 // The Studio's keyboard shortcuts, in one place: the key handler, the `?` sheet and the documentation table all read this list,
 // so they cannot disagree (src/__tests__/shortcuts.test.ts checks the documentation against it).
 
-export type ShortcutGroup = "Playback" | "Shots" | "Panels" | "Sound" | "Project";
+export type ShortcutGroup = "Playback" | "Shots" | "Cut" | "Panels" | "Sound" | "Project";
 
 export type Shortcut = {
   id: string;
@@ -48,9 +48,16 @@ export const SHORTCUTS: Shortcut[] = [
   { id: "timeline_compact", spec: "Mod+Shift+j", keys: "Ctrl+Shift+J", label: "Compact or full-height timeline", group: "Panels" },
   { id: "palette", spec: "Mod+Shift+p", keys: "Ctrl+Shift+P", label: "Command palette: find any action or shot", group: "Panels" },
   { id: "keys", spec: "?", keys: "?", label: "This list (also Ctrl+/)", group: "Panels" },
-  { id: "undo", spec: "Mod+z", keys: "Ctrl+Z", label: "Undo the last change to the layers (while the Layers panel is open)", group: "Panels" },
+  { id: "undo", spec: "Mod+z", keys: "Ctrl+Z", label: "Undo the last change to the layers (while the Layers panel is open), otherwise to the cut, a grade or a saved look", group: "Panels" },
   { id: "redo", spec: "Mod+Shift+z", keys: "Ctrl+Shift+Z", label: "Redo it", group: "Panels" },
   { id: "redo_y", spec: "Mod+y", keys: "Ctrl+Y", label: "Redo it (same as Ctrl+Shift+Z)", group: "Panels" },
+
+  { id: "cut_split", spec: "s", keys: "S", label: "Cut the clip at the playhead (Edit mode)", group: "Cut" },
+  { id: "cut_delete", spec: "Delete", keys: "Delete", label: "Take the chosen clip out and leave a gap", group: "Cut" },
+  { id: "cut_ripple_delete", spec: "Shift+Delete", keys: "Shift+Delete", label: "Take the chosen clip out and close the gap", group: "Cut" },
+  { id: "cut_trim_in", spec: "q", keys: "Q", label: "Trim the start of the chosen clip to the playhead", group: "Cut" },
+  { id: "cut_trim_out", spec: "w", keys: "W", label: "Trim the end of the chosen clip to the playhead", group: "Cut" },
+  { id: "cut_marker", spec: "b", keys: "B", label: "Put a marker at the playhead", group: "Cut" },
 
   { id: "shot_sound", spec: "Shift+m", keys: "Shift+M", label: "Turn this shot's own sound on or off", group: "Sound" },
 
@@ -65,7 +72,7 @@ export const SHORTCUTS: Shortcut[] = [
   { id: "settings", spec: "Mod+,", keys: "Ctrl+,", label: "Settings", group: "Project", menu: true },
 ];
 
-export const GROUPS: ShortcutGroup[] = ["Playback", "Shots", "Panels", "Sound", "Project"];
+export const GROUPS: ShortcutGroup[] = ["Playback", "Shots", "Cut", "Panels", "Sound", "Project"];
 
 /** True while the person is typing or choosing in a control, so plain keys must be left to it. */
 export function isTyping(t: EventTarget | null): boolean {

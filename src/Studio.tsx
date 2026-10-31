@@ -40,6 +40,7 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { PreviewSheet } from "./PreviewSheet";
 import { ColourMatchSheet } from "./ColourMatch";
 import { ColorStudioSheet } from "./ColorStudio";
+import { CUT_H, CutLane, useCut, type CutKey } from "./CutLane";
 import { beatGrid } from "./overlayMotion";
 import { UpgradePanel } from "./Upgrade";
 import { DirectionLibrarySheet } from "./DirectionLibrary";
@@ -425,7 +426,9 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
         case "timeline": setTimelineOpen((v) => !v); break;
         case "timeline_compact": if (timelineOpen) setTlCompact((v) => !v); break;
         case "palette": setPaletteOpen((v) => !v); break;
-        case "undo": case "redo": case "redo_y": if (layersOpen) window.dispatchEvent(new CustomEvent("pf-layers-history", { detail: hit.id === "undo" ? "undo" : "redo" })); else e.preventDefault(); break;
+        case "undo": case "redo": case "redo_y": if (layersOpen) window.dispatchEvent(new CustomEvent("pf-layers-history", { detail: hit.id === "undo" ? "undo" : "redo" })); else window.dispatchEvent(new CustomEvent<CutKey>("pf-cut-key", { detail: hit.id === "undo" ? "undo" : "redo" })); break;      // the cut (and the grades, which share its history) when the layers are not the thing being edited
+        case "cut_split": case "cut_delete": case "cut_ripple_delete": case "cut_trim_in": case "cut_trim_out": case "cut_marker":
+          window.dispatchEvent(new CustomEvent<CutKey>("pf-cut-key", { detail: hit.id.slice(4) as CutKey })); break;
         case "shot_sound": if (cur) toggleShotSound(project.dir, cur.id).then((m) => { say(m); window.dispatchEvent(new Event("pf-media-changed")); }).catch((err) => say(errorText(err))); break;
       }
     };
@@ -716,7 +719,7 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload }: {
                                     model={route?.video.provider ? route.video.label! : AUTO_MODEL[defaultProvider(keys)]} onCancel={() => setConfirmAll(false)} onConfirm={renderAll}
                                     dir={project.dir} shots={toRender.map((s) => s.id)} modelId={route?.video.provider ? route.video.model! : AUTO_MODEL[defaultProvider(keys)]} />}
       {colourOpen && <ColourMatchSheet dir={project.dir} onClose={() => setColourOpen(false)} />}
-      {colorOpen && <ColorStudioSheet dir={project.dir} onClose={() => setColorOpen(false)} onChanged={reloadBoard} />}
+      {colorOpen && <ColorStudioSheet dir={project.dir} onClose={() => setColorOpen(false)} onChanged={() => { reloadBoard(); window.dispatchEvent(new Event("pf-cut-changed")); }} />}
       {previewOpen && <PreviewSheet dir={project.dir} from={time} duration={map?.duration ?? 0} onClose={() => setPreviewOpen(false)} />}
       {frameOpen && <InsertFrameSheet dir={project.dir} shot={sel?.kind === "shot" ? sel.id : undefined} onClose={() => setFrameOpen(false)}
                                       onDone={(id) => { setFrameOpen(false); onReload(); if (id) setSel({ kind: "shot", id }); }} />}
@@ -1065,6 +1068,16 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
   const voiceFilm = isRenderDir(dir) ? filmDirOfRender(dir) : null;
   const { byShot: voiceByShot, st: voiceSt } = useVoiceStatus(voiceFilm);          // a film's recorded voices, shown on the shots
   const cueData = useCues(edit ? voiceFilm : null);                                 // the film's planned sound, shown under the voices in Edit mode
+  const cutOn = edit && !compact && !!voiceFilm;                                    // the cut lane: the film's own cut, edited here (Edit mode of a film)
+  const cutState = useCut(dir, cutOn, time);
+  const [freeLayers, setFreeLayers] = useState<{ start: number }[]>([]);                // layers sit on the film's clock, so the cut says when one now starts after its end
+  useEffect(() => {
+    if (!cutOn) return;
+    const pull = () => api.overlays<{ start: number }[]>(dir, "list").then((l) => setFreeLayers(Array.isArray(l) ? l.map((o) => ({ start: o.start })) : [])).catch(() => setFreeLayers([]));
+    void pull();
+    window.addEventListener("pf-overlays-changed", pull);
+    return () => window.removeEventListener("pf-overlays-changed", pull);
+  }, [cutOn, dir]);
   const [laneN, setLaneN] = useState(0);
   const [voicesOpen, setVoicesOpenState] = useState(() => !!readLayout(dir).voices);          // the Voices band shows everyone (or the first three), remembered for this film
   const setVoicesOpen = (v: boolean) => { setVoicesOpenState(v); writeLayout(dir, { voices: v }); };
@@ -1183,11 +1196,12 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
   const cueH = cueKinds.length ? CHEAD_H + cueKinds.length * CLANE_H + 10 : 0;
   const voiceRows = voiceN ? Math.min(voiceN, voicesOpen ? VOICE_ROWS_MAX : VOICE_ROWS) : 0;
   const voiceH = voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0;
-  const reserve = edit ? 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0) + cueH : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
+  const cutH = cutOn ? CUT_H + 8 : 0;
+  const reserve = edit ? cutH + 28 + Math.min(Math.max(1, laneN), 3) * LANE_H + 18 + (voiceN ? VHEAD_H + voiceRows * VLANE_H + 10 : 0) + cueH : 28 + 18;      // the transition row and up to three layer lanes fit without scrolling; more lanes scroll
   const shown = !edit ? 34 + 136 + reserve + STRIP_CARD_H : Math.max(Math.min(height, Math.round(window.innerHeight * 0.6)), compact || sized ? 0 : 34 + 136 + reserve + CARD_MIN);      // unless the person chose a height, never so short that the shot pictures are slivers
   const cardH = !edit ? STRIP_CARD_H : Math.max(compact || sized ? 40 : CARD_MIN, shown - 34 - 136 - reserve);
   // top to bottom: sections, waveform, lyrics, the layer lanes (overlay tracks sit above the video, as in an editor), the shots, the transition handles
-  const laneTop = 118, lanesH = edit ? Math.max(1, laneN) * LANE_H + 10 : 6, shotsTop = laneTop + lanesH, transTop = shotsTop + cardH + 6, voiceTop = transTop + 28;
+  const laneTop = 118 + cutH, lanesH = edit ? Math.max(1, laneN) * LANE_H + 10 : 6, shotsTop = laneTop + lanesH, transTop = shotsTop + cardH + 6, voiceTop = transTop + 28;
   return (
     <section className="timeline" aria-label="Timeline" style={{ height: shown, ["--card-h" as string]: `${cardH}px` }}>
       {edit && <div className="tl-resize" onPointerDown={drag} title="Drag to resize" />}
@@ -1231,6 +1245,7 @@ function Timeline({ edit, onEdit, compact: compactProp, onCompact, map, time, se
             ))}
           </div>
           <canvas className="tl-wave" ref={wave} />
+          {cutOn && <CutLane s={cutState} pps={pps} top={118} time={time} width={width} onSeek={onSeek} free={freeLayers} />}
           <div className="tl-lyrics">
             {map.lyrics.filter((l) => l.start != null && x(l.end ?? l.start!) >= left - 200 && x(l.start!) <= left + width + 200).map((l, i) => (
               <div key={i} className="tl-lyric" title={l.text} style={{ left: x(l.start!), width: Math.max(18, x((l.end ?? l.start!) - l.start!)) }}>{l.text}</div>

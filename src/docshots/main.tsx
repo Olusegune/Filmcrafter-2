@@ -277,6 +277,7 @@ mockIPC((cmd, a) => {
     case "lipsync_check": return { shots: 0 };
     case "performance_director": return pdCall(x);
     case "grading": return gdCall(x);
+    case "editing": return cutCall(x);
     case "acting": if (x.action === "beats_get") return { beats: [{ t0: 0, t1: 2.5, what: "Sarah holds the cup with both hands", note: "" }, { t0: 2.5, t1: 4.2, what: "She sets it down without looking at him", note: "" }], seconds: 4.2, source: "written" }; return { arc: { sections: ["verse", "chorus", "bridge"], characters: ["Sege", "Amara"], arcs: { Sege: { points: [], source: null }, Amara: { points: [], source: null } } }, business: { Sege: [], Amara: [] } };
     case "performance": return { profiles: [{ id: "natural", label: "Natural", blurb: "Truthful, everyday acting. Small motivated gestures; the default." }, { id: "restrained", label: "Restrained", blurb: "Held back, internal. Emotion shows in the eyes and breath, not the face." }, { id: "expressive", label: "Expressive", blurb: "Open and readable. Clear faces and gestures, still grounded." }, { id: "dramatic", label: "Dramatic", blurb: "Heightened, cinematic. Big emotional beats, strong poses, held moments." }, { id: "energetic", label: "Energetic", blurb: "High energy for up-tempo songs: movement, rhythm, performance to camera." }], default: "dramatic", set: true, scenes: {}, characters: {}, shots: {} };
     case "list_projects": return [
@@ -444,6 +445,53 @@ const gdState = () => ({ revision: gdHistory.length, grades: gdGrades, luts: gdL
   swing: Object.fromEntries([["film", gdGrades.film], ...Object.entries(gdGrades.scenes).map(([k, g]) => [`scene:${k}`, g]), ...Object.entries(gdGrades.shots).map(([k, g]) => [`shot:${k}`, g])]
     .filter(([, g]) => Object.keys(g as object).length).map(([k, g]) => [k, { clipped_whites: Number((g as GradeMock).exposure ?? 0) > 1.5, crushed_blacks: false }])),
   shots: [{ id: "S01-01", scene: 1, heading: "INT. KITCHEN - MORNING" }, { id: "S01-02", scene: 1, heading: "INT. KITCHEN - MORNING" }, { id: "S02-01", scene: 2, heading: "EXT. PLATFORM - NIGHT" }] });
+// The cut's made-up backend: a small stand-in for the engine's editing (whole frames at 24 a second), kept in memory so the timeline's controls can be tried. The real checks are in the engine's own tests.
+type CutClipMock = { id: string; shot: string; start: number; source_in: number; duration: number };
+type CutMock = { clips: CutClipMock[]; markers: { id: string; at: number; name: string }[]; length: number; locked: boolean };
+const FRAME_TICKS = 254_016_000_000 / 24;
+const cutStart = (): CutMock => ({ clips: (renderFixture as unknown as { production: { scenes: { shots: { id: string; start: number; end: number }[] }[] } }).production.scenes.flatMap((sc) => sc.shots)
+  .map((s, i) => ({ id: `c${i + 1}`, shot: s.id, start: Math.round(s.start * 24), source_in: 0, duration: Math.round(s.end * 24) - Math.round(s.start * 24) })), markers: [], length: Math.round((renderFixture as unknown as { song_map: { duration: number } }).song_map.duration * 24), locked: false });
+let cutNow: CutMock = cutStart();
+let cutStored = false;
+let cutPast: CutMock[] = [];
+let cutFuture: CutMock[] = [];
+let cutSeq = 100;
+const cutView = () => ({
+  stored: cutStored, unplaced: [] as string[], orphans: [] as string[], can_undo: cutPast.length > 0, can_redo: cutFuture.length > 0, history: [],
+  sequence: { fps: [24, 1], frame_ticks: FRAME_TICKS, ticks_per_second: 254_016_000_000, length: cutNow.length * FRAME_TICKS, length_s: cutNow.length / 24,
+    tracks: [{ id: "V1", kind: "video", locked: cutNow.locked, hidden: false, muted: false, clips: cutNow.clips.map((c) => ({ ...c, take: null, start_s: c.start / 24, duration_s: c.duration / 24, source_in_s: c.source_in / 24, start_frame: c.start, frames: c.duration,
+      start_t: 0, source_in_t: 0, duration_t: 0 })).map(({ start_t: _a, source_in_t: _b, duration_t: _c, ...c }) => ({ ...c, start: c.start * FRAME_TICKS, source_in: c.source_in * FRAME_TICKS, duration: c.duration * FRAME_TICKS })) }],
+    markers: cutNow.markers.map((m) => ({ id: m.id, at: m.at * FRAME_TICKS, at_s: m.at / 24, name: m.name })), ranges: [] } });
+const cutCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
+  const d = (a.data ?? {}) as { op?: string; at?: number; to?: number; clip?: string; edge?: string; ripple?: boolean; marker?: string; name?: string; locked?: boolean };
+  if (a.action === "sequence_get") return cutView();
+  if (a.action === "undo") { const p = cutPast.pop(); if (!p) throw new Error("There is nothing to undo."); cutFuture.push(cutNow); cutNow = p; return cutView(); }
+  if (a.action === "redo") { const n = cutFuture.pop(); if (!n) throw new Error("There is nothing to do again."); cutPast.push(cutNow); cutNow = n; return cutView(); }
+  if (a.action !== "edit") throw new Error("Unknown action.");
+  const next: CutMock = JSON.parse(JSON.stringify(cutNow));
+  const f = (v: unknown) => Math.round(Number(v) * 24);
+  const find = () => { const c = next.clips.find((x) => x.id === d.clip); if (!c) throw new Error("That clip is not in the film."); return c; };
+  if (next.locked && d.op !== "track_set") throw new Error("The track V1 is locked. Unlock it to edit.");
+  const end = (c: CutClipMock) => c.start + c.duration;
+  switch (d.op) {
+    case "split": { const at = f(d.at); const c = next.clips.find((x) => x.start < at && at < end(x)); if (!c) throw new Error("There is no clip to cut there (a cut has to fall inside a clip, not on its edge)."); const first = at - c.start;
+      next.clips.push({ id: `c${cutSeq++}`, shot: c.shot, start: at, source_in: c.source_in + first, duration: c.duration - first }); c.duration = first; break; }
+    case "trim": { const c = find(); const to = f(d.to); const after = next.clips.filter((x) => x.start > c.start);
+      if (d.edge === "in") { const delta = to - c.start; if (c.duration - delta <= 0) throw new Error("A clip cannot be trimmed to nothing. Delete it instead."); if (delta < 0 && c.source_in < -delta) throw new Error("There is no more of this clip before its start to bring back.");
+        c.source_in += delta; c.duration -= delta; if (d.ripple) { after.forEach((x) => { x.start -= delta; }); next.length -= delta; } else c.start = to; }
+      else { const nd = to - c.start; if (nd <= 0) throw new Error("A clip cannot be trimmed to nothing. Delete it instead."); const delta = nd - c.duration; c.duration = nd; if (d.ripple) { after.forEach((x) => { x.start += delta; }); next.length += delta; } }
+      break; }
+    case "delete": { const c = find(); next.clips = next.clips.filter((x) => x.id !== c.id); if (d.ripple) { next.clips.filter((x) => x.start > c.start).forEach((x) => { x.start -= c.duration; }); next.length -= c.duration; } break; }
+    case "move": { const c = find(); c.start = Math.max(0, f(d.to)); if (next.clips.some((x) => x.id !== c.id && c.start < end(x) && x.start < end(c))) throw new Error("There is no room for the clip there: it would overlap another. Move it into a gap, or use a ripple move to make room."); break; }
+    case "marker_set": next.markers.push({ id: `m${cutSeq++}`, at: f(d.at), name: d.name ?? "" }); break;
+    case "marker_remove": next.markers = next.markers.filter((m) => m.id !== d.marker); break;
+    case "track_set": next.locked = !!d.locked; break;
+    default: throw new Error("That edit is not in the screenshot harness.");
+  }
+  next.clips.sort((x, y) => x.start - y.start);
+  cutPast.push(cutNow); cutFuture = []; cutNow = next; cutStored = true;
+  return cutView();
+};
 const gdCall = (a: { action?: string; data?: Record<string, unknown> }): unknown => {
   const d = (a.data ?? {}) as { scope?: string; key?: string | number; grade?: GradeMock; id?: string; on?: boolean; name?: string; path?: string };
   const table = () => (d.scope === "scene" ? gdGrades.scenes : gdGrades.shots) as Record<string, GradeMock>;
@@ -541,6 +589,7 @@ const scenes: Record<string, () => ReactNode> = {
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
   studio: () => <Studio project={{ dir: DIR, ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,
   studiovoice: () => <Studio project={{ dir: DIR + "/render", ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,
+  cutedit: () => { try { localStorage.setItem(`pf-tl:${DIR}/render`, JSON.stringify({ edit: true })); } catch { /* storage can be blocked */ } return <Studio project={{ dir: DIR + "/render", ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />; },
   make: () => <div style={{ width: "min(1240px, 100vw)", height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="keyframe" onTab={noop} /></div>,
   export: () => <div style={{ width: "min(1240px, 100vw)", height: 760, display: "flex", background: "#090b0f" }}><MakeFilm dir="f1" tab="deliver" onTab={noop} /></div>,
   continuity: () => <div style={{ width: 1100, height: 640, display: "flex", background: "#090b0f" }}><FilmContinuity dir="f1" onGo={noop} onChanged={noop} /></div>,
