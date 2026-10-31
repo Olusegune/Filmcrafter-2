@@ -98,6 +98,7 @@
       "icons/document.ico": "document.ico",
       "../analysis/filmcrafter_engine/*.py": "engine/filmcrafter_engine/",
       "../analysis/filmcrafter_engine/styles.json": "engine/filmcrafter_engine/styles.json",
+      "../analysis/filmcrafter_engine/presets_builtin.json": "engine/filmcrafter_engine/presets_builtin.json",
       "../analysis/requirements-engine.txt": "engine/requirements-engine.txt"
     },
     "windows": {
