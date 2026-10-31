@@ -113,6 +113,8 @@ In the cut lane press **Suggest…** (or Ctrl+K, *Smart Editor*). It reads the c
 
 The Guide (top of the film) also lists the finishing tools, each marked optional and free: **Start from a preset**, **Tighten the cut**, **Colour**, and **Titles and lower thirds**. Press *Take me there* and the Studio opens with that sheet already up.
 
+When the film is ready, **Polish my film** (beside the green 'ready' line) takes you through the cut suggestions, colour and titles in turn. Close a sheet to go on to the next, or press **Stop here** in the small bar at the bottom.
+
 ### Motion graphics
 **Motion graphics** (the *+ Layer* menu in the timeline, the Layers screen, or Ctrl+K) puts a ready-made title on the film. Choose one of the eight (lower third, title card, chapter title, place and time, callout, quote, big number, end card), type its words, and check the picture: it is drawn the way the film will draw it, shown as it looks once it has settled (it moves in when the film plays). **Add at the playhead** puts it down from the moment the playhead is at. It is a few normal layers in one group: change the words, colours, timing or movement afterwards like any layer, or press **Take it away again** to remove the whole thing. In the Layers panel any layer can also have a **glow** or a **blur**. It costs nothing; nothing is generated.
 

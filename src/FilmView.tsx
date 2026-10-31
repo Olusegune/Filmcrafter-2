@@ -82,6 +82,9 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
   };
   const isScreenplay = f.kind === "screenplay";
   const studio = f.mode === "studio";
+  const toStudio = async (sheet: StudioSheet) => {                         // get the film ready for the Studio (shots, then the render project), and open it with that sheet already up
+    try { await api.shots("get", dir).then(async (v) => { if (!v.shots.length) await api.shots("breakdown", dir); }); const r = await api.make<{ render_dir: string }>("sync", dir); onStudio?.(r.render_dir, sheet); } catch (e) { setErr(errorText(e)); }
+  };
   const advice = openAdvice(f.advice);
   const setAside = f.advice.filter((a) => a.status !== "open");
   const shownAdvice = showAll ? advice : advice.slice(0, 3);
@@ -115,7 +118,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
           <I.Rocket size={13} /> Guide{progress && (() => { const st = buildSteps({ progress, voices: null, sound: null, pro: f.mode === "studio", exported: false }); const n = nextStep(st); return n ? <small className="ff-badge">{doneCount(st)}/{requiredCount(st)}</small> : null; })()}</button>
         <button className="icon-btn" onClick={onSettings} title="Settings" aria-label="Settings"><I.Gear /></button>
       </header>
-      <NextStep dir={dir} refresh={`${stage}-${makeTab}-${progress?.make.keyframe}-${progress?.make.video}-${progress?.shots.count}-${f.story.current}`} onGo={(it) => {
+      <NextStep dir={dir} onPolish={onStudio ? () => void toStudio("polish") : undefined} refresh={`${stage}-${makeTab}-${progress?.make.keyframe}-${progress?.make.video}-${progress?.shots.count}-${f.story.current}`} onGo={(it) => {
         setGoVoice(it.go === "voice"); setGoSound(false); setGoPlaces(false); setGoShot(it.shot);
         goStage(it.go === "voice" ? "make" : it.go === "shots" && !studio ? "make" : it.go === "soundplan" ? "shots" : it.go);
       }} />
@@ -229,8 +232,7 @@ export function FilmView({ dir, onHome, onSettings, onStudio, initialStage }: { 
       {guide && <FirstFilm dir={dir} progress={progress} pro={studio} onClose={() => setGuide(false)} onGo={(where) => {
         if (where === "materials") { setMaterials(true); return; }
         if (where.startsWith("studio:")) {                                  // a Studio sheet (presets, the Smart Editor, colour, titles): get the film ready for it, then open the Studio with that sheet already up
-          const sheet = where.slice(7) as StudioSheet;
-          void (async () => { try { await api.shots("get", dir).then(async (v) => { if (!v.shots.length) await api.shots("breakdown", dir); }); const r = await api.make<{ render_dir: string }>("sync", dir); onStudio?.(r.render_dir, sheet); } catch (e) { setErr(errorText(e)); } })();
+          void toStudio(where.slice(7) as StudioSheet);
           return;
         }
         setGoVoice(where === "voice"); setGoSound(where === "sound"); setGoPlaces(false);

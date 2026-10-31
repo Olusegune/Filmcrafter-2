@@ -171,11 +171,19 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, startShe
   const [smartOpen, setSmartOpen] = useState(false);
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [motionOpen, setMotionOpen] = useState(false);
+  const [polishLeft, setPolishLeft] = useState<("smart" | "color" | "motion")[]>([]);          // "Polish my film": the finishing sheets still to come, in order; closing one opens the next, Stop ends it
+  const polishNext = (left: ("smart" | "color" | "motion")[]) => {
+    setPolishLeft(left.slice(1));
+    const n = left[0];
+    if (n) ({ smart: setSmartOpen, color: setColorOpen, motion: setMotionOpen })[n](true);
+  };
   useEffect(() => {
     if (!startSheet) return;
-    ({ presets: setPresetsOpen, smart: setSmartOpen, color: setColorOpen, motion: setMotionOpen })[startSheet](true);
+    if (startSheet === "polish") polishNext(["smart", "color", "motion"]);
+    else ({ presets: setPresetsOpen, smart: setSmartOpen, color: setColorOpen, motion: setMotionOpen })[startSheet](true);
     onStartSheetShown?.();
   }, [startSheet]);                                                              // eslint-disable-line react-hooks/exhaustive-deps
+  const closeThen = (set: (v: boolean) => void) => () => { set(false); if (polishLeft.length) polishNext(polishLeft); };
   const [layerSel, setLayerSel] = useState<string | null>(null);
   const [focusLayer, setFocusLayer] = useState<Overlay | null>(null);
   const [focus, setFocus] = useState(false);
@@ -739,10 +747,12 @@ export function Studio({ project, onHome, onFilm, onSettings, onReload, startShe
                                     model={route?.video.provider ? route.video.label! : AUTO_MODEL[defaultProvider(keys)]} onCancel={() => setConfirmAll(false)} onConfirm={renderAll}
                                     dir={project.dir} shots={toRender.map((s) => s.id)} modelId={route?.video.provider ? route.video.model! : AUTO_MODEL[defaultProvider(keys)]} />}
       {colourOpen && <ColourMatchSheet dir={project.dir} onClose={() => setColourOpen(false)} />}
-      {motionOpen && <MotionGraphicsSheet dir={project.dir} time={time} onClose={() => setMotionOpen(false)} onChanged={reloadBoard} />}
+      {(motionOpen || smartOpen || colorOpen) && polishLeft.length > 0 && <div className="pl-bar" role="status">Polishing: {polishLeft.length === 1 ? "one more step" : `${polishLeft.length} more steps`} after this one ({polishLeft.map((x) => ({ smart: "the cut", color: "colour", motion: "titles" })[x]).join(", then ")}). Close this to go on.{" "}
+        <button type="button" className="link" onClick={() => setPolishLeft([])}>Stop here</button></div>}
+      {motionOpen && <MotionGraphicsSheet dir={project.dir} time={time} onClose={closeThen(setMotionOpen)} onChanged={reloadBoard} />}
       {presetsOpen && <PresetsSheet dir={project.dir} onClose={() => setPresetsOpen(false)} onChanged={() => { reloadBoard(); onReload(); }} />}
-      {smartOpen && <SmartEditorSheet dir={project.dir} onClose={() => setSmartOpen(false)} onChanged={reloadBoard} />}
-      {colorOpen && <ColorStudioSheet dir={project.dir} onClose={() => setColorOpen(false)} onChanged={() => { reloadBoard(); window.dispatchEvent(new Event("pf-cut-changed")); }} />}
+      {smartOpen && <SmartEditorSheet dir={project.dir} onClose={closeThen(setSmartOpen)} onChanged={reloadBoard} />}
+      {colorOpen && <ColorStudioSheet dir={project.dir} onClose={closeThen(setColorOpen)} onChanged={() => { reloadBoard(); window.dispatchEvent(new Event("pf-cut-changed")); }} />}
       {previewOpen && <PreviewSheet dir={project.dir} from={time} duration={map?.duration ?? 0} onClose={() => setPreviewOpen(false)} />}
       {frameOpen && <InsertFrameSheet dir={project.dir} shot={sel?.kind === "shot" ? sel.id : undefined} onClose={() => setFrameOpen(false)}
                                       onDone={(id) => { setFrameOpen(false); onReload(); if (id) setSel({ kind: "shot", id }); }} />}
