@@ -7,8 +7,8 @@ import "./lanes.css";
 
 export const LANE_H = 22;
 
-const KIND_GLYPH: Record<string, string> = { text: "T", image: "▣", svg: "▣", fill: "■", shape: "◆", icon: "★" };
-const labelOf = (o: Overlay) => o.name || o.text || o.file?.split(/[\\/]/).pop() || (o.kind === "fill" ? "Colour backdrop" : o.kind === "shape" ? "Shape" : o.kind === "icon" ? "Icon" : "Picture");
+const KIND_GLYPH: Record<string, string> = { text: "T", image: "▣", clip: "▶", svg: "▣", fill: "■", shape: "◆", icon: "★" };
+const labelOf = (o: Overlay) => o.name || o.text || o.file?.split(/[\\/]/).pop() || (o.kind === "fill" ? "Colour backdrop" : o.kind === "shape" ? "Shape" : o.kind === "icon" ? "Icon" : o.kind === "clip" ? "Video clip" : "Picture");
 const clock = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
 /** How many lanes the layers need; the timeline uses it to size its scroll area. */
@@ -139,8 +139,10 @@ export function LayerLanes({ dir, pps, duration, selected, onSelect, snap, top, 
         const r = el.getBoundingClientRect(), x = p.position.x / (window.devicePixelRatio || 1), y = p.position.y / (window.devicePixelRatio || 1);
         if (x < r.left || x > r.right || y < r.top - 6 || y > r.bottom + 6) return;
         const pics = p.paths.filter((f) => /\.(png|jpe?g|webp|svg)$/i.test(f));
-        if (!pics.length) { say("Drop pictures (PNG, JPG, WebP or SVG) on the Layers row. Videos and music go in My media."); return; }
+        const clips = p.paths.filter((f) => /\.(mp4|mov|m4v|webm|mkv)$/i.test(f));
+        if (!pics.length && !clips.length) { say("Drop pictures (PNG, JPG, WebP or SVG) or video clips (MP4, MOV, WebM) on the Layers row. Music goes in My media."); return; }
         pics.forEach((f, i) => void addAtRef.current({ image: f, y: 0.5, width: 0.3, anim: "zoom_in" }, rowTime(x) + i * 0.5));
+        clips.slice(0, 4).forEach((f, i) => void addAtRef.current({ video: f, y: 0.5, x: 0.5, width: 0.4, end: null, anim: "fade" }, rowTime(x) + i * 0.5));     // a clip lands where it was dropped and plays for as long as it runs
       }).then((u) => { off = u; });
     } catch { /* not inside the app window */ }
     return () => off?.();

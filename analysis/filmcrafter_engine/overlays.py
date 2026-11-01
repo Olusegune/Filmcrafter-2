@@ -34,6 +34,9 @@ IMAGE_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg")
 MAX_TEXT = 300
 MAX_OVERLAYS = 200
 MAX_FILE = 25_000_000
+CLIP_EXT = (".mp4", ".mov", ".m4v", ".webm", ".mkv")
+MAX_CLIP = 1_000_000_000      # a video clip layer's file, in bytes
+MAX_CLIPS = 8                 # video clip layers in one project: each is another video the film's last pass reads at the same time
 SHOW_FOR = 5.0           # longest a section-timed overlay stays up
 MARGIN = 0.03            # safe margin, as a fraction of the frame
 ANIMS = ("fade", "rise", "drop", "slide_left", "slide_right", "zoom_in", "zoom_out", "pushin", "wipe", "typewriter", "bounce", "pop", "pulse", "accent")
@@ -333,8 +336,63 @@ def apply_effects(im, o: dict, H: int):
     return im
 
 
+def clip_size(o: dict, W: int) -> tuple[int, int]:
+    """A video clip's size in pixels in a frame W wide: its width (a fraction of the frame), its own shape, both made even for the encoder."""
+    sw, sh = o.get("src_w"), o.get("src_h")
+    if not all(isinstance(v, int) and not isinstance(v, bool) and 0 < v <= 16384 for v in (sw, sh)):
+        raise SystemExit("This video clip's size is not known. Remove it and add it again.")
+    w = max(2, 2 * round(W * min(1.0, max(0.05, float(o.get("width") or 0.4))) / 2))
+    return w, max(2, 2 * round(w * sh / sw / 2))
+
+
+def clip_filters(o: dict, w: int, h: int, fps: int) -> str:
+    """The video filters that make a clip into a layer: the frame rate and size, a colour cut out (with its spill taken off), and the layer's opacity. Only numbers and a parsed colour go in."""
+    parts = [f"fps={int(fps)}", f"scale={int(w)}:{int(h)}:flags=bicubic", "setsar=1"]
+    if o.get("key_color"):
+        r, g, b = _hex(o["key_color"])
+        tol, soft, spill = (min(1.0, max(0.0, float(o.get(k, dflt)))) for k, dflt in (("key_tol", 0.35), ("key_soft", 0.15), ("key_spill", 0.6)))
+        parts.append(f"chromakey=color=0x{r:02x}{g:02x}{b:02x}:similarity={0.01 + tol * 0.39:.3f}:blend={soft * 0.3:.3f}")
+        if spill > 0 and max(r, g, b) in (g, b) and not (g == b):
+            parts.append(f"despill=type={'green' if g > b else 'blue'}:mix={spill:.2f}:expand=0")
+    parts.append("format=rgba")
+    if o.get("opacity") is not None and float(o["opacity"]) < 1:
+        parts.append(f"colorchannelmixer=aa={min(1.0, max(0.05, float(o['opacity']))):.3f}")
+    return ",".join(parts)
+
+
+def clip_path(d: str, o: dict) -> str:
+    path = os.path.join(d, str(o.get("file", "")))
+    if not (os.path.isfile(path) and _inside(d, path)) or os.path.splitext(path)[1].lower() not in CLIP_EXT:
+        raise SystemExit(f"The video for \"{o.get('text') or o.get('id')}\" is missing.")
+    return os.path.abspath(path)
+
+
+def clip_still(d: str, o: dict, W: int, H: int) -> tuple[str, tuple[int, int]]:
+    """The first frame of a video clip, sized and cut out as the film will have it (a picture for the layer's preview; the film itself reads the video)."""
+    from .export import ffmpeg
+    path = clip_path(d, o)
+    w, h = clip_size(o, W)
+    at = min(float(o.get("in_s") or 0.0), max(0.0, float(o.get("src_dur") or 0.0) - 0.1))
+    vf = clip_filters({**o, "opacity": None}, w, h, 24)
+    key = _sha1(json.dumps([o.get("file"), os.path.getmtime(path), at, vf], sort_keys=True).encode()).hexdigest()[:14]
+    out = os.path.join(d, "cache", "overlays", f"clip-{key}.png")
+    if not os.path.exists(out):
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        try:
+            r = subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{at:.3f}", "-i", path, "-vf", vf, "-frames:v", "1", out + ".part.png"],
+                               capture_output=True, text=True, creationflags=NO_WINDOW, timeout=120)
+        except subprocess.TimeoutExpired:
+            raise SystemExit("Reading that video took too long, so a picture could not be made from it.")
+        if r.returncode or not os.path.exists(out + ".part.png"):
+            raise SystemExit("A picture could not be made from that video clip.")
+        os.replace(out + ".part.png", out)
+    return out, (w, h)
+
+
 def render_png(d: str, o: dict, W: int, H: int) -> tuple[str, tuple[int, int]]:
     """The overlay's picture on disk (cached by what it is made from) and its size."""
+    if o.get("kind") == "clip":
+        return clip_still(d, o, W, H)
     from . import composite, fonts
     key = _sha1(json.dumps([o.get("kind"), o.get("text"), o.get("file"), o.get("size"), o.get("width"), o.get("color"), o.get("color2"), bool(o.get("cover")), W, H,
                                    [o.get(k) for k in ("shape", "icon", "height", "stroke", "stroke_w", "opacity", "rotation", "radius", "filled", "scale", "angle", "gradient", "shadow")],
@@ -585,13 +643,19 @@ def _pass(d: str, video: str, out: str, first_frame: int | None, frames: int | N
         # The picture exists only while the layer is up (not for the whole slice): a looped picture is read as fast as it can be, and for a full-frame layer at 1080p that
         # filled gigabytes of memory in seconds.
         on = max(0.0, s)
-        cmd += ["-loop", "1", "-framerate", str(fps), "-t", f"{e - on + 0.25:.3f}", "-itsoffset", f"{on:.3f}", "-i", os.path.basename(png)]
+        clip = o.get("kind") == "clip"
+        if clip:                                         # read as video: from its start point (further on when the layer was already up before this pass), looped if asked
+            seek = float(o.get("in_s") or 0.0) + max(0.0, -s)
+            cmd += ["-itsoffset", f"{on:.3f}"] + (["-stream_loop", "-1"] if o.get("loop") else []) + ["-ss", f"{seek:.3f}", "-t", f"{e - on + 0.25:.3f}", "-i", clip_path(d, o)]
+        else:
+            cmd += ["-loop", "1", "-framerate", str(fps), "-t", f"{e - on + 0.25:.3f}", "-itsoffset", f"{on:.3f}", "-i", os.path.basename(png)]
         if o.get("keys") and o.get("kind") != "fill" and not o.get("cover"):
             pre, pos = motion_keys(o, s, f, size, W, H)
         else:
             pre, pos = motion(o.get("anim"), s, e, f, x, y, size, W, H, shifted_beat, len(str(o.get("text") or "")) if o.get("kind", "text") == "text" else 0, shifted_hits)
         fade_in = f"fade=t=in:st={s:.3f}:d={f:.3f}:alpha=1," if s >= 0 else ""         # a layer up before this pass starts faded in during the lead-in that is cut off
-        chains.append(f"[{k}:v]format=rgba,{fade_in}fade=t=out:st={max(0.0, e - f):.3f}:d={f:.3f}:alpha=1{pre}[o{k}]")
+        head = clip_filters(o, size[0], size[1], fps) + "," if clip else "format=rgba,"
+        chains.append(f"[{k}:v]{head}{fade_in}fade=t=out:st={max(0.0, e - f):.3f}:d={f:.3f}:alpha=1{pre}[o{k}]")
         if o.get("blend") in composite.BLENDS:
             pieces, prev = composite.graph(k, prev, pos, o["blend"], s, e, W, H, fps)
             chains += pieces
@@ -700,7 +764,7 @@ def _f(value, name: str) -> float:
         v = float(value)
     except (TypeError, ValueError):
         raise SystemExit(f"The {name} must be a number.")
-    if v != v:
+    if v != v or v in (float("inf"), float("-inf")):
         raise SystemExit(f"The {name} must be a number.")
     return v
 
@@ -709,8 +773,8 @@ def _clean(d: str, x: dict, cur: dict | None = None) -> dict:
     """A validated overlay from what the screen sent: every number clamped, every file inside the project."""
     o = dict(cur or {})
     kind = x.get("kind", o.get("kind", "text"))
-    if kind not in ("text", "svg", "image", "fill", "shape", "icon"):
-        raise SystemExit("Choose text, a sign, a picture, a colour, a shape or an icon.")
+    if kind not in ("text", "svg", "image", "clip", "fill", "shape", "icon"):
+        raise SystemExit("Choose text, a sign, a picture, a video clip, a colour, a shape or an icon.")
     o["kind"] = kind
     if "text" in x or kind == "text":
         text = str(x.get("text", o.get("text", ""))).strip()[:MAX_TEXT]
@@ -748,13 +812,15 @@ def _clean(d: str, x: dict, cur: dict | None = None) -> dict:
         o["font"] = fonts.check(d, x["font"])
     from . import shapes
     if kind == "shape" or "shape" in x:
-        if x.get("shape", o.get("shape", "rect")) not in shapes.SHAPES:
+        shape = x.get("shape", o.get("shape", "rect"))
+        if not isinstance(shape, str) or shape not in shapes.SHAPES:           # a list or a dict from the screen is "not one of them", never a crash
             raise SystemExit("Choose a rectangle, rounded box, circle or line.")
-        o["shape"] = x.get("shape", o.get("shape", "rect"))
+        o["shape"] = shape
     if kind == "icon" or "icon" in x:
-        if x.get("icon", o.get("icon", "star")) not in shapes.ICONS:
+        icon = x.get("icon", o.get("icon", "star"))
+        if not isinstance(icon, str) or icon not in shapes.ICONS:
             raise SystemExit("Choose one of the icons in the list.")
-        o["icon"] = x.get("icon", o.get("icon", "star"))
+        o["icon"] = icon
     from . import composite
     composite.clean(x, o, _hex)
     for k in ("glow", "blur"):
@@ -785,6 +851,18 @@ def _clean(d: str, x: dict, cur: dict | None = None) -> dict:
     if kind == "shape":
         o.setdefault("height", 0.006 if o.get("shape") == "line" else 0.2)
         o.setdefault("stroke", "#ffffff")
+    if "in_s" in x:
+        o["in_s"] = min(86400.0, max(0.0, _f(x["in_s"], "The point to start from")))
+    if "loop" in x:
+        if x["loop"]:
+            o["loop"] = True
+        else:
+            o.pop("loop", None)
+    if kind == "clip":
+        if o.get("glow") or o.get("blur") or o.get("mask"):
+            raise SystemExit("A glow, a blur and a shape are not available for video clips yet. Colour cut-outs and blend modes are.")
+        for k in ("rotation", "scale", "shadow", "gradient", "stroke", "stroke_w", "radius", "filled", "cover"):
+            o.pop(k, None)
     if "name" in x:
         o["name"] = " ".join(str(x["name"] or "").split())[:60]
     if "enabled" in x:
@@ -800,6 +878,10 @@ def add(d: str, x: dict) -> list[dict]:
         raise SystemExit(f"A project can have {MAX_OVERLAYS} overlays at most.")
     if x.get("image") and not x.get("kind"):
         x = {**x, "kind": "image"}                  # a chosen picture file is a picture overlay unless said otherwise
+    if x.get("video") and not x.get("kind"):
+        x = {**x, "kind": "clip"}
+    if x.get("kind") == "clip" and sum(1 for i in items if i.get("kind") == "clip") >= MAX_CLIPS:
+        raise SystemExit(f"A project can have {MAX_CLIPS} video clips at most. Remove one first.")
     o = _clean(d, x)
     o["id"] = "ov_" + uuid.uuid4().hex[:8]
     if x.get("image"):                           # a picture or sign file chosen on disk: copied into the project
@@ -815,6 +897,24 @@ def add(d: str, x: dict) -> list[dict]:
         o["file"] = rel
         o["kind"] = "svg" if ext == ".svg" else "image"
         o.setdefault("text", os.path.basename(src)[:80])
+    elif x.get("video"):                          # a video clip chosen on disk: checked, then copied into the project
+        src = str(x["video"])
+        if os.path.splitext(src)[1].lower() not in CLIP_EXT or not os.path.isfile(src):
+            raise SystemExit("Use an MP4, MOV, M4V, WebM or MKV video file.")
+        if os.path.getsize(src) > MAX_CLIP:
+            raise SystemExit("That video is too large (1 GB at most).")
+        from .editor_export import probe
+        info = probe(src)
+        if not info["video"] or not (0 < info["w"] <= 16384 and 0 < info["h"] <= 16384) or info["duration"] <= 0:
+            raise SystemExit("That file does not have a picture FilmCrafter can read.")
+        os.makedirs(os.path.join(d, "assets", "overlays"), exist_ok=True)
+        rel = f"assets/overlays/{o['id']}{os.path.splitext(src)[1].lower()}"
+        shutil.copy2(src, os.path.join(d, rel))
+        o.update(kind="clip", file=rel, src_w=int(info["w"]), src_h=int(info["h"]), src_dur=round(float(info["duration"]), 3))
+        o.setdefault("text", os.path.basename(src)[:80])
+        o["in_s"] = min(float(o.get("in_s") or 0.0), max(0.0, o["src_dur"] - 0.1))
+        if o.get("start") is not None and o.get("end") is None:
+            o["end"] = float(o["start"]) + min(o["src_dur"] - o["in_s"], 10.0)
     elif o["kind"] not in ("text", "fill", "shape", "icon"):
         raise SystemExit("Choose the picture for this overlay.")
     items.append(o)
@@ -963,7 +1063,7 @@ def main(argv: list[str]) -> int:
         print(json.dumps({"event": "error", "message": str(e)}), flush=True)
         return 1
     except Exception as e:
-        print(json.dumps({"event": "error", "message": f"{type(e).__name__}: {e}"}), flush=True)
+        print(json.dumps({"event": "error", "message": __import__("filmcrafter_engine.errtext", fromlist=["plain"]).plain(e)}), flush=True)
         return 1
 
 

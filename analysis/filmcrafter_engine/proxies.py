@@ -187,7 +187,7 @@ def main(argv: list[str]) -> int:
     except SystemExit as e:
         emit(event="error", message=str(e))
     except Exception as e:                       # noqa: BLE001
-        emit(event="error", message=f"{type(e).__name__}: {e}")
+        emit(event="error", message=__import__("filmcrafter_engine.errtext", fromlist=["plain"]).plain(e))
     return 1
 
 

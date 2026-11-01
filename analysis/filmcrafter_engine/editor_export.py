@@ -43,7 +43,10 @@ def _ffmpeg() -> str:
 
 def probe(path: str) -> dict:
     """What an editor needs to know about a media file: duration (s), frame rate, size and whether it has sound."""
-    err = subprocess.run([_ffmpeg(), "-hide_banner", "-i", path], capture_output=True, text=True, creationflags=NO_WINDOW).stderr
+    try:
+        err = subprocess.run([_ffmpeg(), "-hide_banner", "-i", path], capture_output=True, text=True, creationflags=NO_WINDOW, timeout=60).stderr
+    except subprocess.TimeoutExpired:                 # a file that will not even be described in a minute is not one to use
+        err = ""
     dur = re.search(r"Duration: (\d+):(\d+):([\d.]+)", err)
     vid = re.search(r"Video:.*?(\d{2,5})x(\d{2,5})", err)
     fps = re.search(r"([\d.]+) fps", err)
@@ -336,7 +339,7 @@ def main(argv: list[str]) -> int:
         print(json.dumps({"event": "error", "message": str(e)}), flush=True)
         return 1
     except Exception as e:
-        print(json.dumps({"event": "error", "message": f"{type(e).__name__}: {e}"}), flush=True)
+        print(json.dumps({"event": "error", "message": __import__("filmcrafter_engine.errtext", fromlist=["plain"]).plain(e)}), flush=True)
         return 1
 
 

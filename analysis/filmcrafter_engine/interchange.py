@@ -271,7 +271,7 @@ def main(argv: list[str]) -> int:
         emit(event="error", message=str(e))
         return 1
     except Exception as e:
-        emit(event="error", message=f"{type(e).__name__}: {e}")
+        emit(event="error", message=__import__("filmcrafter_engine.errtext", fromlist=["plain"]).plain(e))
         return 1
 
 

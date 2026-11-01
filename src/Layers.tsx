@@ -32,7 +32,7 @@ const MASKS: [string, string][] = [["none", "None"], ["ellipse", "Oval"], ["roun
 /** How the layer mixes with the picture under it, a glow or blur, a shape that hides part of it, and (for a picture) a colour cut out of it. All free; the finished film does the same as the preview here. */
 function MixPanel({ sel, call }: { sel: Overlay; call: (action: "update", data: Record<string, unknown>) => void }) {
   const set = (data: Record<string, unknown>) => call("update", { id: sel.id, ...data });
-  const solid = sel.kind !== "fill" && !sel.cover;
+  const solid = sel.kind !== "fill" && sel.kind !== "clip" && !sel.cover;
   return (
     <details className="ly-mix">
       <summary>Mix and effects{sel.blend || sel.glow || sel.blur || sel.mask || sel.key_color ? " (in use)" : ""}</summary>
@@ -43,14 +43,14 @@ function MixPanel({ sel, call }: { sel: Overlay; call: (action: "update", data: 
           <label className="field"><span>Glow</span><Range min={0} max={1} step={0.05} value={sel.glow ?? 0} onCommit={(v) => set({ glow: v })} /></label>
           <label className="field"><span>Glow colour</span><Colour value={sel.glow_color ?? "#ffffff"} onCommit={(v) => set({ glow_color: v })} /></label></div>
         <label className="field"><span>Blur</span><Range min={0} max={1} step={0.05} value={sel.blur ?? 0} onCommit={(v) => set({ blur: v })} /></label></>}
-      <label className="field"><span>Show only through a shape</span>
-        <select className="text-input" value={sel.mask ?? "none"} onChange={(e) => set({ mask: e.target.value })}>{MASKS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
-      {sel.mask && <>
+      {sel.kind !== "clip" && <label className="field"><span>Show only through a shape</span>
+        <select className="text-input" value={sel.mask ?? "none"} onChange={(e) => set({ mask: e.target.value })}>{MASKS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>}
+      {sel.mask && sel.kind !== "clip" && <>
         <div className="ly-two">
           <label className="field"><span>Shape size</span><Range min={0.05} max={1} step={0.05} value={sel.mask_size ?? 0.8} onCommit={(v) => set({ mask_size: v })} /></label>
           <label className="field"><span>Soft edge</span><Range min={0} max={1} step={0.05} value={sel.mask_feather ?? 0} onCommit={(v) => set({ mask_feather: v })} /></label></div>
         <label className="ly-check"><input type="checkbox" checked={!!sel.mask_invert} onChange={(e) => set({ mask_invert: e.target.checked })} /> Hide the inside instead (a vignette)</label></>}
-      {sel.kind === "image" && <>
+      {(sel.kind === "image" || sel.kind === "clip") && <>
         <label className="ly-check"><input type="checkbox" checked={!!sel.key_color} onChange={(e) => set({ key_color: e.target.checked ? "#00ff00" : "" })} /> Cut out a colour (a green screen)</label>
         {sel.key_color && <>
           <label className="field"><span>Colour to remove</span><Colour value={sel.key_color} onCommit={(v) => set({ key_color: v })} /></label>
@@ -79,7 +79,7 @@ function Colour({ value, onCommit }: { value: string; onCommit: (v: string) => v
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 const label = (o: Overlay) => o.name || o.text || o.file?.split("/").pop()
-  || (o.kind === "fill" ? "Colour backdrop" : o.kind === "shape" ? SHAPES.find(([v]) => v === o.shape)?.[1] ?? "Shape" : o.kind === "icon" ? ICON_SET[o.icon ?? "star"]?.label ?? "Icon" : "Picture");
+  || (o.kind === "fill" ? "Colour backdrop" : o.kind === "shape" ? SHAPES.find(([v]) => v === o.shape)?.[1] ?? "Shape" : o.kind === "icon" ? ICON_SET[o.icon ?? "star"]?.label ?? "Icon" : o.kind === "clip" ? "Video clip" : "Picture");
 export const ANIMS: [string, string][] = [["fade", "Fade"], ["rise", "Rise"], ["drop", "Drop in"], ["slide_left", "Slide from the right"], ["slide_right", "Slide from the left"],
   ["zoom_in", "Zoom in and settle"], ["zoom_out", "Settle down"], ["pushin", "Slow push-in"], ["wipe", "Wipe in from the left"], ["typewriter", "Typewriter"],
   ["bounce", "Bounce in"], ["pop", "Pop in"], ["pulse", "Pulse to the beat"], ["accent", "Pulse on the strong hits"]];
@@ -176,6 +176,10 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
   };
   const from = () => Math.max(0, Math.floor(time * 10) / 10);
   const addText = () => added({ kind: "text", text: "Your text", y: 0.5, start: from(), end: from() + 4, anim: "rise" });
+  const addClip = async () => {
+    const f = await open({ filters: [{ name: "Video clip", extensions: ["mp4", "mov", "m4v", "webm", "mkv"] }] });
+    if (typeof f === "string") await added({ video: f, y: 0.5, x: 0.5, width: 0.4, start: from(), anim: "fade" });
+  };
   const addPicture = async () => {
     const f = await open({ filters: [{ name: "Picture or text sign", extensions: ["png", "jpg", "jpeg", "webp", "svg"] }] });
     if (typeof f === "string") await added({ image: f, y: 0.5, width: 0.3, start: from(), end: from() + 4, anim: "zoom_in" });
@@ -202,6 +206,7 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
       <div className="ly-add">
         <button className="btn small" onClick={addText} title="Adds a title at the playhead for 4 seconds">+ Text</button>
         <button className="btn small" onClick={addPicture} title="Adds a picture at the playhead for 4 seconds">+ Picture…</button>
+        <button className="btn small" onClick={addClip} title="Adds a video clip at the playhead, for as long as it runs (10 seconds at most to start with): a picture-in-picture, or a green-screen subject">+ Video clip…</button>
         <button className="btn small" onClick={() => setMenu((v) => !v)} aria-expanded={menu}>+ Shape or icon ▾</button></div>
       <details className="ly-more-add"><summary>More ways to add</summary>
         <div className="ly-add">
@@ -283,7 +288,15 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
           <div className="ly-two">
             <label className="field"><span>Colour</span><Colour value={sel.color} onCommit={(v) => call("update", { id: sel.id, color: v })} /></label>
             <label className="field"><span>Size</span><Range min={0.03} max={0.6} step={0.005} value={sel.width} onCommit={(v) => call("update", { id: sel.id, width: v })} /></label></div></>}
-        {sel.kind !== "fill" && !sel.cover && <>
+        {sel.kind === "clip" && <>
+          <label className="field"><span>Width</span><Range min={0.05} max={1} step={0.01} value={sel.width} onCommit={(v) => call("update", { id: sel.id, width: v })} /></label>
+          <label className="field"><span>Start the clip at (seconds into it{sel.src_dur ? `, of ${sel.src_dur.toFixed(1)}` : ""})</span>
+            <input className="text-input" type="number" min={0} max={Math.max(0, (sel.src_dur ?? 86400) - 0.1)} step={0.1} defaultValue={sel.in_s ?? 0}
+              onBlur={(e) => { const v = Math.max(0, Number(e.target.value) || 0); if (v !== (sel.in_s ?? 0)) call("update", { id: sel.id, in_s: v }); }} /></label>
+          <label className="ly-check"><input type="checkbox" checked={!!sel.loop} onChange={(e) => call("update", { id: sel.id, loop: e.target.checked })} /> Play again from the start when it ends</label>
+          <label className="field"><span>Opacity</span><Range min={0.05} max={1} step={0.05} value={sel.opacity ?? 1} onCommit={(v) => call("update", { id: sel.id, opacity: v })} /></label>
+          <p className="dim ly-mixnote">The clip's own sound is not used. Its picture plays from the start point for as long as the layer is up.</p></>}
+        {sel.kind !== "fill" && sel.kind !== "clip" && !sel.cover && <>
           <div className="ly-two">
             <label className="field"><span>Scale</span><Range min={0.1} max={4} step={0.05} value={sel.scale ?? 1} onCommit={(v) => call("update", { id: sel.id, scale: v })} /></label>
             <label className="field"><span>Rotate</span><Range min={-180} max={180} step={1} value={sel.rotation ?? 0} onCommit={(v) => call("update", { id: sel.id, rotation: v })} /></label></div>
@@ -301,7 +314,7 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
         {(sel.kind === "text" || sel.kind === "image" || sel.kind === "svg") && !sel.cover &&
           <label className="ly-check"><input type="checkbox" checked={sel.shadow !== false} onChange={(e) => call("update", { id: sel.id, shadow: e.target.checked })} /> Soft shadow</label>}
         <MixPanel sel={sel} call={call} />
-        {sel.kind !== "fill" && !sel.cover && <KeysEditor sel={sel} time={time} save={(keys) => call("update", { id: sel.id, keys })} />}
+        {sel.kind !== "fill" && sel.kind !== "clip" && !sel.cover && <KeysEditor sel={sel} time={time} save={(keys) => call("update", { id: sel.id, keys })} />}
         {sel.kind !== "fill" && !sel.cover && !sel.keys?.length && <label className="field"><span>Movement</span>
           <select className="text-input" value={sel.anim ?? "fade"} onChange={(e) => call("update", { id: sel.id, anim: e.target.value })}>
             {ANIMS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>}

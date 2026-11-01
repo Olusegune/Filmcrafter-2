@@ -363,7 +363,10 @@ export const fmtTime = (t: number) => {
 export const isProgramFault = (e: unknown): e is Error => e instanceof TypeError || e instanceof RangeError || e instanceof ReferenceError || e instanceof SyntaxError;
 export const FAULT_TEXT = "Something unexpected happened on this screen. Your project is safe. Try again, and if it keeps happening restart FilmCrafter and tell us what you were doing.";
 export const errorText = (e: unknown): string => {
-  if (typeof e === "string") return /^(Type|Range|Reference|Syntax)Error: /.test(e) ? FAULT_TEXT : e;        // an error that was turned into text on its way here
+  if (typeof e === "string") {                                       // an error that was turned into text on its way here (a program fault of this screen, or one the engine had no plain words for)
+    if (/^(Type|Range|Reference|Syntax|Key|Value|Attribute|Index|ZeroDivision|Overflow|Recursion|Unicode|JSONDecode|FileNotFound|Permission|OS)Error: /.test(e)) { console.error(e); return FAULT_TEXT; }
+    return e;
+  }
   if (isProgramFault(e)) {
     console.error(e);
     return FAULT_TEXT;
@@ -383,8 +386,9 @@ export type ShowItem = { id: string; kind: "number" | "scene" | "intermission"; 
   state: string; duration: number; shots: number; rendered: number; analysed: boolean; cost: { usd: number; kie_credits: number };
   lines: number; has_audio: boolean; problems: string[]; song_pending: boolean;
   seconds?: number; subtitle?: string; ambience?: { file: string; volume_db: number } };
-export type Overlay = { id: string; kind: "text" | "svg" | "image" | "fill" | "shape" | "icon"; text: string; file?: string; source: string; section?: string; start: number | null; end: number | null;
+export type Overlay = { id: string; kind: "text" | "svg" | "image" | "clip" | "fill" | "shape" | "icon"; text: string; file?: string; source: string; section?: string; start: number | null; end: number | null;
   x: number; y: number; size: number; width: number; color: string; font?: string; fade: number; shape?: string; icon?: string; height?: number; stroke?: string; stroke_w?: number; opacity?: number; rotation?: number; radius?: number; filled?: boolean; keys?: Key[]; scale?: number; angle?: number; gradient?: boolean; shadow?: boolean; name?: string; color2?: string; anim?: string; cover?: boolean; group?: string;
+  in_s?: number; loop?: boolean; src_w?: number; src_h?: number; src_dur?: number;
   glow?: number; glow_color?: string; blur?: number; blend?: string; mask?: string; mask_size?: number; mask_feather?: number; mask_invert?: boolean; key_color?: string; key_tol?: number; key_soft?: number; key_spill?: number; enabled: boolean; placed: boolean; reason: string; explicit: boolean; explicit_end: boolean };
 export type DirectorAudit = { planned: number; directed: number; ok: boolean;
   merges: { shot: string; scene: number; start: number; end: number; duration: number; check: boolean; risks: string[]; note: string;

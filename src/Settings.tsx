@@ -86,7 +86,8 @@ function ComfyPanel() {
     setBusy("…"); setErr("");
     try {
       const r = await api.providers(action, data);
-      const next = "providers" in r ? r.comfyui : r;
+      const next = r && "providers" in r ? r.comfyui : r;
+      if (!next || typeof next !== "object") throw new Error("FilmCrafter could not read the local AI status. Try again.");      // never a raw script error on screen
       setC(next); setUrl((u) => u || next.url);
     } catch (e) { setErr(errorText(e)); } finally { setBusy(""); }
   };
@@ -204,7 +205,7 @@ function ComfyPanel() {
 /** Which model families each provider carries, and which were confirmed with a real render. */
 function ProviderOverview({ keys }: { keys: KeyStatus }) {
   const [s, setS] = useState<ProviderStatus | null>(null);
-  useEffect(() => { api.providers("status").then((r) => { if ("providers" in r) setS(r); }).catch(() => {}); }, [keys]);
+  useEffect(() => { api.providers("status").then((r) => { if (r && "providers" in r) setS(r); }).catch(() => {}); }, [keys]);
   if (!s) return null;
   return (
     <div className="field">

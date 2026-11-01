@@ -38,6 +38,7 @@ import { ColorStudioSheet } from "../ColorStudio";
 import { SmartEditorSheet } from "../SmartEditor";
 import { PresetsSheet } from "../PresetLibrary";
 import { MotionGraphicsSheet } from "../MotionGraphics";
+import { FirstFilm } from "../FirstFilm";
 import presetsBuiltin from "../../analysis/filmcrafter_engine/presets_builtin.json";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
@@ -121,21 +122,24 @@ const layer = (id: string, kind: string, text: string, start: number | null, end
 const layerList = [layer("l1", "text", "Exit Plan", 2, 7), layer("l2", "icon", "Heart", 4, 9, { icon: "heart" }), layer("l3", "fill", "Warm tint", 0, 30, { color: "#e8b45c", opacity: 0.18 }), layer("l4", "text", "Lagos, 2019", 12, 16)];
 // A picture layer whose mix, mask and cut-out colour can be changed: updates are kept (and cleaned the way the engine cleans them) so the panel can be clicked through
 const MIXDIR = "/mixfilm";
-let mixList = [layer("l5", "image", "Green screen", 1, 6, { file: "assets/x.png" })] as Record<string, unknown>[];
-const mixOverlays = (x: { action?: string; data?: Record<string, unknown> }): unknown => {
+const mixStore = { list: [layer("l5", "image", "Green screen", 1, 6, { file: "assets/x.png" })] as Record<string, unknown>[] };
+const clipStore = { list: [layer("l6", "clip", "interview.mp4", 1, 9, { file: "assets/overlays/ov_clip.mp4", src_w: 1920, src_h: 1080, src_dur: 12.4, in_s: 0, width: 0.4 })] as Record<string, unknown>[] };
+const MIXCLIPDIR = "/clipfilm";
+const mixOverlays = (x: { action?: string; data?: Record<string, unknown> }, store = mixStore): unknown => {
   if (x.action === "update") {
     const { id, ...rest } = (x.data ?? {}) as { id?: string } & Record<string, unknown>;
-    mixList = mixList.map((l) => {
+    store.list = store.list.map((l) => {
       if (l.id !== id) return l;
       const n: Record<string, unknown> = { ...l, ...rest };
       if (n.blend === "normal") delete n.blend;
       if (n.mask === "none") { for (const k of ["mask", "mask_size", "mask_feather", "mask_invert"]) delete n[k]; }
       else if (n.mask && n.mask_size === undefined) n.mask_size = 0.8;
       if (n.key_color === "") { for (const k of ["key_color", "key_tol", "key_soft", "key_spill"]) delete n[k]; }
+      if (n.loop === false) delete n.loop;
       return n;
     });
   }
-  return mixList;
+  return store.list;
 };
 const colourState = { enabled: true, strength: 0.7, reference: null, analysed: 12, adjusted: 2, cast: true, cast_strength: 0.85, cast_seen: { u: -14, v: 6, size: 15.2, label: "yellow", noticeable: true }, cast_fix: { u: 12, v: -5 }, denoise: false, grain: false, picture_care: true, rows: ids.map((id, i) => ({ shot: id, distance: i === 2 ? 0.34 : i === 5 ? 0.22 : 0.05 + (i % 3) * 0.02, bright: i === 2 ? 0.3 : -0.2, adjusted: i === 2 || i === 5, is_reference: false })) };
 
@@ -315,6 +319,10 @@ mockIPC((cmd, a) => {
       { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", aspect: "16:9", modified: now - 86400 * 2 },
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
+    case "providers": return { providers: [{ provider: "kie", name: "Kie.ai", connected: true, families: ["seedream"], verified: [] }], comfyui: { url: "http://127.0.0.1:8188", connected: false, workflows: [] } };
+    case "film_voice": return { people: 2, recorded: 2, lines: [], voices: [] };
+    case "film_cues": return { cues: [{ id: "c1" }], approved: 0 };
+    case "film_audio": return { assets: [] };
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false, byteplus: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
@@ -397,6 +405,7 @@ mockIPC((cmd, a) => {
       return filmStatus;
     case "overlays": {
       if ((a as { dir?: string }).dir === MIXDIR) return mixOverlays(x);
+      if ((a as { dir?: string }).dir === MIXCLIPDIR) return mixOverlays(x, clipStore);
       return x.action === "list" ? layerList : null;
     }
     case "colour_match": return colourState;
@@ -727,6 +736,8 @@ const keys = { openai: true, fal: true, kie: true, google: false, elevenlabs: fa
 const take = (id: string, _shot: string, n: number, over: Record<string, unknown> = {}) => ({ id, n, state: "ready", provider: "kie", model: "bytedance/seedance-2", output: `v${n}.mp4`, kind: "video", created: n, cost: n === 1 ? 50 : 38, cost_unit: "credits", approved: n === 1, ...over });
 const card = (children: ReactNode, width = 480) => <div className="sheet glass" style={{ width }}>{children}</div>;
 const scenes: Record<string, () => ReactNode> = {
+  guide: () => <FirstFilm dir={DIR} pro={true} onGo={noop} onClose={noop} progress={{ story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 6, keyframe: 6, video: 6 } }} />,
+  layerclip: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={MIXCLIPDIR} selected="l6" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layermix: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={MIXDIR} selected="l5" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layers: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={DIR} selected="l1" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layerlanes: () => <div style={{ width: 900, height: 120, position: "relative", background: "#10131a", overflow: "hidden" }}><LayerLanes dir={DIR} pps={40} duration={30} selected="l1" onSelect={noop} snap={[]} top={0} time={3} onSeek={noop} /></div>,

@@ -1080,7 +1080,7 @@
 .ff-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .ff-step { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 8px; }
 .ff-step.next { border-color: var(--amber, #e8b45c); background: var(--amber-wash, rgba(232, 180, 92, 0.1)); }
-.ff-step.done { opacity: 0.72; }
+.ff-step.done { background: rgba(255, 255, 255, 0.02); }                       /* a finished step is quieter by its background, not by fading its words (faded words failed the contrast check) */
 .ff-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; border: 1px solid var(--hair); color: var(--text-quiet, #8b97a7); }
 .ff-step.done .ff-n { background: rgba(95, 212, 154, 0.18); border-color: rgba(95, 212, 154, 0.5); color: #7fe0b0; }
 .ff-step.next .ff-n { background: var(--amber, #e8b45c); border-color: transparent; color: #1a1205; }

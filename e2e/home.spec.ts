@@ -183,3 +183,37 @@ test.describe("the first-launch question", () => {
     expect(r.violations.map((v) => `${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
   });
 });
+
+test.describe("keyboard and focus", () => {
+  test("while a sheet is open the Tab key stays inside it, Shift+Tab too, and closing gives focus back to where it was", async ({ page }) => {
+    await open(page);
+    const opener = page.getByRole("button", { name: "Explore presets" });
+    await opener.focus();
+    await page.keyboard.press("Enter");
+    const dlg = page.getByRole("dialog", { name: "All presets" });
+    await expect(dlg).toBeVisible();
+    const inside = () => page.evaluate(() => !!document.activeElement?.closest("[role=dialog]"));
+    for (let i = 0; i < 30; i++) { await page.keyboard.press("Tab"); expect(await inside(), `Tab ${i}`).toBe(true); }
+    for (let i = 0; i < 12; i++) { await page.keyboard.press("Shift+Tab"); expect(await inside(), `Shift+Tab ${i}`).toBe(true); }
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe("Explore presets");
+  });
+
+  test("the whole page can be walked with Tab: every control gets a visible focus, in a sensible order, with the three starts first", async ({ page }) => {
+    await open(page);
+    const order: string[] = [];
+    for (let i = 0; i < 14; i++) {
+      await page.keyboard.press("Tab");
+      const info = await page.evaluate(() => { const e = document.activeElement as HTMLElement; const cs = getComputedStyle(e); const r = e.getBoundingClientRect();
+        return { name: (e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 30), visible: r.width > 0 && r.height > 0, ring: cs.outlineStyle !== "none" || cs.boxShadow !== "none" || !!e.closest(".hm-pbtn,.hm-way,.recent-x,.project-card") }; });
+      expect(info.visible && info.ring, `${info.name} shows where the focus is`).toBe(true);
+      order.push(info.name);
+    }
+    const first = (n: string) => order.findIndex((x) => x.includes(n));
+    expect(first("New film")).toBeGreaterThanOrEqual(0);
+    expect(first("New film")).toBeLessThan(first("Explore presets"));
+    expect(first("Explore presets")).toBeLessThan(first("Vertical Micro-Drama"));
+  });
+});
+

@@ -23,7 +23,7 @@ def _num(x, name: str, lo: float, hi: float) -> float:
         v = float(x)
     except (TypeError, ValueError):
         raise SystemExit(f"{name} must be a number.")
-    if v != v:
+    if v != v or v in (float("inf"), float("-inf")):
         raise SystemExit(f"{name} must be a number.")
     return min(hi, max(lo, v))
 

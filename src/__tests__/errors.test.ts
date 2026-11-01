@@ -29,6 +29,17 @@ describe("what a failure says", () => {
     expect(errorText("A real message from the engine: TypeError is a word here")).toContain("A real message");
   });
 
+  it("does the same for a Python error name the engine had no plain words for, and keeps the technical text in the console", () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const t of ["KeyError: 'id'", "FileNotFoundError: [Errno 2] No such file or directory: 'x.json'", "ZeroDivisionError: division by zero", "JSONDecodeError: Expecting value"]) {
+      expect(errorText(t)).toBe(FAULT_TEXT);
+      expect(log).toHaveBeenCalledWith(t);
+    }
+    expect(errorText("The key must be a number.")).toBe("The key must be a number.");               // a plain refusal that mentions the word is left alone
+    expect(errorText("Choose a preset from the list.")).toBe("Choose a preset from the list.");
+    log.mockRestore();
+  });
+
   it("has a fallback for anything else", () => {
     expect(errorText(undefined)).toBe("Something went wrong.");
     expect(errorText({ code: 1 })).toBe("Something went wrong.");

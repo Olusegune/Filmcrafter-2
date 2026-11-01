@@ -18,17 +18,37 @@ Along the top: **Story, Cast & World, Shots, Studio, Export**. Each shows how fa
 
 The **Guide** button at the top of every film shows the order a film is made in and what each step costs, worked out from what *this* film already has: **Your story, locked; Your own materials (optional); Cast & World; Voices; Shots (in Pro mode); Pictures: test one shot first; Video: test one shot first; Sound and music (optional); Export.** Done steps are ticked, the next one is highlighted, and **Take me there** opens that part of the app (the Voices step opens the Voiceover screen, the sound step opens Sound & Music). The pictures and video steps show the live price of one test shot. A new film opens the Guide once by itself; after that it opens only when you press the button.
 
+![The Guide: the path from story to export, with the finishing tools](img/guide-path.png)
+
 The Guide only reads and points. Nothing on it makes or buys anything: every paid step shows its own price and asks first where it happens.
 
 **Tip: test one shot first.** If its picture, mouth and voice are right, the others will be too, and you will have spent a small part of the cost finding out.
 
 ## Home
 
-![Home: drop a screenplay, start a new film, or start from an idea. A small clapperboard above the heading opens, rises a little, claps shut and settles back; drag a story over it and it claps faster](img/film/home.png)
+![Home: three ways to begin, featured presets with their pictures, and the films you were making](img/home-new.png)
 
-- **Drop a screenplay** on the window (Fountain, text, Markdown, PDF or Word), press **New film**, or press **Start from an idea**.
-- **Continue where you left off** shows the film you worked on last, with one button. Recent films say "Today", "Yesterday" or "3 days ago".
-- **Open project** opens a film or an older project. Older music-video projects and shows still open from **Recent**.
+Home asks **What will you create today?** and gives three ways to begin.
+
+- **Start from a story.** Drop a screenplay anywhere on the window (Fountain, text, Markdown, PDF or Word), press **New film**, press **Start from an idea**, or choose a story file. Your story is kept exactly as it is.
+- **Create from a preset.** **Explore presets** shows ready-made formats with pictures: vertical micro-dramas, shorts, explainers, an animated short, a documentary, a children's story, a biblical or historical animation, a storybook look. Six are shown on Home; **View all presets** searches and filters all 37.
+- **Continue creating.** Your films are cards with their stage, frame shape and day. The one you worked on last is marked; one click carries on. A long list shows a screenful and **Show all**. **Open project…** finds a film that is not listed. Older music-video projects still open from here.
+
+![All presets, searchable and filtered by kind](img/home-presets.png)
+
+![A preset's details: what it sets and what it stacks](img/home-preset-details.png)
+
+A preset's card opens its details: what it sets (frame shape, length, look, acting, colour, editing), which other presets it stacks, and the promise that matters: **starting a film with a preset only sets the film up. Nothing is made, nothing is bought, and every change can be undone in Presets.**
+
+**Setting a film up from a preset.** **Start a film with this preset** opens the New film sheet with the preset's frame shape chosen, and a **Set up from this preset** box: the **length** to aim for, the **number of episodes** for a series preset, and under **Advanced** a different visual style, acting, editing or colour preset (each is added after the preset, so yours wins). Leave a choice at *As the preset* and the preset decides.
+
+![Setting a film up from a preset: length, episodes and the Advanced choices](img/newfilm-setup.png)
+
+When you create the film, nothing in it changes yet. Your choices are remembered with the film, and once it has its shots you open **Presets** and find them already in the stack, ready to **Preview what this changes**. Your chosen length is kept as a preset of your own that comes last; the episode count fills the series plan.
+
+**The first time.** If FilmCrafter opens with no films, it asks once what you would like to create (a film from your story, a short video using a preset, an animated film, or open an existing project). Each answer goes straight there; **Not now** closes it for good. **Help me choose** on Home asks again whenever you like. Someone who already has films is never asked.
+
+![The first-launch question](img/home-welcome.png)
 
 ## New film
 
@@ -105,15 +125,14 @@ In the timeline's **Edit** mode there is a **Cut** lane: one block for each clip
 
 **Big clips and the player.** If scrubbing a big clip (taller than 720 lines, or over 60 MB) is slow, open **More** in the cut lane and press **Make preview copies of big clips**. The player then uses small copies; the finished film and **Preview** still use your takes at full quality. **Remove preview copies** deletes the copies and nothing else. **If something goes wrong:** every edit is saved the moment it is made. If the film's edit record is ever damaged, FilmCrafter puts back its last good copy and tells you (the damaged file is kept beside it); if there is no good copy it stops and says so rather than start again from nothing, and you can restore from **File, Restore from Backup**.
 
-### The Home screen
-Home asks what you want to create. **Start from a story** is the way it always was (drop a screenplay anywhere, **New film**, **Start from an idea**, or choose a story file). **Create from a preset** shows ready-made formats with pictures: pick one to read what it sets, then **Start a film with this preset**. The preset is remembered with the new film; once the film has its shots, open **Presets** and it is already in your stack, ready to preview. Nothing changes until you apply it, and nothing is made or charged. **Continue creating** lists your films with their stage and frame shape; the one you worked on last is marked, and **Open project…** finds a film that is not listed.
-
-**Setting a film up from a preset.** On the New film sheet a preset shows *Set up from this preset*: the length to aim for, the number of episodes for a series, and under *Advanced* a different visual style, acting, editing or colour preset. Leave a choice at *As the preset* and the preset decides. When you create the film nothing changes in it yet: open **Presets** and your choices are already in the stack, ready to preview. The first time FilmCrafter opens with no films, it asks **What would you like to create?**; **Help me choose** on Home asks again.
-
 ### The Smart Editor
+![The Smart Editor: suggestions for the cut, each with its reason](img/smart-editor.png)
+
 In the cut lane press **Suggest…** (or Ctrl+K, *Smart Editor*). It reads the cut, the dialogue, and the beats and directions you wrote, and lists a few suggestions. Each one says **What** it would change, **Why** it may help, and which clips it touches. Press **Preview before and after** to watch the change before deciding; press **Accept** to make it (one **Ctrl+Z** puts it back) or **Not this one** to keep it away. Look at **Left alone on purpose**: a pause you asked for (*Hold the reaction longer*, *More hesitant*, or a beat you wrote) is never trimmed, and the editor says so. Choose an **Editing style** (*Restrained character drama*, *Intimate conversation*, *Rhythmic montage*) or type what you want ("tighten this scene", "give the audience more time on her reaction"). If it cannot do what you ask it says so; it only knows how to tighten spoken clips and to give a listener more time. It is a reading of the cut, not a verdict: refuse anything that does not feel right. Free; nothing is sent anywhere.
 
 ### Presets, a vertical version, and a series plan
+![The Presets sheet: stack presets, preview what changes, apply, undo](img/presets-sheet.png)
+
 **Presets** (rail, or Ctrl+K) holds ready-made combinations of what FilmCrafter already lets you set: the look, the acting, the colour, the editing style and how the film is delivered. Pick one or more with **Add to stack** (a production preset such as *Vertical Micro-Drama* already stacks the others that suit it), choose **Preview what this changes**, and read the table: **New** will be set, **Already so** is already, **Yours, kept** means you had already chosen something different and it will stay unless you tick **Replace mine**. **Apply** changes only settings; nothing is regenerated and nothing is charged; **Undo the last application** puts back what it changed. **Keep this as my own preset** saves your film's choices (or a stack) under your name; **Save as file…** and **Add a preset file…** share a preset as a small file. The **Vertical version** tab explains that your film keeps its own shape: make the phone version in Export (**TikTok / Reels 9:16**), and here choose, for each shot, which part of the wide picture it keeps (the middle by default); captions in a vertical version stay clear of the bottom margin once a vertical delivery preset has been applied. The **Series plan** tab makes a plan for a season of short episodes from your idea: it fills each episode with a *Suggestion* (a hook, an escalation, a turning point, an ending) that you write over or **Keep**; it is a starting shape, not a story, and **Check the plan** tells you what is still only a suggestion. None of this spends credits; making the episodes is a separate step that shows its price first.
 
 The Guide (top of the film) also lists the finishing tools, each marked optional and free: **Start from a preset**, **Tighten the cut**, **Colour**, and **Titles and lower thirds**. Press *Take me there* and the Studio opens with that sheet already up.
@@ -121,12 +140,28 @@ The Guide (top of the film) also lists the finishing tools, each marked optional
 When the film is ready, **Polish my film** (beside the green 'ready' line) takes you through the cut suggestions, colour and titles in turn. Close a sheet to go on to the next, or press **Stop here** in the small bar at the bottom.
 
 ### Mix and effects on a layer
+![A layer's Mix and effects](img/mix-effects.png)
+
 Select a layer and open **Mix and effects** in the Layers panel. **Mix with the picture** makes the layer blend instead of cover: *Multiply* darkens (a shadow, a vignette), *Screen* and *Add* lighten (light leaks, glow), *Overlay* and *Soft light* add contrast and colour. **Show only through a shape** shows the layer through an oval, a rounded box or a rectangle, with a soft edge; tick *Hide the inside instead* for a vignette. On a picture, **Cut out a colour** makes a green (or any) screen transparent: pick the colour, how much of it, how soft the edge is, and how much of its colour to take off the edges of what is left. **Glow** and **Blur** are here too. The player shows how a layer mixes; glow, blur, shapes and cut-out colours are drawn when the film is made. It all costs nothing.
 
+### Video clips on top of the film
+In the Layers panel, **+ Video clip…** puts a video file over the film at the playhead: a picture-in-picture, a reaction, a b-roll insert, or a subject shot against a green screen. The file is copied into the film (the original is never touched) and plays for as long as it runs, up to 10 seconds to start with; drag its bar on the timeline to make it longer or shorter.
+
+![A video clip layer: where to start, loop, width, opacity and a cut-out colour](img/video-clip-layer.png)
+
+- **Start the clip at** says how many seconds into the clip it begins, so you can use the middle of a longer file. **Play again from the start when it ends** loops it for as long as the layer is up; without it the clip disappears when it ends.
+- **Width** and **Opacity** size and fade it. Move it by dragging it in the player, or give it a movement (fade, slide, zoom…) as for any layer.
+- **Cut out a colour** (in *Mix and effects*) removes a green or blue screen, even one that is lit unevenly or noisy, with a soft edge and a slider that takes the screen's colour off the edges of the subject. **Mix with the picture** (multiply, screen, overlay…) works too.
+- **Not yet:** the clip's own sound is not used (add your sound as usual); glow, blur, shapes, rotation and keyframes are for pictures and text only (the panel does not offer them for a clip); the player shows the clip as it is, and the cut-out and the blend are drawn when the film is made. A project holds up to 8 clips, each up to 1 GB.
+
 ### Motion graphics
+![Motion graphics: eight ready-made titles, with their words](img/motion-graphics.png)
+
 **Motion graphics** (the *+ Layer* menu in the timeline, the Layers screen, or Ctrl+K) puts a ready-made title on the film. Choose one of the eight (lower third, title card, chapter title, place and time, callout, quote, big number, end card), type its words, and check the picture: it is drawn the way the film will draw it, shown as it looks once it has settled (it moves in when the film plays). **Add at the playhead** puts it down from the moment the playhead is at. It is a few normal layers in one group: change the words, colours, timing or movement afterwards like any layer, or press **Take it away again** to remove the whole thing. In the Layers panel any layer can also have a **glow** or a **blur**. It costs nothing; nothing is generated.
 
 ### Color Studio
+![Color Studio](img/color-studio.png)
+
 Open **Color** from the Studio's left rail (under *More*). Choose where the grade goes: the whole film, a scene, or one shot (the film's grade is put on first, then the scene's, then the shot's). Move the sliders (double-click one to put it back to zero) and watch the before and after frame; press **Save grade** when you like it. A grade is added when the film is put together; your takes are never changed, and **Undo last save** puts the previous grade back. **Import a LUT** takes a `.cube` file; each LUT says whether it is creative or technical and which colour space it expects. FilmCrafter's pictures are Rec.709, so a LUT made for log or HDR footage is not applied (it tells you so). Save a grade you like under **My looks** and put it on another scope in one press.
 
 ## Shots

@@ -89,6 +89,8 @@ Principle: **one new versioned model beside the existing stores; the existing st
 
 **Status (2026-11-05).** Milestone 5 has its first slice: blend modes, shape masks and a colour key with spill suppression on layers (`composite.py`, the Mix and effects section). Not built: video-clip layers (so no keying of footage), animated or drawn masks, tracking, rotoscoping.
 
+**Status (2026-11-05, later).** Milestone 5 now also has video clips as layers: a clip with a start point, a loop, opacity, a blend mode and a colour key with spill removal (`overlays.py`, `composite.py`). Not built: a clip's own sound, effects and shapes on a clip, keyframes for a clip, animated or drawn masks, tracking and rotoscoping, and keying footage that is already in the cut (the key works on a clip layer over the film).
+
 ## 6. Risks
 
 | Risk | Why it matters | Answer |

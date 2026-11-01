@@ -79,7 +79,7 @@ def test_what_the_screen_sends_is_clamped_and_checked(tmp_path):
         O.add(d, {"kind": "text", "text": "   "})
     with pytest.raises(SystemExit, match="end must be after"):
         O.add(d, {"kind": "text", "text": "x", "start": 5, "end": 5})
-    with pytest.raises(SystemExit, match="text, a sign, a picture, a colour, a shape or an icon"):
+    with pytest.raises(SystemExit, match="text, a sign, a picture, a video clip, a colour, a shape or an icon"):
         O.add(d, {"kind": "video", "text": "x"})
     with pytest.raises(SystemExit, match="Choose the picture"):
         O.add(d, {"kind": "image", "text": "x"})

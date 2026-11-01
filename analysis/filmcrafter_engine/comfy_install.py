@@ -313,7 +313,7 @@ def main(argv: list[str]) -> int:
         print(json.dumps({"event": "error", "message": str(e)}), flush=True)
         return 1
     except Exception as e:
-        print(json.dumps({"event": "error", "message": f"{type(e).__name__}: {e}"}), flush=True)
+        print(json.dumps({"event": "error", "message": __import__("filmcrafter_engine.errtext", fromlist=["plain"]).plain(e)}), flush=True)
         return 1
 
 
