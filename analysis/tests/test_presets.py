@@ -17,7 +17,7 @@ def keys(plan):
 
 def test_every_built_in_preset_is_valid_and_its_includes_and_thumbnails_exist():
     b = P.builtin()
-    assert len(b) == 35 and sum(1 for p in b.values() if p["type"] == "production") == 17
+    assert len(b) == 37 and sum(1 for p in b.values() if p["type"] == "production") == 19
     for pid, p in b.items():
         assert P.clean_preset(p, set(b))["settings"] == p["settings"], pid
         if p["thumbnail"]:
@@ -228,7 +228,7 @@ def test_a_record_from_a_newer_version_is_refused_and_a_damaged_preset_of_yours_
 
 def test_the_door_speaks_json_and_its_action_list_is_the_one_the_shell_must_match(film, capsys):
     f, rd = film
-    assert P.main(["catalog", rd]) == 0 and len(json.loads(capsys.readouterr().out.splitlines()[-1])["data"]["presets"]) == 35
+    assert P.main(["catalog", rd]) == 0 and len(json.loads(capsys.readouterr().out.splitlines()[-1])["data"]["presets"]) == 37
     assert P.main(["plan", rd, "--data", json.dumps({"stack": ["nope"]})]) == 1 and "not here" in capsys.readouterr().out
     with pytest.raises(SystemExit, match="Unknown"):
         P.run(rd, "explode", {})

@@ -13,7 +13,7 @@ const card = (page: Page, name: string) => page.getByRole("listitem", { name, ex
 test.describe("the presets sheet", () => {
   test("shows the library with the pack's thumbnails, and search and filters narrow it", async ({ page }) => {
     await open(page);
-    await expect(page.locator(".ps-card")).toHaveCount(35);
+    await expect(page.locator(".ps-card")).toHaveCount(37);
     await expect(card(page, "Vertical Micro-Drama").locator("img")).toBeVisible();
     await page.getByLabel("Search").fill("storybook");
     await expect.poll(() => page.locator(".ps-card").count()).toBeGreaterThanOrEqual(7);

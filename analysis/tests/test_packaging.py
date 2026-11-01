@@ -41,3 +41,15 @@ def test_the_preset_thumbnails_the_library_shows_are_frontend_files_the_build_ca
     for p in builtin:
         if p.get("thumbnail"):
             assert os.path.isfile(os.path.join(pub, p["thumbnail"])), p["id"]
+
+
+def test_no_two_presets_share_the_same_picture():
+    import hashlib
+    from filmcrafter_engine import presets as P
+    root = os.path.join(os.path.dirname(__file__), "..", "..", "public")
+    seen: dict[str, str] = {}
+    for pid, p in P.builtin().items():
+        if p["thumbnail"]:
+            h = hashlib.sha1(open(os.path.join(root, p["thumbnail"]), "rb").read()).hexdigest()
+            assert h not in seen, f"{pid} and {seen[h]} use the same picture"
+            seen[h] = pid

@@ -6,7 +6,7 @@ describe("the presets Home shows come from the engine's own list", () => {
   it("is the same list, with the same ids, as the engine's file (one set of definitions)", () => {
     const engine = JSON.parse(readFileSync("analysis/filmcrafter_engine/presets_builtin.json", "utf8")).presets as { id: string }[];
     expect(ALL.map((p) => p.id)).toEqual(engine.map((p) => p.id));
-    expect(ALL).toHaveLength(35);
+    expect(ALL).toHaveLength(37);
   });
   it("has a picture file for every preset, so no card is empty", () => {
     for (const p of ALL) { expect(p.thumbnail, p.id).toBeTruthy(); expect(existsSync(`public/${p.thumbnail}`), p.id).toBe(true); }
@@ -23,7 +23,7 @@ describe("the presets Home shows come from the engine's own list", () => {
 
 describe("searching and describing presets", () => {
   it("searches the name, the description and the use, ignoring case, and filters by kind", () => {
-    expect(find(ALL, "", "all")).toHaveLength(35);
+    expect(find(ALL, "", "all")).toHaveLength(37);
     expect(find(ALL, "MICRO-drama", "all").map((p) => p.id)).toContain("vertical_micro_drama");
     expect(find(ALL, "storybook", "visual").every((p) => p.type === "visual")).toBe(true);
     expect(find(ALL, "zzzz", "all")).toEqual([]);

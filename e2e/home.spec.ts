@@ -51,7 +51,7 @@ test.describe("the Home screen", () => {
     await open(page);
     await page.getByRole("button", { name: /^View all presets/ }).click();
     const list = page.getByRole("list", { name: "Presets" });
-    await expect(list.getByRole("listitem")).toHaveCount(35);
+    await expect(list.getByRole("listitem")).toHaveCount(37);
     await page.getByLabel("Search").fill("storybook");
     expect(await list.getByRole("listitem").count()).toBeGreaterThan(3);
     await page.getByLabel("Search").fill("zzzz nothing");

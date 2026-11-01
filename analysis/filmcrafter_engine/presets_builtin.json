@@ -289,6 +289,49 @@
    "complexity": 2
   },
   {
+   "id": "childrens_story",
+   "type": "production",
+   "group": "Short form",
+   "name": "Children's Story",
+   "description": "Warm, gentle storytelling for young viewers, in bright storybook worlds",
+   "use": "A gentle illustrated story for children.",
+   "version": 1,
+   "thumbnail": "presets/childrens_story.png",
+   "includes": [
+    "storybook_2_5d_style",
+    "expressive_animation_acting",
+    "warm_storybook_balanced",
+    "widescreen_16_9"
+   ],
+   "settings": {
+    "aspect": "16:9",
+    "duration_hint_s": 180
+   },
+   "complexity": 2
+  },
+  {
+   "id": "biblical_historical",
+   "type": "production",
+   "group": "Production",
+   "name": "Biblical / Historical Animation",
+   "description": "Reverent, illustrated scripture and history with epic places and quiet human moments",
+   "use": "An illustrated telling of a biblical or historical story.",
+   "version": 1,
+   "thumbnail": "presets/biblical_historical.png",
+   "includes": [
+    "storybook_epic",
+    "restrained_emotional_acting",
+    "intimate_dialogue",
+    "warm_storybook_balanced",
+    "widescreen_16_9"
+   ],
+   "settings": {
+    "aspect": "16:9",
+    "duration_hint_s": 300
+   },
+   "complexity": 3
+  },
+  {
    "id": "educational_quick",
    "type": "production",
    "group": "Short form",
