@@ -4,7 +4,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText, type StoryKind, type StoryPreview } from "./api";
 import * as I from "./icons";
 import { FrameShapes } from "./FrameShapes";
-import { byId, presetAspect, stackedNames } from "./presetShelf";
+import { byId, layerChoices, lengthOptions, lengthWords, presetAspect, presetLength, SETUP_LAYERS, setupStack, stackedNames } from "./presetShelf";
 import { guessKind, previewLine, STORY_EXT, STORY_KINDS, titleFromFile } from "./storyView";
 
 /**
@@ -24,6 +24,9 @@ export function NewFilm({ file, kind: startKind, preset: presetId, onClose, onCr
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [truncated, setTruncated] = useState(false);
+  const [length, setLength] = useState<number | null>(null);                 // null: the length the preset aims for
+  const [episodes, setEpisodes] = useState(10);
+  const [layers, setLayers] = useState<Partial<Record<"visual" | "acting" | "editing" | "color", string>>>({});
   const titled = useRef(false);                                        // the person typed a title: don't replace it with the file name
 
   const readFile = async (path: string) => {
@@ -52,7 +55,7 @@ export function NewFilm({ file, kind: startKind, preset: presetId, onClose, onCr
     setBusy("create"); setErr("");
     try {
       const r = await api.film<{ dir: string }>("create", null, { title: title.trim() || "Untitled film", kind, text, file: source, aspect_ratio: aspect });
-      if (preset) await api.presets(r.dir, "set_pending", { stack: [preset.id] }).catch(() => {});       // only remembers the choice (free, local); the film is not changed until you preview and apply it in Presets
+      if (preset) await api.presets(r.dir, "set_pending", { stack: setupStack(preset, layers), setup: { ...(length ? { length } : {}), ...(preset.series ? { episodes } : {}) } }).catch(() => {});       // only remembers the choice (free, local); the film is not changed until you preview and apply it in Presets
       onCreated(r.dir);
     } catch (e) { setErr(errorText(e)); setBusy(""); }
   };
@@ -82,6 +85,24 @@ export function NewFilm({ file, kind: startKind, preset: presetId, onClose, onCr
               {STORY_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label.toLowerCase()}</option>)}</select>
             <button className="link" onClick={choose}>{fileName ? "choose a different file" : "or choose a file"}</button>
           </div>
+          {preset && <fieldset className="nf-setup"><legend>Set up from {preset.name}</legend>
+            <div className="ly-two">
+              <label className="field"><span>Length to aim for</span>
+                <select className="text-input" value={length ?? ""} onChange={(e) => setLength(e.target.value ? Number(e.target.value) : null)}>
+                  <option value="">As the preset{presetLength(preset) ? ` (about ${lengthWords(presetLength(preset)!)})` : ""}</option>
+                  {lengthOptions(presetLength(preset)).map((s) => <option key={s} value={s}>{lengthWords(s)}</option>)}</select></label>
+              {preset.series && <label className="field"><span>Episodes in the season</span>
+                <input className="text-input" type="number" min={1} max={60} value={episodes} onChange={(e) => setEpisodes(Math.min(60, Math.max(1, Math.round(Number(e.target.value) || 1))))} /></label>}
+            </div>
+            <details className="nf-adv"><summary>Advanced: change what the preset brings</summary>
+              <p className="dim">The preset already chooses these. Pick one only to use something else: it is added after the preset, so it wins.</p>
+              {SETUP_LAYERS.map((l) => (
+                <label key={l.key} className="field"><span>{l.label}</span>
+                  <select className="text-input" value={layers[l.key] ?? ""} onChange={(e) => setLayers((x) => ({ ...x, [l.key]: e.target.value || undefined }))}>
+                    <option value="">As the preset</option>
+                    {layerChoices(l.type).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>))}
+            </details>
+          </fieldset>}
           <label className="field"><span>{fileName ? `Your story (from ${fileName})` : "Your story"}</span>
             <textarea className="text-input nf-text" rows={12} value={text} onChange={(e) => { setText(e.target.value); setSource(null); setFileName(""); }}
                       placeholder={kind === "screenplay" ? "Paste the screenplay here" : "Write or paste the story here"} spellCheck={false} /></label>

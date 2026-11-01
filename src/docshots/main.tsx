@@ -734,6 +734,7 @@ const scenes: Record<string, () => ReactNode> = {
   home: () => <Home onNewFilm={noop} onOpen={noop} onChooseProject={noop} onSettings={noop} onHelp={noop} />,
   homeflow: () => <Home onNewFilm={(o) => { ((window as unknown as { __home?: unknown[] }).__home ??= []).push({ new: o ?? {} }); }} onOpen={(d) => { ((window as unknown as { __home?: unknown[] }).__home ??= []).push({ open: d }); }} onChooseProject={() => { ((window as unknown as { __home?: unknown[] }).__home ??= []).push({ choose: true }); }} onSettings={noop} onHelp={noop} />,
   newfilm: () => <NewFilm onClose={noop} onCreated={noop} />,
+  newfilmpreset: () => <NewFilm kind="idea" preset="vertical_micro_drama" onClose={noop} onCreated={noop} />,
   newfilmwrite: () => <NewFilm file="last-train.fountain" onClose={noop} onCreated={noop} />,
   studio: () => <Studio project={{ dir: DIR, ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,
   studiovoice: () => <Studio project={{ dir: DIR + "/render", ...(renderFixture as object), directed: null, jobs: [], keyframes: {}, concepts: null, treatment: null, song_path: DIR + "/soundtrack.wav", doc: null } as never} onHome={noop} onSettings={noop} onReload={noop} />,

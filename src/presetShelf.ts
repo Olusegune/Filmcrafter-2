@@ -25,6 +25,22 @@ export function find(list: HomePreset[], query: string, type: string): HomePrese
   return list.filter((p) => (type === "all" || p.type === type) && (!q || `${p.name} ${p.description} ${p.use ?? ""}`.toLowerCase().includes(q)));
 }
 
+/** The layer presets that can be added to a production preset when a film is set up, by what each changes (the later one wins over the earlier). */
+export const SETUP_LAYERS: { key: "visual" | "acting" | "editing" | "color"; label: string; type: string }[] = [
+  { key: "visual", label: "Visual style", type: "visual" }, { key: "acting", label: "Acting", type: "performance" },
+  { key: "editing", label: "Editing", type: "editing" }, { key: "color", label: "Colour", type: "color" }];
+export const layerChoices = (type: string): HomePreset[] => ALL.filter((p) => p.type === type);
+
+/** Lengths offered when a film is set up (seconds), with the preset's own length first in the list when it is not one of them. */
+export const LENGTHS = [30, 60, 90, 120, 180, 300, 600];
+export const lengthOptions = (hint: number | null): number[] => (hint && !LENGTHS.includes(hint) ? [...LENGTHS, hint].sort((a, b) => a - b) : LENGTHS);
+export const lengthWords = (s: number): string => (s < 120 ? `${s} seconds` : `${Math.round((s / 60) * 10) / 10} minutes`);
+export const presetLength = (p: HomePreset): number | null => (typeof p.settings.duration_hint_s === "number" ? p.settings.duration_hint_s : null);
+
+/** The stack to remember for a film set up from a preset: the preset first, then each chosen layer preset (a later one wins). Choosing nothing for a layer leaves it to the preset. */
+export const setupStack = (p: HomePreset, chosen: Partial<Record<"visual" | "acting" | "editing" | "color", string>>): string[] =>
+  [p.id, ...SETUP_LAYERS.map((l) => chosen[l.key]).filter((id): id is string => !!id && !!byId(id))];
+
 /** The frame shape a preset asks for, if it asks for one (a vertical series is 9:16). */
 export const presetAspect = (p: HomePreset): string | null => (typeof p.settings.aspect === "string" ? p.settings.aspect : null);
 

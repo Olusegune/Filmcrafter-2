@@ -145,6 +145,16 @@ def clean_preset(raw, known: set[str] | None = None) -> dict:
 
 # ---------------------------------------------------------------- the film's own record
 
+SETUP_ID = "mine-new-film"
+
+
+def clean_setup(raw) -> dict:
+    """What was chosen when the film was made, beyond which presets: only the number of episodes for a series (1 to 60), as a whole number."""
+    raw = raw if isinstance(raw, dict) else {}
+    ep = raw.get("episodes")
+    return {"episodes": ep} if isinstance(ep, int) and not isinstance(ep, bool) and 1 <= ep <= 60 else {}
+
+
 def parse_state(s) -> dict:
     """The preset record made safe, from whatever was read."""
     s = s if isinstance(s, dict) else {}
@@ -157,7 +167,7 @@ def parse_state(s) -> dict:
         except SystemExit:
             continue                                        # a damaged preset of yours is left out, not fatal
     ids = lambda x: [i for i in (x if isinstance(x, list) else []) if isinstance(i, str)][:200]
-    return {"schema": SCHEMA, "stack": ids(s.get("stack")), "pending": ids(s.get("pending"))[:MAX_PENDING], "editing": s.get("editing") if isinstance(s.get("editing"), str) else None, "delivery": s.get("delivery") if isinstance(s.get("delivery"), dict) else None,
+    return {"schema": SCHEMA, "stack": ids(s.get("stack")), "pending": ids(s.get("pending"))[:MAX_PENDING], "setup": clean_setup(s.get("setup")), "editing": s.get("editing") if isinstance(s.get("editing"), str) else None, "delivery": s.get("delivery") if isinstance(s.get("delivery"), dict) else None,
             "duration_hint_s": s.get("duration_hint_s") if isinstance(s.get("duration_hint_s"), int) and not isinstance(s.get("duration_hint_s"), bool) else None,
             "applied": [a for a in (s.get("applied") if isinstance(s.get("applied"), list) else []) if isinstance(a, dict)][-MAX_APPLIED:], "favorites": ids(s.get("favorites")), "recent": ids(s.get("recent"))[-12:],
             "mine": mine, "reframe": {str(k)[:40]: round(max(0.0, min(1.0, float(v))), 3) for k, v in (s.get("reframe") if isinstance(s.get("reframe"), dict) else {}).items()
@@ -382,7 +392,7 @@ def catalog(d: str) -> dict:
     for p in ps.values():
         rows.append({**{k: p.get(k) for k in ("id", "type", "group", "name", "description", "use", "version", "thumbnail", "includes", "settings", "complexity", "series")}, "mine": bool(p.get("mine")),
                      "favorite": p["id"] in st["favorites"], "recent": p["id"] in st["recent"], "in_stack": p["id"] in st["stack"]})
-    return {"presets": rows, "stack": st["stack"], "types": list(TYPES), "applied": len(st["applied"]), "current": {k: v for k, v in current(d).items()}, "is_film": film_of(d) is not None, "pending": st["pending"]}
+    return {"presets": rows, "stack": st["stack"], "types": list(TYPES), "applied": len(st["applied"]), "current": {k: v for k, v in current(d).items()}, "is_film": film_of(d) is not None, "pending": st["pending"], "setup": st["setup"]}
 
 
 def save_mine(d: str, name: str, stack: list[str] | None = None) -> dict:
@@ -518,18 +528,33 @@ def delivery_safe_bottom(d: str) -> float:
     return float((dv.get("safe") or {}).get("bottom") or 0.0) if dv.get("export") in ("vertical", "portrait", "tall", "ultratall") else 0.0
 
 
-def set_pending(d: str, stack: list[str]) -> dict:
+def set_pending(d: str, stack: list[str], setup: dict | None = None) -> dict:
     """Remember the preset(s) chosen when a film was made, to be previewed and applied once the film has its shots (a preset sets up the render project, which a new film does not have yet).
     Nothing is changed in the film by this: it only records what was chosen."""
     known = all_presets(d)
-    good = [i for i in stack if i in known][:MAX_PENDING]
+    good = [i for i in stack if i in known and i != SETUP_ID][:MAX_PENDING]
     if not good:
         raise SystemExit("Choose a preset from the list.")
+    setup = setup if isinstance(setup, dict) else {}
+    length = setup.get("length")
+    if length is not None and (isinstance(length, bool) or not isinstance(length, int) or not 5 <= length <= 7200):
+        raise SystemExit("A length to aim for is a whole number of seconds, 5 to 7200.")
+    keep = clean_setup(setup)
+    if setup.get("episodes") is not None and not keep:
+        raise SystemExit("A season has 1 to 60 episodes.")
 
     def change(cur):
         cur["pending"] = good
+        cur["setup"] = keep
+        cur["mine"].pop(SETUP_ID, None)
+        if length is not None:                                       # the person's own length, kept as a preset of theirs that comes last, so it wins over the presets before it
+            if len(cur["mine"]) >= MAX_MINE:
+                raise SystemExit("You have kept as many presets as FilmCrafter holds. Delete one first.")
+            cur["mine"][SETUP_ID] = clean_preset({"id": SETUP_ID, "type": "custom", "name": "Your setup for this film", "description": "What you chose when you made this film.",
+                                                  "settings": {"duration_hint_s": length}})
+            cur["pending"] = good + [SETUP_ID]
     _write(d, change)
-    return {"pending": good}
+    return {"pending": load_state(d)["pending"], "setup": keep}
 
 
 def stack_get(d: str) -> dict:
@@ -559,7 +584,7 @@ def run(d: str, action: str, x: dict) -> dict:
     if action == "import_file":
         return import_file(d, str(x.get("path", "")))
     if action == "set_pending":
-        return set_pending(d, ids(x.get("stack")))
+        return set_pending(d, ids(x.get("stack")), x.get("setup"))
     if action == "stack_get":
         return stack_get(d)
     if action == "reframe_set":

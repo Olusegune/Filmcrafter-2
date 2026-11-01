@@ -9,8 +9,9 @@ import { ask } from "./ask";
 import { UpdatePill } from "./Updates";
 import { isStoryFile, STORY_EXT } from "./storyView";
 import { lastFilm, relativeDay } from "./homeInfo";
-import { FeaturedPresets, PresetDetailsSheet, PresetGallerySheet } from "./HomePresets";
-import { cardMeta, RECENT_SHOWN, type HomePreset } from "./presetShelf";
+import { FeaturedPresets, PresetDetailsSheet, PresetGallerySheet, WelcomeSheet } from "./HomePresets";
+import { byId, cardMeta, RECENT_SHOWN, type HomePreset } from "./presetShelf";
+import { markWelcomeSeen, shouldWelcome, welcomeSeen } from "./homePrefs";
 import "./home.css";
 
 /**
@@ -28,6 +29,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
   const [all, setAll] = useState(false);
   const [gallery, setGallery] = useState(false);
   const [pick, setPick] = useState<HomePreset | null>(null);
+  const [welcome, setWelcome] = useState(false);
   const reloadList = () => { api.listProjects().then((p) => { setProjects(p); setLoaded(true); }).catch(() => { setProjects([]); setLoaded(true); }); api.hiddenCount().then(setHiddenN).catch(() => {}); };
   useEffect(reloadList, []);
   const recent = async (action: "remove" | "clear" | "restore", dir: string | null = null) => { await api.recents(action, dir).catch(() => {}); reloadList(); };
@@ -57,6 +59,8 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
   const last = lastFilm(projects);
   const films = projects.filter((p) => p.kind === "film");
   const shown = all ? films : films.slice(0, RECENT_SHOWN);
+  useEffect(() => { if (shouldWelcome(films.length, loaded, welcomeSeen())) setWelcome(true); }, [loaded, films.length]);
+  const answer = (go: () => void) => () => { markWelcomeSeen(); setWelcome(false); go(); };
 
   return (
     <div className="home hm">
@@ -73,7 +77,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
         <header className="hm-head">
           <p className="hm-eyebrow">Your creative studio</p>
           <h1>What will you create today?</h1>
-          <p className="dim">From first idea to finished film. Choose how you would like to begin.</p>
+          <p className="dim">From first idea to finished film. Choose how you would like to begin. <button type="button" className="link" onClick={() => setWelcome(true)}>Help me choose</button></p>
         </header>
 
         <section className="hm-starts" aria-label="Start a film">
@@ -127,6 +131,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
         </section>
       </main>
 
+      {welcome && <WelcomeSheet onClose={answer(() => {})} onStory={answer(() => onNewFilm())} onPreset={answer(() => setGallery(true))} onAnimated={answer(() => setPick(byId("animated_short") ?? null))} onOpen={answer(onChooseProject)} />}
       {gallery && !pick && <PresetGallerySheet onPick={setPick} onClose={() => setGallery(false)} />}
       {pick && <PresetDetailsSheet p={pick} onStart={start} onClose={() => setPick(null)} />}
     </div>

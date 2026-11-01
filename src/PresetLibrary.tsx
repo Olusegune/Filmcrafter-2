@@ -166,20 +166,20 @@ export function PresetsSheet({ dir, onClose, onChanged }: { dir: string; onClose
             </div>
           </aside>
         </div>)}
-      {tab === "series" && <div role="tabpanel" id="ps-panel-series" aria-labelledby="ps-tab-series"><SeriesTab dir={dir} presets={cat?.presets.filter((p) => p.series) ?? []} /></div>}
+      {tab === "series" && <div role="tabpanel" id="ps-panel-series" aria-labelledby="ps-tab-series"><SeriesTab dir={dir} presets={cat?.presets.filter((p) => p.series) ?? []} episodes={cat?.setup?.episodes} /></div>}
       {tab === "vertical" && <div role="tabpanel" id="ps-panel-vertical" aria-labelledby="ps-tab-vertical"><VerticalTab dir={dir} /></div>}
     </Sheet>
   );
 }
 
 /** The micro-drama plan: made free from an idea, every part editable, suggestions marked until they are yours. */
-function SeriesTab({ dir, presets }: { dir: string; presets: PresetRow[] }) {
+function SeriesTab({ dir, presets, episodes }: { dir: string; presets: PresetRow[]; episodes?: number }) {
   const [st, setSt] = useState<SeriesState | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [rep, setRep] = useState<SeriesReport | null>(null);
   const [idea, setIdea] = useState("");
-  const [eps, setEps] = useState(10);
+  const [eps, setEps] = useState(episodes ?? 10);                         // the number chosen when the film was made on Home, if any
   const [secs, setSecs] = useState(90);
   const [preset, setPreset] = useState("vertical_micro_drama");
   const [msg, setMsg] = useState("");

@@ -3,7 +3,8 @@ import AxeBuilder from "@axe-core/playwright";
 
 // Driven on the screenshot harness: the real Home screen, its preset cards (the engine's own preset list and the pack's pictures), and its buttons. What Home asks the app to do is recorded in window.__home.
 const calls = (page: Page) => page.evaluate(() => (window as unknown as { __home?: unknown[] }).__home ?? []);
-const open = async (page: Page, query = "") => {
+const open = async (page: Page, query = "", seen = true) => {
+  if (seen) await page.addInitScript(() => { try { localStorage.setItem("pf-home-welcome", "1"); } catch { /* optional */ } });          // the first-launch question has been answered, unless a test is about it
   await page.goto(`/docshots.html?scene=homeflow${query}`);
   await page.addStyleTag({ content: "*, *::before, *::after { animation: none !important; transition: none !important; }" });
   await page.evaluate(() => document.body.classList.remove("docshot"));
@@ -125,5 +126,60 @@ test.describe("the Home screen", () => {
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
       expect(r.violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`), step).toEqual([]);
     }
+  });
+
+});
+
+test.describe("the first-launch question", () => {
+  test("is asked once of someone with no films, and each answer goes where it says", async ({ page }) => {
+    await open(page, "&none=1", false);
+    const q = page.getByRole("dialog", { name: "What would you like to create?" });
+    await expect(q).toBeVisible();
+    for (const name of ["A film from my story", "A short video using a preset", "An animated film", "Open an existing project"]) await expect(q.getByRole("button", { name: new RegExp(`^${name}`) })).toBeVisible();
+    await q.getByRole("button", { name: /^A film from my story/ }).click();
+    expect(await calls(page)).toEqual([{ new: {} }]);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "What will you create today?" })).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);                                         // answered: not asked again
+  });
+
+  test("a preset answer opens the gallery, an animated answer opens that preset, an open answer opens the project chooser", async ({ page }) => {
+    await open(page, "&none=1", false);
+    await page.getByRole("button", { name: /^A short video using a preset/ }).click();
+    await expect(page.getByRole("dialog", { name: "All presets" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Help me choose" }).click();
+    await page.getByRole("button", { name: /^An animated film/ }).click();
+    await expect(page.getByRole("dialog", { name: "Animated Short Film" })).toBeVisible();
+    await page.getByRole("button", { name: "Back" }).click();
+    await page.getByRole("button", { name: "Help me choose" }).click();
+    await page.getByRole("button", { name: /^Open an existing project/ }).click();
+    expect(await calls(page)).toEqual([{ choose: true }]);
+  });
+
+  test("Not now closes it for good, and Help me choose brings it back on request", async ({ page }) => {
+    await open(page, "&none=1", false);
+    await page.getByRole("button", { name: "Not now" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.getByRole("button", { name: "Help me choose" }).click();
+    await expect(page.getByRole("dialog", { name: "What would you like to create?" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
+  test("is never forced on someone who already has films", async ({ page }) => {
+    await open(page, "", false);
+    await expect(page.getByRole("button", { name: "Continue Last Train" })).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
+  test("has no accessibility violations", async ({ page }) => {
+    await open(page, "&none=1", false);
+    await expect(page.getByRole("dialog", { name: "What would you like to create?" })).toBeVisible();
+    await page.waitForTimeout(500);
+    const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    expect(r.violations.map((v) => `${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
   });
 });

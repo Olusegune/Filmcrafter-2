@@ -49,3 +49,39 @@ describe("Home reaches nothing it should not", () => {
     }
   });
 });
+
+import { LENGTHS, layerChoices, lengthOptions, lengthWords, presetLength, setupStack } from "../presetShelf";
+import { shouldWelcome } from "../homePrefs";
+
+describe("setting a film up from a preset", () => {
+  it("offers real layer presets of the right kind, and an empty choice leaves each layer to the preset", () => {
+    expect(layerChoices("visual").length).toBeGreaterThan(5);
+    expect(layerChoices("performance")).toHaveLength(3);
+    expect(layerChoices("editing")).toHaveLength(3);
+    expect(layerChoices("color")).toHaveLength(2);
+    const v = byId("vertical_micro_drama")!;
+    expect(setupStack(v, {})).toEqual(["vertical_micro_drama"]);
+    expect(setupStack(v, { visual: "storybook_epic", color: "warm_storybook_balanced" })).toEqual(["vertical_micro_drama", "storybook_epic", "warm_storybook_balanced"]);
+    expect(setupStack(v, { acting: "not_a_preset" })).toEqual(["vertical_micro_drama"]);               // an id that is not a preset is never sent
+  });
+  it("lists lengths in order, adds the preset's own when it is not one of them, and says them in words", () => {
+    expect(lengthOptions(null)).toEqual(LENGTHS);
+    expect(lengthOptions(90)).toEqual(LENGTHS);
+    expect(lengthOptions(240)).toContain(240);
+    expect([...lengthOptions(240)].sort((a, b) => a - b)).toEqual(lengthOptions(240));
+    expect(lengthWords(90)).toBe("90 seconds");
+    expect(lengthWords(300)).toBe("5 minutes");
+    expect(lengthWords(150)).toBe("2.5 minutes");
+    expect(presetLength(byId("vertical_micro_drama")!)).toBe(90);
+    expect(presetLength(byId("natural_acting")!)).toBeNull();
+  });
+});
+
+describe("the first-launch question", () => {
+  it("is asked only of someone with no films who has not answered, once the list has loaded", () => {
+    expect(shouldWelcome(0, true, false)).toBe(true);
+    expect(shouldWelcome(0, false, false)).toBe(false);          // not before we know whether there are films
+    expect(shouldWelcome(3, true, false)).toBe(false);
+    expect(shouldWelcome(0, true, true)).toBe(false);
+  });
+});

@@ -62,6 +62,25 @@ export function PresetDetailsSheet({ p, onStart, onClose }: { p: HomePreset; onS
   );
 }
 
+/** The question for someone new: what would you like to create? Each answer goes straight to where it starts; "Not now" just closes it. Asked once. */
+export function WelcomeSheet({ onStory, onPreset, onAnimated, onOpen, onClose }: { onStory: () => void; onPreset: () => void; onAnimated: () => void; onOpen: () => void; onClose: () => void }) {
+  const ways: [string, string, () => void][] = [
+    ["A film from my story", "Bring a screenplay or write an idea. Your story is kept exactly as it is.", onStory],
+    ["A short video using a preset", "Micro-dramas, shorts, explainers and more, set up for you.", onPreset],
+    ["An animated film", "A character-centred animated short, with its look and acting set up.", onAnimated],
+    ["Open an existing project", "Carry on with a film you already made.", onOpen]];
+  return (
+    <Sheet label="What would you like to create?" className="hm-welcome" onDismiss={onClose}>
+      <div className="vs-head"><h2>What would you like to create?</h2><div style={{ flex: 1 }} />
+        <button className="icon-btn" onClick={onClose} aria-label="Close"><I.Close size={18} /></button></div>
+      <p className="sub">Choose the closest. You can do all of these later from Home, and nothing is made or charged by choosing.</p>
+      <ul className="hm-ways">{ways.map(([name, what, go], i) => (
+        <li key={name}><button type="button" className="hm-way" onClick={go} autoFocus={i === 0}><b>{name}</b><span>{what}</span></button></li>))}</ul>
+      <div className="sheet-actions"><span className="dim">Ask again any time with <b>Help me choose</b> on Home.</span><button className="btn ghost" onClick={onClose}>Not now</button></div>
+    </Sheet>
+  );
+}
+
 /** Every preset, searchable and filtered by kind. Picking one opens its details. */
 export function PresetGallerySheet({ onPick, onClose }: { onPick: (p: HomePreset) => void; onClose: () => void }) {
   const [q, setQ] = useState("");

@@ -23,7 +23,7 @@ describe("a new film started from a preset", () => {
     invoke.mockImplementation(backend());
     const created = vi.fn();
     render(<NewFilm kind="idea" preset="vertical_micro_drama" onClose={() => {}} onCreated={created} />);
-    expect(screen.getByText(/Vertical Micro-Drama/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Vertical Micro-Drama/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Nothing is made or charged/)).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText(/Write or paste the story/), { target: { value: "A girl waits." } });
     fireEvent.click(screen.getByRole("button", { name: "Create film" }));
@@ -31,7 +31,7 @@ describe("a new film started from a preset", () => {
     const make = sent("film").find((a) => (a as { action: string }).action === "create") as { data: { aspect_ratio: string } };
     expect(make.data.aspect_ratio).toBe("9:16");
     const p = sent("presets") as { dir: string; action: string; data: { stack: string[] } }[];
-    expect(p).toEqual([{ dir: "C:/films/Night", action: "set_pending", data: { stack: ["vertical_micro_drama"] } }]);        // remembered; never applied here
+    expect(p).toEqual([{ dir: "C:/films/Night", action: "set_pending", data: { stack: ["vertical_micro_drama"], setup: { episodes: 10 } } }]);        // remembered; never applied here
   });
 
   it("still makes the film if the choice cannot be remembered, and makes no preset call when none was chosen", async () => {
@@ -48,5 +48,30 @@ describe("a new film started from a preset", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create film" }));
     await waitFor(() => expect(again).toHaveBeenCalled());
     expect(sent("presets")).toEqual([]);
+  });
+
+  it("sends the length, the episodes and any layer you changed, with the preset first so yours come after it", async () => {
+    invoke.mockImplementation(backend());
+    const created = vi.fn();
+    render(<NewFilm kind="idea" preset="vertical_micro_drama" onClose={() => {}} onCreated={created} />);
+    fireEvent.change(screen.getByLabelText("Length to aim for"), { target: { value: "60" } });
+    fireEvent.change(screen.getByLabelText("Episodes in the season"), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText("Visual style"), { target: { value: "storybook_epic" } });
+    fireEvent.change(screen.getByLabelText("Colour"), { target: { value: "warm_storybook_balanced" } });
+    fireEvent.change(screen.getByPlaceholderText(/Write or paste the story/), { target: { value: "A girl waits." } });
+    fireEvent.click(screen.getByRole("button", { name: "Create film" }));
+    await waitFor(() => expect(created).toHaveBeenCalled());
+    expect((sent("presets") as { data: unknown }[])[0].data).toEqual({ stack: ["vertical_micro_drama", "storybook_epic", "warm_storybook_balanced"], setup: { length: 60, episodes: 12 } });
+  });
+
+  it("asks for episodes only for a series preset, and sends no setup when nothing was changed", async () => {
+    invoke.mockImplementation(backend());
+    render(<NewFilm kind="idea" preset="documentary" onClose={() => {}} onCreated={() => {}} />);
+    expect(screen.queryByLabelText("Episodes in the season")).toBeNull();
+    expect(screen.getByLabelText("Length to aim for")).toHaveValue("");
+    fireEvent.change(screen.getByPlaceholderText(/Write or paste the story/), { target: { value: "A river." } });
+    fireEvent.click(screen.getByRole("button", { name: "Create film" }));
+    await waitFor(() => expect(sent("presets")).toHaveLength(1));
+    expect((sent("presets") as { data: unknown }[])[0].data).toEqual({ stack: ["documentary"], setup: {} });
   });
 });

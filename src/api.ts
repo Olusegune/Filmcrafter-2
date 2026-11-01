@@ -439,7 +439,7 @@ export type Suggestions = { recipe: { id: string; label: string; for?: string };
 /** Creative presets (presets.py): named settings, previewed before they are applied; a choice you made yourself is kept unless you say otherwise. */
 export type PresetRow = { id: string; type: string; group: string; name: string; description: string; use: string; version: number; thumbnail: string | null; includes: string[]; settings: Record<string, unknown>;
   complexity: number; series?: string; mine: boolean; favorite: boolean; recent: boolean; in_stack: boolean };
-export type PresetCatalog = { presets: PresetRow[]; stack: string[]; types: string[]; applied: number; current: Record<string, { value: unknown; set: boolean }>; is_film: boolean; pending?: string[] };
+export type PresetCatalog = { presets: PresetRow[]; stack: string[]; types: string[]; applied: number; current: Record<string, { value: unknown; set: boolean }>; is_film: boolean; pending?: string[]; setup?: { episodes?: number } };
 export type PresetChange = { key: string; status: "new" | "same" | "yours" | "replace" | "unavailable"; now: unknown; to: unknown; by: string; set?: boolean; why?: string };
 export type PresetPlan = { stack: string[]; order: string[]; changes: PresetChange[]; notes: string[] };
 export type PresetApplied = { changed: string[]; kept: string[]; same: string[]; plan: PresetPlan };

@@ -58,3 +58,16 @@
   .hm-dbody { grid-template-columns: 1fr; }
   .hm-dbody .hm-thumb { max-width: 220px; }
 }
+
+.nf-setup { margin: 0 0 12px; padding: 10px 12px 4px; border: 1px solid var(--line-strong); border-radius: 8px; }
+.nf-setup legend { padding: 0 6px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--smoke); }
+.nf-adv { margin: 4px 0 8px; }
+.nf-adv > summary { cursor: pointer; font-size: 13px; color: var(--mist); padding: 4px 0; }
+
+.hm-welcome { width: min(560px, calc(100vw - 32px)); max-width: none; }
+.hm-ways { list-style: none; margin: 8px 0 14px; padding: 0; display: grid; gap: 8px; }
+.hm-way { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 12px 14px; text-align: left; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--graphite); color: var(--frost); font: inherit; cursor: pointer; }
+.hm-way b { font-size: 15px; font-weight: 600; }
+.hm-way span { font-size: 13px; color: var(--mist); }
+.hm-way:hover { border-color: var(--gold); }
+.hm-way:focus-visible { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
