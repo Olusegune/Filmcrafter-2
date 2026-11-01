@@ -91,6 +91,8 @@ Principle: **one new versioned model beside the existing stores; the existing st
 
 **Status (2026-11-05, later).** Milestone 5 now also has video clips as layers: a clip with a start point, a loop, opacity, a blend mode and a colour key with spill removal (`overlays.py`, `composite.py`). Not built: a clip's own sound, effects and shapes on a clip, keyframes for a clip, animated or drawn masks, tracking and rotoscoping, and keying footage that is already in the cut (the key works on a clip layer over the film).
 
+**Status (2026-11-05, evening).** Finishing touches: film pictures on Home, a ready screen with a one-click vertical version, a season plan that makes one film per episode (free), and a screen-colour finder. Still ahead: making a whole season's pictures and video in one go (each step shows its own price and asks), thumbnails for films that have only a storyboard, and a real green-screen clip to tune the key on.
+
 ## 6. Risks
 
 | Risk | Why it matters | Answer |

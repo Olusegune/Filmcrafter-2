@@ -29,7 +29,7 @@ MAX_EPISODES = 60
 FIELDS = ("hook", "escalation", "turning_point", "ending", "continuity")
 SEASON_FIELDS = ("logline", "tone", "rules", "ending")
 MAX_TEXT = 400
-ACTIONS = ("get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown")
+ACTIONS = ("get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown", "make_films")
 
 # the shape of a season, as a role for episode n of N
 def role_of(n: int, total: int) -> str:
@@ -117,6 +117,7 @@ def _clean(raw) -> dict | None:
     return {"schema": SCHEMA, "idea": _txt(raw.get("idea"), 1200), "preset": _txt(raw.get("preset"), 60), "hero": _txt(raw.get("hero"), 60), "episodes": eps,
             "season": {"logline": fld(season.get("logline")), "genre": _txt(season.get("genre"), 40), "tone": fld(season.get("tone")), "rules": fld(season.get("rules")), "ending": fld(season.get("ending")),
                        "season_budget_usd": round(float(season["season_budget_usd"]), 2) if isinstance(season.get("season_budget_usd"), (int, float)) and not isinstance(season.get("season_budget_usd"), bool) and season["season_budget_usd"] >= 0 else None},
+            "films": {str(k)[:4]: v[:600] for k, v in list((raw.get("films") if isinstance(raw.get("films"), dict) else {}).items())[:MAX_EPISODES] if isinstance(v, str)},
             "cast": [_txt(x, 60) for x in (raw.get("cast") or []) if isinstance(x, str)][:12], "places": [_txt(x, 60) for x in (raw.get("places") or []) if isinstance(x, str)][:12]}
 
 
@@ -283,6 +284,59 @@ def export_markdown(d: str, path: str) -> dict:
     return {"path": dest}
 
 
+def _outline(plan: dict, e: dict, season: str) -> str:
+    """The story of one episode, as a plain outline made from the plan: yours to edit, and kept exactly as given once the film is made."""
+    s = plan["season"]
+    lines = [f"{season.upper()}: {e['title']}", f"(An outline made from the season plan: episode {e['n']} of {len(plan['episodes'])}, about {e['seconds']} seconds. Change any of it.)", ""]
+    for label, v in (("The idea of the season", plan.get("idea")), ("Logline", s["logline"]["value"]), ("Tone", s["tone"]["value"]), ("Rules of this world", s["rules"]["value"]), ("The hero", plan.get("hero")),
+                     ("Where the season is going", s["ending"]["value"])):
+        if v:
+            lines.append(f"{label}: {v}")
+    lines += ["", f"THIS EPISODE ({e['role']})"]
+    for label, key in (("It opens", "hook"), ("It builds", "escalation"), ("The turn", "turning_point"), ("It ends", "ending"), ("Carried over from before", "continuity")):
+        if e[key]["value"]:
+            lines.append(f"{label}: {e[key]['value']}")
+    if e["cliffhanger"]:
+        lines.append("It ends on a cliffhanger.")
+    return "\n".join(lines)
+
+
+def make_films(d: str) -> dict:
+    """One film for each episode of the season plan, in the folder this film is in: each starts as an outline made from the plan, with the season's presets remembered for it (to preview and apply in Presets) and the
+    episode's length. Free: only text and settings are written, nothing is generated or charged, and no film that already exists is touched; asked again, it makes only the episodes that have no film yet."""
+    from . import presets, story
+    plan = load(d)
+    if plan is None:
+        raise SystemExit("Make the season plan first.")
+    f = presets.film_of(d) or (os.path.abspath(d) if os.path.isfile(os.path.join(d, "film.json")) else None)
+    if not f:
+        raise SystemExit("This is not a film.")
+    root = os.path.dirname(os.path.abspath(f))
+    m = story._manifest(f)
+    season = str(m.get("title") or "Season")[:80]
+    st = presets.load_state(d)
+    stack = [p for p in (st["stack"] or st["pending"] or ([plan["preset"]] if plan["preset"] else [])) if p != presets.SETUP_ID]
+    films = dict(plan.get("films") or {})
+    made, kept = [], []
+    for e in plan["episodes"]:
+        key = str(e["n"])
+        have = films.get(key)
+        if have and os.path.isfile(os.path.join(have, "film.json")):
+            kept.append({"n": e["n"], "title": e["title"], "dir": have})
+            continue
+        r = story.create(root, f"{season} - {e['title']}", "outline", _outline(plan, e, season), None, str(m.get("aspect_ratio") or "16:9"))
+        if stack:
+            try:
+                presets.set_pending(r["dir"], stack, {"length": e["seconds"]})
+            except SystemExit:
+                pass                                                  # the film is made either way; Presets can still be used by hand
+        films[key] = r["dir"]
+        made.append({"n": e["n"], "title": e["title"], "dir": r["dir"]})
+    plan["films"] = films
+    _save(d, plan)
+    return {"made": made, "kept": kept, "folder": root}
+
+
 def run(d: str, action: str, x: dict) -> dict:
     n = x.get("n")
     if action == "get":
@@ -305,12 +359,14 @@ def run(d: str, action: str, x: dict) -> dict:
         return report(d)
     if action == "export_markdown":
         return export_markdown(d, str(x.get("path", "")))
+    if action == "make_films":
+        return make_films(d)
     raise SystemExit("Unknown action.")
 
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-series")
-    ap.add_argument("action", choices=["get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown"])
+    ap.add_argument("action", choices=["get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown", "make_films"])
     ap.add_argument("project")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)

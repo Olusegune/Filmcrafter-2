@@ -26,6 +26,13 @@ the Home screen and its sheets, the Guide's new steps, and the Rust door changes
 - **Information disclosure.** An unexpected engine failure used to show a Python error name (and sometimes a file path of ours) on screen; the engine now says "One of the values sent was not in a form FilmCrafter can use" and logs the technical text to stderr, and the screen turns any remaining Python error name into a plain sentence and logs it to the console. The test `test_fuzz_doors.py` checks 30 doors for this.
 - **Dependencies (CWE-1104).** No dependency was added or changed. `npm audit --omit=dev`: no vulnerabilities. `cargo audit` and `pip-audit` are not installed on this machine, so those two were not run (a place to look at next).
 
+## The four finishing touches (added later the same day)
+
+- **A film's picture on Home (`film_thumb`, Rust).** Reads `render/keyframes.json`, takes the first shot by id whose chosen keyframe is a plain relative path with a picture extension, and checks with `canonicalize` that the file is inside the film's render folder before the path is passed to the screen. A hand-edited record naming `../`, an absolute path, a drive, a backslash escape, a non-picture or a non-text value is skipped (unit test in `lib.rs`). The screen shows it through the asset protocol, whose scope is the app's own folders, and falls back to the plain strip if it cannot load.
+- **The season's films (`series.make_films`).** Writes new film folders next to the current one using the same code as New film (names are slugged and made unique, so an existing film is never overwritten) and records the choice of presets for each. It asks first in the app, makes only missing episodes, calls no provider, and writes only text and settings (a test reads the function for any render or network call).
+- **The screen colour finder (`overlays.key_suggest`).** Reads a picture inside the project (the same containment check as drawing it) or the first frame of a clip (the same time-limited ffmpeg call as the layer preview), samples the border at 160 px, and returns a colour; it changes nothing. Added to the Rust door's allow-list with the engine's matching choice (the security test that compares them passes).
+- **The ready screen** only calls the existing export with the `vertical` format, a fixed word chosen in the code, never text from a file or a layer.
+
 ## Not covered
 
 - `rafter run` (remote analysis) could not be used: the account's allowance for the period is used up (1 of 1). The review above is the manual walk plus the tests.

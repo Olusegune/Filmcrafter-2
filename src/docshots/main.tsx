@@ -39,6 +39,7 @@ import { SmartEditorSheet } from "../SmartEditor";
 import { PresetsSheet } from "../PresetLibrary";
 import { MotionGraphicsSheet } from "../MotionGraphics";
 import { FirstFilm } from "../FirstFilm";
+import { ExportSheet } from "../Export";
 import presetsBuiltin from "../../analysis/filmcrafter_engine/presets_builtin.json";
 import { LibrarySheet } from "../Board";
 import { Home } from "../Home";
@@ -126,6 +127,7 @@ const mixStore = { list: [layer("l5", "image", "Green screen", 1, 6, { file: "as
 const clipStore = { list: [layer("l6", "clip", "interview.mp4", 1, 9, { file: "assets/overlays/ov_clip.mp4", src_w: 1920, src_h: 1080, src_dur: 12.4, in_s: 0, width: 0.4 })] as Record<string, unknown>[] };
 const MIXCLIPDIR = "/clipfilm";
 const mixOverlays = (x: { action?: string; data?: Record<string, unknown> }, store = mixStore): unknown => {
+  if (x.action === "key_suggest") return { found: true, kind: "green", color: "#1fae4b", sure: 0.93 };
   if (x.action === "update") {
     const { id, ...rest } = (x.data ?? {}) as { id?: string } & Record<string, unknown>;
     store.list = store.list.map((l) => {
@@ -315,7 +317,7 @@ mockIPC((cmd, a) => {
       if (new URLSearchParams(location.search).get("many")) return Array.from({ length: 60 }, (_, i) => ({ dir: `m${i}`, title: `Film number ${i + 1}`, kind: "film", state: "Screenplay", aspect: i % 2 ? "9:16" : "16:9", modified: now - 3600 * i }));
       if (new URLSearchParams(location.search).get("none")) return [];
       return [
-      { dir: "f1", title: "Last Train", kind: "film", state: "Story locked", aspect: "9:16", modified: now },
+      { dir: "f1", title: "Last Train", kind: "film", state: "Story locked", aspect: "9:16", thumb: "/src/docshots/img/s3.png", modified: now },
       { dir: "f2", title: "The Lighthouse Keeper", kind: "film", state: "Story: idea", aspect: "16:9", modified: now - 86400 * 2 },
       { dir: "p1", title: "Exit Plan", state: "directed", modified: now - 86400 * 9, song: "song.wav" }];
     case "hidden_count": return 0;
@@ -323,6 +325,8 @@ mockIPC((cmd, a) => {
     case "film_voice": return { people: 2, recorded: 2, lines: [], voices: [] };
     case "film_cues": return { cues: [{ id: "c1" }], approved: 0 };
     case "film_audio": return { assets: [] };
+    case "export_project": { const v = (a as { preset?: string }).preset === "vertical"; const dr = (a as { dir?: string }).dir === "f-draft"; return { path: v ? "C:/Films/Last Train/exports/Last Train - TikTok - 2026-11-05 1010.mp4" : "C:/Films/Last Train/exports/Last Train - YouTube - 2026-11-05 1009.mp4", preset: v ? "TikTok / Reels 9:16" : "YouTube 16:9", width: v ? 1080 : 1920, height: v ? 1920 : 1080, fps: 24, duration: 144.5, shots: 6, rendered: 6, draft: dr, loudness: null, check: null, overlays: 0, captions: 0, subtitles: null }; }
+    case "golden": return { video: ["S01-01", "S01-02"], still: [], none: [], stale: [] };
     case "key_status": return { openai: true, fal: true, kie: true, google: false, elevenlabs: false, midjourney: false, byteplus: false };
     case "engine_status": return { ready: true, gpu: false, dev: true, python: "" };
     case "film_bible": return bibleView;
@@ -623,6 +627,7 @@ const seriesCall = (a: { action?: string; data?: Record<string, unknown> }): unk
     case "report": return { episodes: serPlan?.episodes.length ?? 0, total_seconds: (serPlan?.episodes.length ?? 0) * 90, written: serPlan?.episodes.filter((e) => e.hook.source === "you").length ?? 0, cliffhangers: serPlan?.episodes.filter((e) => e.cliffhanger).length ?? 0, cast: {}, places: {}, budget_total_usd: null, season_budget_usd: null,
       notes: (serPlan?.episodes ?? []).slice(0, 3).map((e) => ({ level: "todo", episode: e.n, what: `Episode ${e.n}: write your own hook and ending (the suggestion is only a starting point).` })) };
     case "export_markdown": return { path: "series-plan.md" };
+    case "make_films": { const n = serPlan?.episodes.length ?? 0; return { made: Array.from({ length: n }, (_, i) => ({ n: i + 1, title: `Episode ${i + 1}`, dir: `films/ep${i + 1}` })), kept: [], folder: "films" }; }
     default: throw new Error("That is not in the screenshot harness.");
   }
 };
@@ -736,6 +741,8 @@ const keys = { openai: true, fal: true, kie: true, google: false, elevenlabs: fa
 const take = (id: string, _shot: string, n: number, over: Record<string, unknown> = {}) => ({ id, n, state: "ready", provider: "kie", model: "bytedance/seedance-2", output: `v${n}.mp4`, kind: "video", created: n, cost: n === 1 ? 50 : 38, cost_unit: "credits", approved: n === 1, ...over });
 const card = (children: ReactNode, width = 480) => <div className="sheet glass" style={{ width }}>{children}</div>;
 const scenes: Record<string, () => ReactNode> = {
+  exportsheet: () => <ExportSheet dir="f1" projectAspect="16:9" shots={6} rendered={6} onClose={noop} />,
+  exportdraft: () => <ExportSheet dir="f-draft" projectAspect="16:9" shots={6} rendered={3} onClose={noop} />,
   guide: () => <FirstFilm dir={DIR} pro={true} onGo={noop} onClose={noop} progress={{ story: { kind: "screenplay", locked: true, as_is: true }, cast: { characters: 2, places: 2, pictures: 2, style: true }, shots: { count: 6, edited: 1 }, make: { shots: 6, storyboard: 6, keyframe: 6, video: 6 } }} />,
   layerclip: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={MIXCLIPDIR} selected="l6" onSelect={noop} onClose={noop} time={3} docked /></div>,
   layermix: () => <div style={{ width: 380, padding: 16 }} className="glass"><LayersPanel dir={MIXDIR} selected="l5" onSelect={noop} onClose={noop} time={3} docked /></div>,

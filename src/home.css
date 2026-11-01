@@ -71,3 +71,9 @@
 .hm-way span { font-size: 13px; color: var(--mist); }
 .hm-way:hover { border-color: var(--gold); }
 .hm-way:focus-visible { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+
+.hm-cardpic { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 5px; margin-bottom: 8px; background: var(--slate); }
+.export-ready { margin: 12px 0 4px; padding: 12px 14px; border: 1px solid var(--gold); border-radius: 8px; background: var(--gold-wash); }
+.export-ready-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px; }
+.export-ready p { margin: 4px 0 0; font-size: 13px; }
+.export-extra { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-strong); display: grid; gap: 4px; }

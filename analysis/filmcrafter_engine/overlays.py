@@ -360,6 +360,37 @@ def clip_filters(o: dict, w: int, h: int, fps: int) -> str:
     return ",".join(parts)
 
 
+def key_suggest(d: str, oid: str) -> dict:
+    """Look at the edges of a picture (or the first frame of a video clip) and say which green or blue screen is there: the colour to remove, and how sure it is. Changes nothing."""
+    from PIL import Image
+    o = next((i for i in load(d) if i.get("id") == oid), None)
+    if o is None:
+        raise SystemExit("That overlay isn't in the project.")
+    if o.get("kind") == "clip":
+        path, _ = clip_still(d, {**o, "key_color": None, "opacity": None}, 640, 360)
+    elif o.get("kind") == "image" and o.get("file"):
+        path = os.path.join(d, o["file"])
+        if not (os.path.isfile(path) and _inside(d, path)):
+            raise SystemExit(f"The picture for \"{o.get('text') or o.get('id')}\" is missing.")
+    else:
+        raise SystemExit("A colour can be cut out of a picture or a video clip.")
+    with Image.open(path) as im:
+        im = im.convert("RGB")
+        im.thumbnail((160, 160))
+    w, h = im.size
+    edge = max(2, round(min(w, h) * 0.08))
+    px = [im.getpixel((x, y)) for y in range(h) for x in range(w) if x < edge or y < edge or x >= w - edge or y >= h - edge]
+    if not px:
+        raise SystemExit("There was nothing to look at.")
+    for kind, test in (("green", lambda r, g, b: g > r + 35 and g > b + 35), ("blue", lambda r, g, b: b > r + 35 and b > g + 35)):
+        hits = [p for p in px if test(*p)]
+        if len(hits) / len(px) >= 0.5:
+            hits.sort(key=lambda p: sum(p))
+            mid = hits[len(hits) // 2]                                           # the middle shade of the screen, so shadows and bright patches are both near it
+            return {"found": True, "kind": kind, "color": "#%02x%02x%02x" % mid, "sure": round(len(hits) / len(px), 2)}
+    return {"found": False, "message": "I could not see a green or blue screen around the edges of that picture. Pick the colour yourself, or use a picture shot against a plain green or blue background."}
+
+
 def clip_path(d: str, o: dict) -> str:
     path = os.path.join(d, str(o.get("file", "")))
     if not (os.path.isfile(path) and _inside(d, path)) or os.path.splitext(path)[1].lower() not in CLIP_EXT:
@@ -1029,7 +1060,7 @@ def sync_package(d: str) -> list[dict]:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="filmcrafter-overlays")
-    ap.add_argument("action", choices=["list", "add", "update", "remove", "preview", "sync", "reorder", "duplicate", "history", "undo", "redo"])
+    ap.add_argument("action", choices=["list", "add", "update", "remove", "preview", "sync", "reorder", "duplicate", "history", "undo", "redo", "key_suggest"])
     ap.add_argument("project")
     ap.add_argument("--data", default="{}")
     a = ap.parse_args(argv)
@@ -1043,6 +1074,8 @@ def main(argv: list[str]) -> int:
             res = update(a.project, x["id"], x)
         elif a.action == "remove":
             res = remove(a.project, x["id"])
+        elif a.action == "key_suggest":
+            res = key_suggest(a.project, str(x.get("id", "")))
         elif a.action == "sync":
             res = sync_package(a.project)
         elif a.action == "reorder":

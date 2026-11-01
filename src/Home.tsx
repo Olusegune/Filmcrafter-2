@@ -14,6 +14,14 @@ import { byId, cardMeta, RECENT_SHOWN, type HomePreset } from "./presetShelf";
 import { markWelcomeSeen, shouldWelcome, welcomeSeen } from "./homePrefs";
 import "./home.css";
 
+/** A film's own picture on its card (its first chosen keyframe). A film with none, or one that cannot be shown, gets the plain strip: a card is never empty or broken. */
+function CardPicture({ thumb }: { thumb?: string | null }) {
+  const [bad, setBad] = useState(false);
+  return thumb && !bad
+    ? <img className="hm-cardpic" src={api.mediaUrl(thumb)} alt="" loading="lazy" onError={() => setBad(true)} />
+    : <div className="mini-strip" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>;
+}
+
 /**
  * Home: three ways to begin (a story, a preset, or the film you were making), with the presets shown rather than hidden. A film still begins with its story: drop a screenplay anywhere on this screen,
  * or start from an idea. Choosing a preset only sets the new film up (look, acting, colour, editing, frame); nothing is made or charged. Projects made in earlier versions still open from Recent.
@@ -119,7 +127,7 @@ export function Home({ onNewFilm, onOpen, onChooseProject, onSettings, onHelp }:
                   <li key={p.dir} className={`project-card-wrap hm-rcard ${last?.dir === p.dir ? "latest" : ""}`}>
                     <button className="recent-x" title="Remove from Recent (the project stays on disk)" aria-label={`Remove ${p.title} from Recent`} onClick={() => recent("remove", p.dir)}>×</button>
                     <button className="project-card is-film" onClick={() => onOpen(p.dir)} aria-label={`Continue ${p.title}`}>
-                      <div className="mini-strip" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>
+                      <CardPicture thumb={p.thumb} />
                       <div className="t">{p.title}</div>
                       <div className="m">{cardMeta(p.state, p.aspect, relativeDay(p.modified))}</div>
                       <span className="hm-go">{last?.dir === p.dir ? "Continue where you left off" : "Continue"} →</span>

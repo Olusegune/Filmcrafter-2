@@ -32,7 +32,7 @@ Home asks **What will you create today?** and gives three ways to begin.
 
 - **Start from a story.** Drop a screenplay anywhere on the window (Fountain, text, Markdown, PDF or Word), press **New film**, press **Start from an idea**, or choose a story file. Your story is kept exactly as it is.
 - **Create from a preset.** **Explore presets** shows ready-made formats with pictures: vertical micro-dramas, shorts, explainers, an animated short, a documentary, a children's story, a biblical or historical animation, a storybook look. Six are shown on Home; **View all presets** searches and filters all 37.
-- **Continue creating.** Your films are cards with their stage, frame shape and day. The one you worked on last is marked; one click carries on. A long list shows a screenful and **Show all**. **Open project…** finds a film that is not listed. Older music-video projects still open from here.
+- **Continue creating.** Your films are cards with a picture of the film itself (its first chosen keyframe; a film with none shows a plain strip), its stage, frame shape and day. The one you worked on last is marked; one click carries on. A long list shows a screenful and **Show all**. **Open project…** finds a film that is not listed. Older music-video projects still open from here.
 
 ![All presets, searchable and filtered by kind](img/home-presets.png)
 
@@ -137,6 +137,10 @@ In the cut lane press **Suggest…** (or Ctrl+K, *Smart Editor*). It reads the c
 
 The Guide (top of the film) also lists the finishing tools, each marked optional and free: **Start from a preset**, **Tighten the cut**, **Colour**, and **Titles and lower thirds**. Press *Take me there* and the Studio opens with that sheet already up.
 
+![A season plan, with a button that makes one film for each episode](img/season-films.png)
+
+**A season as films.** On the *Series plan* tab, **Make the N episode films** makes one film for each episode, in the same folder as this film, after asking. Each starts as an outline made from the plan (the idea, the tone, the rules and that episode's hook, build, turn and ending), with this season's presets already waiting in its Presets and the episode's length. It is free: only text and settings are written, nothing is generated and nothing is charged, so each episode's pictures and video are made, with the price shown first, as for any film. Episodes that already have a film are left alone, so you can press it again after adding episodes or deleting a film.
+
 When the film is ready, **Polish my film** (beside the green 'ready' line) takes you through the cut suggestions, colour and titles in turn. Close a sheet to go on to the next, or press **Stop here** in the small bar at the bottom.
 
 ### Mix and effects on a layer
@@ -152,6 +156,7 @@ In the Layers panel, **+ Video clip…** puts a video file over the film at the 
 - **Start the clip at** says how many seconds into the clip it begins, so you can use the middle of a longer file. **Play again from the start when it ends** loops it for as long as the layer is up; without it the clip disappears when it ends.
 - **Width** and **Opacity** size and fade it. Move it by dragging it in the player, or give it a movement (fade, slide, zoom…) as for any layer.
 - **Cut out a colour** (in *Mix and effects*) removes a green or blue screen, even one that is lit unevenly or noisy, with a soft edge and a slider that takes the screen's colour off the edges of the subject. **Mix with the picture** (multiply, screen, overlay…) works too.
+- **Find the screen colour** (under *Cut out a colour*) looks at the edges of the picture, or the first frame of a clip, and sets the colour of the green or blue screen it finds, lit unevenly or not. If it sees no screen it says so and changes nothing.
 - **Not yet:** the clip's own sound is not used (add your sound as usual); glow, blur, shapes, rotation and keyframes are for pictures and text only (the panel does not offer them for a clip); the player shows the clip as it is, and the cut-out and the blend are drawn when the film is made. A project holds up to 8 clips, each up to 1 GB.
 
 ### Motion graphics
@@ -544,6 +549,10 @@ A picture FilmCrafter cannot place is shown under **Needs your answer**: say wha
 **Limits.** A PDF page must contain a picture (a page drawn as lines or text is told to be exported as a picture); a page with several panels counts as one; Excel files must be saved as CSV.
 
 ## Exporting, and the finished-film check
+
+![After an export: your film is ready, with the vertical version one click away](img/export-ready.png)
+
+When a full export finishes, the sheet says **Your film is ready**, with its length and size, and **Show the film in its folder**. If the film is not already vertical, **Also make a vertical version for phones** makes a second, separate file for TikTok, Reels and Shorts: framed for a phone, with captions kept clear of the bottom, using the part of each shot you chose under *Presets > Vertical version*. The film you just made is not changed, and it costs nothing: it is made on this computer. A draft export (some shots still storyboard cards) is not called ready.
 
 **Export** shows the folder, the file name and the length before you press the button. After the export, FilmCrafter reads the finished file back once and compares it with what was asked for, and says so in one line: the picture and sound are the length they should be (with the frame count) and nothing is black or frozen, or a list. A **fault** means the film is wrong (not readable, the picture is not the length it should be, the sound ends before or after the picture). **Worth a look** means a black stretch of a second or more, a still stretch of 2.5 seconds or more (in a draft with slates this is expected and only noted), no sound track, or sound that is silent all the way through. If the check cannot run, the film is kept and it says so. The check is free and only reads the file.
 

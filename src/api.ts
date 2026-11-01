@@ -30,7 +30,7 @@ export type Scene = {
 export type Character = { name: string; archetype: string; appearance: string; motivation: string; acting_notes: string };
 export type Plan = { meta: Record<string, string>; characters: Character[]; scenes: Scene[]; model?: string };
 
-export type ProjectSummary = { dir: string; title: string; state: string; modified: number; aspect?: string; song?: string; kind?: "film" | "show"; onboarding?: { stage: string } };
+export type ProjectSummary = { dir: string; title: string; state: string; modified: number; aspect?: string; thumb?: string | null; song?: string; kind?: "film" | "show"; onboarding?: { stage: string } };
 export type LoadedProject = {
   dir: string;
   project: { title: string; state: string; song: string; lyrics?: string; script?: string; aspect_ratio?: string; artist?: string; look?: Look | string;
@@ -213,7 +213,7 @@ export const api = {
   directorAudit: <T = DirectorAudit>(dir: string, action: "audit" | "split", data: Record<string, unknown> = {}) => invoke<T>("director_audit", { dir, action, data }),
   captions: <T = CaptionsState>(dir: string, action: "get" | "set" | "edit" | "preview" | "section", data: Record<string, unknown> = {}) =>
     invoke<T>("captions", { dir, action, data }),
-  overlays: <T = Overlay[]>(dir: string, action: "list" | "add" | "update" | "remove" | "preview" | "sync" | "reorder" | "duplicate" | "history" | "undo" | "redo", data: Record<string, unknown> = {}) =>
+  overlays: <T = Overlay[]>(dir: string, action: "list" | "add" | "update" | "remove" | "preview" | "sync" | "reorder" | "duplicate" | "history" | "undo" | "redo" | "key_suggest", data: Record<string, unknown> = {}) =>
     invoke<T>("overlays", { dir, action, data }),
   refgen: <T = RefGenStatus>(dir: string, action: "candidates" | "estimate" | "queue" | "use" | "discard" | "status" | "cards" | "own", data: Record<string, unknown> = {}) =>
     invoke<T>("refgen", { dir, action, data }),
@@ -252,7 +252,7 @@ export const api = {
   proxies: (dir: string, action: "status" | "build" | "clear", data: Record<string, unknown> = {}) => invoke<ProxyStatus>("proxies", { dir, action, data }),
   smartEditor: <T = unknown>(dir: string, action: "recipes" | "suggest" | "ask" | "accept" | "reject" | "reset_rejected" | "preview", data: Record<string, unknown> = {}) => invoke<T>("smart_editor", { dir, action, data }),
   presets: <T = PresetCatalog>(dir: string, action: PresetAction, data: Record<string, unknown> = {}) => invoke<T>("presets", { dir, action, data }),
-  series: <T = SeriesState>(dir: string, action: "get" | "create" | "set_season" | "set_episode" | "reset_field" | "resize" | "report" | "export_markdown", data: Record<string, unknown> = {}) => invoke<T>("series", { dir, action, data }),
+  series: <T = SeriesState>(dir: string, action: "get" | "create" | "set_season" | "set_episode" | "reset_field" | "resize" | "report" | "export_markdown" | "make_films", data: Record<string, unknown> = {}) => invoke<T>("series", { dir, action, data }),
   editing: <T = Cut>(dir: string, action: CutAction, data: Record<string, unknown> = {}) => invoke<T>("editing", { dir, action, data }),
   grading: <T = GradingState>(dir: string, action: GradingAction, data: Record<string, unknown> = {}) => invoke<T>("grading", { dir, action, data }),
   colourMatch: (dir: string, action: "state" | "analyze" | "set" | "clear", data: Record<string, unknown> = {}) => invoke<ColourMatchState>("colour_match", { dir, action, data }),
@@ -455,6 +455,7 @@ export type SeriesEpisode = { n: number; title: string; seconds: number; role: s
 export type SeriesPlan = { idea: string; preset: string; hero: string; cast: string[]; places: string[]; episodes: SeriesEpisode[];
   season: { logline: SeriesField; genre: string; tone: SeriesField; rules: SeriesField; ending: SeriesField; season_budget_usd: number | null } };
 export type SeriesState = { plan: SeriesPlan | null; exists: boolean; note: string };
+export type SeasonFilms = { made: { n: number; title: string; dir: string }[]; kept: { n: number; title: string; dir: string }[]; folder: string };
 export type SeriesReport = { episodes: number; total_seconds: number; written: number; cliffhangers: number; cast: Record<string, number[]>; places: Record<string, number[]>; budget_total_usd: number | null; season_budget_usd: number | null;
   notes: { level: string; episode: number | null; what: string }[] };
 export type CutAction = "sequence_get" | "edit" | "place_missing" | "snap" | "undo" | "redo";

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { Sheet } from "./Sheet";
-import { api, errorText, type PresetApplied, type PresetCatalog, type PresetChange, type PresetPlan, type PresetRow, type PresetStack, type SeriesEpisode, type SeriesField, type SeriesReport, type SeriesState } from "./api";
+import { ask } from "./ask";
+import { api, errorText, type PresetApplied, type PresetCatalog, type PresetChange, type PresetPlan, type PresetRow, type PresetStack, type SeasonFilms, type SeriesEpisode, type SeriesField, type SeriesReport, type SeriesState } from "./api";
 import * as I from "./icons";
 import "./presets.css";
 
@@ -185,12 +186,18 @@ function SeriesTab({ dir, presets, episodes }: { dir: string; presets: PresetRow
   const [msg, setMsg] = useState("");
   const call = useCallback(async (action: Parameters<typeof api.series>[1], data: Record<string, unknown> = {}) => {
     setBusy(true); setErr("");
-    try { const r = await api.series<unknown>(dir, action, data); if (action === "report") setRep(r as SeriesReport); else if (action !== "export_markdown") { setSt(r as SeriesState); setRep(null); } return r; } catch (e) { setErr(errorText(e)); return null; } finally { setBusy(false); }
+    try { const r = await api.series<unknown>(dir, action, data); if (action === "report") setRep(r as SeriesReport); else if (action !== "export_markdown" && action !== "make_films") { setSt(r as SeriesState); setRep(null); } return r; } catch (e) { setErr(errorText(e)); return null; } finally { setBusy(false); }
   }, [dir]);
   useEffect(() => { void call("get"); }, [call]);
   const plan = st?.plan ?? null;
   const setEp = (n: number, data: Record<string, unknown>) => call("set_episode", { n, ...data });
   const exportDoc = async () => { const f = await save({ defaultPath: "series-plan.md", filters: [{ name: "Document", extensions: ["md"] }] }); if (typeof f === "string" && (await call("export_markdown", { path: f }))) setMsg("Saved the plan as a document."); };
+  const makeFilms = async () => {
+    const n = plan?.episodes.length ?? 0;
+    if (!n || !(await ask(`Make ${n} film${n === 1 ? "" : "s"}, one for each episode?\n\nEach starts as an outline made from this plan, in the same folder as this film, with this season's presets ready in Presets. It is free: nothing is generated and nothing is charged. Episodes that already have a film are left as they are.`))) return;
+    const r = await call("make_films") as SeasonFilms | undefined;
+    if (r) setMsg(r.made.length ? `Made ${r.made.length} film${r.made.length === 1 ? "" : "s"}${r.kept.length ? ` (${r.kept.length} already had one)` : ""}. They are on Home, ready to open: each episode is an ordinary film, so its pictures and video are made, with the price shown first, as for any film.` : "Every episode already has a film, so nothing new was made.");
+  };
   if (!st) return err ? <p className="error-text" role="alert">{err}</p> : <p className="dim">Loading…</p>;
   return (
     <div className="ps-series">
@@ -220,6 +227,7 @@ function SeriesTab({ dir, presets, episodes }: { dir: string; presets: PresetRow
             <label>Episodes <input type="number" min={1} max={60} value={plan.episodes.length} onChange={(e) => void call("resize", { episodes: Number(e.target.value) })} /></label>
             <button type="button" className="btn small" disabled={busy} onClick={() => void call("report")}>Check the plan</button>
             <button type="button" className="btn small" disabled={busy} onClick={() => void exportDoc()}>Save as a document…</button>
+            <button type="button" className="btn small primary" disabled={busy} onClick={() => void makeFilms()} title="One film for each episode, made from this plan. Free: nothing is generated or charged.">Make the {plan.episodes.length} episode films (free)</button>
           </div>
           {rep && (
             <section className="ps-report" aria-label="Plan check">

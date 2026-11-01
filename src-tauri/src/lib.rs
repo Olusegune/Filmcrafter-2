@@ -187,6 +187,32 @@ fn read_json(path: &Path) -> Option<Value> {
     fs::read_to_string(path).ok().and_then(|s| serde_json::from_str(&s).ok())
 }
 
+/// A picture of the film itself, for its card on Home: the first chosen keyframe (by shot id), read from the film's own files. None when there is none, or when what the file names is not a picture
+/// that lies inside the film's render folder (a hand-edited file cannot point the card at anything else).
+fn film_thumb(dir: &Path) -> Option<String> {
+    let render = dir.join("render");
+    let k = read_json(&render.join("keyframes.json"))?;
+    let prod = k.get("production")?.as_object()?;
+    let base = fs::canonicalize(&render).ok()?;
+    let mut ids: Vec<&String> = prod.keys().collect();
+    ids.sort();
+    for id in ids {
+        let Some(name) = prod[id].as_str() else { continue };
+        let rel = name.strip_prefix("project:").unwrap_or(name);
+        let rp = Path::new(rel);
+        let plain = !rel.is_empty() && rp.components().all(|c| matches!(c, std::path::Component::Normal(_)));
+        let pic = rp.extension().and_then(|e| e.to_str()).map(|e| matches!(e.to_ascii_lowercase().as_str(), "png" | "jpg" | "jpeg" | "webp")).unwrap_or(false);
+        if !plain || !pic {
+            continue;
+        }
+        let full = render.join(rp);
+        if fs::canonicalize(&full).map(|c| c.starts_with(&base) && c.is_file()).unwrap_or(false) {
+            return Some(full.to_string_lossy().to_string());
+        }
+    }
+    None
+}
+
 fn write_json(path: &Path, v: &Value) -> Result<(), String> {
     // Write-then-rename so a crash never leaves a half-written project file.
     let tmp = path.with_extension("json.tmp");
@@ -619,7 +645,7 @@ fn list_projects(app: AppHandle) -> Result<Vec<Value>, String> {
             let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
             let locked = f["story"]["locked"].is_number();
             let kind = f["story"]["kind"].as_str().unwrap_or("idea");
-            out.push(json!({"title": f["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "film", "aspect": f["aspect_ratio"], "state": if locked { "Story locked".to_string() } else if kind == "screenplay" { "Screenplay".to_string() } else { format!("Story: {kind}") }}));
+            out.push(json!({"title": f["title"], "dir": dir.to_string_lossy(), "modified": modified, "kind": "film", "aspect": f["aspect_ratio"], "thumb": film_thumb(&dir), "state": if locked { "Story locked".to_string() } else if kind == "screenplay" { "Screenplay".to_string() } else { format!("Story: {kind}") }}));
             continue;
         }
         let Ok(meta) = fs::metadata(dir.join("project.json")) else { continue };
@@ -1650,7 +1676,7 @@ async fn captions(app: AppHandle, dir: String, action: String, data: Value) -> R
 /// On-screen text over the exported film (filmcrafter_engine.overlays): list | add | update | remove | preview | sync | reorder | duplicate | history | undo | redo. Free and local.
 #[tauri::command]
 async fn overlays(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 11] = ["list", "add", "update", "remove", "preview", "sync", "reorder", "duplicate", "history", "undo", "redo"];
+    const ACTIONS: [&str; 12] = ["list", "add", "update", "remove", "preview", "sync", "reorder", "duplicate", "history", "undo", "redo", "key_suggest"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }
@@ -1754,7 +1780,7 @@ async fn presets(app: AppHandle, dir: String, action: String, data: Value) -> Re
 /// A series plan for a micro-drama (filmcrafter_engine.series): an editable scaffold made from an idea. Free and local; it writes the plan in the film's presets folder and nothing else.
 #[tauri::command]
 async fn series(app: AppHandle, dir: String, action: String, data: Value) -> Result<Value, String> {
-    const ACTIONS: [&str; 8] = ["get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown"];
+    const ACTIONS: [&str; 9] = ["get", "create", "set_season", "set_episode", "reset_field", "resize", "report", "export_markdown", "make_films"];
     if !ACTIONS.contains(&action.as_str()) {
         return Err("Unknown action.".into());
     }
@@ -2452,6 +2478,36 @@ fn load_project_data(d: &Path) -> Option<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn scratch(tag: &str) -> PathBuf {
+        let d = std::env::temp_dir().join(format!("pf-thumb-{}-{}-{}", tag, std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        fs::create_dir_all(d.join("render").join("keyframes")).unwrap();
+        d
+    }
+
+    #[test]
+    fn a_film_card_shows_the_first_chosen_keyframe_and_nothing_a_hand_edited_file_points_elsewhere() {
+        let d = scratch("ok");
+        fs::write(d.join("render").join("keyframes").join("b.png"), b"x").unwrap();
+        fs::write(d.join("render").join("keyframes").join("a.jpg"), b"x").unwrap();
+        fs::write(d.join("render").join("notes.txt"), b"x").unwrap();
+        fs::write(d.join("secret.png"), b"x").unwrap();
+        let kf = |v: Value| fs::write(d.join("render").join("keyframes.json"), serde_json::to_string(&v).unwrap()).unwrap();
+        assert!(film_thumb(&d).is_none(), "no record: no picture");
+        kf(json!({"production": {"S01-02": "project:keyframes/b.png", "S01-01": "project:keyframes/a.jpg"}}));
+        assert!(film_thumb(&d).unwrap().ends_with("a.jpg"), "the first shot by its id");
+        kf(json!({"production": {"S01-01": "project:keyframes/missing.png", "S01-02": "project:keyframes/b.png"}}));
+        assert!(film_thumb(&d).unwrap().ends_with("b.png"), "a missing file is skipped");
+        for bad in ["project:../secret.png", "../secret.png", "project:/etc/passwd", "project:C:/Windows/win.png", "project:notes.txt", "project:", "project:keyframes/..\\..\\secret.png"] {
+            kf(json!({"production": {"S01-01": bad}}));
+            assert!(film_thumb(&d).is_none(), "refused: {bad}");
+        }
+        kf(json!({"production": {"S01-01": 5, "S01-02": null}}));
+        assert!(film_thumb(&d).is_none(), "not text: skipped");
+        fs::write(d.join("render").join("keyframes.json"), b"not json").unwrap();
+        assert!(film_thumb(&d).is_none(), "damaged: no picture, no crash");
+        let _ = fs::remove_dir_all(&d);
+    }
 
     #[test]
     fn changing_the_films_look_keeps_the_looks_of_scenes_and_shots() {

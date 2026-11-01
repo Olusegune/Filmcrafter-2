@@ -20,6 +20,9 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
   const [error, setError] = useState("");
   const [pkg, setPkg] = useState<EditorPackage | null>(null);
   const [sending, setSending] = useState("");
+  const [extra, setExtra] = useState<ExportResult | null>(null);                  // the vertical version, made from the ready screen
+  const [extraBusy, setExtraBusy] = useState(false);
+  const [ran, setRan] = useState("");                                              // which format the film on show was made in
   const [sum, setSum] = useState<null | { video: number; still: number; none: number; stale: number; major: number; minor: number }>(null);
   useEffect(() => {   // before exporting: what's in the cut, and what's still open
     Promise.all([api.golden<{ video: string[]; still: string[]; none: string[]; stale: string[] }>(dir, "status"),
@@ -42,11 +45,15 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
     catch (e) { setError(errorText(e)); } finally { setSending(""); }
   };
   const run = async () => {
-    setPkg(null); setError(""); setResult(null); setProgress({ stage: "starting", p: 0 });
+    setPkg(null); setError(""); setResult(null); setExtra(null); setRan(preset); setProgress({ stage: "starting", p: 0 });
     try { setResult(await api.exportProject(dir, preset)); } catch (e) { setError(errorText(e)); }
     finally { setProgress(null); }
   };
 
+  const makeVertical = async () => {                       // a separate file, made here and free; the film just exported is not touched
+    setError(""); setExtraBusy(true); setProgress({ stage: "starting", p: 0 });
+    try { setExtra(await api.exportProject(dir, "vertical")); } catch (e) { setError(errorText(e)); } finally { setExtraBusy(false); setProgress(null); }
+  };
   const draft = rendered < shots;
   return (
     <Sheet label="Export" onDismiss={progress ? undefined : onClose}>
@@ -91,6 +98,21 @@ export function ExportSheet({ dir, projectAspect, shots, rendered, onClose }: {
           <div className="export-done">
             <div className="status-ok"><I.Check size={16} /> Exported {result.draft ? "draft " : ""}— {result.width}×{result.height}, {result.fps} fps, {fmtTime(result.duration)}</div>
             <div className="dim" style={{ wordBreak: "break-all", marginTop: 6 }}>{result.path}</div>
+            {!result.draft && (
+              <div className="export-ready" role="status">
+                <b>Your film is ready.</b> <span className="dim">{fmtTime(result.duration)} at {result.width}×{result.height}.</span>
+                <div className="export-ready-row">
+                  <button className="btn primary" onClick={() => revealItemInDir(result.path)}>Show the film in its folder</button>
+                  {ran !== "vertical" && !extra && <button className="btn" disabled={extraBusy || !!progress} onClick={() => void makeVertical()}>{extraBusy ? "Making the vertical version…" : "Also make a vertical version for phones"}</button>}
+                </div>
+                {ran !== "vertical" && !extra && <p className="dim">A separate file for TikTok, Reels and Shorts, framed for a phone with captions kept clear of the bottom. The film above is not changed. Free: it is made on this computer.</p>}
+                {extra && (
+                  <div className="export-extra">
+                    <div className="status-ok"><I.Check size={16} /> The vertical version is ready — {extra.width}×{extra.height}, {fmtTime(extra.duration)}</div>
+                    <div className="dim" style={{ wordBreak: "break-all" }}>{extra.path}</div>
+                    <button className="link" onClick={() => revealItemInDir(extra.path)}>Show the vertical version in its folder</button>
+                  </div>)}
+              </div>)}
             {result.loudness && <div className="dim" title="Integrated loudness of the whole film in LUFS, its loudness range in LU, and its highest peak">
               Loudness {result.loudness.lufs} LUFS{result.loudness.true_peak_db != null ? `, peak ${result.loudness.true_peak_db} dB` : ""}.
               {result.loudness.lufs > -11 ? " Louder than most streaming sites play (about -14 LUFS), so they will turn it down." : result.loudness.lufs < -20 ? " Quiet next to most films (streaming sites play at about -14 LUFS)." : " Close to what streaming sites play (about -14 LUFS)."}</div>}

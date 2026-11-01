@@ -30,8 +30,16 @@ const BLENDS: [string, string][] = [["normal", "Normal"], ["multiply", "Multiply
 const MASKS: [string, string][] = [["none", "None"], ["ellipse", "Oval"], ["rounded", "Rounded box"], ["rect", "Rectangle"]];
 
 /** How the layer mixes with the picture under it, a glow or blur, a shape that hides part of it, and (for a picture) a colour cut out of it. All free; the finished film does the same as the preview here. */
-function MixPanel({ sel, call }: { sel: Overlay; call: (action: "update", data: Record<string, unknown>) => void }) {
+function MixPanel({ sel, call, dir }: { sel: Overlay; call: (action: "update", data: Record<string, unknown>) => void; dir: string }) {
   const set = (data: Record<string, unknown>) => call("update", { id: sel.id, ...data });
+  const [found, setFound] = useState("");
+  const find = async () => {                                          // looks at the edges of the picture or the clip's first frame; changes nothing until it has found one
+    setFound("Looking…");
+    try {
+      const r = await api.overlays<{ found: boolean; kind?: string; color?: string; sure?: number; message?: string }>(dir, "key_suggest", { id: sel.id });
+      if (r.found && r.color) { set({ key_color: r.color }); setFound(`Found a ${r.kind} screen. Its colour is set.`); } else setFound(r.message ?? "No screen found.");
+    } catch (e) { setFound(errorText(e)); }
+  };
   const solid = sel.kind !== "fill" && sel.kind !== "clip" && !sel.cover;
   return (
     <details className="ly-mix">
@@ -54,6 +62,8 @@ function MixPanel({ sel, call }: { sel: Overlay; call: (action: "update", data: 
         <label className="ly-check"><input type="checkbox" checked={!!sel.key_color} onChange={(e) => set({ key_color: e.target.checked ? "#00ff00" : "" })} /> Cut out a colour (a green screen)</label>
         {sel.key_color && <>
           <label className="field"><span>Colour to remove</span><Colour value={sel.key_color} onCommit={(v) => set({ key_color: v })} /></label>
+          <button type="button" className="btn small" onClick={() => void find()} title="Looks at the edges of the picture for a green or blue screen and sets its colour">Find the screen colour</button>
+          {found && <p className="dim ly-mixnote" role="status">{found}</p>}
           <div className="ly-two">
             <label className="field"><span>How much of it</span><Range min={0} max={1} step={0.05} value={sel.key_tol ?? 0.35} onCommit={(v) => set({ key_tol: v })} /></label>
             <label className="field"><span>Soft edge</span><Range min={0} max={1} step={0.05} value={sel.key_soft ?? 0.15} onCommit={(v) => set({ key_soft: v })} /></label></div>
@@ -313,7 +323,7 @@ export function LayersPanel({ dir, selected, onSelect, onClose, time, onFocus, d
             <label className="field"><span>Outline width</span><Range min={0} max={0.03} step={0.001} value={sel.stroke_w ?? 0} onCommit={(v) => call("update", { id: sel.id, stroke_w: v })} /></label></div></>}
         {(sel.kind === "text" || sel.kind === "image" || sel.kind === "svg") && !sel.cover &&
           <label className="ly-check"><input type="checkbox" checked={sel.shadow !== false} onChange={(e) => call("update", { id: sel.id, shadow: e.target.checked })} /> Soft shadow</label>}
-        <MixPanel sel={sel} call={call} />
+        <MixPanel sel={sel} call={call} dir={dir} />
         {sel.kind !== "fill" && sel.kind !== "clip" && !sel.cover && <KeysEditor sel={sel} time={time} save={(keys) => call("update", { id: sel.id, keys })} />}
         {sel.kind !== "fill" && !sel.cover && !sel.keys?.length && <label className="field"><span>Movement</span>
           <select className="text-input" value={sel.anim ?? "fade"} onChange={(e) => call("update", { id: sel.id, anim: e.target.value })}>
